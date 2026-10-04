@@ -48,6 +48,7 @@ docs/              bilingual maintainer workflows and rendering-module maps
 
 ## Project Policy
 
+- Do not automatically update `docs/`; only update documentation when explicitly requested by the user.
 - Write clean, direct maintainer code with simple control flow, explicit logic, compact formatting, and coherent
   ownership. When the existing organization obstructs the requested change, restructure it within scope instead of
   accumulating local patches around awkward boundaries. Do not turn that restructuring into an unrelated redesign.
