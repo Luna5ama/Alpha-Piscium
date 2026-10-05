@@ -12,18 +12,20 @@
 const float TOTAL_HISTORY_LENGTH = 255.0;
 
 /*
-    Diffuse Color : 48 bits         (1)
+    Diffuse Color : 48 bits (1)
     Shadow Hint: 16 bits (1)
-    Diffuse fast color: 48 bits     (2)
+    Diffuse fast color: 48 bits (2)
+    Diffuse luma second moment: 16 bits (2)
 
-    Specular Color: 48 bits         (3)
-    Specular fast color: 48 bits    (4)
-    Specular Hit Distance: 16 bits  (4)
+    Specular Color: 48 bits (3)
+    Specular luma second moment: 16 bits (3)
+    Specular fast color: 48 bits (4)
+    Specular Hit Distance: 16 bits (4)
 
-    History Length: 8 bits          (5)
-    Real History Length: 8 bits     (5)
+    History Length: 8 bits (5)
+    Real History Length: 8 bits (5)
     Specular History Length: 8 bits (5)
-    Glazing Angle Factor: 8 bits    (5)
+    Glazing Angle Factor: 8 bits (5)
 */
 
 const float GI_MAX_HIT_DISTANCE = 256.0;
@@ -32,8 +34,10 @@ struct GIHistoryData {
     vec3 diffuseColor;
     float shadowHint;
     vec3 diffuseFastColor;
+    float diffuseMoment2;
 
     vec3 specularColor;
+    float specularMoment2;
     vec3 specularFastColor;
     float specularHitDistance;
 
@@ -48,8 +52,10 @@ GIHistoryData gi_historyData_init()  {
     data.diffuseColor = vec3(0.0);
     data.shadowHint = 0.0;
     data.diffuseFastColor = vec3(0.0);
+    data.diffuseMoment2 = 0.0;
 
     data.specularColor = vec3(0.0);
+    data.specularMoment2 = 0.0;
     data.specularFastColor = vec3(0.0);
     data.specularHitDistance = GI_MAX_HIT_DISTANCE;
 
@@ -67,10 +73,12 @@ void gi_historyData_unpack1(inout GIHistoryData data, vec4 packedData) {
 
 void gi_historyData_unpack2(inout GIHistoryData data, vec4 packedData) {
     data.diffuseFastColor = packedData.xyz;
+    data.diffuseMoment2 = packedData.w;
 }
 
 void gi_historyData_unpack3(inout GIHistoryData data, vec4 packedData) {
     data.specularColor = packedData.xyz;
+    data.specularMoment2 = packedData.w;
 }
 
 void gi_historyData_unpack4(inout GIHistoryData data, vec4 packedData) {
@@ -90,11 +98,11 @@ vec4 gi_historyData_pack1(GIHistoryData data) {
 }
 
 vec4 gi_historyData_pack2(GIHistoryData data) {
-    return vec4(data.diffuseFastColor, 0.0);
+    return vec4(data.diffuseFastColor, data.diffuseMoment2);
 }
 
 vec4 gi_historyData_pack3(GIHistoryData data) {
-    return vec4(data.specularColor, 0.0);
+    return vec4(data.specularColor, data.specularMoment2);
 }
 
 vec4 gi_historyData_pack4(GIHistoryData data) {

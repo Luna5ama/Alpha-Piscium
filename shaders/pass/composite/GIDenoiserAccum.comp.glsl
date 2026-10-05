@@ -94,8 +94,6 @@ void main() {
                 vec4 newSpecular = transient_ssgiSpecOut_fetch(texelPos);
 
                 GIHistoryData historyData = gi_historyData_init();
-                vec2 moments2 = transient_gi6Reprojected_fetch(texelPos).xy;
-
                 gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
                 gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
                 gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
@@ -166,7 +164,9 @@ void main() {
                         colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, newDiffuse.rgb),
                         colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, newSpecular.rgb)
                     );
-                    moments2 = mix(moments2, pow2(newLuminance), alpha.zw);
+                    vec2 newMoments2 = pow2(newLuminance);
+                    historyData.diffuseMoment2 = mix(historyData.diffuseMoment2, newMoments2.x, alpha.z);
+                    historyData.specularMoment2 = mix(historyData.specularMoment2, newMoments2.y, alpha.w);
 
                     float specHitDistanceAlpha = rcp(min(historyLengths.y, 16.0));
 
@@ -185,9 +185,9 @@ void main() {
                     colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, historyData.diffuseFastColor),
                     colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, historyData.specularFastColor)
                 );
+                vec2 moments2 = vec2(historyData.diffuseMoment2, historyData.specularMoment2);
                 vec2 variance = max(moments2 - pow2(moments1), 0.0);
-                vec2 stdDev = sqrt(variance);
-                transient_gi_variance_store(texelPos, vec4(variance, stdDev));
+                transient_gi_variance_store(texelPos, vec4(variance, 0.0, 0.0));
 
                 // 3x3 max kernel on history lengths
                 vec3 hLenAverage = vec3(0.0);
@@ -229,8 +229,6 @@ void main() {
                 historyData.realHistoryLength = mix(historyData.realHistoryLength, hLenMax.z, hLenAverage.z);
 
                 float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 1u), frameCounter);
-                moments2 = dither_fp16(clamp(moments2, 0.0, FP16_MAX), ditherNoise);
-                history_gi6_store(texelPos, vec4(moments2, 0.0, 0.0));
                 vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
                 packedData1 = dither_fp16(packedData1, ditherNoise);
                 vec4 packedData2 = clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX);

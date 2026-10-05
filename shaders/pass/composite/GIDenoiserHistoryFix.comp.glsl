@@ -75,7 +75,7 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
         vec3 neighborSpecYCoCg = colors_RGBToYCoCg(neighborSpec);
 
         uvec4 packedData;
-        packedData.xy = packHalf4x16(vec4(neighborDiffYCoCg, diffData.w));
+        packedData.xy = packHalf4x16(vec4(neighborDiffYCoCg, 0.0));
         packedData.zw = packHalf4x16(vec4(neighborSpecYCoCg, specData.w));
         shared_YCoCgData[sharedXY.y][sharedXY.x] = packedData;
     }
