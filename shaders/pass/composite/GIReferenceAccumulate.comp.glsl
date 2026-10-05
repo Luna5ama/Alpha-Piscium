@@ -5,8 +5,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba32f) uniform restrict image2D uimg_giReferenceDiff;
-layout(rgba32f) uniform restrict image2D uimg_giReferenceSpec;
+layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 
 #include "/techniques/gi/InitialSample.glsl"
 #include "/techniques/gi/Reservoir.glsl"
@@ -60,9 +59,9 @@ void main() {
     vec4 diffSum = vec4(diffSample, pow2(colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, diffSample)));
     vec4 specSum = vec4(specSample, 1.0);
     if (!resetHistory) {
-        diffSum += imageLoad(uimg_giReferenceDiff, texelPos);
-        specSum += imageLoad(uimg_giReferenceSpec, texelPos);
+        diffSum += uintBitsToFloat(history_giReferenceDiff_load(texelPos));
+        specSum += uintBitsToFloat(history_giReferenceSpec_load(texelPos));
     }
-    imageStore(uimg_giReferenceDiff, texelPos, diffSum);
-    imageStore(uimg_giReferenceSpec, texelPos, specSum);
+    history_giReferenceDiff_store(texelPos, floatBitsToUint(diffSum));
+    history_giReferenceSpec_store(texelPos, floatBitsToUint(specSum));
 }

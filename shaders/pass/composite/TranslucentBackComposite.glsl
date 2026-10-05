@@ -53,8 +53,8 @@ void main() {
             // Full BRDF remodulation for demodulated GI
             #if SETTING_GI_USE_REFERENCE > 0
             // Reference mode shows the FP32 running mean of GIReferenceAccumulate instead of the denoised GI.
-            vec4 referenceSpec = texelFetch(usam_giReferenceSpec, texelPos, 0);
-            vec4 giDiff = texelFetch(usam_giReferenceDiff, texelPos, 0) / referenceSpec.a;
+            vec4 referenceSpec = uintBitsToFloat(history_giReferenceSpec_fetch(texelPos));
+            vec4 giDiff = uintBitsToFloat(history_giReferenceDiff_fetch(texelPos)) / referenceSpec.a;
             vec4 giSpec = referenceSpec / referenceSpec.a;
             #else
             vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);

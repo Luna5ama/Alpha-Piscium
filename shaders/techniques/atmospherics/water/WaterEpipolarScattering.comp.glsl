@@ -37,7 +37,7 @@
 layout(local_size_x = 1, local_size_y = WORK_GROUP_SIZE) in;
 const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 
-layout(rgba32ui) uniform restrict uimage2D uimg_epipolarData;
+layout(rgba32ui) uniform restrict uimage2D uimg_frgba32ui;
 
 vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
     float rv = rand_stbnVec1(randCoord, frameCounter);
@@ -306,7 +306,7 @@ void main() {
     ivec2 imgSizei = ivec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     vec2 imgSize = vec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     uint sliceIndex = gl_WorkGroupID.x;
-    vec4 sliceEndPoints = uintBitsToFloat(texelFetch(usam_epipolarData, ivec2(sliceIndex, 0), 0));
+    vec4 sliceEndPoints = uintBitsToFloat(persistent_epipolarData_fetch(ivec2(sliceIndex, 0)));
 
     uint cond = uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
@@ -343,7 +343,7 @@ void main() {
             packEpipolarData(outputData, result, texelPosI);
             ivec2 writeTexelPos = ivec2(gl_GlobalInvocationID.x, sliceSampleIndex + 1u);
             writeTexelPos.y += int(SETTING_SLICE_SAMPLES);
-            imageStore(uimg_epipolarData, writeTexelPos, outputData);
+            persistent_epipolarData_store(writeTexelPos, outputData);
         }
     } else {
         ivec2 texelPos = ivec2(65535);
@@ -353,7 +353,7 @@ void main() {
         for (uint i = 0; i < LOOP_COUNT; i++) {
             ivec2 writeTexelPos = ivec2(gl_GlobalInvocationID.xy);
             writeTexelPos.y += int(1u + i * WORK_GROUP_SIZE + SETTING_SLICE_SAMPLES);
-            imageStore(uimg_epipolarData, writeTexelPos, outputData);
+            persistent_epipolarData_store(writeTexelPos, outputData);
         }
     }
 }

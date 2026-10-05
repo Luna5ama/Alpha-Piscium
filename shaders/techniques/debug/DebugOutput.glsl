@@ -337,12 +337,12 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #ifdef SETTING_DEBUG_ATMOSPHERE
-    const float EPIPOLAR_SLICE_END_POINTS_V = 0.5 / float(EPIPOLAR_DATA_Y_SIZE);
+    const ivec2 EPIPOLAR_DATA_SIZE = ivec2(SETTING_EPIPOLAR_SLICES, EPIPOLAR_DATA_Y_SIZE);
     if (inViewPort(ivec4(0, 0, 1024, 16), debugTexCoord)) {
-        outputColor.rgb = vec3(uintBitsToFloat(texture(usam_epipolarData, vec2(debugTexCoord.x, EPIPOLAR_SLICE_END_POINTS_V)).rg), 0.0);
+        outputColor.rgb = vec3(uintBitsToFloat(persistent_epipolarData_fetch(ivec2(debugTexCoord.x * EPIPOLAR_DATA_SIZE.x, 0)).rg), 0.0);
     }
     if (inViewPort(ivec4(0, 16, 1024, 16), debugTexCoord)) {
-        outputColor.rgb = vec3(uintBitsToFloat(texture(usam_epipolarData, vec2(debugTexCoord.x, EPIPOLAR_SLICE_END_POINTS_V)).ba), 0.0);
+        outputColor.rgb = vec3(uintBitsToFloat(persistent_epipolarData_fetch(ivec2(debugTexCoord.x * EPIPOLAR_DATA_SIZE.x, 0)).ba), 0.0);
     }
     if (inViewPort(ivec4(0, 32, 256, 64), debugTexCoord)) {
         outputColor.rgb = gammaCorrect(persistent_transmittanceLUT_sample(debugTexCoord).rgb);
@@ -356,7 +356,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         float viewZ;
         vec2 sampleTexCoord = debugTexCoord;
         sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
-        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
+        unpackEpipolarData(persistent_epipolarData_fetch(min(ivec2(sampleTexCoord * vec2(EPIPOLAR_DATA_SIZE)), EPIPOLAR_DATA_SIZE - 1)), sampleResult, viewZ);
         outputColor.rgb = expGamma(sampleResult.inScattering);
     }
 //    if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
@@ -364,13 +364,13 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 //        float viewZ;
 //        vec2 sampleTexCoord = debugTexCoord;
 //        sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
-//        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
+//        unpackEpipolarData(persistent_epipolarData_fetch(min(ivec2(sampleTexCoord * vec2(EPIPOLAR_DATA_SIZE)), EPIPOLAR_DATA_SIZE - 1)), sampleResult, viewZ);
 //        outputColor.rgb = gammaCorrect(sampleResult.transmittance);
 //    }
 //    if (inViewPort(ivec4(256, 32 + 512, whRatio * 256, 256), debugTexCoord)) {
 //        ScatteringResult sampleResult;
 //        float viewZ;
-//        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
+//        unpackEpipolarData(persistent_epipolarData_fetch(min(ivec2(debugTexCoord * vec2(EPIPOLAR_DATA_SIZE)), EPIPOLAR_DATA_SIZE - 1)), sampleResult, viewZ);
 //        float depthV = -viewZ.r / far;
 //        outputColor.rgb = gammaCorrect(depthV).rrr;
 //    }
@@ -420,26 +420,26 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #ifdef SETTING_DEBUG_ENV_PROBE
     if (inViewPort(ivec4(0, 0, 512, 768), debugTexCoord)) {
         ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE * vec2(2.0, 3.0));
-        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+        EnvProbeData envProbeData = envProbe_decode(persistent_envProbe_fetch(texelPos));
         bool envProbeIsSky = envProbe_isSky(envProbeData);
         outputColor.rgb = envProbeIsSky ? vec3(0.0) : envProbeData.radiance;
         outputColor.rgb = expGamma(outputColor.rgb);
     }
 //    if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
 //        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
-//        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+//        EnvProbeData envProbeData = envProbe_decode(persistent_envProbe_fetch(texelPos));
 //        bool envProbeIsSky = envProbe_isSky(envProbeData);
 //        outputColor.rgb = envProbeIsSky ? vec3(0.0, 0.0, 1.0) : vec3(saturate(length(envProbeData.scenePos) / far));
 //    }
 //    if (inViewPort(ivec4(512, 0, 512, 512), debugTexCoord)) {
 //        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
-//        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+//        EnvProbeData envProbeData = envProbe_decode(persistent_envProbe_fetch(texelPos));
 //        outputColor.rgb = envProbeData.normal * 0.5 + 0.5;
 //    }
 //    if (inViewPort(ivec4(512, 512, 512, 512), debugTexCoord)) {
 //        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
 //        texelPos.x += 512;
-//        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+//        EnvProbeData envProbeData = envProbe_decode(persistent_envProbe_fetch(texelPos));
 //        bool envProbeIsSky = envProbe_isSky(envProbeData);
 //        outputColor.rgb = envProbeIsSky ? vec3(0.0) : envProbeData.radiance;
 //        outputColor.rgb *= exp2(SETTING_DEBUG_EXP);

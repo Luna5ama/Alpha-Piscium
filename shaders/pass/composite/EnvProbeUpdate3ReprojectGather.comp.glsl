@@ -5,7 +5,7 @@
 layout(local_size_x = 128) in;
 const ivec3 workGroups = ivec3(512, 2, 3);
 
-layout(rgba32ui) uniform restrict writeonly uimage2D uimg_envProbe;
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_frgba32ui;
 
 vec3 envProbe_decodeScenePos(uvec4 packedData) {
     vec2 temp2 = unpackHalf2x16(packedData.y);
@@ -50,7 +50,7 @@ void main() {
             for (int xo = -1; xo <= 1; ++xo) {
                 ivec2 offset = ivec2(xo, yo);
                 ivec2 samplePos = (centerTexelPos + offset);
-                uvec4 samplePackedData = texelFetch(usam_envProbe, samplePos, 0);
+                uvec4 samplePackedData = persistent_envProbe_fetch(samplePos);
 
                 vec3 samplePrevPos = envProbe_decodeScenePos(samplePackedData);
                 vec3 sampleCurrPos = samplePrevPos - uval_cameraDelta;
@@ -78,5 +78,5 @@ void main() {
 
     ivec2 outputPos = sliceTexelPos + sliceID * ENV_PROBE_SIZEI;
     outputPos.x += ENV_PROBE_SIZEI.x * 2;
-    imageStore(uimg_envProbe, outputPos, envProbe_encode(dataSum));
+    persistent_envProbe_store(outputPos, envProbe_encode(dataSum));
 }

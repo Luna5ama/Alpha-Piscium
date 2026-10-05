@@ -13,7 +13,7 @@ vec3 restir_irradiance_sampleIrradianceMiss(ivec2 texelPos, vec3 rayOriginScene,
     vec2 envSliceID = vec2(-1.0);
     coords_cubeMapForward(worldDirection, envSliceUV, envSliceID);
     ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
-    EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
+    EnvProbeData envData = envProbe_decode(persistent_envProbe_fetch(envTexel));
 
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();

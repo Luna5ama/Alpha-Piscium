@@ -51,6 +51,8 @@
         "transient_restir_initialCandidateNormal": "R32UI",
         "transient_restir_reservoirTemporal": "RGBA32UI",
         "history_restir_reservoirTemporal": "RGBA32UI",
+        "history_giReferenceDiff": "RGBA32UI",
+        "history_giReferenceSpec": "RGBA32UI",
         "transient_restir_primary": "R32UI",
         "history_restir_primary": "R32UI",
         "history_restir_prevSample": "RGBA16F",
@@ -95,6 +97,16 @@
             "format": "RGBA16F",
             "width": 256,
             "height": 64
+        },
+        "persistent_envProbe": {
+            "format": "RGBA32UI",
+            "width": 1024,
+            "height": 768
+        },
+        "persistent_epipolarData": {
+            "format": "RGBA32UI",
+            "width": 2048,
+            "height": 3073
         },
         "persistent_envProbeTemp": {
             "format": "RGBA16F",

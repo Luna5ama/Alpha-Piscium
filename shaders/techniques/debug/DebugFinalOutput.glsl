@@ -55,7 +55,7 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
 
     printString((_S, _a, _m, _p, _l, _e, _s, _colon, _space));
-    printInt(int(texelFetch(usam_giReferenceSpec, uval_mainImageSizeI >> 1, 0).a));
+    printInt(int(uintBitsToFloat(history_giReferenceSpec_fetch(uval_mainImageSizeI >> 1).a)));
     printLine();
     printLine();
     printLine();
