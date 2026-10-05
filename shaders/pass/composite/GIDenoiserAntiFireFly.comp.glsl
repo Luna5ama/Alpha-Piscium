@@ -33,9 +33,9 @@ void loadSharedDataRCRS(uint index) {
             } else if (borderIndex < 36u) {
                 sharedXY = uvec2(borderIndex - 18u, 17u);
             } else if (borderIndex < 52u) {
-                sharedXY = uvec2(0u, borderIndex - 36u);
+                sharedXY = uvec2(0u, borderIndex - 35u);
             } else {
-                sharedXY = uvec2(17u, borderIndex - 52u);
+                sharedXY = uvec2(17u, borderIndex - 51u);
             }
         }
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 1;
