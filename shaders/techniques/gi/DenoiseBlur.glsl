@@ -137,30 +137,24 @@ void main() {
             history_viewNormal_store(texelPos, vec4(centerGeomData.normal * 0.5 + 0.5, 0.0));
             #endif
 
-            vec2 blurGuidance = transient_gi_blurGuidance_fetch(texelPos).xy;
+            vec4 blurGuidance = transient_gi_blurGuidance_fetch(texelPos);
 
             vec4 historyData5 = transient_gi5Reprojected_fetch(texelPos);
             float diffHistoryLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
             float specHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
-            vec2 filteredVariance = transient_gi_filteredVariance_fetch(texelPos).xy;
-            vec2 fastLuminance = vec2(
-                colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, transient_gi2Reprojected_fetch(texelPos).rgb),
-                colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, transient_gi4Reprojected_fetch(texelPos).rgb)
-            );
-            vec2 luminanceSquared = pow2(fastLuminance) + 1e-6;
-            vec2 varianceFactor = sqrt(luminanceSquared / (luminanceSquared + filteredVariance));
+            vec2 varianceFactor = blurGuidance.zw;
             float diffuseMaterialExponent = transient_gi_diffuseBlurExponent_fetch(texelPos).x;
             // Geometry rejection follows accumulated history, independently of radiance noise.
             float diffHistoryFactor = pow(rcp(1.0 + pow2(0.1 * diffHistoryLength)), diffuseMaterialExponent);
             float specHistoryFactor = rcp(1.0 + pow2(0.1 * specHistoryLength));
-            float diffFilterHistory = mix(1.0, diffHistoryLength, varianceFactor.x);
-            float specFilterHistory = mix(1.0, specHistoryLength, varianceFactor.y);
+            float diffFilterHistory = mix(diffHistoryLength, 1.0, varianceFactor.x);
+            float specFilterHistory = mix(specHistoryLength, 1.0, varianceFactor.y);
             float diffRadiusScale = pow(rcp(1.0 + pow2(0.1 * diffFilterHistory)), diffuseMaterialExponent);
             float specRadiusScale = rcp(1.0 + pow2(0.1 * specFilterHistory));
 
             // Variance can enlarge the footprint without weakening shadow protection.
             float diffShadowScale = pow2(blurGuidance.x);
-            float specDistanceScale = mix(1.0, pow2(blurGuidance.y) * 0.95 + 0.05, varianceFactor.y);
+            float specDistanceScale = mix(pow2(blurGuidance.y) * 0.95 + 0.05, 1.0, varianceFactor.y);
 
             float16_t jitterR = float16_t(blurJitter.y);
             float angle = blurJitter.x * PI_2;

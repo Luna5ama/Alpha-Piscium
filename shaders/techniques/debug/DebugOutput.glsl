@@ -234,18 +234,14 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
         #if SETTING_DEBUG_DENOISER != 0
         bool denoiserSolid = texelFetch(usam_gbufferSolidViewZ, scaledTexelPos, 0).x > -65536.0;
-        vec4 denoiserVariance = vec4(0.0);
+        vec2 denoiserVarianceFactor = vec2(0.0);
         if (denoiserSolid) {
-            denoiserVariance = transient_gi_filteredVariance_fetch(scaledTexelPos);
+            denoiserVarianceFactor = transient_gi_blurGuidance_fetch(scaledTexelPos).zw;
         }
         #if SETTING_DEBUG_DENOISER == 1
-        outputColor = vec4(vec3(denoiserVariance.x), 1.0);
+        outputColor = vec4(vec3(denoiserVarianceFactor.x), 1.0);
         #elif SETTING_DEBUG_DENOISER == 2
-        outputColor = vec4(vec3(denoiserVariance.y), 1.0);
-        #elif SETTING_DEBUG_DENOISER == 3
-        outputColor = vec4(vec3(denoiserVariance.z), 1.0);
-        #elif SETTING_DEBUG_DENOISER == 4
-        outputColor = vec4(vec3(denoiserVariance.w), 1.0);
+        outputColor = vec4(vec3(denoiserVarianceFactor.y), 1.0);
         #endif
         #endif
 

@@ -253,6 +253,8 @@ void main() {
                 transient_gi4Reprojected_store(texelPos, packedData4);
                 transient_gi5Reprojected_store(texelPos, packedData5);
 
+            } else {
+                transient_gi_variance_store(texelPos, vec4(0.0));
             }
         }
     }

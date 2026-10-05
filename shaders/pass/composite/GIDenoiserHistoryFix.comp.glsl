@@ -48,8 +48,7 @@ void loadSharedVariance(uvec2 groupOriginTexelPos, uint index) {
     if (index < 400u) {
         uvec2 sharedXY = uvec2(index % 20u, index / 20u);
         ivec2 srcXY = clamp(ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2, ivec2(0), uval_mainImageSizeI - 1);
-        float viewZ = texelFetch(usam_gbufferSolidViewZ, srcXY, 0).x;
-        shared_variance[sharedXY.y][sharedXY.x] = viewZ > -65536.0 ? transient_gi_variance_fetch(srcXY).xy : vec2(0.0);
+        shared_variance[sharedXY.y][sharedXY.x] = transient_gi_variance_fetch(srcXY).xy;
     }
 }
 
@@ -143,18 +142,6 @@ void main() {
             #endif
 
             if (viewZ > -65536.0) {
-                vec2 filteredVariance = vec2(0.0);
-                ivec2 varianceLocalPos = ivec2(mortonPos) + 2;
-                for (int dy = -2; dy <= 2; ++dy) {
-                    for (int dx = -2; dx <= 2; ++dx) {
-                        ivec2 samplePos = varianceLocalPos + ivec2(dx, dy);
-                        float weight = float((3 - abs(dx)) * (3 - abs(dy)));
-                        filteredVariance += shared_variance[samplePos.y][samplePos.x] * weight;
-                    }
-                }
-                filteredVariance /= 81.0;
-                transient_gi_filteredVariance_store(texelPos, vec4(filteredVariance, sqrt(filteredVariance)));
-
                 // No need to load fast colors here because they are already in the shared memory
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
@@ -359,16 +346,35 @@ void main() {
                     #endif
                 }
                 #endif
+                vec2 blurGuidance = vec2(0.0);
                 #ifdef SETTING_DENOISER_SPATIAL
                 float shadowScale = pow(1.0 - saturate(historyData.shadowHint), 2.0 * sqrt(historyData.historyLength));
                 float specDistanceScale = smoothstep(0.0, 1.0, filteredSpecHitDistance / (filteredSpecHitDistance + 5.0));
                 float specHistoryExponent = 0.5 * (1.0 - pow4(1.0 - historyData.specularHistoryLength));
                 specDistanceScale = pow(max(specDistanceScale, 0.0001), specHistoryExponent);
-                transient_gi_blurGuidance_store(texelPos, vec4(shadowScale, specDistanceScale, 0.0, 0.0));
+                blurGuidance = vec2(shadowScale, specDistanceScale);
                 #if SETTING_DEBUG_OUTPUT
                 imageStore(uimg_temp5, texelPos, vec4(historyData.shadowHint));
                 #endif
                 #endif
+
+                vec2 filteredVariance = vec2(0.0);
+                ivec2 varianceLocalPos = ivec2(mortonPos) + 2;
+                for (int dy = -2; dy <= 2; ++dy) {
+                    for (int dx = -2; dx <= 2; ++dx) {
+                        ivec2 samplePos = varianceLocalPos + ivec2(dx, dy);
+                        float weight = float((3 - abs(dx)) * (3 - abs(dy)));
+                        filteredVariance += shared_variance[samplePos.y][samplePos.x] * weight;
+                    }
+                }
+                filteredVariance /= 81.0;
+                vec2 fastLuminance = vec2(
+                    colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, transient_gi2Reprojected_fetch(texelPos).rgb),
+                    colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, transient_gi4Reprojected_fetch(texelPos).rgb)
+                );
+                vec2 luminanceSquared = pow2(fastLuminance);
+                vec2 varianceFactor = 1.0 - luminanceSquared * safeRcp(luminanceSquared + filteredVariance * 0.05);
+                transient_gi_blurGuidance_store(texelPos, vec4(blurGuidance, varianceFactor));
             }
         }
     }
