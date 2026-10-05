@@ -73,7 +73,9 @@ void main() {
                 material.roughness
             );
             outputColor.rgb += giSpec.rgb * specDenoiseFactor;
+            #if SETTING_DEBUG_OUTPUT
             imageStore(uimg_temp3, texelPos, vec4(giSpec  ));
+            #endif
         }
 
         transient_exposureWeights_store(texelPos, exposureWeights);
