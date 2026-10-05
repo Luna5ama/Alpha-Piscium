@@ -144,8 +144,8 @@ void main() {
             float specHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
             vec2 filteredVariance = transient_gi_filteredVariance_fetch(texelPos).xy;
             vec2 fastLuminance = vec2(
-                colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, transient_gi2Reprojected_fetch(texelPos).rgb),
-                colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, transient_gi4Reprojected_fetch(texelPos).rgb)
+                colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, transient_gi2Reprojected_fetch(texelPos).rgb),
+                colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, transient_gi4Reprojected_fetch(texelPos).rgb)
             );
             vec2 luminanceSquared = pow2(fastLuminance) + 1e-6;
             vec2 varianceFactor = sqrt(luminanceSquared / (luminanceSquared + filteredVariance));

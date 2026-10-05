@@ -8,7 +8,7 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 ivec2 texelPos;
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #include "/util/Dither.glsl"
 #include "/util/Translucent.glsl"
 #include "/util/HardcodedPBR.glsl"

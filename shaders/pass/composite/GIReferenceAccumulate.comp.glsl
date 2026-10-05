@@ -57,7 +57,7 @@ void main() {
         || cameraPosition != previousCameraPosition;
 
     // rgb: sum of samples, a: sum of squared diffuse luminance (diff) / sample count (spec).
-    vec4 diffSum = vec4(diffSample, pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, diffSample)));
+    vec4 diffSum = vec4(diffSample, pow2(colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, diffSample)));
     vec4 specSum = vec4(specSample, 1.0);
     if (!resetHistory) {
         diffSum += imageLoad(uimg_giReferenceDiff, texelPos);

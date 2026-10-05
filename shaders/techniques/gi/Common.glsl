@@ -3,7 +3,6 @@
 
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
-#include "/util/Colors2.glsl"
 #include "/util/NZPacking.glsl"
 
 #define SKIP_FRAMES 0

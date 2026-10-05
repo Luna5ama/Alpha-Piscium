@@ -56,7 +56,7 @@ void _displaytransform_exposure_update(bool valid, inout vec4 color) {
         pixelWeight *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
         pixelWeight *= BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + abs(viewZ));
 
-        float lumimance = colors2_colorspaces_luma(COLORS2_OUTPUT_COLORSPACE, saturate(color.rgb));
+        float lumimance = colors_colorspaces_luma(COLORS_OUTPUT_COLORSPACE, saturate(color.rgb));
         uint not0Flag = uint(any(greaterThan(color.rgb, vec3(0.0))));
 
         {

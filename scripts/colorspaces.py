@@ -13,7 +13,7 @@ color_space_code_name = {
     "Color McSpaceFace": "COLOR_MCSPACEFACE"
 }
 
-package_name = "colors2_colorspaces"
+package_name = "colors_colorspaces"
 max_line_length = 120
 
 def getColorSpace(csname):

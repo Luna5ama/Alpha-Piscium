@@ -3,7 +3,6 @@
 
 #include "Math.glsl"
 #include "Colors.glsl"
-#include "Colors2.glsl"
 
 const mat3 agx_mat = mat3(
 0.842479062253094, 0.0423282422610123, 0.0423756549057051,
@@ -71,7 +70,7 @@ vec3 agxInvertible_forward(vec3 x) {
     #if SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE == 0
     y = _agxInvertible_compressHighlights(y);
     #elif SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE == 1
-    float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, y);
+    float luma = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, y);
     y *= _agxInvertible_compressHighlights(luma) / luma;
     #endif
     #endif

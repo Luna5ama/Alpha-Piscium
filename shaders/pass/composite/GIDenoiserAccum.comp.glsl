@@ -163,8 +163,8 @@ void main() {
                     historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, alpha.w);
 
                     vec2 newLuminance = vec2(
-                        colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, newDiffuse.rgb),
-                        colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, newSpecular.rgb)
+                        colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, newDiffuse.rgb),
+                        colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, newSpecular.rgb)
                     );
                     moments2 = mix(moments2, pow2(newLuminance), alpha.zw);
 
@@ -182,8 +182,8 @@ void main() {
                 }
 
                 vec2 moments1 = vec2(
-                    colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, historyData.diffuseFastColor),
-                    colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, historyData.specularFastColor)
+                    colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, historyData.diffuseFastColor),
+                    colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, historyData.specularFastColor)
                 );
                 vec2 variance = max(moments2 - pow2(moments1), 0.0);
                 vec2 stdDev = sqrt(variance);

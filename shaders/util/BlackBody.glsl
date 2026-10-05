@@ -1,7 +1,7 @@
 #ifndef INCLUDE_util_BlackBody_glsl
 #define INCLUDE_util_BlackBody_glsl a
 
-#include "Colors2.glsl"
+#include "Colors.glsl"
 #include "Math.glsl"
 
 #define _LUMINOUS_EFFICACY 683.002 // lm/W

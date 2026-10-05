@@ -3,7 +3,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #include "/techniques/debug/DebugOutput.glsl"
 #include "/techniques/debug/DebugFinalOutput.glsl"
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #include "/util/Coords.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_main;

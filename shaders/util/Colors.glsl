@@ -4,116 +4,38 @@
     References:
         [ERI07] Ericson, Christer. "Converting RGB to LogLuv in a fragment shader". 2007.
             https://realtimecollisiondetection.net/blog/?p=15
-        [ITU11] ITU. "Recommendation ITU-R BT.601-7". 2011.
-            https://www.itu.int/rec/R-REC-BT.601-7-201103-I/en
-        [ITU15] ITU. "Recommendation ITU-R BT.709-6". 2015.
-            https://www.itu.int/rec/R-REC-BT.709
-        [KAR13] Karis, Brian. "Tone mapping". Graphic Rants. 2013.
-            https://graphicrants.blogspot.com/2013/12/tone-mapping.html
         [LAR98] Wikipedia. "The LogLuv Encoding for Full Gamut, High Dynamic Range Images". 1998.
             http://www.anyhere.com/gward/papers/jgtpap1.pdf
-        [LOT16] Lottes, Timothy. "Optimized Reversible Tonemapper for Resolve". 2016.
-            https://gpuopen.com/learn/optimized-reversible-tonemapper-for-resolve/
         [ROS18] Rosseaux, Benjamin. "Matrix-based RGB from/to YCoCg color space conversion". 2018.
             CC0 License (Public Domain).
             https://www.shadertoy.com/view/4dXGzN
-        [WIK25a] Wikipedia. "Rec. 601". 2025.
-            https://en.wikipedia.org/wiki/Rec._601
-        [WIK25b] Wikipedia. "Rec. 709". 2025.
-            https://en.wikipedia.org/wiki/Rec._709
-        [WIK25c] Wikipedia. "sRGB". 2025.
-            https://en.wikipedia.org/wiki/SRGB
         [WIK26a] Wikipedia. "CIELUV". 2026.
             https://en.wikipedia.org/wiki/CIELUV
 
 */
 #include "/Base.glsl"
 #include "Math.glsl"
-#include "Colors2.glsl"
+#include "/util/colors/ColorSpaces.glsl"
+#include "/util/colors/TransferFunctions.glsl"
 
-// ----------------------------------------------------- Rec. 601 -----------------------------------------------------
-// [WIK25a]
-vec3 colors_Rec601_encodeGamma(vec3 color) {
-    vec3 lower = 4.5 * color;
-    vec3 higher = pow(color, vec3(0.45)) * 1.099 - 0.099;
-    return mix(lower, higher, greaterThanEqual(color, vec3(0.018)));
-}
+#define COLORS_MATERIAL_COLORSPACE SETTING_MATERIAL_COLOR_SPACE
+#define COLORS_MATERIAL_TF SETTING_MATERIAL_TRANSFER_FUNC
 
-// [WIK25a]
-vec3 colors_Rec601_decodeGamma(vec3 color) {
-    vec3 lower = color / 4.5;
-    vec3 higher = pow((color + 0.099) / 1.099, vec3(1.0 / 0.45));
-    return mix(lower, higher, greaterThanEqual(color, vec3(0.081)));
-}
+#define COLORS_CONSTANTS_COLORSPACE COLORS_COLORSPACES_ACES_AP0
+#define COLORS_CONSTANTS_TF COLORS_TF_IDENTITY
 
-// [ITU11]
-float colors_Rec601_luma(vec3 color) {
-    return dot(color, vec3(0.299, 0.587, 0.114));
-}
+#define COLORS_WORKING_COLORSPACE SETTING_WORKING_COLOR_SPACE
+#define COLORS_DRT_WORKING_COLORSPACE SETTING_DRT_WORKING_COLOR_SPACE
 
-// ----------------------------------------------------- Rec. 709 -----------------------------------------------------
-// [WIK25b]
-vec3 colors_Rec709_encodeGamma(vec3 color) {
-    return colors_Rec601_encodeGamma(color);
-}
+#define COLORS_GRADING_COLORSPACE SETTING_COLOR_GRADING_COLOR_SPACE
+#define COLORS_GRADING_TF SETTING_COLOR_GRADING_TRANSFER_FUNC
 
-// [WIK25b]
-vec3 colors_Rec709_decodeGamma(vec3 color) {
-    return colors_Rec601_decodeGamma(color);
-}
+#define COLORS_OUTPUT_COLORSPACE SETTING_OUTPUT_COLOR_SPACE
+#define COLORS_OUTPUT_TF SETTING_OUTPUT_TRANSFER_FUNC
 
-// [ITU15]
-float colors_Rec709_luma(vec3 color) {
-    return dot(color, vec3(0.2126, 0.7152, 0.0722));
-}
+#define colors_material_toWorkSpace(x) colors_colorspaces_convert(COLORS_MATERIAL_COLORSPACE, COLORS_WORKING_COLORSPACE, colors_eotf(COLORS_MATERIAL_TF, x))
 
-// ------------------------------------------------------ sRGB --------------------------------------------------------
-// [WIK25c]
-float colors_sRGB_encodeGamma(float color) {
-    float lower = 12.92 * color;
-    float higher = pow(color, 1.0 / 2.4) * 1.055 - 0.055;
-    return mix(lower, higher, color > 0.0031308);
-}
-
-// [WIK25c]
-vec2 colors_sRGB_encodeGamma(vec2 color) {
-    vec2 lower = 12.92 * color;
-    vec2 higher = pow(color, vec2(1.0 / 2.4)) * 1.055 - 0.055;
-    return mix(lower, higher, greaterThan(color, vec2(0.0031308)));
-}
-
-// [WIK25c]
-vec3 colors_sRGB_encodeGamma(vec3 color) {
-    vec3 lower = 12.92 * color;
-    vec3 higher = pow(color, vec3(1.0 / 2.4)) * 1.055 - 0.055;
-    return mix(lower, higher, greaterThan(color, vec3(0.0031308)));
-}
-
-// [WIK25c]
-vec4 colors_sRGB_encodeGamma(vec4 color) {
-    vec4 lower = 12.92 * color;
-    vec4 higher = pow(color, vec4(1.0 / 2.4)) * 1.055 - 0.055;
-    return mix(lower, higher, greaterThan(color, vec4(0.0031308)));
-}
-
-// [WIK25c]
-float colors_sRGB_decodeGamma(float color) {
-    float lower = color / 12.92;
-    float higher = pow((color + 0.055) / 1.055, 2.4);
-    return mix(lower, higher, color > 0.04045);
-}
-
-// [WIK25c]
-vec3 colors_sRGB_decodeGamma(vec3 color) {
-    vec3 lower = color / 12.92;
-    vec3 higher = pow((color + 0.055) / 1.055, vec3(2.4));
-    return mix(lower, higher, greaterThan(color, vec3(0.04045)));
-}
-
-// [WIK25c]
-float colors_sRGB_luma(vec3 color) {
-    return colors_Rec709_luma(color);
-}
+#define colors_constants_toWorkSpace(x) colors_colorspaces_convert(COLORS_CONSTANTS_COLORSPACE, COLORS_WORKING_COLORSPACE, x)
 
 // ------------------------------------------------------- YCoCg -------------------------------------------------------
 // [ROS18]
@@ -193,7 +115,8 @@ const vec3 _COLORS_UV_DIV = vec3(1.0, 15.0, 3.0);
 const float _COLORS_UV_INV_MUL = 0.6219512195; // 1.0 / 410.0 * 255.0
 const vec2 _COLORS_UV_Z_MUL = vec2(-3.0, -20.0);
 
-uint colors_CIEXYZToFP16Luv(vec3 xyz) {
+uint colors_workingColorToFP16Luv(vec3 color) {
+    vec3 xyz = colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_COLORSPACES_CIE_XYZ, color);
     float uvDiv = safeRcp(dot(xyz, _COLORS_UV_DIV));
     vec2 uv = xyz.xy * uvDiv * _COLORS_UV_MUL;
     uv = clamp(uv, vec2(0.0), vec2(255.0));
@@ -202,7 +125,7 @@ uint colors_CIEXYZToFP16Luv(vec3 xyz) {
     return result;
 }
 
-vec3 colors_FP16LuvToCIEXYZ(uint luv) {
+vec3 colors_FP16LuvToWorkingColor(uint luv) {
     vec2 uv = unpackUnorm4x8(luv).xy * _COLORS_UV_INV_MUL;
     float Y = unpackHalf2x16(luv).y;
     float rcp4VTimeY = safeRcp(uv.y * 4.0) * Y;
@@ -210,40 +133,7 @@ vec3 colors_FP16LuvToCIEXYZ(uint luv) {
     xyz.x = 9.0 * uv.x * rcp4VTimeY;
     xyz.y = Y;
     xyz.z = (12.0 + dot(_COLORS_UV_Z_MUL, uv)) * rcp4VTimeY;
-    return xyz;
-}
-
-uint colors_workingColorToFP16Luv(vec3 color) {
-    vec3 xyz = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, color);
-    return colors_CIEXYZToFP16Luv(xyz);
-}
-
-vec3 colors_FP16LuvToWorkingColor(uint luv) {
-    vec3 xyz = colors_FP16LuvToCIEXYZ(luv);
-    return colors2_colorspaces_convert(COLORS2_COLORSPACES_CIE_XYZ, COLORS2_WORKING_COLORSPACE, xyz);
-}
-
-
-// -------------------------------------------------- Misc functions --------------------------------------------------
-// [KAR13]
-float colors_karisWeight(vec3 color) {
-    float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, color.rgb);
-    return 1.0 / (1.0 + luma);
-}
-
-// [LOT16]
-vec3 colors_reversibleTonemap(vec3 color) {
-    color = color * rcp(mmax3(color) + 1.0);
-    return color;
-}
-
-vec3 colors_reversibleTonemapWeighted(vec3 color, float weight) {
-    return color * (weight * rcp(mmax3(color) + 1.0));
-}
-
-vec3 colors_reversibleTonemapInvert(vec3 color) {
-    color = color / (1.0 - mmax3(color));
-    return color;
+    return colors_colorspaces_convert(COLORS_COLORSPACES_CIE_XYZ, COLORS_WORKING_COLORSPACE, xyz);
 }
 
 #endif

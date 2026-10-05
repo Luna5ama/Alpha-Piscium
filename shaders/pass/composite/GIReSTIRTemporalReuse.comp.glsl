@@ -767,8 +767,8 @@ void main() {
             if (storedMaterial.dielectric > 0.0) {
                 float NdotV = saturate(dot(targetNormal, V));
                 float fresnelV = saturate(resampleMaterial_fresnel(storedMaterial, NdotV));
-                vec3 albedo = colors2_material_toWorkSpace(unpackUnorm4x8(packedGBufferData2).rgb);
-                float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, albedo);
+                vec3 albedo = colors_material_toWorkSpace(unpackUnorm4x8(packedGBufferData2).rgb);
+                float albedoLuma = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, albedo);
                 pSpec = fresnelV * safeRcp(albedoLuma * (1.0 - fresnelV) + fresnelV);
                 pSpec = sqrt(clamp(pSpec, 0.01, 0.99));
             }

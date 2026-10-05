@@ -2,7 +2,6 @@
 #define INCLUDE_util_Material_glsl a
 #include "BlackBody.glsl"
 #include "Colors.glsl"
-#include "Colors2.glsl"
 #include "GBufferData.glsl"
 #include "Math.glsl"
 #include "Rand.glsl"
@@ -84,9 +83,9 @@ Material material_decode(GBufferData gData) {
     HardcodedPBR hardcoded = hardcodedpbr_decode(gData.materialID);
     bool isWater = gData.materialID == MATERIAL_ID_WATER;
 
-    material.albedo = colors2_material_toWorkSpace(gData.albedo);
+    material.albedo = colors_material_toWorkSpace(gData.albedo);
     vec4 emissiveAlbedoCurve = vec4(vec3(SETTING_EMISSIVE_ALBEDO_COLOR_CURVE), SETTING_EMISSIVE_ALBEDO_LUM_CURVE);
-    float albedoLuma = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, gData.albedo);
+    float albedoLuma = colors_colorspaces_luma(COLORS_MATERIAL_COLORSPACE, gData.albedo);
 
     #if defined(MC_TEXTURE_FORMAT_LAB_PBR) && SETTING_PBR_MATERIAL == 1 || SETTING_PBR_MATERIAL == 2
     bool useBuiltInPBR = gData.forceBuiltInPBR;
@@ -168,14 +167,14 @@ Material material_decode(GBufferData gData) {
 
         material.f0RGB = mix(material.albedo, vec3(dielectricF0), material.dielectric);
         material.f82TintRGB = mix(metalF82Tint, vec3(1.0), material.dielectric);
-        material.f82Tint = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f82TintRGB);
+        material.f82Tint = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, material.f82TintRGB);
     }
     material.f0RGB = max(material.f0RGB, _MATERIAL_F0_EPSILON);
-    material.f0 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f0RGB);
+    material.f0 = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, material.f0RGB);
 
 
     vec4 emissiveAlbedo = pow(max(vec4(gData.albedo, albedoLuma), 1e-8), emissiveAlbedoCurve);
-    emissiveAlbedo.rgb = colors2_material_toWorkSpace(emissiveAlbedo.rgb);
+    emissiveAlbedo.rgb = colors_material_toWorkSpace(emissiveAlbedo.rgb);
 
     float emissiveValue = emissivePBR * 0.5;
     emissiveValue *= exp2(SETTING_EMISSIVE_STRENGTH);

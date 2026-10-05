@@ -2,7 +2,7 @@
 
 #extension GL_KHR_shader_subgroup_ballot : enable
 
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #include "/util/Math.glsl"
 #include "/techniques/displaytransform/ExposureUpdate.glsl"
 
@@ -42,7 +42,7 @@ void spd_storeOutput(ivec2 texelPos, uint level, uint slice, vec4 value) {
     }
     if (level == 12u) {
         vec3 finalColor = value.rgb * safeRcp(value.a);
-        float luma = colors2_colorspaces_luma(COLORS2_OUTPUT_COLORSPACE, finalColor);
+        float luma = colors_colorspaces_luma(COLORS_OUTPUT_COLORSPACE, finalColor);
         global_aeData.screenAvgLum = vec4(finalColor, luma);
         #ifndef SETTING_DEBUG_AE
         exposure_update();

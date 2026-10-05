@@ -44,8 +44,8 @@ void loadSharedDataRCRS(uint index) {
         vec4 d = transient_gi1AntiFireFlyInput_fetch(srcXY);
         vec4 s = transient_gi3AntiFireFlyInput_fetch(srcXY);
 
-        d.a = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, d.rgb);
-        s.a = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, s.rgb);
+        d.a = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, d.rgb);
+        s.a = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, s.rgb);
 
         shared_diff[sharedXY.y][sharedXY.x] = d;
         shared_spec[sharedXY.y][sharedXY.x] = s;
@@ -101,7 +101,7 @@ void antiFireFlyRCRS(ivec2 texelPos) {
         float antiFireFlyMix = linearStep(1.0, 4.0, viewHistoryLength);
 
         vec4 newDiff = centerDiff;
-        float centerDiffLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, newDiff.rgb);
+        float centerDiffLum = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, newDiff.rgb);
         if (centerDiffLum < minMaxLumDiff.x) {
             newDiff.rgb = shared_diff[minMaxPosDiff.y][minMaxPosDiff.x].rgb;
         }
@@ -113,7 +113,7 @@ void antiFireFlyRCRS(ivec2 texelPos) {
         transient_gi1Reprojected_store(texelPos, newDiff);
 
         vec4 newSpec = centerSpec;
-        float centerSpecLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, newSpec.rgb);
+        float centerSpecLum = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, newSpec.rgb);
         if (centerSpecLum < minMaxLumSpec.x) {
             newSpec.rgb = shared_spec[minMaxPosSpec.y][minMaxPosSpec.x].rgb;
         }

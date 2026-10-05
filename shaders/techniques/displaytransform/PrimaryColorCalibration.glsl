@@ -20,10 +20,10 @@ vec2 _displaytransform_primarycolorcalibration_rotatePrimaryXy(vec2 primaryXy, v
 }
 
 vec3 displaytransform_primarycolorcalibration_apply(vec3 color) {
-    vec3 whiteXYZ = colors2_colorspaces_convert(COLORS2_GRADING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0));
-    vec3 redXYZ = colors2_colorspaces_convert(COLORS2_GRADING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0, 0.0, 0.0));
-    vec3 greenXYZ = colors2_colorspaces_convert(COLORS2_GRADING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 1.0, 0.0));
-    vec3 blueXYZ = colors2_colorspaces_convert(COLORS2_GRADING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 0.0, 1.0));
+    vec3 whiteXYZ = colors_colorspaces_convert(COLORS_GRADING_COLORSPACE, COLORS_COLORSPACES_CIE_XYZ, vec3(1.0));
+    vec3 redXYZ = colors_colorspaces_convert(COLORS_GRADING_COLORSPACE, COLORS_COLORSPACES_CIE_XYZ, vec3(1.0, 0.0, 0.0));
+    vec3 greenXYZ = colors_colorspaces_convert(COLORS_GRADING_COLORSPACE, COLORS_COLORSPACES_CIE_XYZ, vec3(0.0, 1.0, 0.0));
+    vec3 blueXYZ = colors_colorspaces_convert(COLORS_GRADING_COLORSPACE, COLORS_COLORSPACES_CIE_XYZ, vec3(0.0, 0.0, 1.0));
     vec2 whiteXy = _displaytransform_primarycolorcalibration_XYZ2xy(whiteXYZ);
     const float HUE_RANGE_DEG = 25.0;
     vec3 rXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(redXYZ), whiteXy, float(SETTING_PCC_RED_HUE) * 0.01 * HUE_RANGE_DEG, 1.0 + float(SETTING_PCC_RED_SAT) * 0.01), redXYZ.y);
@@ -33,7 +33,7 @@ vec3 displaytransform_primarycolorcalibration_apply(vec3 color) {
     vec3 whiteCorrection = inverse(primaryColorWhiteCorrectionMat) * whiteXYZ;
     mat3 calibMatrix = mat3(rXYZ * whiteCorrection.x, gXYZ * whiteCorrection.y, bXYZ * whiteCorrection.z);
     vec3 calibratedXYZ = calibMatrix * color;
-    return colors2_colorspaces_convert(COLORS2_COLORSPACES_CIE_XYZ, COLORS2_GRADING_COLORSPACE, calibratedXYZ);
+    return colors_colorspaces_convert(COLORS_COLORSPACES_CIE_XYZ, COLORS_GRADING_COLORSPACE, calibratedXYZ);
 }
 
 #endif

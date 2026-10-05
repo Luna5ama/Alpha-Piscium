@@ -1,7 +1,7 @@
 #define SKIP_UNIFORMS a
 #define DISABLE_FP16 a
 #include "/util/Math.glsl"
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #include "/util/Translucent.glsl"
 
 layout(location = 0) out uvec4 rt_gbufferData;

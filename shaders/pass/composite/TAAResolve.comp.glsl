@@ -294,7 +294,7 @@ void main() {
 
             vec3 prevColorNew = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
             vec3 prevColorDiff = abs(prevColorNew - prevColor);
-            float lumaDiff = smoothstep(0.0, 0.3, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColorDiff));
+            float lumaDiff = smoothstep(0.0, 0.3, colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, prevColorDiff));
 
             transient_lumaDiff_store(texelPos, vec4(lumaDiff, 0.0, 0.0, 0.0));
             prevColor = prevColorNew;

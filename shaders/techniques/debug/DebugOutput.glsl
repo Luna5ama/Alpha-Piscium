@@ -1,7 +1,6 @@
 #include "Common.glsl"
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
-#include "/util/Colors2.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/TextRender.glsl"
@@ -48,10 +47,6 @@ float applyExposure(float color) {
     return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
 }
 
-vec2 applyExposure(vec2 color) {
-    return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
-}
-
 vec3 applyExposure(vec3 color) {
     return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
 }
@@ -62,26 +57,18 @@ vec4 applyExposure(vec4 color) {
 
 #if defined(SETTING_DEBUG_GAMMA_CORRECT) && (SETTING_DEBUG_OUTPUT == 4)
 float gammaCorrect(float color) {
-    return colors_sRGB_encodeGamma(color);
-}
-
-vec2 gammaCorrect(vec2 color) {
-    return colors_sRGB_encodeGamma(color);
+    return colors_oetf_sRGB(color);
 }
 
 vec3 gammaCorrect(vec3 color) {
-    return colors_sRGB_encodeGamma(color);
+    return colors_oetf_sRGB(color);
 }
 
 vec4 gammaCorrect(vec4 color) {
-    return vec4(colors_sRGB_encodeGamma(color.rgb), color.a);
+    return vec4(colors_oetf_sRGB(color.rgb), color.a);
 }
 #else
 float gammaCorrect(float color) {
-    return color;
-}
-
-vec2 gammaCorrect(vec2 color) {
     return color;
 }
 
@@ -95,10 +82,6 @@ vec4 gammaCorrect(vec4 color) {
 #endif
 
 float expGamma(float color) {
-    return gammaCorrect(applyExposure(color));
-}
-
-vec2 expGamma(vec2 color) {
     return gammaCorrect(applyExposure(color));
 }
 
@@ -469,7 +452,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #ifdef SETTING_DEBUG_STARMAP
-    outputColor.rgb = gammaCorrect(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, colors_LogLuv32ToSRGB(texture(usam_starmap, screenPos))));
+    outputColor.rgb = gammaCorrect(colors_colorspaces_convert(COLORS_COLORSPACES_SRGB, COLORS_WORKING_COLORSPACE, colors_LogLuv32ToSRGB(texture(usam_starmap, screenPos))));
     #endif
 
     #ifdef SETTING_DEBUG_EPIPOLAR_LINES

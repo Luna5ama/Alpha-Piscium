@@ -6,7 +6,7 @@
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/Celestial.glsl"
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #include "/util/BitPacking.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/Morton.glsl"
@@ -99,7 +99,7 @@ void main() {
             transient_lmCoord_store(texelPos, vec4(lighting_gData.lmCoord, 0.0, 0.0));
             Material material = material_decode(lighting_gData);
             vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
-            vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb) * glintColorData.a;
+            vec3 glintColor = colors_material_toWorkSpace(glintColorData.rgb) * glintColorData.a;
             glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
             glintColor *= exp2(SETTING_EMISSIVE_STRENGTH + SETTING_EMISSIVE_ARMOR_GLINT_MULT);
             material.emissive += glintColor + material.albedo * glintColor * 4.0;

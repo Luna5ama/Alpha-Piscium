@@ -35,7 +35,7 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
     vec3 shadowedIrradiance = irradiance * shadow.rgb;
 
     float surfaceDepth = shadow.w;
-    vec3 albedoSRGB = saturate(colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_SRGB, material.albedo));
+    vec3 albedoSRGB = saturate(colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_COLORSPACES_SRGB, material.albedo));
     if (gData.isHand) {
         surfaceDepth = max(surfaceDepth, 0.2);
         if (heldItemId == 0) {
@@ -53,16 +53,16 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         const vec3 ABSO_POW = vec3(1.3, 1.5, 2.0);
         const float SCTR_POW = 0.6;
 
-        float luma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedoSRGB);
+        float luma = colors_colorspaces_luma(COLORS_COLORSPACES_SRGB, albedoSRGB);
         albedoSRGB *= min(0.5 / luma, 1.0); // Fk whoever put high sss on white material
 
         vec3 tCoeff = pow(albedoSRGB, vec3(ABSO_POW));
-        tCoeff = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, tCoeff);
+        tCoeff = colors_colorspaces_convert(COLORS_COLORSPACES_SRGB, COLORS_WORKING_COLORSPACE, tCoeff);
         tCoeff = clamp(tCoeff, 0.001, 0.999);
         vec3 aCoeff = max(-log(tCoeff), 0.0);
 
         vec3 sCoeff = pow(albedoSRGB, vec3(SCTR_POW));
-        sCoeff = saturate(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, sCoeff));
+        sCoeff = saturate(colors_colorspaces_convert(COLORS_COLORSPACES_SRGB, COLORS_WORKING_COLORSPACE, sCoeff));
         sCoeff = clamp(sCoeff, 0.001, 0.999);
         aCoeff = aCoeff * ABSORPTION_MULTIPLIER / sqrt(material.sss);
         sCoeff *= SCATTERING_MULTIPLIER * material.sss;

@@ -234,8 +234,8 @@ float restir_initialSample_specularProbability(vec3 wiTangent, Material material
 
     vec3 fresnelV = saturate(fresnel_evalMaterial(material, wiTangent.z));
     vec3 totalEnergy = material.albedo * (vec3(1.0) - fresnelV) + fresnelV;
-    float pSpec = colors2_colorspaces_luma(
-        COLORS2_WORKING_COLORSPACE,
+    float pSpec = colors_colorspaces_luma(
+        COLORS_WORKING_COLORSPACE,
         fresnelV * safeRcp(totalEnergy)
     );
     float discreteBin = clamp(floor(pSpec * 256.0), 13.0, 243.0);
