@@ -96,7 +96,9 @@ Persistent ping-pong resources are accumulation (`R8_UNORM`), current luma
 (`RGBA16_FLOAT`). Transient resources include farthest depth/luma instability
 (`R16_FLOAT`), half-resolution shading change (`R8_UNORM`), twelve packed SPD
 levels (`RG16_FLOAT`), half-resolution farthest depth (`R16_FLOAT`), and dilated
-reactive masks (`RGBA8_UNORM`). New locks use the output alpha channel, the SPD
+reactive masks (`RGBA8_UNORM`). The prepare-inputs entrypoint clears the full-output new-lock region on history reset before sparse lock generation.
+Shading-change reads and writes both use floor(render size / 2), independently of the ceil-sized farthest-depth mip.
+New locks use the output alpha channel, the SPD
 levels share a full-render-size atlas, and frame info, the completed-frame marker,
 plus the SPD counter live in the global SSBO. Dilated depth is `R32_FLOAT`,
 dilated motion is `RG16_FLOAT`,

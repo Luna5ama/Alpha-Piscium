@@ -2920,10 +2920,10 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     empty()
-                    slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION", 0, 0..4) {
+                    slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION", 3, 0..4) {
                         lang {
                             name = "Highlight Compression"
-                            comment = "Reduces bloom intensity for extremely bright areas to prevent overwhelming glare. Higher values increase compression intensity."
+                            comment = "Compresses Bloom highlights in AgX matrix/log space. RGB mode makes very bright colors approach white. Higher values increase compression intensity."
                             0 value "Off"
                             1 value "Low"
                             2 value "Medium"
@@ -2932,23 +2932,24 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "高光压缩"
-                            comment = "减少极亮区域的泛光强度以防止过度眩光。数值越高，压缩强度越大。"
+                            comment = "在 AgX 矩阵/log 空间中压缩泛光高光。RGB 模式使极亮颜色逐渐趋于白色。数值越高，压缩强度越大。"
                             0 value "关闭"
                             1 value "低"
                             2 value "中"
                             3 value "高"
+                            4 value "硬裁剪"
                         }
                     }
                     slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE", 0, 0..1) {
                         lang {
                             name = "Highlight Compression Mode"
-                            comment = "Determines how highlight compression is applied. RGB mode compresses saturation, while Luma mode preserves saturation."
+                            comment = "RGB mode compresses each AgX-encoded channel toward white. Luma mode scales all encoded channels using their shared luminance."
                             0 value "RGB"
                             1 value "Luma"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "高光压缩模式"
-                            comment = "确定高光压缩的应用方式。RGB模式压缩饱和度，而亮度模式保持饱和度。"
+                            comment = "RGB 模式分别压缩 AgX 编码后的通道，使高光趋白；亮度模式根据共同亮度统一缩放编码后的通道。"
                             0 value "RGB"
                             1 value "亮度"
                         }

@@ -148,20 +148,35 @@ for (strength in 1..4) {
 val compressed = (1..4).map { compressHighlight(16.0f, it) }
 check(compressed.zipWithNext().all { (weaker, stronger) -> weaker > stronger })
 
-val saturated = V3(16.0f, 4.0f, 1.0f)
-fun compressRgb(color: V3, strength: Int) = map(color) { compressHighlight(it, strength) }
+fun compressRgb(color: V3, strength: Int) =
+    map(inverseRange(map(forwardRange(color, -8.25f, 8.25f)) { compressHighlight(it, strength) }, -8.25f, 8.25f)) { max(it, 0.0f) }
 fun luma(color: V3) = 0.2126f * color.x + 0.7152f * color.y + 0.0722f * color.z
 fun compressLuma(color: V3, strength: Int): V3 {
-    val value = luma(color)
+    val encoded = forwardRange(color, -8.25f, 8.25f)
+    val value = luma(encoded)
     if (value <= 1.0f) return color
-    return color * (compressHighlight(value, strength) / value)
+    return map(inverseRange(encoded * (compressHighlight(value, strength) / value), -8.25f, 8.25f)) { max(it, 0.0f) }
 }
 
-val rgbCompressed = compressRgb(saturated, 3)
-check(abs(rgbCompressed.x / rgbCompressed.y - saturated.x / saturated.y) > 0.1f)
-val lumaCompressed = compressLuma(saturated, 3)
-check(abs(lumaCompressed.x / lumaCompressed.y - saturated.x / saturated.y) <= 1.0e-6f)
-check(abs(lumaCompressed.y / lumaCompressed.z - saturated.y / saturated.z) <= 1.0e-6f)
+for (strength in 1..4) {
+    check(compressRgb(V3(0.0f, 0.0f, 0.0f), strength) == V3(0.0f, 0.0f, 0.0f))
+    for ((name, direction) in directions) {
+        val input = direction * 0.18f
+        val output = compressRgb(input, strength)
+        check(input.components().zip(output.components()).all { (a, b) -> abs(a - b) <= 1.0e-5f }) {
+            "$name Bloom compression changed a midtone: $input -> $output"
+        }
+    }
+}
+for (direction in listOf(V3(1.0f, 0.0f, 0.0f), V3(0.0f, 1.0f, 0.0f), V3(0.0f, 0.0f, 1.0f))) {
+    fun channelRatio(color: V3) = color.components().min() / color.components().max()
+    val bright = compressRgb(direction * 65504.0f, 3)
+    val extreme = compressRgb(direction * 1.0e10f, 3)
+    check(bright.components().all { it.isFinite() && it >= 0.0f })
+    check(channelRatio(bright) > 0.0f && channelRatio(extreme) > channelRatio(bright)) {
+        "Bloom highlights did not approach white: $bright -> $extreme"
+    }
+}
 check(compressLuma(V3(0.0f, 0.0f, 0.0f), 3) == V3(0.0f, 0.0f, 0.0f))
 
 fun saturate(value: Float) = value.coerceIn(0.0f, 1.0f)
@@ -258,7 +273,7 @@ check("SETTING_BLOOM_HIGHLIGHT_COMPRESSION" !in agxSource)
 check("#if BLOOM_PASS == 1 && SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0" in bloomSource)
 check("inputValue.rgb = bloom_compressHighlights" in bloomSource)
 check(Regex("bloom_compressHighlights\\(").findAll(bloomSource).count() == 2)
-check("slider(\"SETTING_BLOOM_HIGHLIGHT_COMPRESSION\", 0, 0..4)" in optionsSource)
+check("slider(\"SETTING_BLOOM_HIGHLIGHT_COMPRESSION\", 3, 0..4)" in optionsSource)
 check("#if SETTING_AA_MODE != 2" in prepareSource && "agxInvertible_forward" in prepareSource)
 check("agxInvertible_inverse" in resolveSource)
 check("#if SETTING_AA_MODE == 2" in rcasSource && "agxInvertible_forward" in rcasSource && "agxInvertible_inverse" in rcasSource)

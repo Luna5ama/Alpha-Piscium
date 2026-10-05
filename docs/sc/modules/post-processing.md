@@ -2,8 +2,8 @@
 
 语言：简体中文 | [English](../../en/modules/post-processing.md)
 
-后处理在 GI、空气/水体体积和半透明合成完成后运行。主链是可选 DOF、时序 resolve、空间抗锯齿/锐化、bloom、后期合成、曝光、overlay
-和最终显示变换。
+后处理在 GI、空气/水体体积和半透明合成完成后运行。主链是可选 DOF、时序 resolve、空间抗锯齿/锐化、bloom、包含显示变换的后期合成、曝光统计、overlay
+和最终抖动。
 
 ## 代码位置
 
@@ -19,7 +19,7 @@
 | [`ExposureMip.comp.glsl`](../../../shaders/pass/composite/ExposureMip.comp.glsl)、[`ExposureGather.comp.glsl`](../../../shaders/pass/composite/ExposureGather.comp.glsl)         | 自动曝光权重、mip 与统计                   |
 | [`PostComposite.comp.glsl`](../../../shaders/pass/composite/PostComposite.comp.glsl)、[`OverlayComposite.comp.glsl`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | 主后期合成与 overlay                   |
 | [`techniques/displaytransform/`](../../../shaders/techniques/displaytransform/)                                                                                                 | 曝光、DRT 与显示变换                     |
-| [`FinalGlobalDataUpdate.comp.glsl`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl)、[`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl)       | 下一帧状态与最终屏幕输出                     |
+| [`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl) | 最终抖动与屏幕输出 |
 
 ## DOF
 
@@ -62,6 +62,9 @@ FSR 3 estimator 在渲染分辨率运行，并在 view/output 分辨率累积；
 会把低分辨率 raster derivative 乘以 `0.5 * uval_mainImageScale`，等价于按实际逐轴渲染比例应用 AMD 的
 `log2(render/output) - 1` mip bias。
 
+[`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) 在历史重置时，先清空整个输出分辨率的
+new-lock 区域，再生成当前帧锁。Shading-change 的读写统一使用向下取整的半渲染尺寸，包括奇数渲染尺寸。
+
 ## Bloom
 
 启用 `SETTING_BLOOM` 时，[`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) 通过 `BLOOM_DOWN_SAMPLE` 和
@@ -71,28 +74,31 @@ FSR 3 estimator 在渲染分辨率运行，并在 view/output 分辨率累积；
 
 Bloom 高光压缩是有意设计的有损 Bloom 专用操作。它只对进入第一个 downsample 层的 exposed-linear 主颜色样本应用一次，
 并且位于金字塔过滤之前。它不会修改主图像，也不属于 [`AgxInvertible.glsl`](../../../shaders/util/AgxInvertible.glsl)
-中的可逆 matrix/log AA 工作变换。该选项默认关闭，以保留标准管线未压缩的 Bloom 能量。
+中的可逆 matrix/log AA 工作变换。样本先以原有 `[-8.25, 8.25]` EV 范围转换到 AgX inset-matrix/log 空间，压缩后再还原为线性颜色用于过滤。
+offset log 保持纯黑；RGB 模式使高亮颜色趋白，亮度模式统一缩放编码后的通道。默认强度恢复为“高”，
+沿用旧默认值和高光阈值，同时保持 AA 工作变换可逆。
 
 ## 后期合成与曝光
 
-| 顺序 | Pass                                                                                                                                                                          | 作用                                                  |
-|----|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
-| 1  | [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                    | 合并主颜色、DOF、bloom 和其他后期输入；RTWSM companion pass 使用独立资源 |
-| 2  | [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                        | 构建亮度/权重层                                            |
-| 3  | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl)                                                                                                  | 汇总曝光统计                                              |
-| 4  | [`FinalGlobalDataUpdate`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl) 与 [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | 保存下一帧的 global/exposure state 并合成 overlay            |
+| 顺序 | Pass | 作用 |
+|------|------|------|
+| 1 | [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl) | 合并 Bloom 与主颜色，应用显示变换，并收集高光/阴影统计。 |
+| 2 | [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl) | 归约加权输出亮度，通过 [`ExposureUpdate`](../../../shaders/techniques/displaytransform/ExposureUpdate.glsl) 更新下一帧曝光。 |
+| 3 | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl) | 仅在启用 `SETTING_DEBUG_AE` 时运行；归约调试直方图，并在该配置下更新曝光。 |
+| 4 | [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | 在显示变换之后合成 overlay。 |
 
 曝光 screen 提供 manual EV、最小/最大 EV、emissive/distance/center weighting、average-luminance time 和 target
 range、highlight/shadow percentile 及 adaptation 参数。`transient_exposureWeights` 保存逐像素权重。
 
 ## 最终显示变换
 
-根部 [`final.fsh`](../../../shaders/final.fsh) include [
-`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl)。该入口使用 [
-`Exposure.glsl`](../../../shaders/techniques/displaytransform/Exposure.glsl)、[
-`DRT.glsl`](../../../shaders/techniques/displaytransform/DRT.glsl) 和 [
-`DisplayTransform.glsl`](../../../shaders/techniques/displaytransform/DisplayTransform.glsl)，将内部 working color space
-转为 DRT working space，再应用 tone mapping 和 output color space/transfer function。
+[`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl) 使用
+[`DisplayTransform.glsl`](../../../shaders/techniques/displaytransform/DisplayTransform.glsl)、
+[`DRT.glsl`](../../../shaders/techniques/displaytransform/DRT.glsl) 和
+[`Exposure.glsl`](../../../shaders/techniques/displaytransform/Exposure.glsl) 应用显示变换并收集曝光统计。
+显示曝光此前已在 temporal resolve 或共享 RCAS 中应用。
+根部 [`final.fsh`](../../../shaders/final.fsh) include
+[`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl)，负责最终抖动与呈现。
 
 tone mapping 后，结果先转换到配置的调色色彩空间；[`PrimaryColorCalibration`](../../../shaders/techniques/displaytransform/PrimaryColorCalibration.glsl) 调整其线性 RGB 原色，再应用配置的调色传递函数，并由 [`HSLColorMixer`](../../../shaders/techniques/displaytransform/HSLColorMixer.glsl) 调整八个色相区间。结果随后被解码并转换到显示器输出空间。两个阶段分别由独立开关控制。
 

@@ -36,10 +36,6 @@ void _displaytransform_exposure_init() {
     barrier();
 }
 
-void _displaytransform_exposure_apply(inout vec4 color) {
-    color.rgb *= exp2(global_aeData.expValues.z);
-}
-
 const float SHADOW_LUMA_THRESHOLD = SETTING_EXPOSURE_S_LUM / 255.0;
 const float HIGHLIGHT_LUMA_THRESHOLD = SETTING_EXPOSURE_H_LUM / 255.0;
 

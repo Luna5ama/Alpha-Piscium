@@ -6,9 +6,7 @@
 #include "/Base.glsl"
 
 #if BLOOM_DOWN_SAMPLE && BLOOM_PASS == 1 && SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0
-#if SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE == 1
-#include "/util/Colors.glsl"
-#endif
+#include "/util/AgxInvertible.glsl"
 
 float bloom_compressHighlight(float value) {
     if (value <= 1.0) return value;
@@ -24,17 +22,19 @@ float bloom_compressHighlight(float value) {
 }
 
 vec3 bloom_compressHighlights(vec3 color) {
+    // Keep the original highlight threshold and path to white in the Bloom input only.
+    vec3 encoded = agxInvertible_forwardRange(color, -8.25, 8.25);
     #if SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE == 0
-    return vec3(
-        bloom_compressHighlight(color.r),
-        bloom_compressHighlight(color.g),
-        bloom_compressHighlight(color.b)
+    encoded = vec3(
+        bloom_compressHighlight(encoded.r),
+        bloom_compressHighlight(encoded.g),
+        bloom_compressHighlight(encoded.b)
     );
     #else
-    float luma = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, color);
-    if (luma <= 1.0) return color;
-    return color * (bloom_compressHighlight(luma) / luma);
+    float luma = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, encoded);
+    if (luma > 1.0) encoded *= bloom_compressHighlight(luma) / luma;
     #endif
+    return max(agxInvertible_inverseRange(encoded, -8.25, 8.25), 0.0);
 }
 #endif
 

@@ -3,8 +3,8 @@
 Language: English | [简体中文](../../sc/modules/post-processing.md)
 
 Post-processing begins after GI, air/water volumes, and translucency are composed. The main chain is optional DOF,
-temporal resolve, spatial antialiasing/sharpening, bloom, post composition, exposure, overlay, and final display
-transform.
+temporal resolve, spatial antialiasing/sharpening, bloom, post composition with the display transform, exposure
+statistics, overlay, and final dithering.
 
 ## Code map
 
@@ -20,7 +20,7 @@ transform.
 | [`ExposureMip.comp.glsl`](../../../shaders/pass/composite/ExposureMip.comp.glsl), [`ExposureGather.comp.glsl`](../../../shaders/pass/composite/ExposureGather.comp.glsl)         | Auto-exposure weights, mip, and statistics        |
 | [`PostComposite.comp.glsl`](../../../shaders/pass/composite/PostComposite.comp.glsl), [`OverlayComposite.comp.glsl`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | Main post composition and overlay                 |
 | [`techniques/displaytransform/`](../../../shaders/techniques/displaytransform/)                                                                                                  | Exposure, DRT, and display transform              |
-| [`FinalGlobalDataUpdate.comp.glsl`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl), [`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl)       | Next-frame state and final screen output          |
+| [`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl) | Final dithering and screen output |
 
 ## DOF
 
@@ -72,6 +72,10 @@ use output size. Explicit G-buffer gradients multiply low-resolution raster deri
 `0.5 * uval_mainImageScale`, which is equivalent to AMD's `log2(render/output) - 1` mip bias for the actual per-axis render
 scale.
 
+[`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) clears the full-output new-lock region
+on history reset before sparse lock generation. Shading-change reads and writes both use truncated half-render dimensions,
+including odd render sizes.
+
 ## Bloom
 
 When `SETTING_BLOOM` is enabled, [`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) builds levels 1–10
@@ -84,16 +88,19 @@ adjacent tile or stale atlas data.
 Bloom highlight compression is an intentionally lossy Bloom-only operation. It is applied exactly once to exposed-linear
 main-color samples entering the first downsample level, before pyramid filtering. It does not modify the main image and is
 not part of the reversible matrix/log AA working transform in [`AgxInvertible.glsl`](../../../shaders/util/AgxInvertible.glsl).
-It is disabled by default to preserve the uncompressed Bloom energy of the standard pipeline.
+Samples are transformed into AgX inset-matrix/log space with the original `[-8.25, 8.25]` EV range, compressed,
+and restored to linear color before filtering. The offset log preserves black. RGB mode makes bright colors approach
+white; Luma mode scales all encoded channels together. The default strength is High, matching the original default
+and highlight threshold while keeping the AA transform reversible.
 
 ## Post composition and exposure
 
-| Order | Pass                                                                                                                                                                            | Purpose                                                                                                         |
-|-------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
-| 1     | [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                      | Combines the main color, DOF, bloom, and other post inputs; the RTWSM companion pass owns independent resources |
-| 2     | [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                          | Builds luminance/weight levels                                                                                  |
-| 3     | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl)                                                                                                    | Reduces exposure statistics                                                                                     |
-| 4     | [`FinalGlobalDataUpdate`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl) and [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | Persists global/exposure state for the next frame and composes the overlay                                      |
+| Order | Pass | Purpose |
+|-------|------|---------|
+| 1 | [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl) | Combines Bloom and main color, applies the display transform, and collects highlight/shadow statistics. |
+| 2 | [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl) | Reduces weighted output luminance and updates next-frame exposure through [`ExposureUpdate`](../../../shaders/techniques/displaytransform/ExposureUpdate.glsl). |
+| 3 | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl) | Runs only with `SETTING_DEBUG_AE`; reduces the debug histogram and performs the exposure update in that configuration. |
+| 4 | [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | Composes overlays after the display transform. |
 
 The exposure screen controls manual EV, minimum/maximum EV, emissive/distance/center weighting, average-luminance time
 and target range, highlight/shadow percentiles, and adaptation parameters. `transient_exposureWeights` carries per-pixel
@@ -101,12 +108,13 @@ weights.
 
 ## Final display transform
 
-Root [`final.fsh`](../../../shaders/final.fsh) includes [
-`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl). That entry point uses [
-`Exposure.glsl`](../../../shaders/techniques/displaytransform/Exposure.glsl), [
-`DRT.glsl`](../../../shaders/techniques/displaytransform/DRT.glsl), and [
-`DisplayTransform.glsl`](../../../shaders/techniques/displaytransform/DisplayTransform.glsl) to convert internal working
-color space to DRT working space, then applies tone mapping and the output color space/transfer function.
+[`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl) uses
+[`DisplayTransform.glsl`](../../../shaders/techniques/displaytransform/DisplayTransform.glsl),
+[`DRT.glsl`](../../../shaders/techniques/displaytransform/DRT.glsl), and
+[`Exposure.glsl`](../../../shaders/techniques/displaytransform/Exposure.glsl) to apply the display transform and collect
+exposure statistics. Display exposure has already been applied by temporal resolve or shared RCAS.
+Root [`final.fsh`](../../../shaders/final.fsh) includes
+[`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl) for final dithering and presentation.
 
 After tone mapping, the result is converted to the configured color-grading color space. [`PrimaryColorCalibration`](../../../shaders/techniques/displaytransform/PrimaryColorCalibration.glsl) adjusts its linear RGB primaries, then the configured grading transfer function is applied and [`HSLColorMixer`](../../../shaders/techniques/displaytransform/HSLColorMixer.glsl) adjusts eight hue bands. The result is decoded and converted to the monitor output space. Both stages have independent toggles.
 

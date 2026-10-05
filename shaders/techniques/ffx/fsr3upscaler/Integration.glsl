@@ -323,7 +323,7 @@ void StoreShadingChange(FfxInt32x2 pos, FfxFloat32 value) {
 #endif
 
 FfxFloat32 SampleShadingChange(FfxFloat32x2 uv) {
-    FSR3BilinearContext context = FSR3CreateBilinearContext(uv, GetFarthestDepthMip1ResourceDimensions());
+    FSR3BilinearContext context = FSR3CreateBilinearContext(uv, RenderSize() / 2);
     return FSR3_FILTER_TILE(history_fsr3ShadingChange_fetch, context).r;
 }
 

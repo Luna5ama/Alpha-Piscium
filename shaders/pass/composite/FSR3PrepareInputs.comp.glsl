@@ -9,5 +9,16 @@ const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 
 void main() {
     FfxInt32x2 pos = FfxInt32x2(gl_GlobalInvocationID.xy);
-    if (all(lessThan(pos, RenderSize()))) PrepareInputs(pos);
+    if (any(greaterThanEqual(pos, RenderSize()))) return;
+
+    if (FSR3HistoryReset()) {
+        ivec2 outputStart = pos * UpscaleSize() / RenderSize();
+        ivec2 outputEnd = (pos + 1) * UpscaleSize() / RenderSize();
+        for (int y = outputStart.y; y < outputEnd.y; y++) {
+            for (int x = outputStart.x; x < outputEnd.x; x++) {
+                imageStore(uimg_fsr3UpscaleAtlas, FSR3OutputTexel(ivec2(x, y)), vec4(0.0));
+            }
+        }
+    }
+    PrepareInputs(pos);
 }
