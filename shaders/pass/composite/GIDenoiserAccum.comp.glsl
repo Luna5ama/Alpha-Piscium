@@ -253,8 +253,14 @@ void main() {
                 transient_gi5Reprojected_store(texelPos, packedData5);
 
             } else {
+                transient_gi2Reprojected_store(texelPos, vec4(0.0));
+                transient_gi4Reprojected_store(texelPos, vec4(0.0));
                 transient_gi_variance_store(texelPos, vec4(0.0));
             }
         }
+    } else if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        transient_gi2Reprojected_store(texelPos, vec4(0.0));
+        transient_gi4Reprojected_store(texelPos, vec4(0.0));
+        transient_gi_variance_store(texelPos, vec4(0.0));
     }
 }

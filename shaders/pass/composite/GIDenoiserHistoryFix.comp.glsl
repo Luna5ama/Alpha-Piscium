@@ -61,9 +61,8 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
     if (index < 400u) { // 20 * 20 = 400
         uvec2 sharedXY = uvec2(index % 20u, index / 20u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
-        bool hasSurface = texelFetch(usam_gbufferSolidViewZ, clamp(srcXY, ivec2(0), uval_mainImageSizeI - 1), 0).x > -65536.0;
-        vec4 diffData = hasSurface ? transient_gi2Reprojected_fetch(srcXY) : vec4(0.0);
-        vec4 specData = hasSurface ? transient_gi4Reprojected_fetch(srcXY) : vec4(0.0);
+        vec4 diffData = transient_gi2Reprojected_fetch(srcXY);
+        vec4 specData = transient_gi4Reprojected_fetch(srcXY);
 
         if (all(greaterThanEqual(sharedXY, uvec2(2u))) && all(lessThan(sharedXY, uvec2(18u)))) {
             history_gi2_store(srcXY, diffData);
@@ -106,9 +105,8 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
 
-        bool hasSurface = texelFetch(usam_gbufferSolidViewZ, clamp(srcXY, ivec2(0), uval_mainImageSizeI - 1), 0).x > -65536.0;
-        vec4 diffData = hasSurface ? transient_gi2Reprojected_fetch(srcXY) : vec4(0.0);
-        vec4 specData = hasSurface ? transient_gi4Reprojected_fetch(srcXY) : vec4(0.0);
+        vec4 diffData = transient_gi2Reprojected_fetch(srcXY);
+        vec4 specData = transient_gi4Reprojected_fetch(srcXY);
 
         if (all(greaterThanEqual(sharedXY, uvec2(2u))) && all(lessThan(sharedXY, uvec2(18u)))) {
             history_gi2_store(srcXY, diffData);
