@@ -29,19 +29,19 @@
 #define RESTIR_REUSE_TILE_MASK 255
 
 bool restir_isFinite(float value) {
-    return !isnan(value) && !isinf(value);
+    return abs(value) <= FLT_MAX;
 }
 
 bool restir_isFinite(vec3 value) {
-    return !any(isnan(value)) && !any(isinf(value));
+    return all(lessThanEqual(abs(value), vec3(FLT_MAX)));
 }
 
 bool restir_isFinite(vec4 value) {
-    return !any(isnan(value)) && !any(isinf(value));
+    return all(lessThanEqual(abs(value), vec4(FLT_MAX)));
 }
 
 bool restir_isPositiveFinite(float value) {
-    return value > 0.0 && restir_isFinite(value);
+    return value > 0.0 && value <= FLT_MAX;
 }
 
 struct SpatialSampleData {
