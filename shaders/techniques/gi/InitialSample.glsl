@@ -312,7 +312,7 @@ float restir_initialSample_evaluateRayPdf(
     }
 
     float pdf = pSpec * vndfPdf + (1.0 - pSpec) * diffusePdf;
-    return pdf > 0.0 && !isnan(pdf) && !isinf(pdf) ? pdf : 0.0;
+    return pdf > 0.0 && pdf <= FLT_MAX ? pdf : 0.0;
 }
 
 // Slot 0 (RANDOM_FRAME/64u)   -> branch random (stbnVec1)

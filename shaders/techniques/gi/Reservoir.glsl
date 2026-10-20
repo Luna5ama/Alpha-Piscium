@@ -28,20 +28,21 @@
 #define RESTIR_REUSE_TILE_BITS 8
 #define RESTIR_REUSE_TILE_MASK 255
 
+// Exponent bits preserve NaN rejection when the driver folds a negated finite test.
 bool restir_isFinite(float value) {
-    return abs(value) <= FLT_MAX;
+    return (floatBitsToUint(value) & 0x7f800000u) != 0x7f800000u;
 }
 
 bool restir_isFinite(vec3 value) {
-    return all(lessThanEqual(abs(value), vec3(FLT_MAX)));
+    return all(notEqual(floatBitsToUint(value) & uvec3(0x7f800000u), uvec3(0x7f800000u)));
 }
 
 bool restir_isFinite(vec4 value) {
-    return all(lessThanEqual(abs(value), vec4(FLT_MAX)));
+    return all(notEqual(floatBitsToUint(value) & uvec4(0x7f800000u), uvec4(0x7f800000u)));
 }
 
 bool restir_isPositiveFinite(float value) {
-    return value > 0.0 && value <= FLT_MAX;
+    return value > 0.0 && floatBitsToUint(value) < 0x7f800000u;
 }
 
 struct SpatialSampleData {
@@ -90,23 +91,23 @@ struct ReSTIRReservoir {
 };
 
 float restir_stabilizeTemporalTargetPHat(float pHat) {
-    if (!restir_isFinite(pHat) || pHat <= 0.0) {
+    if (!restir_isPositiveFinite(pHat)) {
         return 0.0;
     }
 
     float quantizedPHat = unpackHalf2x16(packHalf2x16(vec2(pHat, 0.0))).x;
     float minStablePHat = float(SETTING_GI_TEMPORAL_REUSE_LIMIT) * 2.98023223876953125e-8;
-    return restir_isFinite(quantizedPHat) && quantizedPHat >= minStablePHat ? quantizedPHat : pHat;
+    return quantizedPHat >= minStablePHat && quantizedPHat <= FLT_MAX ? quantizedPHat : pHat;
 }
 
 float restir_quantizeStoredTargetPHat(float pHat) {
-    if (!restir_isFinite(pHat) || pHat <= 0.0) {
+    if (!restir_isPositiveFinite(pHat)) {
         return 0.0;
     }
 
     float quantizedPHat = unpackHalf2x16(packHalf2x16(vec2(pHat, 0.0))).x;
     float minStablePHat = float(SETTING_GI_TEMPORAL_REUSE_LIMIT) * 2.98023223876953125e-8;
-    return restir_isFinite(quantizedPHat) && quantizedPHat >= minStablePHat ? quantizedPHat : 0.0;
+    return quantizedPHat >= minStablePHat && quantizedPHat <= FLT_MAX ? quantizedPHat : 0.0;
 }
 
 ReSTIRReservoir restir_initReservoir() {
@@ -118,10 +119,8 @@ ReSTIRReservoir restir_initReservoir() {
 }
 
 bool restir_isReservoirValid(ReSTIRReservoir reservoir) {
-    return reservoir.m > 0.0
-        && reservoir.avgWY > 0.0
-        && restir_isFinite(reservoir.m)
-        && restir_isFinite(reservoir.avgWY)
+    return restir_isPositiveFinite(reservoir.m)
+        && restir_isPositiveFinite(reservoir.avgWY)
         && restir_isFinite(reservoir.Y);
 }
 
@@ -130,19 +129,14 @@ float restir_updateRand(ivec2 texelPos, uint randSeed) {
 }
 
 bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, vec4 X, float wi, float rand) {
-    if (
-        !restir_isFinite(wSum)
-        || wSum < 0.0
-        || !restir_isFinite(reservoir.m)
-        || reservoir.m < 0.0
-        || !restir_isFinite(wi)
-        || wi <= 0.0
-    ) {
-        return false;
-    }
-
     float nextWSum = wSum + wi;
-    if (!restir_isFinite(nextWSum)) {
+    if (!(
+        wSum >= 0.0
+        && wi > 0.0
+        && restir_isFinite(nextWSum)
+        && reservoir.m >= 0.0
+        && restir_isFinite(reservoir.m)
+    )) {
         return false;
     }
     wSum = nextWSum;
@@ -178,10 +172,8 @@ bool restir_reconnectionDensityRatioValid(
     float mappedTargetPHat
 ) {
     if (
-        sourcePHat <= 0.0
-        || mappedTargetPHat <= 0.0
-        || !restir_isFinite(sourcePHat)
-        || !restir_isFinite(mappedTargetPHat)
+        !restir_isPositiveFinite(sourcePHat)
+        || !restir_isPositiveFinite(mappedTargetPHat)
     ) {
         return false;
     }
@@ -284,7 +276,7 @@ ShiftMapping evaluateShiftMapping(
                 VDST,
                 matDST
             );
-            if (pHat > 0.0 && restir_isFinite(pHat)) {
+            if (restir_isPositiveFinite(pHat)) {
                 float log2Jacobian = 2.0 * log2(canonResSRC.Y.w)
                     + log2(cosPhiDST)
                     - log2(dist2)

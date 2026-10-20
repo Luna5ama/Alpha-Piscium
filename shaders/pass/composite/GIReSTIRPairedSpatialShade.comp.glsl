@@ -156,7 +156,7 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos, inout uvec2 trainRecord) 
         vec4 ssgiDiffOut;
         vec4 ssgiSpecOut;
         float diffuseShare = -1.0;
-        if (restir_isFinite(avgWY) && avgWY > 0.0) {
+        if (restir_isPositiveFinite(avgWY)) {
             diffuseShare = restir_shadeSample(
                 selectedSampleF.xyz,
                 resultY,

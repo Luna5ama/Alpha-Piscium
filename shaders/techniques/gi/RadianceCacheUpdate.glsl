@@ -800,7 +800,7 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
 
     float unclampedM = reservoir.m;
     float clampedM = clamp(unclampedM, 0.0, float(SETTING_RC_M_CAP));
-    if (unclampedM > clampedM && unclampedM > 0.0) {
+    if (unclampedM > clampedM) {
         wSum *= clampedM * safeRcp(unclampedM);
     }
     reservoir.m = clampedM;

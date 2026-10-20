@@ -150,7 +150,7 @@ bool temporalReconnectionJacobian(
         + log2(targetCosine)
         - log2(targetDistance2)
         - log2(sourceCosine);
-    if (!restir_isFinite(log2Jacobian) || abs(log2Jacobian) > RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN) {
+    if (isnan(log2Jacobian) || abs(log2Jacobian) > RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN) {
         return false;
     }
     jacobian = exp2(log2Jacobian);

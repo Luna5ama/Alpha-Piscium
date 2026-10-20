@@ -45,22 +45,16 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 
 bool restir_updateReservoirM(inout float reservoirM, inout float wSum, float wi, float m, float rand, out bool selected) {
     selected = false;
-    if (
-        !restir_isFinite(reservoirM)
-        || reservoirM < 0.0
-        || !restir_isFinite(wSum)
-        || wSum < 0.0
-        || !restir_isFinite(wi)
-        || wi <= 0.0
-        || !restir_isFinite(m)
-        || m < 0.0
-    ) {
-        return false;
-    }
-
     float nextWSum = wSum + wi;
     float nextM = reservoirM + m;
-    if (!restir_isFinite(nextWSum) || !restir_isFinite(nextM)) {
+    if (!(
+        reservoirM >= 0.0
+        && m >= 0.0
+        && restir_isFinite(nextM)
+        && wSum >= 0.0
+        && wi > 0.0
+        && restir_isFinite(nextWSum)
+    )) {
         return false;
     }
     wSum = nextWSum;
@@ -113,7 +107,7 @@ float evaluateShiftTargetPHat(
                 // The BRDF-ratio resolve needs the DST specular lobe regardless of the reconnection limits below.
                 targetSpecularBRDF = brdf.specular;
                 float pHat = length(sampleValueSRC.xyz * brdf.full);
-                if (pHat > 0.0 && restir_isFinite(pHat)) {
+                if (restir_isPositiveFinite(pHat)) {
                     float log2Jacobian = 2.0 * log2(canonYSRC.w)
                         + log2(cosPhiDST)
                         - log2(dist2)
@@ -171,7 +165,7 @@ uint randSeed
             safeRcp(srcToDstTargetPHat)
             + rcMDivK_DST * safeRcp(MiPiRiY)
         );
-        if (!restir_isFinite(weightedTargetPHat) || weightedTargetPHat <= 0.0) {
+        if (!restir_isPositiveFinite(weightedTargetPHat)) {
             return;
         }
 

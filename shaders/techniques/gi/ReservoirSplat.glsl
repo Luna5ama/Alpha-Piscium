@@ -98,10 +98,7 @@ float restir_splatPrimaryJacobian(
         + 3.0 * (log2(prevCosV) - log2(currCosV))
         + log2(prevDist2) - log2(currDist2)
         + log2(currProjectionScale) - log2(prevProjectionScale);
-    if (
-        !restir_isFinite(log2Jacobian)
-        || abs(log2Jacobian) > RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN
-    ) {
+    if (isnan(log2Jacobian) || abs(log2Jacobian) > RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN) {
         return 0.0;
     }
     return exp2(log2Jacobian);
