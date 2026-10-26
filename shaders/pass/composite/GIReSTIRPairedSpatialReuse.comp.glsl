@@ -85,7 +85,8 @@ float evaluateShiftTargetPHat(
         vec3 diffSRCtoDST = hitViewPosSRC - viewPosDST;
         float dist2 = dot(diffSRCtoDST, diffSRCtoDST);
         if (dist2 > EPSILON) {
-            vec3 dirSRCtoDST = diffSRCtoDST * inversesqrt(dist2);
+            float inverseDistance = inversesqrt(dist2);
+            vec3 dirSRCtoDST = diffSRCtoDST * inverseDistance;
             float cosPhiDST = -dot(dirSRCtoDST, hitNormalSRC);
             float sourceGeomCos = dot(geomNormalSRC, canonYSRC.xyz);
             float targetGeomCos = dot(geomNormalDST, dirSRCtoDST);
@@ -108,12 +109,13 @@ float evaluateShiftTargetPHat(
                 targetSpecularBRDF = brdf.specular;
                 float pHat = length(sampleValueSRC.xyz * brdf.full);
                 if (restir_isPositiveFinite(pHat)) {
-                    float log2Jacobian = 2.0 * log2(canonYSRC.w)
-                        + log2(cosPhiDST)
-                        - log2(dist2)
-                        - log2(cosPhiSRC);
-                    if (abs(log2Jacobian) <= RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN) {
-                        float mappedPHat = pHat * exp2(log2Jacobian);
+                    float distanceRatio = canonYSRC.w * inverseDistance;
+                    float jacobian = distanceRatio * distanceRatio * (cosPhiDST / cosPhiSRC);
+                    if (
+                        jacobian >= exp2(-RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN)
+                        && jacobian <= exp2(RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN)
+                    ) {
+                        float mappedPHat = pHat * jacobian;
                         if (restir_reconnectionDensityRatioValid(sampleValueSRC.w, mappedPHat)) {
                             targetPHat = mappedPHat;
                         }
