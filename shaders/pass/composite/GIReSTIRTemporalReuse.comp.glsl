@@ -82,12 +82,12 @@ shared mat3 shared_prevViewToCurrView;
 shared vec3 shared_prevViewToCurrViewTrans;
 
 ReSTIRReservoir readPreviousReservoir(ivec2 texelPos) {
-    uvec4 packedReservoir = history_restir_reservoirTemporal_load(texelPos);
+    uvec4 packedReservoir = history_restir_reservoirTemporal_fetch(texelPos);
     return restir_reservoir_unpack(packedReservoir);
 }
 
 uint readPreviousPrimary(ivec2 texelPos) {
-    return history_restir_primary_load(texelPos).x;
+    return history_restir_primary_fetch(texelPos).x;
 }
 
 uint readSplatNext(ivec2 texelPos) {
@@ -491,7 +491,7 @@ float readPreviousConfidence(ivec2 texelPos) {
     if (readPreviousPrimary(texelPos) == 0u) {
         return 0.0;
     }
-    uvec4 packedReservoir = history_restir_reservoirTemporal_load(texelPos);
+    uvec4 packedReservoir = history_restir_reservoirTemporal_fetch(texelPos);
     float confidence = uintBitsToFloat(packedReservoir.y);
     float avgWY = uintBitsToFloat(packedReservoir.z);
     float hitDistance = uintBitsToFloat(packedReservoir.w);
