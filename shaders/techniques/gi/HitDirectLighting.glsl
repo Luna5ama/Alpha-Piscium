@@ -16,7 +16,7 @@ vec3 gi_hitDirectLighting(Material material, vec3 worldPos, vec3 V, vec3 N, vec3
     vec3 upVector = atmPos / viewAltitude;
     const vec3 earthCenter = vec3(0.0);
 
-    vec4 shadowPos = global_shadowProj * global_shadowRotationMatrix * global_shadowView * vec4(scenePos + geomN * 0.02, 1.0);
+    vec4 shadowPos = global_sceneToShadowNDC * vec4(scenePos + geomN * 0.02, 1.0);
     vec3 shadowTexCoord = shadowPos.xyz / shadowPos.w * 0.5 + 0.5;
     shadowTexCoord.xy = rtwsm_warpTexCoord(shadowTexCoord.xy);
     float shadow = rtwsm_sampleShadowDepth(shadowtex1HW, shadowTexCoord, 0.0);
