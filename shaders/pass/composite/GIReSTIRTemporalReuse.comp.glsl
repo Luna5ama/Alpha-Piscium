@@ -487,24 +487,6 @@ float evaluateBackupProposalTerm(
 }
 #endif
 
-float readPreviousConfidence(ivec2 texelPos) {
-    if (readPreviousPrimary(texelPos) == 0u) {
-        return 0.0;
-    }
-    uvec4 packedReservoir = history_restir_reservoirTemporal_fetch(texelPos);
-    float confidence = uintBitsToFloat(packedReservoir.y);
-    float avgWY = uintBitsToFloat(packedReservoir.z);
-    float hitDistance = uintBitsToFloat(packedReservoir.w);
-    if (
-        !restir_isPositiveFinite(confidence)
-        || !restir_isPositiveFinite(avgWY)
-        || !restir_isFinite(hitDistance)
-    ) {
-        return 0.0;
-    }
-    return confidence;
-}
-
 void sampleTemporalSplat(
     ivec2 texelPos,
     ivec2 sourceTexelPos,
@@ -679,12 +661,20 @@ float evaluateTemporalConfidence(
     vec4 bilinearWeights,
     float canonicalConfidence
 ) {
-    vec4 previousConfidence = vec4(
-        readPreviousConfidence(gatherTexelPos + ivec2(-1, 0)),
-        readPreviousConfidence(gatherTexelPos),
-        readPreviousConfidence(gatherTexelPos + ivec2(0, -1)),
-        readPreviousConfidence(gatherTexelPos + ivec2(-1, -1))
-    );
+    vec2 gatherPos = vec2(gatherTexelPos);
+    uvec4 primaries = history_restir_primary_gatherTexel(gatherPos, 0);
+    uvec4 confidenceBits = history_restir_reservoirTemporal_gatherTexel(gatherPos, 1);
+    uvec4 avgWYBits = history_restir_reservoirTemporal_gatherTexel(gatherPos, 2);
+    uvec4 hitDistanceBits = history_restir_reservoirTemporal_gatherTexel(gatherPos, 3);
+    vec4 confidence = uintBitsToFloat(confidenceBits);
+    const uvec4 exponentMask = uvec4(0x7f800000u);
+    uvec4 valid = uvec4(notEqual(primaries, uvec4(0u)))
+        & uvec4(greaterThan(confidence, vec4(0.0)))
+        & uvec4(lessThan(confidenceBits, exponentMask))
+        & uvec4(greaterThan(uintBitsToFloat(avgWYBits), vec4(0.0)))
+        & uvec4(lessThan(avgWYBits, exponentMask))
+        & uvec4(notEqual(hitDistanceBits & exponentMask, exponentMask));
+    vec4 previousConfidence = mix(vec4(0.0), confidence, bvec4(valid));
     float historyConfidence = dot(bilinearWeights, previousConfidence);
     return min(canonicalConfidence + historyConfidence, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
 }
