@@ -82,12 +82,8 @@ float worleyNoise(vec2 x, uint seed) {
             float wh = w * h;
             m = mix(m, cellDistance, h) - fma(wh, -h, wh) / (1.0 + 3.0 * w);
 
-            if (f1 < v) {
-                f2 = f1;
-                f1 = v;
-            } else if (f2 < v) {
-                f2 = v;
-            }
+            f2 = max(f2, min(f1, v));
+            f1 = max(f1, v);
         }
     }
 
