@@ -225,8 +225,9 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
             uint mortonPrefix = fullMorton >> childShift;
 
             // Branchless bit check
+            uint childBit = 1u << (mortonPrefix & 31u);
             uint maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (mortonPrefix >> 5u)];
-            bool isHit = bool((maskPart >> (mortonPrefix & 31u)) & 1u);
+            bool isHit = (maskPart & childBit) != 0u;
 
             #if defined(RESTIR_INITIAL_CANDIDATE_WRITE) || defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
             if (isHit && level != 1) {
