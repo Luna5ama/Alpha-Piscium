@@ -91,7 +91,7 @@ uint readPreviousPrimary(ivec2 texelPos) {
 }
 
 uint readSplatNext(ivec2 texelPos) {
-    return transient_restir_pairwiseMISMetadata_load(texelPos).x;
+    return transient_restir_pairwiseMISMetadata_fetch(texelPos).x;
 }
 
 uint readCurrentPrimary(ivec2 texelPos) {
