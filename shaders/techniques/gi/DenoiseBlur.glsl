@@ -212,11 +212,12 @@ void main() {
                     );
                     float16_t edgeWeight = float16_t(edgeWeightFP32);
 
-                    vec4 diffSample = _gi_readDiff(sampleTexelPos);
-
                     float totalWeight = float(kernelWeight) * smoothstep(0.0, 1.0, float(edgeWeight));
-                    diffSum += diffSample * totalWeight;
-                    weightSum += totalWeight;
+                    if (GI_DENOISE_PASS == 2 || totalWeight != 0.0) {
+                        vec4 diffSample = _gi_readDiff(sampleTexelPos);
+                        diffSum += diffSample * totalWeight;
+                        weightSum += totalWeight;
+                    }
                 }
 
                 {
@@ -320,11 +321,12 @@ void main() {
                     edgeWeightFP32 *= gi_roughnessWeight(centerGeomData.roughness, geomData.roughness);
                     float16_t edgeWeight = float16_t(edgeWeightFP32);
 
-                    vec4 specSample = _gi_readSpec(sampleTexelPos);
-
                     float totalWeight = float(kernelWeight) * smoothstep(0.0, 1.0, float(edgeWeight));
-                    specSum += specSample * totalWeight;
-                    weightSum += totalWeight;
+                    if (GI_DENOISE_PASS == 2 || totalWeight != 0.0) {
+                        vec4 specSample = _gi_readSpec(sampleTexelPos);
+                        specSum += specSample * totalWeight;
+                        weightSum += totalWeight;
+                    }
                 }
 
                 {
