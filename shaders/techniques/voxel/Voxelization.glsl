@@ -39,6 +39,7 @@ layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
     uint voxel_brickOccupancy[VOXEL_GRID_BRICKS];
     uint voxel_brickAllocID[VOXEL_GRID_BRICKS];
     uint voxel_bucketCounts[NUM_DIST_BUCKETS];
+    uint voxel_allocatedBricks[]; // allocID -> brick Morton, valid below allocation count
 };
 
 // ---------------------------------------------------------------------------

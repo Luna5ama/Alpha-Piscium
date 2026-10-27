@@ -148,6 +148,7 @@ void main() {
             uint allocID = atomicAdd(shared_bucketCount[dist], 1u);
             if (allocID < uint(VOXEL_POOL_SIZE)) {
                 voxel_brickAllocID[i] = allocID;
+                voxel_allocatedBricks[allocID] = i;
                 threadAllocCount++;
             } else {
                 voxel_brickAllocID[i] = VOXEL_UNALLOCATED;

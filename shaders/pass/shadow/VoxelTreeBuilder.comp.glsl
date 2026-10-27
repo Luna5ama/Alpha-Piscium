@@ -1,4 +1,4 @@
-// 64-Tree Builder – runs after the shadow pass (shadowcomp2).
+// 64-Tree Builder – runs after the shadow pass (prepare2).
 //
 // Builds the bottom 2 levels of the dense 64-tree for each allocated brick:
 //   Level 1 (leaf, 64 uvec2 per brick): bit k = 1 if block k in sub-region is solid.
@@ -7,7 +7,7 @@
 // Tree nodes are written to the dense layout (indexed by brickMorton, not allocID).
 // Material data is still read via allocID (sparse pool).
 //
-// Dispatch: one workgroup per 4 bricks in the VOXEL_GRID_SIZE^3 grid.
+// Dispatch: one workgroup per four slots, capped by the grid capacity.
 // Threads per workgroup: 256 (64 per brick × 4 bricks, one thread per sub-region).
 //
 // This pass owns L2 for every brick and writes L1 only for non-empty sub-regions.
@@ -38,13 +38,25 @@ layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
 };
 
 layout(local_size_x = 256) in;
-// One workgroup per 4 bricks in the VOXEL_GRID_SIZE^3 grid
-#if VOXEL_GRID_SIZE == 64
-const ivec3 workGroups = ivec3(65536, 1, 1);
-#elif VOXEL_GRID_SIZE == 32
-const ivec3 workGroups = ivec3(8192, 1, 1);
-#else
+// One workgroup per four possible allocated bricks.
+#if VOXEL_POOL_SIZE == 256
+const ivec3 workGroups = ivec3(64, 1, 1);
+#elif VOXEL_POOL_SIZE == 512
+const ivec3 workGroups = ivec3(128, 1, 1);
+#elif VOXEL_POOL_SIZE == 1024
+const ivec3 workGroups = ivec3(256, 1, 1);
+#elif VOXEL_POOL_SIZE == 2048
+const ivec3 workGroups = ivec3(512, 1, 1);
+#elif VOXEL_POOL_SIZE == 4096 || VOXEL_GRID_SIZE == 16
 const ivec3 workGroups = ivec3(1024, 1, 1);
+#elif VOXEL_POOL_SIZE == 8192
+const ivec3 workGroups = ivec3(2048, 1, 1);
+#elif VOXEL_POOL_SIZE == 16384
+const ivec3 workGroups = ivec3(4096, 1, 1);
+#elif VOXEL_POOL_SIZE == 32768 || VOXEL_GRID_SIZE == 32
+const ivec3 workGroups = ivec3(8192, 1, 1);
+#elif VOXEL_POOL_SIZE == 65536
+const ivec3 workGroups = ivec3(16384, 1, 1);
 #endif
 
 shared uint rootMaskLo[4];
@@ -76,16 +88,32 @@ void rc_markPendingVisibleFace(uint level, vec3 ownerBlockCenter, uint faceBits)
 }
 
 void main() {
+    for (uint brick = gl_GlobalInvocationID.x; brick < uint(VOXEL_GRID_BRICKS);
+            brick += gl_NumWorkGroups.x * gl_WorkGroupSize.x) {
+        if (voxel_brickAllocID[brick] == VOXEL_UNALLOCATED) {
+            voxel_tree[uint(VOXEL_TREE_OFFSET_L2) + brick] = uvec2(0u);
+        }
+    }
+
+    uint groupBase = gl_WorkGroupID.x * 4u;
+    uint allocationCount = voxel_brickAllocCounter;
+    if (groupBase >= allocationCount) return;
+
     uint localID    = gl_LocalInvocationID.x;
     uint groupBrick = localID >> 6u;        // 0..3 – which of the 4 bricks in this workgroup
     uint subRegion  = localID & 63u;        // 0..63 – sub-region index within the brick
-    uint brickMorton = gl_WorkGroupID.x * 4u + groupBrick;
+    uint allocID = groupBase + groupBrick;
+    uint brickMorton = 0u;
+    if (allocID < allocationCount) {
+        brickMorton = voxel_allocatedBricks[allocID];
+    } else {
+        allocID = VOXEL_UNALLOCATED;
+    }
 
     if (subRegion == 0u) {
         rootMaskLo[groupBrick] = 0u;
         rootMaskHi[groupBrick] = 0u;
     }
-    uint allocID = voxel_brickAllocID[brickMorton];
     uint leafLow  = 0u;
     uint leafHigh = 0u;
     uint opaqueLow = 0u;
@@ -94,9 +122,10 @@ void main() {
     if (localID < 24u) {
         uint adjacentGroupBrick = localID / 6u;
         uint faceId = localID - adjacentGroupBrick * 6u;
-        uint adjacentBrickMorton = gl_WorkGroupID.x * 4u + adjacentGroupBrick;
+        uint adjacentSlot = groupBase + adjacentGroupBrick;
         uint adjacentAllocID = VOXEL_UNALLOCATED;
-        if (voxel_brickAllocID[adjacentBrickMorton] != VOXEL_UNALLOCATED) {
+        if (adjacentSlot < allocationCount) {
+            uint adjacentBrickMorton = voxel_allocatedBricks[adjacentSlot];
             ivec3 adjacentBrickCoord = ivec3(morton3D_30bDecode(adjacentBrickMorton));
             uint axis = faceId >> 1u;
             adjacentBrickCoord[axis] += (faceId & 1u) != 0u ? -1 : 1;
@@ -233,9 +262,8 @@ void main() {
 
     barrier();
 
-    // Always write L2 (computed mask for allocated bricks; 0 for unallocated
-    // since rootMaskLo/Hi was initialized to 0 and no atomics fired).
-    if (subRegion == 0u) {
+    // Allocated roots are disjoint from the unallocated roots cleared above.
+    if (subRegion == 0u && allocID != VOXEL_UNALLOCATED) {
         uint rootIdx = uint(VOXEL_TREE_OFFSET_L2) + brickMorton;
         voxel_tree[rootIdx] = uvec2(rootMaskLo[groupBrick], rootMaskHi[groupBrick]);
     }
