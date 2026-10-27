@@ -160,10 +160,13 @@ void main() {
                     vec2 texelPos0 = vec2(texelPos) + 0.5;
                     vec3 geomNormal0 = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
                     float viweZ0 = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
+                    float perceptualRoughness = transient_specularPBRData_fetch(texelPos).r;
+                    float specMaxMip = mix(3.0, 6.0, perceptualRoughness);
 
                     vec4 diffWeightedSum = vec4(0.0);
-                    vec4 specWeightedSum = vec4(0.0);
-                    float weightSum = 0.0;
+                    vec3 specWeightedSum = vec3(0.0);
+                    float diffWeightSum = 0.0;
+                    float specWeightSum = 0.0;
 
                     const float baseReductionFactor = ldexp(1.0, -12);
 
@@ -179,7 +182,6 @@ void main() {
                         vec2 screenPosMipTile = texelPosMipTile * uval_mainImageSizeRcp;
 
                         vec4 mipDiff = transient_gi_diffMip_sample(screenPosMipTile);
-                        vec4 mipSpec = transient_gi_specMip_sample(screenPosMipTile);
 
                         ivec4 hizTile = global_hizTiles[mip];
                         vec2 hiZReadPos = hizTile.xy + ivec2(texelPosMip);
@@ -200,29 +202,38 @@ void main() {
                         float maxZWeight = zBaseWeight / (zBaseWeight + abs(hiZMax - viweZ0));
                         float minZWeight = zBaseWeight / (zBaseWeight + abs(hiZMin - viweZ0));
 
-                        float reductionFactor = baseReductionFactor / (baseReductionFactor + weightSum);
-
                         float sampleWeight = 1.0;
                         sampleWeight *= geomNormalWeight;
                         sampleWeight *= maxZWeight;
                         sampleWeight *= minZWeight;
-                        sampleWeight *= reductionFactor;
 
-                        diffWeightedSum += mipDiff * sampleWeight;
-                        specWeightedSum += mipSpec * sampleWeight;
-                        weightSum += sampleWeight;
+                        float diffReductionFactor = baseReductionFactor / (baseReductionFactor + diffWeightSum);
+                        float diffSampleWeight = sampleWeight * diffReductionFactor;
+                        diffWeightedSum += mipDiff * diffSampleWeight;
+                        diffWeightSum += diffSampleWeight;
+
+                        float specMipWeight = saturate(specMaxMip - float(mip) + 1.0);
+                        if (specMipWeight > 0.0) {
+                            vec4 mipSpec = transient_gi_specMip_sample(screenPosMipTile);
+                            // Leave the unfilled weight for finer mips, including fractional mip transitions.
+                            float specSampleWeight = sampleWeight * specMipWeight * (1.0 - saturate(specWeightSum)) * mipSpec.a;
+                            specWeightedSum += mipSpec.rgb * specSampleWeight;
+                            specWeightSum += specSampleWeight;
+                        }
                     }
 
-                    if (weightSum > 1e-16) {
-                        float rcpWeightSum = 1.0 / weightSum;
+                    if (diffWeightSum > 1e-16) {
+                        float rcpWeightSum = 1.0 / diffWeightSum;
                         diffWeightedSum *= rcpWeightSum;
-                        specWeightedSum *= rcpWeightSum;
 
                         diffWeightedSum = max(diffWeightedSum, vec4(0.0));
-                        specWeightedSum = max(specWeightedSum, vec4(0.0));
 
                         historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
-                        // historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
+                    }
+                    if (specWeightSum > 1e-16) {
+                        vec3 specReconstructed = max(specWeightedSum / specWeightSum, vec3(0.0));
+                        float specFixStrength = (1.0 - historyFixMix) * perceptualRoughness;
+                        historyData.specularColor = mix(historyData.specularColor, specReconstructed, specFixStrength);
                     }
                 }
                 #endif
