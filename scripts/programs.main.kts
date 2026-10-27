@@ -141,6 +141,9 @@ programs {
             }
         }
         pass("/pass/setup/ClearVoxelFaceTexcoords.comp.glsl")
+        pass("/pass/begin/ClearVoxelData.comp.glsl") {
+            constDefine("VOXEL_CLEAR_ALL", 1)
+        }
     }
 
     ProgramType.BEGIN {

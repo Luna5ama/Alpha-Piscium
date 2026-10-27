@@ -1,40 +1,24 @@
-// Clears SSBO 4 (voxel material data) every frame so the shadow pass starts
-// from a clean slate. The dense 64-tree (SSBO 8) is self-clearing:
-//   L2 is always written by VoxelTreeBuilder; L1 is masked by L2 when stale.
-//   L3–L5 are always written by the propagator passes (zero when children are zero).
-//
-// Dispatch: (POOL_SIZE * 1024 / 256) workgroups x 256 threads.
-// Each thread clears one uvec4 view of voxel_materials.
-
+// Setup clears the full pool; begin clears every slot written by the previous frame.
+#ifdef VOXEL_CLEAR_ALL
+#define VOXEL_BRICK_DATA_MODIFIER buffer
+#endif
 #define VOXEL_MATERIAL_DATA_MODIFIER buffer
 #define VOXEL_MATERIAL_VEC4 a
 #include "/techniques/voxel/Voxelization.glsl"
 
 layout(local_size_x = 256) in;
-
-// workGroups = POOL_SIZE * 1024 / 256 = POOL_SIZE * 4
-#if VOXEL_POOL_SIZE == 256
-    #define _VOXEL_CLEAR_WG 1024
-#elif VOXEL_POOL_SIZE == 512
-    #define _VOXEL_CLEAR_WG 2048
-#elif VOXEL_POOL_SIZE == 1024
-    #define _VOXEL_CLEAR_WG 4096
-#elif VOXEL_POOL_SIZE == 2048
-    #define _VOXEL_CLEAR_WG 8192
-#elif VOXEL_POOL_SIZE == 4096
-    #define _VOXEL_CLEAR_WG 16384
-#elif VOXEL_POOL_SIZE == 8192
-    #define _VOXEL_CLEAR_WG 32768
-#elif VOXEL_POOL_SIZE == 16384
-    #define _VOXEL_CLEAR_WG 65536
-#elif VOXEL_POOL_SIZE == 32768
-    #define _VOXEL_CLEAR_WG 131072
-#elif VOXEL_POOL_SIZE == 65536
-    #define _VOXEL_CLEAR_WG 262144
-#endif
-
-const ivec3 workGroups = ivec3(_VOXEL_CLEAR_WG, 1, 1);
+const ivec3 workGroups = ivec3(1024, 1, 1);
 
 void main() {
-    voxel_materials_v4[gl_GlobalInvocationID.x] = uvec4(0u);
+    #ifdef VOXEL_CLEAR_ALL
+    uint clearCount = uint(VOXEL_POOL_SIZE) * 1024u;
+    if (gl_GlobalInvocationID.x == 0u) {
+        voxel_brickAllocCounter = 0u;
+    }
+    #else
+    uint clearCount = voxel_brickAllocCounter * 1024u;
+    #endif
+    for (uint index = gl_GlobalInvocationID.x; index < clearCount; index += 262144u) {
+        voxel_materials_v4[index] = uvec4(0u);
+    }
 }
