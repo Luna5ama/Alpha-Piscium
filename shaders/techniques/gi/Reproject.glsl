@@ -8,12 +8,13 @@
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
 
-vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
+vec4 bileratralSum(mat4 samples, vec4 weights) {
+    mat4 channels = transpose(samples);
     return vec4(
-        dot(xs, weights),
-        dot(ys, weights),
-        dot(zs, weights),
-        dot(ws, weights)
+        dot(channels[0], weights),
+        dot(channels[1], weights),
+        dot(channels[2], weights),
+        dot(channels[3], weights)
     );
 }
 
@@ -222,18 +223,14 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 // Seems unused
                 // reprojInfo.historyResetFactor = weightSum;
                 if (weightSum > 0.001) {
-                    vec4 data5X = history_gi5_gatherTexel(gatherTexelPos, 0);
-                    vec4 data5Y = history_gi5_gatherTexel(gatherTexelPos, 1);
-                    vec4 data5Z = history_gi5_gatherTexel(gatherTexelPos, 2);
-                    vec4 data5W = history_gi5_gatherTexel(gatherTexelPos, 3);
-
-                    vec4 packedData5 = bileratralSum(
-                        data5X,
-                        data5Y,
-                        data5Z,
-                        data5W,
-                        finalWeights
+                    mat4 data5 = mat4(
+                        history_gi5_fetch(ivec2(gatherTexelPos) + ivec2(-1, 0)),
+                        history_gi5_fetch(ivec2(gatherTexelPos) + ivec2(0, 0)),
+                        history_gi5_fetch(ivec2(gatherTexelPos) + ivec2(0, -1)),
+                        history_gi5_fetch(ivec2(gatherTexelPos) + ivec2(-1, -1))
                     );
+
+                    vec4 packedData5 = bileratralSum(data5, finalWeights);
                     float antiStretching = pow2(linearStep(0.2, 0.0, pow2(packedData5.w) - pow2(glazingAngleFactorHistory)));
                     historyResetFactor *= antiStretching;
                     packedData5.xy *= historyResetFactor;
@@ -244,34 +241,26 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
                     float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 8u), frameCounter);
 
-                    vec4 data1X = history_gi1_gatherTexel(gatherTexelPos, 0);
-                    vec4 data1Y = history_gi1_gatherTexel(gatherTexelPos, 1);
-                    vec4 data1Z = history_gi1_gatherTexel(gatherTexelPos, 2);
-                    vec4 data1W = history_gi1_gatherTexel(gatherTexelPos, 3);
-
-                    vec4 data2X = history_gi2_gatherTexel(gatherTexelPos, 0);
-                    vec4 data2Y = history_gi2_gatherTexel(gatherTexelPos, 1);
-                    vec4 data2Z = history_gi2_gatherTexel(gatherTexelPos, 2);
-                    vec4 data2W = history_gi2_gatherTexel(gatherTexelPos, 3);
-
-                    vec4 packedData1 = bileratralSum(
-                        data1X,
-                        data1Y,
-                        data1Z,
-                        data1W,
-                        finalWeights
+                    mat4 data1 = mat4(
+                        history_gi1_fetch(ivec2(gatherTexelPos) + ivec2(-1, 0)),
+                        history_gi1_fetch(ivec2(gatherTexelPos) + ivec2(0, 0)),
+                        history_gi1_fetch(ivec2(gatherTexelPos) + ivec2(0, -1)),
+                        history_gi1_fetch(ivec2(gatherTexelPos) + ivec2(-1, -1))
                     );
+
+                    mat4 data2 = mat4(
+                        history_gi2_fetch(ivec2(gatherTexelPos) + ivec2(-1, 0)),
+                        history_gi2_fetch(ivec2(gatherTexelPos) + ivec2(0, 0)),
+                        history_gi2_fetch(ivec2(gatherTexelPos) + ivec2(0, -1)),
+                        history_gi2_fetch(ivec2(gatherTexelPos) + ivec2(-1, -1))
+                    );
+
+                    vec4 packedData1 = bileratralSum(data1, finalWeights);
                     packedData1 = clamp(packedData1, 0.0, FP16_MAX);
                     packedData1 = dither_fp16(packedData1, ditherNoise);
                     transient_gi1Reprojected_store(texelPos, packedData1);
 
-                    vec4 packedData2 = bileratralSum(
-                        data2X,
-                        data2Y,
-                        data2Z,
-                        data2W,
-                        finalWeights
-                    );
+                    vec4 packedData2 = bileratralSum(data2, finalWeights);
                     packedData2 = clamp(packedData2, 0.0, FP16_MAX);
                     packedData2 = dither_fp16(packedData2, ditherNoise);
                     transient_gi2Reprojected_store(texelPos, packedData2);
@@ -414,18 +403,22 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     float ditherNoiseV = rand_stbnVec1(rand_newStbnPos(texelPos, 9u), frameCounter);
 
                     if (edgeFlag) {
-                        vec4 data3X = history_gi3_gatherTexel(gatherTexelPos, 0);
-                        vec4 data3Y = history_gi3_gatherTexel(gatherTexelPos, 1);
-                        vec4 data3Z = history_gi3_gatherTexel(gatherTexelPos, 2);
-                        vec4 data3W = history_gi3_gatherTexel(gatherTexelPos, 3);
+                        mat4 data3 = mat4(
+                            history_gi3_fetch(ivec2(gatherTexelPos) + ivec2(-1, 0)),
+                            history_gi3_fetch(ivec2(gatherTexelPos) + ivec2(0, 0)),
+                            history_gi3_fetch(ivec2(gatherTexelPos) + ivec2(0, -1)),
+                            history_gi3_fetch(ivec2(gatherTexelPos) + ivec2(-1, -1))
+                        );
 
-                        vec4 data4X = history_gi4_gatherTexel(gatherTexelPos, 0);
-                        vec4 data4Y = history_gi4_gatherTexel(gatherTexelPos, 1);
-                        vec4 data4Z = history_gi4_gatherTexel(gatherTexelPos, 2);
-                        vec4 data4W = history_gi4_gatherTexel(gatherTexelPos, 3);
+                        mat4 data4 = mat4(
+                            history_gi4_fetch(ivec2(gatherTexelPos) + ivec2(-1, 0)),
+                            history_gi4_fetch(ivec2(gatherTexelPos) + ivec2(0, 0)),
+                            history_gi4_fetch(ivec2(gatherTexelPos) + ivec2(0, -1)),
+                            history_gi4_fetch(ivec2(gatherTexelPos) + ivec2(-1, -1))
+                        );
 
-                        vec4 packedData3 = bileratralSum(data3X, data3Y, data3Z, data3W, finalWeights);
-                        vec4 packedData4 = bileratralSum(data4X, data4Y, data4Z, data4W, finalWeights);
+                        vec4 packedData3 = bileratralSum(data3, finalWeights);
+                        vec4 packedData4 = bileratralSum(data4, finalWeights);
                         packedData3 = clamp(packedData3, 0.0, FP16_MAX);
                         packedData3 = dither_fp16(packedData3, ditherNoiseV);
                         transient_gi3Reprojected_store(texelPos, packedData3);
