@@ -2,9 +2,9 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-design.md)
 
-This records the Alpha Piscium light-sampling discussion of 2026-10-29. The agreed direction is ready for a first
-algorithm experiment: a compact light BVH combined with directional blocker-distance statistics shared by shading
-bricks. It is a candidate design, not an implemented or performance-validated rendering path.
+This records the Alpha Piscium light-sampling design and first CPU experiments of 2026-10-29: a compact light BVH
+combined with directional blocker-distance statistics shared by shading bricks. The initial SH candidate did not
+show stable statistical benefit; see the experiment results below. No runtime shader path or GPU benefit is established.
 
 ## Scope and decisions
 
@@ -242,6 +242,101 @@ generation, statistics construction/update, tree traversal, and final shadow tra
 establish GLSL/Iris performance. Add movement, geometry changes, cold starts, and ReSTIR only after the static
 sampling behavior is understood.
 
+## Experiment results on 2026-10-29
+
+The first CPU experiment is complete. The degree-2 SH candidate does not show stable benefit under these settings.
+This is a statistical result for synthetic scenes, not an Iris/GPU performance result. Keep visibility guidance as
+an experimental direction; prioritize the geometric node approximation and bounded lookahead before adopting
+this SH representation.
+
+### Protocol and controls
+
+[The sampler experiment](../../../scripts/light_sampling_experiment.py) uses 512 omnidirectional point lights,
+256 diffuse receiver queries, opaque AABB occluders, and an all-light reference in each scene. Each pooled training
+seed uses 64 independent origin positions and 8,192 equal-solid-angle direction-bin midpoints: 524,288 probes per
+scene. The angular grid is deterministic quadrature. Training seeds are 11, 29, and 47; alpha is 0.1 and the bounded
+distance scale is 16 blocks. Computation uses float64, Python 3.14.7, and NumPy 2.4.6.
+
+The high-resolution reference retains raw distances within each angular bin and queries their empirical survival
+function. A fourth representation retains two moments in those same bins, without SH, to isolate two-moment
+approximation from angular compression. All variants use the same training distances, tree, and receiver queries.
+
+Nodes use a flux-weighted center and a sphere enclosing descendant light positions. Visibility is neutral while
+radius/distance exceeds 0.5. Compact nodes average five directions over the sphere's angular footprint at the nearest
+sphere distance, with modulation strength (1 - radius/distance) squared. These are concrete initial heuristics,
+not an established optimal cluster query.
+
+The metric below is the sum of exact single-sample variances across receiver queries, divided by the baseline's
+sum. At equal samples per query it is also the expected image MSE ratio. Ranges span the three training seeds,
+not confidence intervals over scenes. Construction and lookup costs are excluded.
+
+| Scene | Distance CDF | Binned two moments | SH two moments |
+|-------|--------------|--------------------|----------------|
+| Unoccluded | 1.003 | 1.003 | 1.000 |
+| Two rooms sharing a brick | 1.069–1.094 | 0.987–0.992 | 1.031–1.219 |
+| Bright distant light through a doorway | 0.968 | 0.973–0.975 | 0.999–1.005 |
+
+### Diagnosis
+
+[The saved-data diagnostics](../../../scripts/light_sampling_diagnostics.py) separate three sources of loss:
+
+- With probe origins matched exactly to each query, the distance-CDF variance ratio in the two-room scene changes
+  to 0.948. Pooling origins is therefore a material source of loss in this fixture. This control is not a proposed
+  per-pixel cache.
+- Keeping high angular resolution while retaining only two moments is more stable here than projecting the
+  moments into degree-2 SH. The result applies to this SH fit, feasible-moment repair, scale, and query rule;
+  it does not reject every possible SH or moment representation.
+- Summing child scores two levels deeper, with no visibility guidance, gives ratios of 0.577, 0.815, and 0.762
+  in the open, two-room, and doorway scenes. Node importance approximation is already a substantial source of
+  variance.
+
+With that same two-level lookahead, binned moments give 0.789–0.796 in the two-room scene and 0.691–0.695 in the
+doorway scene, an additional reduction relative to the matching geometry-only controls. SH gives 1.712–1.719 in
+the doorway scene, roughly 2.25 times the variance of its geometry-only lookahead control. More accurate tree
+evaluation can expose errors that coarse-node modulation previously hid.
+
+Complete leaf aggregation is an expensive reference control. With matched origins and a high-resolution distance
+CDF, its ratios are 0.075 for two rooms and 0.0069 for the doorway. With exact visibility they are 0.062 and 0.0034.
+These controls demonstrate remaining statistical opportunity; they require unavailable cheap knowledge or
+all-light work and are not production sampling algorithms.
+
+### Correctness evidence and limits
+
+The pooled and matched-origin runs each execute 160 Monte Carlo checks with 65,536 samples per check. The maximum
+absolute mean deviation is 2.35 analytic standard errors. Tree-generated PDFs match enumerated mixture PMFs;
+PMFs normalize and retain the alpha-times-baseline support bound. Independently enumerated box-face intersections
+agree on 128 sampled visibility connections per scene, with explicit visible and blocked doorway cases. A
+two-light mutation using an unsupported conditional PDF produces 2 instead of the correct 11 and is rejected.
+
+The degree-2 SH candidate did not pass the benefit comparison. No shader code or old production path was replaced.
+FP32 behavior, dynamic updates, ReSTIR integration, target-Iris compilation, visual acceptance, and equal-time GPU
+benefit remain unverified. The next experiment should compare bounded geometric lookahead with a compact positive
+directional representation; current results do not justify immediately integrating this SH layout into the pack.
+
+### Reproduction and artifacts
+
+Run from the repository root with the declared dependencies installed, using fresh output directories:
+
+~~~powershell
+python scripts/light_sampling_experiment.py --output builds/light-sampling/20261029-pooled-controls
+python scripts/light_sampling_experiment.py --output builds/light-sampling/20261029-origin-controls --origin-mode query-matched --training-seeds 11
+python scripts/light_sampling_diagnostics.py --inputs builds/light-sampling/20261029-pooled-controls builds/light-sampling/20261029-origin-controls --output builds/light-sampling/20261029-tree-controls
+~~~
+
+These commands were executed. The scripts use the lowest process priority on Windows; their elapsed times are not
+CPU performance benchmarks. Each run saves source snapshots and hashes, settings, light and occluder inputs,
+training samples, full leaf PMFs, and numerical results.
+
+Local generated artifacts are ignored by Git and can be recreated with the commands above:
+
+- [Pooled results and checks](../../../builds/light-sampling/20261029-pooled-controls/results.json).
+- [Matched-origin results and checks](../../../builds/light-sampling/20261029-origin-controls/results.json).
+- [Tree and leaf-aggregation controls](../../../builds/light-sampling/20261029-tree-controls/diagnostics.json).
+- [Pooled variance maps](../../../builds/light-sampling/20261029-pooled-controls/variance-maps.png).
+
+The original three-variant run and the lower-sample smoke run are retained separately under
+[local experiment outputs](../../../builds/light-sampling/); they are not silently replaced by the later controls.
+
 ## Deferred alternatives and open choices
 
 - Spatial SG summaries can improve directional BRDF integration but cost more arithmetic and can lose spatial
@@ -257,8 +352,8 @@ sampling behavior is understood.
 - Emitter extraction, tree packing/construction/update, exact cube/surface sampling, transparency, UVs, and cutout
   treatment remain deferred implementation contracts.
 
-The next development step is the controlled sampling experiment. This record does not report an
-implementation, a GPU benchmark, or visual acceptance.
+The next experiment should address the node-approximation and directional-representation losses identified above.
+The offline implementation does not establish a runtime sampler, GPU benefit, or visual acceptance.
 
 ## References
 
