@@ -146,7 +146,7 @@ void main() {
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
                 gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
-                gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+                gi_historyData_unpack5(historyData, history_gi5_fetch(texelPos));
 
                 float historyLengthInt = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
                 // 0.0 = Full fix, 1.0 = No fix

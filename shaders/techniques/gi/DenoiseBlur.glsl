@@ -45,33 +45,32 @@ GeomData _gi_readGeomData(ivec2 texelPos, vec2 screenPos) {
     return geomData;
 }
 
-const float RCP_SAMPLES = rcp(float(SETTING_DENOISER_SPATIAL_SAMPLES));
-
 vec4 _gi_readDiff(ivec2 texelPos) {
     #if GI_DENOISE_PASS == 1
-    return transient_gi_blurDiff2_fetch(texelPos) * RCP_SAMPLES;
+    return transient_gi_blurDiff2_fetch(texelPos);
     #elif GI_DENOISE_PASS == 2
-    return transient_gi_blurDiff1_fetch(texelPos) * RCP_SAMPLES;
+    return transient_gi_blurDiff1_fetch(texelPos);
     #endif
 }
 
 vec4 _gi_readSpec(ivec2 texelPos) {
     #if GI_DENOISE_PASS == 1
-    return transient_gi_blurSpec2_fetch(texelPos) * RCP_SAMPLES;
+    return transient_gi_blurSpec2_fetch(texelPos);
     #elif GI_DENOISE_PASS == 2
-    return transient_gi_blurSpec1_fetch(texelPos) * RCP_SAMPLES;
+    return transient_gi_blurSpec1_fetch(texelPos);
     #endif
 }
 
-float normalWeight(GeomData a, GeomData b, float factor) {
+// Edge weights are summed in log2 space so each sample needs a single exp2.
+float normalWeightLog2(GeomData a, GeomData b, float factor) {
     float geomNormalDot = saturate(dot(a.geomNormal, b.geomNormal));
     float normalDot = saturate(dot(a.normal, b.normal));
-    return pow(pow4(geomNormalDot) * normalDot, factor);
+    return factor * log2(pow4(geomNormalDot) * normalDot);
 }
 
-float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB, float factor) {
+float planeDistanceWeightLog2(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB, float factor) {
     float planeDistance = gi_planeDistance(posA, normalA, posB, normalB);
-    return exp2(factor * pow2(planeDistance));
+    return factor * pow2(planeDistance);
 }
 
 vec3 getSpecularDominantDirection(vec3 N, vec3 V, float roughness) {
@@ -201,16 +200,15 @@ void main() {
 
                     GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                    float edgeWeightFP32 = geomData.dielectric;
-                    edgeWeightFP32 *= normalWeight(centerGeomData, geomData, baseNormalWeight);
-                    edgeWeightFP32 *= planeDistanceWeight(
+                    float edgeWeightLog2 = normalWeightLog2(centerGeomData, geomData, baseNormalWeight);
+                    edgeWeightLog2 += planeDistanceWeightLog2(
                         centerGeomData.viewPos,
                         centerGeomData.geomNormal,
                         geomData.viewPos,
                         geomData.geomNormal,
                         basePlaneDistWeight
                     );
-                    float16_t edgeWeight = float16_t(edgeWeightFP32);
+                    float16_t edgeWeight = float16_t(geomData.dielectric * exp2(edgeWeightLog2));
 
                     float totalWeight = float(kernelWeight) * smoothstep(0.0, 1.0, float(edgeWeight));
                     if (GI_DENOISE_PASS == 2 || totalWeight != 0.0) {
@@ -221,10 +219,7 @@ void main() {
                 }
 
                 {
-                    vec4 diffResult = diffSum;
-                    float normalizedWeightSum = weightSum * RCP_SAMPLES;
-
-                    diffResult *= rcp(normalizedWeightSum);
+                    vec4 diffResult = diffSum * rcp(weightSum);
 
                     float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 5u + GI_DENOISE_PASS), frameCounter);
                     diffResult = dither_fp16(diffResult, ditherNoise);
@@ -310,16 +305,16 @@ void main() {
 
                     GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                    float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
-                    edgeWeightFP32 *= planeDistanceWeight(
+                    float edgeWeightLog2 = normalWeightLog2(centerGeomData, geomData, baseNormalWeight);
+                    edgeWeightLog2 += planeDistanceWeightLog2(
                         centerGeomData.viewPos,
                         centerGeomData.geomNormal,
                         geomData.viewPos,
                         geomData.geomNormal,
                         basePlaneDistWeight
                     );
-                    edgeWeightFP32 *= gi_roughnessWeight(centerGeomData.roughness, geomData.roughness);
-                    float16_t edgeWeight = float16_t(edgeWeightFP32);
+                    edgeWeightLog2 += gi_roughnessWeightLog2(centerGeomData.roughness, geomData.roughness);
+                    float16_t edgeWeight = float16_t(exp2(edgeWeightLog2));
 
                     float totalWeight = float(kernelWeight) * smoothstep(0.0, 1.0, float(edgeWeight));
                     if (GI_DENOISE_PASS == 2 || totalWeight != 0.0) {
@@ -330,10 +325,7 @@ void main() {
                 }
 
                 {
-                    vec4 specResult = specSum;
-                    float normalizedWeightSum = weightSum * RCP_SAMPLES;
-
-                    specResult *= rcp(normalizedWeightSum);
+                    vec4 specResult = specSum * rcp(weightSum);
 
                     float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 7u + GI_DENOISE_PASS), frameCounter);
                     specResult = dither_fp16(specResult, ditherNoise);

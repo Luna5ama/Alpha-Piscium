@@ -82,8 +82,7 @@ void rc_markPendingVisibleFace(uint level, vec3 ownerBlockCenter, uint faceBits)
     ivec3 worldCellCoord = rc_worldCellCoord(ownerBlockCenter, level);
     if (rc_worldCellInCurrentClip(level, worldCellCoord)) {
         uint entryIndex = rc_entryIndex(level, worldCellCoord);
-        uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
-        atomicOr(rc_indirection[bufferIndex].w, rc_entryMetaPendingFaceBits(faceBits));
+        rc_markEntryListed(rc_currentSide(), entryIndex, rc_entryMetaPendingFaceBits(faceBits));
     }
 }
 

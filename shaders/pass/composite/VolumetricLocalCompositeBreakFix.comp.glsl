@@ -9,8 +9,10 @@ layout(local_size_x = 64) in;
 layout(rgba16f) restrict uniform image2D uimg_main;
 
 void main() {
-    if (gl_GlobalInvocationID.x < global_dispatchSize1.w) {
-        uint texelPosEncoded = indirectComputeData[gl_GlobalInvocationID.x];
+    uint linearGroupIndex = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uint linearInvocationIndex = linearGroupIndex * gl_WorkGroupSize.x + gl_LocalInvocationIndex;
+    if (linearInvocationIndex < global_dispatchSize1.w) {
+        uint texelPosEncoded = indirectComputeData[linearInvocationIndex];
         ivec2 texelPos = ivec2(unpackUInt2x16(texelPosEncoded));
         float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
         float noiseV = rand_stbnVec1(texelPos, frameCounter + 1);

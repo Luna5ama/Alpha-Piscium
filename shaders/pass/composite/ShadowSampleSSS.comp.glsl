@@ -312,10 +312,25 @@ void WriteScreenSpaceShadow(DispatchParameters params, ivec3 groupID, uint laneI
 }
 
 void main() {
-    uint linearGroupID = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
-
     uint totalDispatches = indirectComputeData[BEND_SSS_PARAMS_BASE + 4u];
     uint dataPtr = BEND_SSS_PARAMS_BASE + 8u;
+    uint totalGroups = 0u;
+    if (totalDispatches > 0u) {
+        uint lastDispatch = dataPtr + (totalDispatches - 1u) * 6u;
+        totalGroups = indirectComputeData[lastDispatch + 4u] + indirectComputeData[lastDispatch + 5u];
+    }
+
+    uint groupsPerPlane = gl_NumWorkGroups.x * gl_NumWorkGroups.y;
+    uint groupInPlane = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uint completePlanes = totalGroups / groupsPerPlane;
+    uint groupsInLastPlane = totalGroups % groupsPerPlane;
+    if (
+        gl_WorkGroupID.z > completePlanes
+        || (gl_WorkGroupID.z == completePlanes && groupInPlane >= groupsInLastPlane)
+    ) {
+        return;
+    }
+    uint linearGroupID = gl_WorkGroupID.z * groupsPerPlane + groupInPlane;
 
     bool found = false;
     uint wcY = 0u;
@@ -327,7 +342,7 @@ void main() {
     for (uint i = 0u; i < totalDispatches; i++) {
         uint start = indirectComputeData[dataPtr + i * 6u + 4u];
         uint count = indirectComputeData[dataPtr + i * 6u + 5u];
-        if (linearGroupID >= start && linearGroupID < start + count) {
+        if (linearGroupID >= start && linearGroupID - start < count) {
             wcY = indirectComputeData[dataPtr + i * 6u + 0u];
             wcZ = indirectComputeData[dataPtr + i * 6u + 1u];
             woX = indirectComputeData[dataPtr + i * 6u + 2u];

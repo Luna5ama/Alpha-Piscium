@@ -22,33 +22,37 @@ vec3 gi_hitDirectLighting(Material material, vec3 worldPos, vec3 V, vec3 N, vec3
     float shadow = rtwsm_sampleShadowDepth(shadowtex1HW, shadowTexCoord, 0.0);
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
 
-    float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tSun = atmospherics_air_lut_sampleTransmittance(atmosphere, cosSunZenith, viewAltitude);
-    tSun *= float(raySphereIntersectNearest(atmPos, uval_sunDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
-    vec3 sunShadow = mix(vec3(1.0), vec3(shadow), shadowIsSun);
-    LightingResult sunLighting = directLighting(
-        gData,
-        material,
-        SUN_ILLUMINANCE * tSun,
-        vec4(sunShadow, 0.0),
-        V,
-        uval_sunDirWorld,
-        N
-    );
+    LightingResult sunLighting = LightingResult(vec3(0.0), vec3(0.0), vec3(0.0), vec3(0.0));
+    if (raySphereIntersectNearest(atmPos, uval_sunDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0) {
+        float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
+        vec3 tSun = atmospherics_air_lut_sampleTransmittance(atmosphere, cosSunZenith, viewAltitude);
+        vec3 sunShadow = mix(vec3(1.0), vec3(shadow), shadowIsSun);
+        sunLighting = directLighting(
+            gData,
+            material,
+            SUN_ILLUMINANCE * tSun,
+            vec4(sunShadow, 0.0),
+            V,
+            uval_sunDirWorld,
+            N
+        );
+    }
 
-    float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tMoon = atmospherics_air_lut_sampleTransmittance(atmosphere, cosMoonZenith, viewAltitude);
-    tMoon *= float(raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
-    vec3 moonShadow = mix(vec3(shadow), vec3(1.0), shadowIsSun);
-    LightingResult moonLighting = directLighting(
-        gData,
-        material,
-        MOON_ILLUMINANCE * tMoon,
-        vec4(moonShadow, 0.0),
-        V,
-        uval_moonDirWorld,
-        N
-    );
+    LightingResult moonLighting = LightingResult(vec3(0.0), vec3(0.0), vec3(0.0), vec3(0.0));
+    if (raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0) {
+        float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
+        vec3 tMoon = atmospherics_air_lut_sampleTransmittance(atmosphere, cosMoonZenith, viewAltitude);
+        vec3 moonShadow = mix(vec3(shadow), vec3(1.0), shadowIsSun);
+        moonLighting = directLighting(
+            gData,
+            material,
+            MOON_ILLUMINANCE * tMoon,
+            vec4(moonShadow, 0.0),
+            V,
+            uval_moonDirWorld,
+            N
+        );
+    }
 
     LightingResult lighting = lightingResult_add(sunLighting, moonLighting);
     return lighting.diffuse + lighting.specular;

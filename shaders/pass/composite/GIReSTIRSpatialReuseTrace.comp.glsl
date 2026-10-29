@@ -1,4 +1,5 @@
 // Traces the visibility rays queued by GIReSTIRPairedSpatialShade and rejects occluded neighbor selections.
+#pragma optionNV(unroll none)
 #include "/Base.glsl"
 
 layout(local_size_x = 128) in;

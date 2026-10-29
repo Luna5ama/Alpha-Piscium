@@ -38,7 +38,9 @@ ScatteringResult atmospherics_localComposite(int layerIndex, ivec2 texelPos) {
                 if (subgroupElect()) {
                     writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
                     uint totalCount = writeIndexBase + correctionCount;
-                    atomicMax(global_dispatchSize1.x, (totalCount | 0x3Fu) >> 6u);
+                    uint totalGroups = totalCount / 64u + uint(totalCount % 64u != 0u);
+                    atomicMax(global_dispatchSize1.x, min(totalGroups, 1024u));
+                    atomicMax(global_dispatchSize1.y, totalGroups / 1024u + uint(totalGroups % 1024u != 0u));
                 }
                 writeIndexBase = subgroupBroadcastFirst(writeIndexBase);
                 if (isDepthBreak) {

@@ -45,12 +45,13 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos, inout uvec2 trainRecord) 
     float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
 
     if (viewZ > -65536.0) {
-        SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
+        uvec4 packedCenterSample = transient_restir_spatialInput_fetch(texelPos);
+        SpatialSampleData centerSampleData = spatialSampleData_unpack(packedCenterSample);
         centerSampleData.normal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
         history_restir_prevSample_store(texelPos, centerSampleData.sampleValue);
         history_restir_prevHitNormal_store(
             texelPos,
-            uvec4(nzpacking_packNormalOct32(centerSampleData.hitNormal))
+            uvec4(packedCenterSample.y)
         );
         vec4 packedResampleMaterial = transient_restir_resampleMaterial_fetch(texelPos);
         history_restir_prevResampleMaterial_store(texelPos, packedResampleMaterial);
@@ -105,8 +106,7 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos, inout uvec2 trainRecord) 
 
         vec4 selectedSampleF = centerSampleData.sampleValue;
         if (selectedNeighbor) {
-            SpatialSampleData winSample = spatialSampleData_unpack(transient_restir_spatialInput_fetch(winTexel));
-            winSample.normal = normalize(transient_viewNormal_fetch(winTexel).xyz * 2.0 - 1.0);
+            vec4 winSampleValue = unpackHalf4x16(transient_restir_spatialInput_fetch(winTexel).zw);
             float winViewZ = texelFetch(usam_gbufferSolidViewZ, winTexel, 0).x;
             vec2 winScreenPos = coords_texelToUV(winTexel, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 winViewPos = coords_toViewCoord(winScreenPos, winViewZ, global_camProjInverse);
@@ -117,10 +117,24 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos, inout uvec2 trainRecord) 
 
             ReSTIRReservoir winRes = readTemporalReservoir(winTexel);
 
-            ShiftMapping winToCenter = evaluateShiftMapping(winRes, centerMaterial, centerSampleData, winSample, primaryViewPos, winPrimaryViewPos);
-            if (shiftMapping_isReusable(winToCenter)) {
-                spatialReservoir.Y = winToCenter.Y;
-                selectedSampleF = vec4(winSample.sampleValue.xyz, winToCenter.unmappedTargetPHat);
+            vec3 winHitViewPos = winPrimaryViewPos + winRes.Y.xyz * winRes.Y.w;
+            vec3 winToCenter = winHitViewPos - primaryViewPos;
+            float winToCenterDist2 = dot(winToCenter, winToCenter);
+            vec4 shiftedY = vec4(winToCenter * inversesqrt(winToCenterDist2), sqrt(winToCenterDist2));
+            float selectedReconnectionJacobian = uintBitsToFloat(transient_restir_initialCandidateNormal_fetch(texelPos).x);
+            float selectedTargetPHat = evalTargetFunction(
+                winSampleValue.rgb,
+                centerSampleData.geomNormal,
+                centerSampleData.normal,
+                shiftedY.xyz,
+                V,
+                centerMaterial
+            );
+            if (restir_isReservoirValid(winRes)
+                && restir_reconnectionDensityRatioValid(winSampleValue.w, selectedTargetPHat * selectedReconnectionJacobian)
+            ) {
+                spatialReservoir.Y = shiftedY;
+                selectedSampleF = vec4(winSampleValue.rgb, selectedTargetPHat);
             } else {
                 metadata = pairwiseMISMetadata_init();
                 metadata.accumM = temporalM;

@@ -6,24 +6,60 @@
 #define RC_DATA_MODIFIER restrict buffer
 
 layout(local_size_x = 256) in;
+const ivec3 workGroups = ivec3(256, 1, 1);
 #include "/techniques/gi/RadianceCacheUpdate.glsl"
 
-const ivec3 workGroups = ivec3(5120, 1, 1);
-
-void main() {
-    uint entryIndex = gl_GlobalInvocationID.x;
+void rc_allocateEntry(uint listIndex) {
     uint currentSide = rc_currentSide();
+    bool listed = listIndex < rc_activeEntryCounts[currentSide];
+    uint entryIndex = listed
+        ? rc_activeEntryIndices[rc_activeEntryListIndex(currentSide, listIndex)]
+        : RC_ENTRY_COUNT;
     uint poolSize = uint(SETTING_RC_POOL_SIZE);
 
     uint bufferIndex = 0u;
     uvec4 entry = uvec4(RC_INVALID, 0u, RC_INVALID, 0u);
-    if (entryIndex < RC_ENTRY_COUNT) {
+    bool preparedEntry = false;
+    if (listed) {
         bufferIndex = rc_bufferEntryIndex(currentSide, entryIndex);
         entry = rc_indirection[bufferIndex];
+
+        uint pendingVisibleFaceMask = rc_entryMetaPendingFaceMask(entry.w);
+        if (pendingVisibleFaceMask != 0u) {
+            preparedEntry = true;
+            uint level = rc_entryLevel(entryIndex);
+            ivec3 worldCellCoord = rc_worldCellCoordFromEntryIndex(entryIndex);
+            uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
+
+            uvec4 previousEntry = rc_indirection[rc_bufferEntryIndex(rc_previousSide(), entryIndex)];
+            uint previousFaceMask = previousEntry.y & 0x3fu;
+            bool previousKeyMatch = previousEntry.z == worldKeyHash;
+            bool previousValid = previousKeyMatch
+                && rc_entryMetaValid(previousEntry.w)
+                && rc_entryMetaLevel(previousEntry.w) == level;
+            uint carriedFaceMask = previousValid ? previousFaceMask : 0u;
+            uint feedbackFaceMask = previousKeyMatch ? rc_entryMetaHitFaceMask(previousEntry.w) : 0u;
+
+            bool currentKeyMatch = entry.z == RC_INVALID || entry.z == worldKeyHash;
+            uint touchedFaceMask = currentKeyMatch ? entry.y & 0x3fu : 0u;
+            uint faceMask = ((carriedFaceMask | feedbackFaceMask) & pendingVisibleFaceMask) | touchedFaceMask;
+            uint screenFaceBits = currentKeyMatch ? entry.w & RC_ENTRY_META_SCREEN_FACE_MASK : 0u;
+
+            // Keep list membership until PreClear, even when no faces need allocation.
+            entry = uvec4(RC_INVALID, 0u, RC_INVALID, RC_ENTRY_META_LISTED);
+            if (faceMask != 0u) {
+                entry = uvec4(
+                    RC_INVALID,
+                    faceMask,
+                    worldKeyHash,
+                    rc_packEntryMeta(level, true) | screenFaceBits | RC_ENTRY_META_LISTED
+                );
+            }
+        }
     }
 
     uint faceMask = entry.y & 0x3fu;
-    bool activeFlag = entryIndex < RC_ENTRY_COUNT
+    bool activeFlag = listed
         && faceMask != 0u
         && entry.z != RC_INVALID
         && rc_entryMetaValid(entry.w);
@@ -66,10 +102,10 @@ void main() {
 
         if (activeFlag) {
             if (overflow) {
-                rc_indirection[bufferIndex].x = RC_INVALID;
-                rc_indirection[bufferIndex].y = 0u;
+                entry.x = RC_INVALID;
+                entry.y = 0u;
             } else {
-                rc_indirection[bufferIndex].x = reservoirBaseIndex;
+                entry.x = reservoirBaseIndex;
 
                 for (uint i = 0; i < 6u; i++) {
                     uint faceBit = 1u << i;
@@ -78,6 +114,24 @@ void main() {
                     }
                 }
             }
+
+            if (!preparedEntry) {
+                rc_indirection[bufferIndex].x = entry.x;
+                if (overflow) {
+                    rc_indirection[bufferIndex].y = 0u;
+                }
+            }
         }
+    }
+
+    if (preparedEntry) {
+        rc_indirection[bufferIndex] = entry;
+    }
+}
+
+void main() {
+    uint count = rc_activeEntryCounts[rc_currentSide()];
+    for (uint groupBase = gl_WorkGroupID.x * 256u; groupBase < count; groupBase += 65536u) {
+        rc_allocateEntry(groupBase + gl_LocalInvocationID.x);
     }
 }

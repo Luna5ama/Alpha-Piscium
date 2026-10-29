@@ -1,17 +1,20 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
+#pragma optionNV(unroll none)
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
-layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
+layout(r32ui) uniform restrict uimage2D uimg_r32ui;
 layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
+layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
 #define RESTIR_INITIAL_CANDIDATE_WRITE
 #include "/techniques/gi/InitialSample.glsl"
+#include "/techniques/gi/TemporalSplat.glsl"
 #define VOXEL_TRACE_TRUST_MATERIAL_ID
 #include "/techniques/voxel/VoxelTrace.glsl"
 #include "/util/GBufferData.glsl"
@@ -19,6 +22,7 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 #include "/util/ThreadGroupTiling.glsl"
 
 void main() {
+    restir_temporalSplatInitShared();
     voxel_initShared();
 
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
@@ -31,6 +35,8 @@ void main() {
     if (!all(lessThan(texelPos, uval_mainImageSizeI))) {
         return;
     }
+
+    restir_temporalSplat(texelPos);
 
     if (transient_restir_initialCandidate_fetch(texelPos).w != RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
         return;

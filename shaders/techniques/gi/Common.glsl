@@ -126,9 +126,9 @@ vec2 _gi_mirrorUV(vec2 uv) {
 }
 
 const float _ROUGHNESS_K = 2.0;
-float gi_roughnessWeight(float a, float b) {
+float gi_roughnessWeightLog2(float a, float b) {
     float norm = a * 0.999 + 0.001;
-    return exp2(-pow2(_ROUGHNESS_K * abs(a - b) * rcp(norm)));
+    return -pow2(_ROUGHNESS_K * abs(a - b) * rcp(norm));
 }
 
 vec4 gi_roughnessWeight(float a, vec4 b) {

@@ -1,3 +1,5 @@
+#pragma optionNV(unroll none)
+
 layout(local_size_x = 128) in;
 
 #include "/techniques/gi/RadianceCacheUpdate.glsl"

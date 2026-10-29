@@ -94,14 +94,16 @@ float restir_splatPrimaryJacobian(
     float currCosV = abs(currViewPos.z) * currRcpDist;
     float prevProjectionScale = abs(global_prevCamProj[0][0] * global_prevCamProj[1][1]);
     float currProjectionScale = abs(global_camProj[0][0] * global_camProj[1][1]);
-    float log2Jacobian = log2(currCosN) - log2(prevCosN)
-        + 3.0 * (log2(prevCosV) - log2(currCosV))
-        + log2(prevDist2) - log2(currDist2)
-        + log2(currProjectionScale) - log2(prevProjectionScale);
-    if (isnan(log2Jacobian) || abs(log2Jacobian) > RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN) {
+    // Equivalent to a finite abs(log2(J)) <= RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN.
+    float jacobian = (currCosN * pow3(prevCosV) * prevDist2 * currProjectionScale)
+        / (prevCosN * pow3(currCosV) * currDist2 * prevProjectionScale);
+    if (
+        !(jacobian >= exp2(-RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN))
+        || !(jacobian <= exp2(RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN))
+    ) {
         return 0.0;
     }
-    return exp2(log2Jacobian);
+    return jacobian;
 }
 
 #endif

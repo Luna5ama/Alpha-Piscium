@@ -33,6 +33,8 @@ void main() {
     restir_InitialCandidate candidate = restir_initialCandidate_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        transient_restir_primary_store(texelPos, uvec4(0u));
+
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
 
         if (viewZ > -65536.0) {

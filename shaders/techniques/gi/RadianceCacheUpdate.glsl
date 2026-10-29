@@ -18,13 +18,6 @@ layout(std430, binding = 2) RC_DATA_MODIFIER RadianceCacheUpdateEntryIndexData {
     uint rc_updateEntryIndices[];
 };
 
-// x: world key hash, or RC_INVALID
-// y bits 0-5: screen touched faces
-// y bits 6-11: next-frame hit feedback faces
-layout(std430, binding = 5) RC_DATA_MODIFIER RadianceCacheFeedbackData {
-    uvec2 rc_feedback[];
-};
-
 struct RCCandidate {
     vec3 radiance;
     vec3 dir;
@@ -81,53 +74,17 @@ vec3 rc_cvAccumulatorResolve(RCCVAccumulator accumulator) {
     return accumulator.estimateSum * safeRcp(accumulator.weightSum);
 }
 
-uint rc_feedbackRecordIndex(uint side, uint entryIndex) {
-    return rc_bufferEntryIndex(side, entryIndex);
-}
-
-uint rc_feedbackScreenBits(uint faceMask) {
-    return (faceMask & RC_FEEDBACK_FACE_MASK) << RC_FEEDBACK_SCREEN_SHIFT;
-}
-
-uint rc_feedbackHitBits(uint faceMask) {
-    return (faceMask & RC_FEEDBACK_FACE_MASK) << RC_FEEDBACK_HIT_SHIFT;
-}
-
-void rc_feedbackClearRecord(uint side, uint entryIndex) {
-    uint recordIndex = rc_feedbackRecordIndex(side, entryIndex);
-    rc_feedback[recordIndex] = uvec2(RC_INVALID, 0u);
-}
-
-void rc_markScreenTouchedFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    if (!rc_worldCellInCurrentClip(level, worldCellCoord)) {
-        return;
-    }
-
-    uint entryIndex = rc_entryIndex(level, worldCellCoord);
-    uint recordIndex = rc_feedbackRecordIndex(rc_currentSide(), entryIndex);
-    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
-    uint feedbackBits = rc_feedbackScreenBits(rc_faceBit(faceId));
-    uvec2 feedback = rc_feedback[recordIndex];
-    if (feedback.x == worldKeyHash && (feedback.y & feedbackBits) != 0u) {
-        return;
-    }
-    uint oldKey = atomicCompSwap(rc_feedback[recordIndex].x, RC_INVALID, worldKeyHash);
-    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        atomicOr(rc_feedback[recordIndex].y, feedbackBits);
-    }
-}
-
 void rc_markHitFeedbackFace(uint level, ivec3 worldCellCoord, uint faceId) {
     if (!rc_worldCellInCurrentClip(level, worldCellCoord)) {
         return;
     }
 
     uint entryIndex = rc_entryIndex(level, worldCellCoord);
-    uint recordIndex = rc_feedbackRecordIndex(rc_currentSide(), entryIndex);
+    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
     uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
-    uint oldKey = atomicCompSwap(rc_feedback[recordIndex].x, RC_INVALID, worldKeyHash);
+    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
     if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        atomicOr(rc_feedback[recordIndex].y, rc_feedbackHitBits(rc_faceBit(faceId)));
+        rc_markEntryListed(rc_currentSide(), entryIndex, rc_entryMetaHitFaceBits(rc_faceBit(faceId)));
     }
 }
 
@@ -588,13 +545,7 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
     }
 
     uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
-    uint feedbackRecordIndex = rc_feedbackRecordIndex(rc_currentSide(), entryIndex);
-    uvec2 feedbackRecord = rc_feedback[feedbackRecordIndex];
-    uint screenTouchedFaceMask = 0u;
-    if (feedbackRecord.x == worldKeyHash && feedbackRecord.x == entry.z) {
-        screenTouchedFaceMask = (feedbackRecord.y >> RC_FEEDBACK_SCREEN_SHIFT) & RC_FEEDBACK_FACE_MASK;
-    }
-    bool allowHitFeedback = rc_hasFace(screenTouchedFaceMask, faceId);
+    bool allowHitFeedback = rc_hasFace(rc_entryMetaScreenFaceMask(entry.w), faceId);
 
     float proposalWeight;
     RCCandidate candidate = rc_generateCandidate(entryIndex, worldCellCoord, level, faceId, allowHitFeedback, proposalWeight);

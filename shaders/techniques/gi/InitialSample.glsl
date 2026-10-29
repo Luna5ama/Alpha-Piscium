@@ -256,65 +256,6 @@ bool restir_initialSample_useGeomSamplingFrame(
     return useGeomFrame;
 }
 
-// Mixture over 256 technique bins: specular VNDF, guide lobe 0, guide lobe 1, then cosine for the rest:
-//   q = pS * qVNDF + (1 - pS) * [(1 - a0 - a1) * qCos + a0 * qLobe0 + a1 * qLobe1],  ak = lobe k bins / diffuse bins
-float restir_initialSample_evaluateRayPdf(
-    vec3 rayDirView,
-    vec3 geomNormal,
-    vec3 V,
-    Material material,
-    PathGuide guide
-) {
-    vec3 wiTangent;
-    bool useGeomFrame = restir_initialSample_useGeomSamplingFrame(V, material, wiTangent);
-    mat3 samplingTbnInv = useGeomFrame ? material.geomTbnInv : material.tbnInv;
-
-    vec3 lightTangent = normalize(samplingTbnInv * rayDirView);
-    if (
-        wiTangent.z <= 0.0
-        || lightTangent.z <= 0.0
-        || dot(rayDirView, geomNormal) <= 0.0
-        || !restir_initialSample_isFinite(wiTangent)
-        || !restir_initialSample_isFinite(lightTangent)
-    ) {
-        return 0.0;
-    }
-
-    float pSpec = restir_initialSample_specularProbability(wiTangent, material);
-    float cosinePdf = lightTangent.z * RCP_PI;
-    float vndfPdf = 0.0;
-    vec3 halfVector = lightTangent + wiTangent;
-    float halfLength2 = dot(halfVector, halfVector);
-    if (halfLength2 > 1e-12) {
-        vec3 H = halfVector * inversesqrt(halfLength2);
-        if (H.z > 0.0 && dot(wiTangent, H) > 0.0) {
-            float a2 = pow2(material.roughness);
-            float NdotH2 = pow2(H.z);
-            float dDenominator = dot(H.xy, H.xy) + a2 * NdotH2;
-            float d = a2 / (PI * pow2(dDenominator));
-            float smithDenominator = wiTangent.z
-                + sqrt(a2 + (1.0 - a2) * pow2(wiTangent.z));
-            vndfPdf = d / (2.0 * smithDenominator);
-        }
-    }
-
-    float diffusePdf = cosinePdf;
-    uvec2 guideBins = pathGuide_bins(guide, pSpec);
-    if (guideBins.x + guideBins.y > 0u) {
-        vec2 guideFractions = vec2(guideBins) / (256.0 - pSpec * 256.0);
-        diffusePdf *= 1.0 - guideFractions.x - guideFractions.y;
-        if (guideBins.x > 0u) {
-            diffusePdf += guideFractions.x * pathGuide_lobePdf(guide.lobe0, samplingTbnInv, lightTangent);
-        }
-        if (guideBins.y > 0u) {
-            diffusePdf += guideFractions.y * pathGuide_lobePdf(guide.lobe1, samplingTbnInv, lightTangent);
-        }
-    }
-
-    float pdf = pSpec * vndfPdf + (1.0 - pSpec) * diffusePdf;
-    return pdf > 0.0 && pdf <= FLT_MAX ? pdf : 0.0;
-}
-
 // Slot 0 (RANDOM_FRAME/64u)   -> branch random (stbnVec1)
 // Slot 1 (RANDOM_FRAME/64u+1) -> direction random (stbnVec2 or stbnUnitVec3Cosine)
 vec3 restir_initialSample_generateRayDir(
@@ -328,6 +269,7 @@ vec3 restir_initialSample_generateRayDir(
     vec3 wiTangent;
     bool useGeomFrame = restir_initialSample_useGeomSamplingFrame(V, material, wiTangent);
     mat3 samplingTbn = useGeomFrame ? material.geomTbn : material.tbn;
+    mat3 samplingTbnInv = useGeomFrame ? material.geomTbnInv : material.tbnInv;
     pdf = 0.0;
     if (wiTangent.z <= 0.0 || !restir_initialSample_isFinite(wiTangent)) {
         return normalize(geomNormal);
@@ -354,7 +296,6 @@ vec3 restir_initialSample_generateRayDir(
         sampleDirTangent = reflect(-wiTangent, halfTangent);
     } else if (choiceRand < pSpec + float(guideBins.x + guideBins.y) * (1.0 / 256.0)) {
         PathGuideLobe lobe = choiceRand < pSpec + float(guideBins.x) * (1.0 / 256.0) ? guide.lobe0 : guide.lobe1;
-        mat3 samplingTbnInv = useGeomFrame ? material.geomTbnInv : material.tbnInv;
         sampleDirTangent = pathGuide_sampleFolded(normalize(samplingTbnInv * lobe.axisView), lobe.kappa, xi);
     } else {
         sampleDirTangent = rand_stbnUnitVec3Cosine(directionRandKey, RANDOM_FRAME);
@@ -362,7 +303,47 @@ vec3 restir_initialSample_generateRayDir(
 
     vec3 rayDirView = normalize(samplingTbn * sampleDirTangent);
     rayDirView = nzpacking_unpackNormalOct32(nzpacking_packNormalOct32(rayDirView));
-    pdf = restir_initialSample_evaluateRayPdf(rayDirView, geomNormal, V, material, guide);
+    vec3 lightTangent = normalize(samplingTbnInv * rayDirView);
+    if (
+        lightTangent.z <= 0.0
+        || dot(rayDirView, geomNormal) <= 0.0
+        || !restir_initialSample_isFinite(lightTangent)
+    ) {
+        return rayDirView;
+    }
+
+    float cosinePdf = lightTangent.z * RCP_PI;
+    float vndfPdf = 0.0;
+    vec3 halfVector = lightTangent + wiTangent;
+    float halfLength2 = dot(halfVector, halfVector);
+    if (halfLength2 > 1e-12) {
+        vec3 H = halfVector * inversesqrt(halfLength2);
+        if (H.z > 0.0 && dot(wiTangent, H) > 0.0) {
+            float a2 = pow2(material.roughness);
+            float NdotH2 = pow2(H.z);
+            float dDenominator = dot(H.xy, H.xy) + a2 * NdotH2;
+            float d = a2 / (PI * pow2(dDenominator));
+            float smithDenominator = wiTangent.z
+                + sqrt(a2 + (1.0 - a2) * pow2(wiTangent.z));
+            vndfPdf = d / (2.0 * smithDenominator);
+        }
+    }
+
+    // Diffuse bins mix cosine sampling with the two learned guide lobes.
+    float diffusePdf = cosinePdf;
+    if (guideBins.x + guideBins.y > 0u) {
+        vec2 guideFractions = vec2(guideBins) / (256.0 - pSpec * 256.0);
+        diffusePdf *= 1.0 - guideFractions.x - guideFractions.y;
+        if (guideBins.x > 0u) {
+            diffusePdf += guideFractions.x * pathGuide_lobePdf(guide.lobe0, samplingTbnInv, lightTangent);
+        }
+        if (guideBins.y > 0u) {
+            diffusePdf += guideFractions.y * pathGuide_lobePdf(guide.lobe1, samplingTbnInv, lightTangent);
+        }
+    }
+
+    pdf = pSpec * vndfPdf + (1.0 - pSpec) * diffusePdf;
+    pdf = pdf > 0.0 && pdf <= FLT_MAX ? pdf : 0.0;
     return rayDirView;
 }
 

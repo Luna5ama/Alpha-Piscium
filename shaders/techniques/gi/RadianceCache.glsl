@@ -20,8 +20,15 @@
 
 #define RC_ENTRY_META_VALID 0x80000000u
 #define RC_ENTRY_META_LEVEL_MASK 0x00000007u
+#define RC_ENTRY_META_LISTED 0x00000008u
+#define RC_ENTRY_META_SCREEN_FACE_SHIFT 8u
+#define RC_ENTRY_META_SCREEN_FACE_MASK 0x00003f00u
 #define RC_ENTRY_META_PENDING_FACE_SHIFT 16u
 #define RC_ENTRY_META_PENDING_FACE_MASK 0x003f0000u
+#define RC_ENTRY_META_HIT_FACE_SHIFT 22u
+#define RC_ENTRY_META_HIT_FACE_MASK 0x0fc00000u
+
+#define RC_ACTIVE_MAGIC 0x52434131u
 
 #define RC_RES_META_VALID 0x80000000u
 #define RC_RES_META_AGE_SHIFT 8u
@@ -30,10 +37,6 @@
 
 #define RC_RES_FLAG_SURFACE_HIT 0x00010000u
 #define RC_RES_FLAG_SKY_MISS 0x00020000u
-
-#define RC_FEEDBACK_SCREEN_SHIFT 0u
-#define RC_FEEDBACK_HIT_SHIFT 6u
-#define RC_FEEDBACK_FACE_MASK 0x3fu
 
 #ifndef RC_DATA_MODIFIER
 #define RC_DATA_MODIFIER restrict buffer
@@ -44,13 +47,24 @@ const float RC_MAX_ROUGHNESS = 0.25;
 // x: reservoir base index, or RC_INVALID if no reservoir allocated for this entry
 // y: bitmask of valid faces
 // z: world key hash
-// w: meta (bits 0-2: level, bit 31: valid flag, bits 16-23: pending visible face mask)
+// w: meta (bits 0-2: level, bit 3: present in the side's active-entry list,
+//          bits 8-13: screen-touched faces,
+//          bits 16-21: pending visible faces, bits 22-27: next-frame hit faces,
+//          bit 31: valid flag)
 layout(std430, binding = 10) RC_DATA_MODIFIER RadianceCacheIndirectionData {
     uvec4 rc_indirection[];
 };
 
 layout(std430, binding = 11) RC_DATA_MODIFIER RadianceCacheReservoirData {
     uvec4 rc_reservoirs[];
+};
+
+// Counts and lists are ping-ponged with the cache indirection entries.
+layout(std430, binding = 5) RC_DATA_MODIFIER RadianceCacheActiveEntryData {
+    uint rc_activeEntryCounts[2];
+    uint rc_activeClearCount;
+    uint rc_activeMagic;
+    uint rc_activeEntryIndices[];
 };
 
 struct RCReservoir {
@@ -145,6 +159,24 @@ uint rc_currentSide() {
 
 uint rc_previousSide() {
     return 1u - rc_currentSide();
+}
+
+uint rc_activeEntryListIndex(uint side, uint listIndex) {
+    return side * RC_ENTRY_COUNT + listIndex;
+}
+
+void rc_appendActiveEntry(uint side, uint entryIndex) {
+    uint listIndex = atomicAdd(rc_activeEntryCounts[side], 1u);
+    rc_activeEntryIndices[rc_activeEntryListIndex(side, listIndex)] = entryIndex;
+}
+
+uint rc_markEntryListed(uint side, uint entryIndex, uint metaBits) {
+    uint bufferIndex = side * RC_ENTRY_COUNT + entryIndex;
+    uint oldMeta = atomicOr(rc_indirection[bufferIndex].w, metaBits | RC_ENTRY_META_LISTED);
+    if ((oldMeta & RC_ENTRY_META_LISTED) == 0u) {
+        rc_appendActiveEntry(side, entryIndex);
+    }
+    return oldMeta;
 }
 
 uint rc_voxelSize(uint level) {
@@ -250,6 +282,14 @@ uint rc_entryMetaLevel(uint meta) {
     return meta & RC_ENTRY_META_LEVEL_MASK;
 }
 
+uint rc_entryMetaScreenFaceMask(uint meta) {
+    return (meta & RC_ENTRY_META_SCREEN_FACE_MASK) >> RC_ENTRY_META_SCREEN_FACE_SHIFT;
+}
+
+uint rc_entryMetaScreenFaceBits(uint faceMask) {
+    return (faceMask & 0x3fu) << RC_ENTRY_META_SCREEN_FACE_SHIFT;
+}
+
 uint rc_entryMetaPendingFaceMask(uint meta) {
     return (meta & RC_ENTRY_META_PENDING_FACE_MASK) >> RC_ENTRY_META_PENDING_FACE_SHIFT;
 }
@@ -258,8 +298,12 @@ uint rc_entryMetaPendingFaceBits(uint faceMask) {
     return (faceMask & 0x3fu) << RC_ENTRY_META_PENDING_FACE_SHIFT;
 }
 
-uint rc_entryMetaClearPendingFaces(uint meta) {
-    return meta & ~RC_ENTRY_META_PENDING_FACE_MASK;
+uint rc_entryMetaHitFaceMask(uint meta) {
+    return (meta & RC_ENTRY_META_HIT_FACE_MASK) >> RC_ENTRY_META_HIT_FACE_SHIFT;
+}
+
+uint rc_entryMetaHitFaceBits(uint faceMask) {
+    return (faceMask & 0x3fu) << RC_ENTRY_META_HIT_FACE_SHIFT;
 }
 
 uint rc_packReservoirMeta(uint age, bool valid, uint flags) {

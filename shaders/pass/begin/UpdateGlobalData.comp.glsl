@@ -9,6 +9,10 @@
 #include "/util/Time.glsl"
 #define VOXEL_FACE_TEXCOORD_MODIFIER buffer
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
+#ifdef SETTING_RC_ENABLE
+#define RC_DATA_MODIFIER restrict buffer
+#include "/techniques/gi/RadianceCache.glsl"
+#endif
 
 layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(3, 1, 1);
@@ -178,6 +182,32 @@ void main() {
         restirSpatialGroups.y *= 256;
         global_dispatchSize4 = uvec4(restirSpatialGroups.x, restirSpatialGroups.y, 1u, 0u);
         global_restirVisibilityRayCount = 0u;
+
+        #ifdef SETTING_RC_ENABLE
+        uint currentSide = rc_currentSide();
+        if (rc_activeMagic != RC_ACTIVE_MAGIC) {
+            rc_activeEntryCounts[0] = 0u;
+            rc_activeEntryCounts[1] = 0u;
+            rc_activeClearCount = RC_ENTRY_COUNT * 2u;
+            rc_activeMagic = RC_ACTIVE_MAGIC;
+        } else {
+            rc_activeClearCount = rc_activeEntryCounts[currentSide];
+        }
+        rc_activeEntryCounts[currentSide] = 0u;
+
+        rc_entryCounter = 0u;
+        rc_allocationCounter = 0u;
+        rc_keyMismatchCounter = 0u;
+        rc_poolOverflowCounter = 0u;
+        rc_cacheHitCounter = 0u;
+        rc_cacheMissCounter = 0u;
+        pg_selectedCounter = 0u;
+        pg_splatCounter = 0u;
+        pg_noSlotCounter = 0u;
+        pg_neighborCounter = 0u;
+        pg_skyCounter = 0u;
+        #endif
+
         for (uint i = 0u; i < 16u; i++) {
             global_atomicCounters[i] = 0u;
         }

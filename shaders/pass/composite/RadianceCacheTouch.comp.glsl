@@ -1,6 +1,8 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
+#ifdef MC_GL_VENDOR_NVIDIA
 #extension GL_NV_shader_subgroup_partitioned : enable
+#endif
 
 #define RC_DATA_MODIFIER restrict buffer
 #define GLOBAL_DATA_MODIFIER restrict buffer
@@ -15,38 +17,41 @@ layout(local_size_x = 16, local_size_y = 16) in;
 
 const vec2 workGroupsRender = vec2(0.25, 0.25);
 
-bool rc_touchFace(uint level, ivec3 worldCellCoord, uint faceId) {
+void rc_touchFace(uint level, ivec3 worldCellCoord, uint faceId) {
     if (!rc_worldCellInCurrentClip(level, worldCellCoord)) {
-        return false;
+        return;
     }
 
     uint entryIndex = rc_entryIndex(level, worldCellCoord);
+    #ifdef MC_GL_VENDOR_NVIDIA
+    uvec4 matchingFaces = subgroupPartitionNV((entryIndex << 3u) | faceId);
+    if (subgroupBallotFindLSB(matchingFaces) != gl_SubgroupInvocationID) {
+        return;
+    }
+    #endif
+
     uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
     uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
     uint faceBit = rc_faceBit(faceId);
-    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
+    uvec4 entry = rc_indirection[bufferIndex];
+    uint oldKey = entry.z;
+    bool pendingEntry = rc_entryMetaPendingFaceMask(entry.w) != 0u;
+    if (pendingEntry) {
+        oldKey = worldKeyHash;
+    } else if (oldKey == RC_INVALID) {
+        oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
+    }
     if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        uvec4 entry = rc_indirection[bufferIndex];
-        uint oldFaceMask = entry.y & 0x3fu;
-        uint newFaceMask = oldFaceMask | faceBit;
-        bool canGrowFaceMask = entry.x == RC_INVALID || newFaceMask == oldFaceMask;
-        if (!canGrowFaceMask) {
-            uint allocatedClassSize = rc_allocClassSize(bitCount(oldFaceMask));
-            canGrowFaceMask = bitCount(newFaceMask) <= allocatedClassSize;
-        }
-        if (!canGrowFaceMask) {
-            return false;
-        }
-
-        if (newFaceMask != oldFaceMask) {
+        // PreClear invalidates this side before pending and screen faces are collected.
+        if ((entry.y & faceBit) == 0u) {
             atomicOr(rc_indirection[bufferIndex].y, faceBit);
         }
-        uint pendingFaceBits = rc_indirection[bufferIndex].w & RC_ENTRY_META_PENDING_FACE_MASK;
-        rc_indirection[bufferIndex].w = rc_packEntryMeta(level, true) | pendingFaceBits;
-        return true;
+        uint touchedMeta = rc_packEntryMeta(level, true) | rc_entryMetaScreenFaceBits(faceBit) | RC_ENTRY_META_LISTED;
+        if ((entry.w & touchedMeta) != touchedMeta) {
+            rc_markEntryListed(rc_currentSide(), entryIndex, touchedMeta);
+        }
     } else {
         atomicAdd(rc_keyMismatchCounter, 1u);
-        return false;
     }
 }
 
@@ -76,9 +81,7 @@ void main() {
                 if (neighborOpen) {
                     for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
                         ivec3 worldCellCoord = rc_worldCellCoord(worldPos, level);
-                        if (rc_touchFace(level, worldCellCoord, faceId)) {
-                            rc_markScreenTouchedFace(level, worldCellCoord, faceId);
-                        }
+                        rc_touchFace(level, worldCellCoord, faceId);
                     }
                 }
             }

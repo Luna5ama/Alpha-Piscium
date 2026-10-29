@@ -146,12 +146,14 @@ void main() {
         }
     }
 
-    uint limitX = 65535u;
-    uint groupsX = totalGroups > limitX ? limitX : totalGroups;
-    uint groupsY = (totalGroups + limitX - 1u) / limitX;
-    if (totalGroups == 0u) { groupsX = 0u; groupsY = 0u; }
-
-    global_dispatchSize3 = uvec4(groupsX, groupsY, 1u, 0u);
+    const uint dispatchDimensionLimit = 65535u;
+    uint groupsX = min(totalGroups, dispatchDimensionLimit);
+    uint remainingGroups = groupsX == 0u
+        ? 0u
+        : totalGroups / groupsX + uint(totalGroups % groupsX != 0u);
+    uint groupsY = min(max(remainingGroups, 1u), dispatchDimensionLimit);
+    uint groupsZ = remainingGroups / groupsY + uint(remainingGroups % groupsY != 0u);
+    global_dispatchSize3 = uvec4(groupsX, groupsY, groupsZ, 0u);
 
     indirectComputeData[BEND_SSS_PARAMS_BASE + 0u] = floatBitsToUint(lightCoordInternal.x);
     indirectComputeData[BEND_SSS_PARAMS_BASE + 1u] = floatBitsToUint(lightCoordInternal.y);

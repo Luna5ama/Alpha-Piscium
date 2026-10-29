@@ -22,7 +22,7 @@ vec4 spd_loadInput(ivec2 texelPos, uint slice) {
             result.xyz = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
         } else {
             GIHistoryData historyData = gi_historyData_init();
-            gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+            gi_historyData_unpack5(historyData, history_gi5_fetch(texelPos));
 
             if (gl_WorkGroupID.z == 1) {
                 result.rgb = transient_gi1Reprojected_fetch(texelPos).rgb;

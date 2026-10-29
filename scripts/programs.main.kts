@@ -171,6 +171,9 @@ programs {
         pass("/pass/begin/ClearScreen3.comp.glsl") {
             cond("defined(VOXY)")
         }
+        pass("/pass/begin/RadianceCachePreClear.comp.glsl") {
+            cond("defined(SETTING_RC_ENABLE)")
+        }
         pass("/pass/begin/VoxelAllocatorMP_Clear.comp.glsl") {
             cond("SETTING_VOXEL_GRID_SIZE > 16")
         }
@@ -249,9 +252,6 @@ programs {
             "/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl",
             "/pass/composite/DirectLighting.glsl"
         )
-        pass("/pass/composite/RadianceCacheClear.comp.glsl") {
-            cond("defined(SETTING_RC_ENABLE)")
-        }
         pass("/pass/composite/RadianceCacheTouch.comp.glsl") {
             cond("defined(SETTING_RC_ENABLE)")
         }
@@ -275,8 +275,6 @@ programs {
         pass("/pass/composite/GIReferenceAccumulate.comp.glsl") {
             cond("SETTING_GI_USE_REFERENCE > 0")
         }
-        pass("/pass/composite/GIReSTIRTemporalSplatClear.comp.glsl")
-        pass("/pass/composite/GIReSTIRTemporalSplat.comp.glsl")
         pass("/pass/composite/GIReSTIRTemporalReuse.comp.glsl")
         pass("/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl") {
             cond("defined(SETTING_GI_DECORRELATE)")
@@ -304,17 +302,27 @@ programs {
             indirect(0, 16)
         }
         pass("/pass/composite/GIDenoiserHistoryFix.comp.glsl")
-        pass("/pass/composite/GIDenoiserBlur.comp.glsl") {
+        pass(
+            "/pass/composite/GIDenoiserBlur.comp.glsl",
+            "/pass/composite/EpipolarScatteringAir.comp.glsl"
+        ) {
             cond("defined(SETTING_DENOISER_SPATIAL)")
         }
-        pass("/pass/composite/GIDenoiserPostBlur.comp.glsl") {
+        pass("/pass/composite/EpipolarScatteringAir.comp.glsl") {
+            cond("!defined(SETTING_DENOISER_SPATIAL)")
+        }
+        pass(
+            "/pass/composite/GIDenoiserPostBlur.comp.glsl",
+            "/pass/composite/EpipolarScatteringWater.comp.glsl"
+        ) {
             cond("defined(SETTING_DENOISER_SPATIAL)")
+        }
+        pass("/pass/composite/EpipolarScatteringWater.comp.glsl") {
+            cond("!defined(SETTING_DENOISER_SPATIAL)")
         }
         pass("/pass/composite/SSTStepDebug.comp.glsl") {
             cond("defined(SETTING_DEBUG_SST_STEPS)")
         }
-        pass("/pass/composite/EpipolarScatteringAir.comp.glsl")
-        pass("/pass/composite/EpipolarScatteringWater.comp.glsl")
         pass("/pass/composite/TranslucentBackComposite.glsl")
         pass("/pass/composite/TranslucentSST.glsl")
         pass("/pass/composite/TranslucentComposite.glsl")

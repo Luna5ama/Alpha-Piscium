@@ -52,29 +52,6 @@ struct SpatialSampleData {
     vec4 sampleValue;
 };
 
-SpatialSampleData spatialSampleData_init() {
-    SpatialSampleData data;
-    data.geomNormal = vec3(0.0);
-    data.normal = vec3(0.0);
-    data.hitNormal = vec3(0.0);
-    data.sampleValue = vec4(0.0);
-    return data;
-}
-
-uvec4 spatialSampleData_pack(SpatialSampleData data) {
-    uvec4 packedData;
-    packedData.x = restir_isFinite(data.geomNormal)
-        && dot(data.geomNormal, data.geomNormal) > 1e-8
-        ? nzpacking_packNormalOct32(data.geomNormal)
-        : 0u;
-    packedData.y = restir_isFinite(data.hitNormal)
-        && dot(data.hitNormal, data.hitNormal) > 1e-8
-        ? nzpacking_packNormalOct32(data.hitNormal)
-        : 0u;
-    packedData.zw = packHalf4x16(clamp(data.sampleValue, 0.0, FP16_MAX));
-    return packedData;
-}
-
 SpatialSampleData spatialSampleData_unpack(uvec4 packedData) {
     SpatialSampleData data;
     data.geomNormal = nzpacking_unpackNormalOct32(packedData.x);
@@ -222,80 +199,6 @@ float evalTargetFunction(
         viewDir,
         material
     ).full);
-}
-
-struct ShiftMapping {
-    vec4 Y;
-    float targetPHat;
-    float unmappedTargetPHat;
-};
-
-ShiftMapping shiftMapping_init() {
-    ShiftMapping mapping;
-    mapping.Y = vec4(0.0, 0.0, 0.0, -1.0);
-    mapping.targetPHat = 0.0;
-    mapping.unmappedTargetPHat = 0.0;
-    return mapping;
-}
-
-bool shiftMapping_isReusable(ShiftMapping mapping) {
-    return mapping.targetPHat > 0.0;
-}
-
-
-ShiftMapping evaluateShiftMapping(
-    ReSTIRReservoir canonResSRC,
-    ResampleMaterial matDST,
-    SpatialSampleData sampleDST, SpatialSampleData sampleSRC,
-    vec3 viewPosDST, vec3 viewPosSRC
-) {
-    ShiftMapping mapping = shiftMapping_init();
-
-    vec3 hitViewPosSRC = viewPosSRC + canonResSRC.Y.xyz * canonResSRC.Y.w;
-    vec3 diffSRCtoDST = hitViewPosSRC - viewPosDST;
-    float dist2 = dot(diffSRCtoDST, diffSRCtoDST);
-    if (dist2 > 1e-6 && canonResSRC.Y.w > 1e-6 && restir_isReservoirValid(canonResSRC)) {
-        vec3 dirSRCtoDST = diffSRCtoDST * inversesqrt(dist2);
-        float cosPhiSRC = -dot(canonResSRC.Y.xyz, sampleSRC.hitNormal);
-        float cosPhiDST = -dot(dirSRCtoDST, sampleSRC.hitNormal);
-        float sourceGeomCos = dot(sampleSRC.geomNormal, canonResSRC.Y.xyz);
-        float targetGeomCos = dot(sampleDST.geomNormal, dirSRCtoDST);
-        if (
-            cosPhiSRC > RESTIR_RECONNECTION_MIN_COSINE
-            && cosPhiDST > RESTIR_RECONNECTION_MIN_COSINE
-            && sourceGeomCos > RESTIR_RECONNECTION_MIN_COSINE
-            && targetGeomCos > RESTIR_RECONNECTION_MIN_COSINE
-            && dot(sampleSRC.normal, canonResSRC.Y.xyz) > 0.0
-        ) {
-            vec3 VDST = normalize(-viewPosDST);
-            float pHat = evalTargetFunction(
-                sampleSRC.sampleValue.xyz,
-                sampleDST.geomNormal,
-                sampleDST.normal,
-                dirSRCtoDST,
-                VDST,
-                matDST
-            );
-            if (restir_isPositiveFinite(pHat)) {
-                float log2Jacobian = 2.0 * log2(canonResSRC.Y.w)
-                    + log2(cosPhiDST)
-                    - log2(dist2)
-                    - log2(cosPhiSRC);
-                if (abs(log2Jacobian) > RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN) {
-                    return mapping;
-                }
-                float jacobian_DST = exp2(log2Jacobian);
-                float targetPHat = pHat * jacobian_DST;
-                if (restir_reconnectionDensityRatioValid(sampleSRC.sampleValue.w, targetPHat)) {
-                    mapping.Y = vec4(dirSRCtoDST, sqrt(dist2));
-                    mapping.targetPHat = targetPHat;
-                    mapping.unmappedTargetPHat = pHat;
-                }
-            }
-        }
-    }
-
-    return mapping;
 }
 
 // Shades a reservoir sample into demodulated diffuse/specular denoiser inputs, with the hit distance in w.

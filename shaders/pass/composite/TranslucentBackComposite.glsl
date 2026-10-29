@@ -15,7 +15,9 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_main;
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
+#if SETTING_DEBUG_OUTPUT && SETTING_DEBUG_TEMP_TEX == 3
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
+#endif
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 
@@ -73,7 +75,7 @@ void main() {
                 material.roughness
             );
             outputColor.rgb += giSpec.rgb * specDenoiseFactor;
-            #if SETTING_DEBUG_OUTPUT
+            #if SETTING_DEBUG_OUTPUT && SETTING_DEBUG_TEMP_TEX == 3
             imageStore(uimg_temp3, texelPos, vec4(giSpec  ));
             #endif
         }

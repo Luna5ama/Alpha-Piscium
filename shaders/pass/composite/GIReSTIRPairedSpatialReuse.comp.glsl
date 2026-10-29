@@ -9,6 +9,7 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 #extension GL_KHR_shader_subgroup_shuffle : enable
+#extension GL_KHR_shader_subgroup_vote : enable
 
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -20,6 +21,7 @@
 
 layout(local_size_x = 128) in;
 
+layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 
@@ -64,38 +66,34 @@ bool restir_updateReservoirM(inout float reservoirM, inout float wSum, float wi,
 }
 
 float evaluateShiftTargetPHat(
-    vec4 canonYSRC,
+    uint sourceGeometryValid,
+    vec3 hitViewPosSRC,
+    float sourceJacobianScale,
     vec3 geomNormalDST,
     vec3 normalDST,
-    vec3 geomNormalSRC,
     vec3 hitNormalSRC,
-    float cosSRC,
-    float cosPhiSRC,
-    vec4 sampleValueSRC,
-    vec3 viewPosDST, vec3 viewPosSRC,
+    float sourceRadianceMagnitude,
+    float sourceTargetPHat,
+    vec3 viewPosDST,
     ResampleMaterial materialDST,
+    out float reconnectionJacobian,
     out float targetSpecularBRDF
 ) {
     const float EPSILON = 1e-6;
     float targetPHat = 0.0;
+    reconnectionJacobian = 0.0;
     targetSpecularBRDF = 0.0;
 
-    if (canonYSRC.w > EPSILON) {
-        vec3 hitViewPosSRC = viewPosSRC + canonYSRC.xyz * canonYSRC.w;
+    if (bool(sourceGeometryValid)) {
         vec3 diffSRCtoDST = hitViewPosSRC - viewPosDST;
         float dist2 = dot(diffSRCtoDST, diffSRCtoDST);
         if (dist2 > EPSILON) {
-            float inverseDistance = inversesqrt(dist2);
-            vec3 dirSRCtoDST = diffSRCtoDST * inverseDistance;
+            vec3 dirSRCtoDST = diffSRCtoDST * inversesqrt(dist2);
             float cosPhiDST = -dot(dirSRCtoDST, hitNormalSRC);
-            float sourceGeomCos = dot(geomNormalSRC, canonYSRC.xyz);
             float targetGeomCos = dot(geomNormalDST, dirSRCtoDST);
             if (
-                cosPhiSRC > RESTIR_RECONNECTION_MIN_COSINE
-                && cosPhiDST > RESTIR_RECONNECTION_MIN_COSINE
-                && sourceGeomCos > RESTIR_RECONNECTION_MIN_COSINE
+                cosPhiDST > RESTIR_RECONNECTION_MIN_COSINE
                 && targetGeomCos > RESTIR_RECONNECTION_MIN_COSINE
-                && cosSRC > 0.0
             ) {
                 vec3 VDST = normalize(-viewPosDST);
                 ResampleBRDF brdf = evalTargetBRDF(
@@ -105,19 +103,19 @@ float evaluateShiftTargetPHat(
                     VDST,
                     materialDST
                 );
-                // The BRDF-ratio resolve needs the DST specular lobe regardless of the reconnection limits below.
                 targetSpecularBRDF = brdf.specular;
-                float pHat = length(sampleValueSRC.xyz * brdf.full);
-                if (restir_isPositiveFinite(pHat)) {
-                    float distanceRatio = canonYSRC.w * inverseDistance;
-                    float jacobian = distanceRatio * distanceRatio * (cosPhiDST / cosPhiSRC);
+                float pHat = sourceRadianceMagnitude * abs(brdf.full);
+                if (pHat > 0.0 && restir_isFinite(pHat)) {
+                    // Equivalent to abs(log2(jacobian)) <= RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN.
+                    float jacobian = sourceJacobianScale * cosPhiDST / dist2;
                     if (
                         jacobian >= exp2(-RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN)
                         && jacobian <= exp2(RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN)
                     ) {
                         float mappedPHat = pHat * jacobian;
-                        if (restir_reconnectionDensityRatioValid(sampleValueSRC.w, mappedPHat)) {
+                        if (restir_reconnectionDensityRatioValid(sourceTargetPHat, mappedPHat)) {
                             targetPHat = mappedPHat;
+                            reconnectionJacobian = jacobian;
                         }
                     }
                 }
@@ -130,23 +128,23 @@ float evaluateShiftTargetPHat(
 
 void accumulateResample(
 inout PairwiseMISMetadata metaDST,
+inout float selectedReconnectionJacobian,
+inout bool selectedTransactionUpdated,
 ivec2 texelDST, ivec2 texelSRC,
 float canonMDST, float canonMSRC, float canonAvgWYSRC,
 float dstPHat,
 float sampleValueWSRC,
 float srcToDstTargetPHat,
 float dstToSrcTargetPHat,
+float srcToDstReconnectionJacobian,
 uint randSeed
 ) {
     float rcMDivK_DST = canonMDST * (1.0 / float(SETTING_GI_SPATIAL_REUSE_COUNT));
     float mcIncrement_DST = 1.0;
     if (dstToSrcTargetPHat > 0.0) {
-        float targetScale = max(dstToSrcTargetPHat, dstPHat);
-        float sourceTarget = dstToSrcTargetPHat * safeRcp(targetScale);
-        float centerTarget = dstPHat * safeRcp(targetScale);
-        float sourceTerm = canonMSRC * sourceTarget;
-        float centerTerm = rcMDivK_DST * centerTarget;
-        float candidateIncrement = centerTerm * safeRcp(sourceTerm + centerTerm);
+        float sourceTerm = canonMSRC * dstToSrcTargetPHat;
+        float centerTerm = rcMDivK_DST * dstPHat;
+        float candidateIncrement = centerTerm / (sourceTerm + centerTerm);
         if (restir_isFinite(candidateIncrement)) {
             mcIncrement_DST = candidateIncrement;
         }
@@ -163,11 +161,9 @@ uint randSeed
         /*const*/
 
         float MiPiRiY = canonMSRC * sampleValueWSRC;
-        float weightedTargetPHat = safeRcp(
-            safeRcp(srcToDstTargetPHat)
-            + rcMDivK_DST * safeRcp(MiPiRiY)
-        );
-        if (!restir_isPositiveFinite(weightedTargetPHat)) {
+        float weightedTargetPHat = srcToDstTargetPHat
+            * (MiPiRiY / (MiPiRiY + rcMDivK_DST * srcToDstTargetPHat));
+        if (!restir_isFinite(weightedTargetPHat) || weightedTargetPHat <= 0.0) {
             return;
         }
 
@@ -187,6 +183,8 @@ uint randSeed
 
         if (selected) {
             metaDST.selectedTexelDelta = texelSRC - texelDST;
+            selectedReconnectionJacobian = srcToDstReconnectionJacobian;
+            selectedTransactionUpdated = true;
         }
     }
 }
@@ -201,12 +199,16 @@ void processGroupCandidate(
     uint shuffleMask,
     uint randSeed,
     inout PairwiseMISMetadata metaMe,
+    inout float selectedReconnectionJacobian,
+    inout bool selectedTransactionUpdated,
     ivec2 texelMe,
     vec3 geomNormalMe,
     vec3 normalMe,
     vec3 hitNormalMe,
-    float cosMe,
-    float cosPhiMe,
+    uint sourceGeometryValidMe,
+    vec3 hitViewPosMe,
+    float sourceJacobianScaleMe,
+    float sourceRadianceMagnitudeMe,
     vec4 sampleValueMe,
     vec4 canonYMe,
     float canonMMe,
@@ -226,6 +228,7 @@ void processGroupCandidate(
     bool pairReusable = false;
     float meToOtherTargetPHat = 0.0;
     vec4 meToOtherRatio = vec4(0.0);
+    float meToOtherReconnectionJacobian = 0.0;
     if (bool(pairValid)) {
         vec3 primaryViewPosOther = subgroupShuffleXor(primaryViewPosMe, shuffleMask);
         vec3 geomNormalOther = subgroupShuffleXor(geomNormalMe, shuffleMask);
@@ -245,17 +248,17 @@ void processGroupCandidate(
 
             float otherSpecularTowardMe;
             meToOtherTargetPHat = evaluateShiftTargetPHat(
-                canonYMe,
+                sourceGeometryValidMe,
+                hitViewPosMe,
+                sourceJacobianScaleMe,
                 geomNormalOther,
                 normalOther,
-                geomNormalMe,
                 hitNormalMe,
-                cosMe,
-                cosPhiMe,
-                sampleValueMe,
+                sourceRadianceMagnitudeMe,
+                sampleValueMe.w,
                 primaryViewPosOther,
-                primaryViewPosMe,
                 materialOther,
+                meToOtherReconnectionJacobian,
                 otherSpecularTowardMe
             );
 
@@ -271,7 +274,7 @@ void processGroupCandidate(
             if (otherSpecularTowardMe > 0.0 && ownFrameSpecular > 0.0) {
                 float transferWeight = min(otherSpecularTowardMe / ownFrameSpecular, 1.0);
                 // Capping by my own target BRDF bounds pairs whose materials differ.
-                float sampleTargetBRDF = sampleValueMe.w / length(sampleValueMe.rgb);
+                float sampleTargetBRDF = sampleValueMe.w / sourceRadianceMagnitudeMe;
                 vec3 contribution = sampleValueMe.rgb * canonAvgWYMe * min(ownFrameSpecular, sampleTargetBRDF);
                 meToOtherRatio = vec4(contribution * transferWeight, transferWeight);
             }
@@ -279,8 +282,11 @@ void processGroupCandidate(
     }
     float otherToMeTargetPHat = subgroupShuffleXor(meToOtherTargetPHat, shuffleMask);
     ratioMe += subgroupShuffleXor(meToOtherRatio, shuffleMask);
+    float otherToMeReconnectionJacobian = subgroupShuffleXor(meToOtherReconnectionJacobian, shuffleMask);
     accumulateResample(
         metaMe,
+        selectedReconnectionJacobian,
+        selectedTransactionUpdated,
         texelMe,
         texelOther,
         canonMMe,
@@ -290,6 +296,7 @@ void processGroupCandidate(
         sampleValueWOther,
         otherToMeTargetPHat,
         abs(meToOtherTargetPHat),
+        otherToMeReconnectionJacobian,
         randSeed
     );
 }
@@ -336,80 +343,101 @@ void main() {
     PairwiseMISMetadata metaMe = pairwiseMISMetadata_init();
     // Specular BRDF-ratio resolve: xyz = sum(weight * contribution), w = sum(weight).
     vec4 ratioMe = vec4(0.0);
+    float selectedReconnectionJacobian = 0.0;
+    bool selectedTransactionUpdated = false;
 
     if (bool(validMe)) {
         viewZMe = texelFetch(usam_gbufferSolidViewZ, texelMe, 0).x;
-        if (viewZMe > -65536.0) {
+        validMe &= uint(viewZMe > -65536.0);
+        if (bool(validMe)) {
             uint packedGBufferData2 = texelFetch(usam_gbufferSolidData2, texelMe, 0).r;
-            bool isHand = bool(bitfieldExtract(packedGBufferData2, 24, 1));
-            uint packedPrimaryMe = restir_splatFetchCurrentPrimary(texelMe);
-            if (isHand) {
-                validMe = 0u;
-            } else {
-                uvec4 spatialSamplePackedDataMe = transient_restir_spatialInput_fetch(texelMe);
-                if (packedPrimaryMe != 0u) {
-                    primaryViewPosMe = restir_splatUnpackPrimary(
-                        texelMe,
-                        packedPrimaryMe,
-                        global_camProjInverse
-                    );
-                } else {
-                    vec2 screenPos = coords_texelToUV(texelMe, uval_mainImageSizeRcp)
-                        - uval_taaJitterUV;
-                    primaryViewPosMe = coords_toViewCoord(
-                        screenPos,
-                        viewZMe,
-                        global_camProjInverse
-                    );
-                }
-                geomNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.x);
-                hitNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.y);
-                normalMe = normalize(transient_viewNormal_fetch(texelMe).xyz * 2.0 - 1.0);
-                sampleValueMe = unpackHalf4x16(spatialSamplePackedDataMe.zw);
-                materialMe = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelMe));
-                #if PASS_INDEX != 0
-                metaMe = pairwiseMISMetadata_unpack(transient_restir_pairwiseMISMetadata_fetch(texelMe));
-                vec4 packedRatio = transient_ssgiSpecOut_fetch(texelMe);
-                ratioMe = vec4(packedRatio.xyz * packedRatio.w, packedRatio.w);
-                #endif
-
-                uvec4 repMe = transient_restir_reservoirTemporal_fetch(texelMe);
-                ReSTIRReservoir reservoirMe = restir_reservoir_unpack(repMe);
-                canonYMe = reservoirMe.Y;
-                canonMMe = reservoirMe.m;
-                canonAvgWYMe = reservoirMe.avgWY;
-                #if PASS_INDEX == 0
-                // Replace the temporal splat-next scratch with pairwise state.
-                metaMe.accumM = canonMMe;
-                if (canonYMe.w > 0.0) {
-                    float centerSpecular = evalTargetBRDF(
-                        geomNormalMe,
-                        normalMe,
-                        canonYMe.xyz,
-                        normalize(-primaryViewPosMe),
-                        materialMe
-                    ).specular;
-                    ratioMe = vec4(sampleValueMe.rgb * canonAvgWYMe * centerSpecular, 1.0);
-                }
-                #endif
-            }
+            validMe &= uint(bitfieldExtract(packedGBufferData2, 24, 1) == 0u);
         }
     }
+    if (subgroupAll(validMe == 0u)) {
+        return;
+    }
+    if (bool(validMe)) {
+        uint packedPrimaryMe = restir_splatFetchCurrentPrimary(texelMe);
+        uvec4 spatialSamplePackedDataMe = transient_restir_spatialInput_fetch(texelMe);
+        if (packedPrimaryMe != 0u) {
+            primaryViewPosMe = restir_splatUnpackPrimary(
+                texelMe,
+                packedPrimaryMe,
+                global_camProjInverse
+            );
+        } else {
+            vec2 screenPos = coords_texelToUV(texelMe, uval_mainImageSizeRcp)
+                - uval_taaJitterUV;
+            primaryViewPosMe = coords_toViewCoord(
+                screenPos,
+                viewZMe,
+                global_camProjInverse
+            );
+        }
+        geomNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.x);
+        hitNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.y);
+        normalMe = normalize(transient_viewNormal_fetch(texelMe).xyz * 2.0 - 1.0);
+        sampleValueMe = unpackHalf4x16(spatialSamplePackedDataMe.zw);
+        materialMe = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelMe));
+        #if PASS_INDEX != 0
+        metaMe = pairwiseMISMetadata_unpack(transient_restir_pairwiseMISMetadata_fetch(texelMe));
+        vec4 packedRatio = transient_ssgiSpecOut_fetch(texelMe);
+        ratioMe = vec4(packedRatio.xyz * packedRatio.w, packedRatio.w);
+        #endif
 
-    uint reusableMe = validMe & uint(viewZMe > -65536.0);
+        uvec4 repMe = transient_restir_reservoirTemporal_fetch(texelMe);
+        ReSTIRReservoir reservoirMe = restir_reservoir_unpack(repMe);
+        canonYMe = reservoirMe.Y;
+        canonMMe = reservoirMe.m;
+        canonAvgWYMe = reservoirMe.avgWY;
+        #if PASS_INDEX == 0
+        // Replace the temporal splat-next scratch with pairwise state.
+        metaMe.accumM = canonMMe;
+        if (canonYMe.w > 0.0) {
+            float centerSpecular = evalTargetBRDF(
+                geomNormalMe,
+                normalMe,
+                canonYMe.xyz,
+                normalize(-primaryViewPosMe),
+                materialMe
+            ).specular;
+            ratioMe = vec4(sampleValueMe.rgb * canonAvgWYMe * centerSpecular, 1.0);
+        }
+        #endif
+    }
+
+    uint reusableMe = validMe;
+    float sourceRadianceMagnitudeMe = length(sampleValueMe.rgb);
     float cosMe = dot(normalMe, canonYMe.xyz);
     float cosPhiMe = -dot(canonYMe.xyz, hitNormalMe);
+    uint sourceGeometryValidMe = uint(
+        canonYMe.w > 1e-6
+        && cosMe > 0.0
+        && cosPhiMe > RESTIR_RECONNECTION_MIN_COSINE
+        && dot(geomNormalMe, canonYMe.xyz) > RESTIR_RECONNECTION_MIN_COSINE
+    );
+    vec3 hitViewPosMe = vec3(0.0);
+    // Source half of the reconnection Jacobian: squared hit distance over hit cosine.
+    float sourceJacobianScaleMe = 0.0;
+    if (bool(sourceGeometryValidMe)) {
+        hitViewPosMe = primaryViewPosMe + canonYMe.xyz * canonYMe.w;
+        sourceJacobianScaleMe = canonYMe.w * canonYMe.w / cosPhiMe;
+    }
 
-    processGroupCandidate(1u, 3337u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, cosMe, cosPhiMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(2u, 3338u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, cosMe, cosPhiMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(3u, 3339u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, cosMe, cosPhiMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(4u, 3340u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, cosMe, cosPhiMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(5u, 3341u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, cosMe, cosPhiMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(6u, 3342u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, cosMe, cosPhiMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(7u, 3343u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, cosMe, cosPhiMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(1u, 3337u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(2u, 3338u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(3u, 3339u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(4u, 3340u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(5u, 3341u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(6u, 3342u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(7u, 3343u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
 
     if (bool(validMe)) {
         transient_restir_pairwiseMISMetadata_store(texelMe, pairwiseMISMetadata_pack(metaMe));
+        if (selectedTransactionUpdated) {
+            transient_restir_initialCandidateNormal_store(texelMe, uvec4(floatBitsToUint(selectedReconnectionJacobian), 0u, 0u, 0u));
+        }
         // ssgiSpecOut is free until GIReSTIRPairedSpatialShade reads this weighted mean and weight sum.
         vec3 ratioMean = ratioMe.w > 0.0 ? ratioMe.xyz / ratioMe.w : vec3(0.0);
         transient_ssgiSpecOut_store(texelMe, vec4(min(ratioMean, FP16_MAX), ratioMe.w));

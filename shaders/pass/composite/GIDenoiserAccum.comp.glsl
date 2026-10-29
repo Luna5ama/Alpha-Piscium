@@ -42,16 +42,14 @@ vec3 interpolateTurbo(float x) {
 }
 #endif
 
-// Shared memory with padding for 5x5 tap (-2 to +2)
-// Each work group is 16x16, need +2 padding on each side for 5x5 taps
-shared vec3 shared_historyLengths[18][18];
+// Shared history data with one-texel padding for the 3x3 history-length kernel
+shared vec4 shared_historyData5[18][18];
 
-void loadSharedHistoryLengths(uvec2 groupOriginTexelPos, uint index) {
+void loadSharedHistoryData5(uvec2 groupOriginTexelPos, uint index) {
     if (index < 324u) { // 18 * 18 = 324
         uvec2 sharedXY = uvec2(index % 18u, index / 18u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 1;
-        vec4 data5 = transient_gi5Reprojected_fetch(srcXY);
-        shared_historyLengths[sharedXY.y][sharedXY.x] = data5.xyz;
+        shared_historyData5[sharedXY.y][sharedXY.x] = transient_gi5Reprojected_fetch(srcXY);
     }
 }
 
@@ -84,8 +82,9 @@ void main() {
     }
 
     if (hiz_groupGroundCheck(swizzledWGPos, 4)) {
-        loadSharedHistoryLengths(workGroupOrigin, gl_LocalInvocationIndex);
-        loadSharedHistoryLengths(workGroupOrigin, gl_LocalInvocationIndex + 256u);
+        loadSharedHistoryData5(workGroupOrigin, gl_LocalInvocationIndex);
+        loadSharedHistoryData5(workGroupOrigin, gl_LocalInvocationIndex + 256u);
+        barrier();
 
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
             float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
@@ -98,11 +97,13 @@ void main() {
                 gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
                 gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
                 gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
-                gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
-                #if SETTING_DEBUG_OUTPUT
+                gi_historyData_unpack5(
+                    historyData,
+                    shared_historyData5[mortonPos.y + 1u][mortonPos.x + 1u]
+                );
+                #if SETTING_DEBUG_OUTPUT && SETTING_DEBUG_TEMP_TEX == 2
                 imageStore(uimg_temp2, texelPos, newSpecular);
                 #endif
-                barrier();
 
                 if (RANDOM_FRAME >= 0 && RANDOM_FRAME < MAX_FRAMES) {
                     // x: diffuse history length
@@ -193,31 +194,31 @@ void main() {
                 vec3 hLenAverage = vec3(0.0);
                 vec3 hLenMax = vec3(0.0);
                 ivec2 localPos = ivec2(mortonPos) + 1; // +1 for padding
-                vec3 neighborHistoryLengths = shared_historyLengths[localPos.y - 1][localPos.x - 1];
+                vec3 neighborHistoryLengths = shared_historyData5[localPos.y - 1][localPos.x - 1].xyz;
                 hLenAverage += neighborHistoryLengths;
                 hLenMax = max(hLenMax, neighborHistoryLengths);
-                neighborHistoryLengths = shared_historyLengths[localPos.y - 1][localPos.x];
+                neighborHistoryLengths = shared_historyData5[localPos.y - 1][localPos.x].xyz;
                 hLenAverage += neighborHistoryLengths;
                 hLenMax = max(hLenMax, neighborHistoryLengths);
-                neighborHistoryLengths = shared_historyLengths[localPos.y - 1][localPos.x + 1];
+                neighborHistoryLengths = shared_historyData5[localPos.y - 1][localPos.x + 1].xyz;
                 hLenAverage += neighborHistoryLengths;
                 hLenMax = max(hLenMax, neighborHistoryLengths);
-                neighborHistoryLengths = shared_historyLengths[localPos.y][localPos.x - 1];
+                neighborHistoryLengths = shared_historyData5[localPos.y][localPos.x - 1].xyz;
                 hLenAverage += neighborHistoryLengths;
                 hLenMax = max(hLenMax, neighborHistoryLengths);
-                neighborHistoryLengths = shared_historyLengths[localPos.y][localPos.x];
+                neighborHistoryLengths = shared_historyData5[localPos.y][localPos.x].xyz;
                 hLenAverage += neighborHistoryLengths;
                 hLenMax = max(hLenMax, neighborHistoryLengths);
-                neighborHistoryLengths = shared_historyLengths[localPos.y][localPos.x + 1];
+                neighborHistoryLengths = shared_historyData5[localPos.y][localPos.x + 1].xyz;
                 hLenAverage += neighborHistoryLengths;
                 hLenMax = max(hLenMax, neighborHistoryLengths);
-                neighborHistoryLengths = shared_historyLengths[localPos.y + 1][localPos.x - 1];
+                neighborHistoryLengths = shared_historyData5[localPos.y + 1][localPos.x - 1].xyz;
                 hLenAverage += neighborHistoryLengths;
                 hLenMax = max(hLenMax, neighborHistoryLengths);
-                neighborHistoryLengths = shared_historyLengths[localPos.y + 1][localPos.x];
+                neighborHistoryLengths = shared_historyData5[localPos.y + 1][localPos.x].xyz;
                 hLenAverage += neighborHistoryLengths;
                 hLenMax = max(hLenMax, neighborHistoryLengths);
-                neighborHistoryLengths = shared_historyLengths[localPos.y + 1][localPos.x + 1];
+                neighborHistoryLengths = shared_historyData5[localPos.y + 1][localPos.x + 1].xyz;
                 hLenAverage += neighborHistoryLengths;
                 hLenMax = max(hLenMax, neighborHistoryLengths);
 
@@ -249,7 +250,7 @@ void main() {
                 #endif
                 transient_gi2Reprojected_store(texelPos, packedData2);
                 transient_gi4Reprojected_store(texelPos, packedData4);
-                transient_gi5Reprojected_store(texelPos, packedData5);
+                history_gi5_store(texelPos, packedData5);
 
             } else {
                 transient_gi_variance_store(texelPos, vec4(0.0));
