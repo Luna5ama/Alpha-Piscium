@@ -26,6 +26,14 @@ sampling-quality versus traversal-cost comparison against the selected four-way 
 implementation remains recoverable from commit `921caa33` and the experiment record above. H-PLOC integration is
 under discussion; no H-PLOC builder or claimed benefit has been implemented.
 
+The selected H-PLOC scope is global emitter clustering across 16³ brick boundaries: bricks own emitter
+extraction, not the final light-tree grouping. The integration candidate is a Morton-ordered emitter list,
+an H-PLOC binary hierarchy, and conversion to the packed four-way hierarchy consumed by the current sampler.
+The proposed first comparison retains cube sampling and the original weights, with visibility guiding and
+lookahead disabled. Binary scratch storage, GLSL synchronization, and construction cost still need validation;
+ray-tracing SAH quality does not establish lower light-sampling variance. See the
+[H-PLOC paper](https://gpuopen.com/download/HPLOC.pdf).
+
 The sections below preserve the original design and CPU-experiment context. Their deferred implementation
 items and validation limits describe those earlier experiments unless superseded by this current selection.
 
