@@ -2,9 +2,65 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-design.md)
 
-This records the Alpha Piscium light-sampling design and first CPU experiments of 2026-10-29: a compact light BVH
-combined with directional blocker-distance statistics shared by shading bricks. The initial SH candidate did not
-show stable statistical benefit; see the experiment results below. No runtime shader path or GPU benefit is established.
+This records Alpha Piscium light-sampling decisions, candidates awaiting validation, and experimental evidence.
+The initial design and CPU experiments of 2026-10-29 remain below. Their implementation status and proposed next
+steps describe that earlier work; the current decisions below take precedence where they differ.
+
+## Discussion and experiment responsibilities (2026-10-30)
+
+- The current discussion maintains this document and its Chinese counterpart, recording confirmed decisions,
+  rationale, hypotheses, and the questions subsequent experiments should answer.
+- Experiment chat `01a18648-f66e-78e0-8d01-cd906ca45429` owns candidate implementation, runtime captures, timings,
+  and image comparisons. Its code stays on `codex/light-sampling`. A discussed candidate does not automatically
+  authorize starting an experiment.
+- Experimental results identify the source commit, configuration, scenes, and limitations before informing design
+  updates. Record selection, implementation, and validated benefit separately.
+
+This handoff checked experiment commit `5c022ba1`; the current `2.0/dev` has not integrated that runtime shader path.
+The experiment branch's older copy of this document provides historical context; subsequent design follows the
+version maintained by this discussion.
+
+## Current selection and backlog (2026-10-30)
+
+| Item | Confirmed choice |
+|------|------------------|
+| Conditional emitter sampling | Retain projected-solid-angle cube sampling without repeating its adoption comparison |
+| Node weights | Keep the original geometric weights; defer the revised weight candidate |
+| Spatial grouping | Retain Morton spatial grouping; Gilbert was rejected and its experimental implementation removed |
+| Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
+| Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
+| Visibility guidance | Exclude from the current runtime baseline; retain as a research direction |
+
+These choices apply to the experimental path; the direct-lighting experiment itself remains disabled by default.
+Default settings and lookahead-option removal are in `f9dc71bf`; the five-scene wide-tree experiment record is in
+`3e7f66b9`. Four-way branching is the selected tradeoff, not the lowest-variance result: binary two-level lookahead
+had lower variance in both reported luminance regions in that round. A 32-frame variance window is not error
+acceptance against a high-sample reference.
+
+## Next topic: global H-PLOC clustering
+
+The confirmed scope allows global emitter clustering across 16³ brick boundaries. Bricks own emitter extraction,
+not the final light-tree grouping. This decision is recorded in experiment commit `5c022ba1`; no H-PLOC builder
+has been implemented.
+
+The candidate for discussion is a globally Morton-ordered emitter list, H-PLOC binary construction, and conversion
+to a compact four-way tree for the existing sampler. The [H-PLOC paper](https://gpuopen.com/download/HPLOC.pdf)
+covers binary BVH construction and wide-tree conversion; its ray-tracing results do not establish lower
+light-sampling variance here. A proposed first comparison retains the current emitter set, cube sampling, and
+node weights, with visibility guidance and lookahead disabled. This is a discussion starting point, not an
+experiment assignment.
+
+Questions to resolve next:
+
+- Merge criterion: start with merged-AABB surface area or introduce a light-sampling objective. The latter also
+  changes the topology objective and needs an explicit attribution argument.
+- Binary-to-four-way conversion: which internal nodes to expand and how temporary binary indices become the
+  current contiguous-child layout.
+- GPU execution: verify global Morton ordering, scratch capacity, subgroup capabilities, and cross-workgroup
+  publication. Do not assume the paper's execution mechanisms already exist in the GLSL path.
+- Experiment criteria: record all preparation and construction costs, initial-sampling time, raw sample quality,
+  and PDF/emitter-set consistency. Comparing only the core construction kernel is insufficient, and tighter
+  grouping does not itself establish lower noise.
 
 ## Scope and decisions
 
