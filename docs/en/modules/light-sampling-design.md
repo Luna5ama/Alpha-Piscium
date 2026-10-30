@@ -43,10 +43,25 @@ The confirmed scope allows global emitter clustering across 16³ brick boundarie
 not the final light-tree grouping. This decision is recorded in experiment commit `5c022ba1`; no H-PLOC builder
 has been implemented.
 
+The existing experiment already has one global light tree over the current voxel volume. The binary option
+produces a global binary tree; the current default is four-way. Construction first creates a complete subtree
+for each brick, then combines brick roots through a fixed Morton hierarchy. Ancestors spanning bricks already
+exist, but a local cluster cannot first group only some emitters from two neighboring bricks while leaving
+their remaining emitters outside. Here, global clustering removes that complete-brick-subtree constraint; it
+does not introduce the first global root. H-PLOC candidate merges remain bounded by Morton ranges and local
+neighborhoods.
+
 The candidate for discussion is a globally Morton-ordered emitter list, H-PLOC binary construction, and conversion
-to a compact four-way tree for the existing sampler. The [H-PLOC paper](https://gpuopen.com/download/HPLOC.pdf)
-covers binary BVH construction and wide-tree conversion; its ray-tracing results do not establish lower
-light-sampling variance here. A proposed first comparison retains the current emitter set, cube sampling, and
+to a compact four-way tree for the existing sampler. [Section 3.4 of the H-PLOC paper](https://gpuopen.com/download/HPLOC.pdf#page=8)
+already provides wide-tree conversion: repeatedly open the internal child with the largest surface area until
+the target child count is reached or all children are leaves. The paper's complete pipeline outputs a four-way
+tree, but first constructs a binary tree and then runs a separate conversion kernel. Binary construction and
+wide conversion can each use one kernel launch. This is neither native four-way clustering nor a single
+dispatch for the whole preparation pipeline. Removing the intermediate binary topology requires further
+algorithm changes, rather than setting a branching parameter to four.
+
+The paper's ray-tracing results do not establish lower light-sampling variance here.
+A proposed first comparison retains the current emitter set, cube sampling, and
 node weights, with visibility guidance and lookahead disabled. This is a discussion starting point, not an
 experiment assignment.
 
@@ -54,8 +69,8 @@ Questions to resolve next:
 
 - Merge criterion: start with merged-AABB surface area or introduce a light-sampling objective. The latter also
   changes the topology objective and needs an explicit attribution argument.
-- Binary-to-four-way conversion: which internal nodes to expand and how temporary binary indices become the
-  current contiguous-child layout.
+- Binary-to-four-way conversion: the paper's largest-surface-area expansion rule is a first-version candidate;
+  verify output layout and scheduling when converting temporary binary indices into contiguous children.
 - GPU execution: verify global Morton ordering, scratch capacity, subgroup capabilities, and cross-workgroup
   publication. Do not assume the paper's execution mechanisms already exist in the GLSL path.
 - Experiment criteria: record all preparation and construction costs, initial-sampling time, raw sample quality,
