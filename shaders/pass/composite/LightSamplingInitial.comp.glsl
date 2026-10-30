@@ -48,9 +48,14 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     target = origin + direction * nearT;
     weight = cosine * (2.0 * coneWidth) / lightPdf;
     targetMaterial = floatBitsToUint(emitter.boundsMaxLink.w) & ~LS_LEAF_BIT;
+    #ifdef SETTING_DEBUG_LIGHT_AUDIT
+    if (auditSlot != LS_INVALID) ls_audit[auditSlot * 4u + 2u] = vec4(direction, 1.0 / (6.28318530718 * coneWidth));
+    #endif
     #endif
 
+    #ifdef SETTING_DEBUG_LIGHT_AUDIT
     atomicAdd(ls_traceCount, 1u);
+    #endif
     VoxelRay ray = voxelray_setup(origin, direction, 0u);
     VoxelHit hit = voxel_traceRay(ray, 2048, true);
     if (voxel_traceExhausted(hit, ray)) {
@@ -64,7 +69,9 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     #if SETTING_DEBUG_LIGHT_SAMPLING == 2
     if (hit.materialID != targetMaterial || distance(hit.hitPos, target) > 0.01) return vec3(0.0);
     #endif
+    #ifdef SETTING_DEBUG_LIGHT_AUDIT
     atomicAdd(ls_visibleCount, 1u);
+    #endif
     voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
     return albedo * surface.material.emissive * weight;
 }
@@ -73,18 +80,26 @@ void main() {
     voxel_initShared();
     if (any(greaterThanEqual(texelPos, uval_mainImageSizeI))) return;
     vec4 result = vec4(0.0);
+    uint auditSlot = LS_INVALID;
+    #ifdef SETTING_DEBUG_LIGHT_AUDIT
+    if (texelPos.x >= 80 && texelPos.y >= 45 && (texelPos.x - 80) % 160 == 0 && (texelPos.y - 45) % 90 == 0) {
+        auditSlot = uint((texelPos.y - 45) / 90 * 8 + (texelPos.x - 80) / 160);
+        ls_audit[auditSlot * 4u] = vec4(0.0);
+        ls_audit[auditSlot * 4u + 1u] = vec4(0.0);
+        ls_audit[auditSlot * 4u + 2u] = vec4(0.0);
+        ls_audit[auditSlot * 4u + 3u] = vec4(0.0);
+    }
+    #endif
     vec3 origin, normal, albedo;
     if (ls_loadReceiver(texelPos, origin, normal, albedo)) {
         uint rng = hash_pcg_11(uint(texelPos.x) + uint(texelPos.y) * 65536u) ^ hash_pcg_11(uint(frameCounter));
-        uint auditSlot = LSV_INVALID;
-        if (texelPos.x >= 80 && texelPos.y >= 45 && (texelPos.x - 80) % 160 == 0 && (texelPos.y - 45) % 90 == 0) {
-            auditSlot = uint((texelPos.y - 45) / 90 * 8 + (texelPos.x - 80) / 160);
-        }
+        #ifdef SETTING_DEBUG_LIGHT_AUDIT
         atomicAdd(ls_receiverCount, 1u);
+        #endif
         result.rgb = ls_evaluate(origin, normal, albedo, rng, auditSlot);
         result.rgb = colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_COLORSPACES_SRGB, result.rgb);
         result.a = 1.0;
     }
-    if (ls_overflowCount != 0u || lsv_exhausted != 0u) result.rgb = vec3(uintBitsToFloat(0x7FC00000u));
+    if (ls_overflowCount != 0u) result.rgb = vec3(uintBitsToFloat(0x7FC00000u));
     imageStore(uimg_lightSampling, texelPos, result);
 }

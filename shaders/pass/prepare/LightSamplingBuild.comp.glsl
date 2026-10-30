@@ -22,7 +22,7 @@ void main() {
         ls_traceCount = 0u;
         ls_visibleCount = 0u;
         ls_receiverCount = 0u;
-        ls_guidedSelections = 0u;
+        ls_reserved = 0u;
     }
     for (uint i = gl_GlobalInvocationID.x; i < uint(VOXEL_GRID_BRICKS); i += 65536u) {
         ls_nodes[uint(VOXEL_GRID_BRICKS) + i] = ls_emptyNode();

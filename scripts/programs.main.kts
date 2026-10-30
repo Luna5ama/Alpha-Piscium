@@ -144,10 +144,7 @@ programs {
         pass("/pass/begin/ClearVoxelData.comp.glsl") {
             constDefine("VOXEL_CLEAR_ALL", 1)
         }
-        pass("/pass/composite/LightSamplingVisibility.comp.glsl") {
-            constDefine("LSV_STAGE", 0)
-            cond("SETTING_DEBUG_LIGHT_SAMPLING > 0")
-        }
+
     }
 
     ProgramType.BEGIN {
@@ -348,12 +345,6 @@ programs {
         }
         pass("/pass/composite/SSTStepDebug.comp.glsl") {
             cond("defined(SETTING_DEBUG_SST_STEPS)")
-        }
-        for (stage in 1..5) {
-            pass("/pass/composite/LightSamplingVisibility.comp.glsl") {
-                constDefine("LSV_STAGE", stage)
-                cond("SETTING_DEBUG_LIGHT_SAMPLING > 0")
-            }
         }
         pass("/pass/composite/LightSamplingInitial.comp.glsl") {
             cond("SETTING_DEBUG_LIGHT_SAMPLING > 0")

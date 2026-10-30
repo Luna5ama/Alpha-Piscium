@@ -4360,23 +4360,9 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     2 value "灯光树"
                 }
             }
-            toggle("SETTING_DEBUG_LIGHT_VISIBILITY", 0, 0..3) {
-                lang {
-                    name = "Light Sampling Visibility Estimate"
-                    comment = "Frozen first-blocker probes shared by all representations: 512 equal-area directions and up to 16 shading origins per 16-cubed brick."
-                    0 value "Off"
-                    1 value "Directional CDF"
-                    2 value "Binned Two Moments"
-                    3 value "SH Two Moments"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "灯光采样可见性估计"
-                    comment = "各表示共享冻结的首次遮挡探测：每个16立方brick使用512个等面积方向和至多16个着色起点。"
-                    0 value "关闭"
-                    1 value "方向距离CDF"
-                    2 value "方向分桶双矩"
-                    3 value "SH双矩"
-                }
+            toggle("SETTING_DEBUG_LIGHT_AUDIT", false) {
+                lang { name = "Light Sampling PDF Audit" }
+                lang(Locale.SIMPLIFIED_CHINESE) { name = "灯光采样PDF审计" }
             }
             toggle("SETTING_DEBUG_LIGHT_LOOKAHEAD", true) {
                 lang { name = "Light Tree Two-Level Lookahead" }

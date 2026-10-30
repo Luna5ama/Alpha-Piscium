@@ -7,7 +7,10 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Coords.glsl"
-#include "LightSamplingVisibility.glsl"
+const uint LS_INVALID = 0xffffffffu;
+layout(std430, binding = 14) buffer LightSamplingAudit {
+    vec4 ls_audit[];
+};
 
 const uint LS_LOCAL_NODE_CAPACITY = 262144u;
 const uint LS_OUTER_NODE_COUNT = uint(VOXEL_GRID_BRICKS) * 2u;
@@ -24,7 +27,7 @@ layout(std430, binding = 12) buffer LightSamplingData {
     uint ls_traceCount;
     uint ls_visibleCount;
     uint ls_receiverCount;
-    uint ls_guidedSelections;
+    uint ls_reserved;
     LightSamplingNode ls_nodes[];
 };
 
@@ -77,63 +80,44 @@ float ls_geometricWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     return node.boundsMinMass.w * cosineBound / max(distanceSquared, max(radius * radius, 0.25));
 }
 
-vec2 ls_nodeWeights(LightSamplingNode node, vec3 origin, vec3 normal) {
-    float geometry = ls_geometricWeight(node, origin, normal);
-    float visibility = geometry > 0.0 ? lsv_nodeFactor(node.boundsMinMass.xyz, node.boundsMaxLink.xyz, origin) : 1.0;
-    return geometry * vec2(1.0, visibility);
-}
-
-vec2 ls_oneLevelWeights(LightSamplingNode node, vec3 origin, vec3 normal) {
+float ls_oneLevelWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     uint link = floatBitsToUint(node.boundsMaxLink.w);
-    if (node.boundsMinMass.w == 0.0 || (link & LS_LEAF_BIT) != 0u) return ls_nodeWeights(node, origin, normal);
-    return ls_nodeWeights(ls_nodes[link], origin, normal) + ls_nodeWeights(ls_nodes[link + 1u], origin, normal);
+    if (node.boundsMinMass.w == 0.0 || (link & LS_LEAF_BIT) != 0u) return ls_geometricWeight(node, origin, normal);
+    return ls_geometricWeight(ls_nodes[link], origin, normal) + ls_geometricWeight(ls_nodes[link + 1u], origin, normal);
 }
 
-vec2 ls_weights(LightSamplingNode node, vec3 origin, vec3 normal) {
+float ls_weight(LightSamplingNode node, vec3 origin, vec3 normal) {
     #ifdef SETTING_DEBUG_LIGHT_LOOKAHEAD
     uint link = floatBitsToUint(node.boundsMaxLink.w);
-    if (node.boundsMinMass.w == 0.0 || (link & LS_LEAF_BIT) != 0u) return ls_nodeWeights(node, origin, normal);
-    return ls_oneLevelWeights(ls_nodes[link], origin, normal) + ls_oneLevelWeights(ls_nodes[link + 1u], origin, normal);
+    if (node.boundsMinMass.w == 0.0 || (link & LS_LEAF_BIT) != 0u) return ls_geometricWeight(node, origin, normal);
+    return ls_oneLevelWeight(ls_nodes[link], origin, normal) + ls_oneLevelWeight(ls_nodes[link + 1u], origin, normal);
     #else
-    return ls_nodeWeights(node, origin, normal);
+    return ls_geometricWeight(node, origin, normal);
     #endif
 }
 
 LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint auditSlot, out float pdf) {
     LightSamplingNode node = ls_nodes[1];
-    vec2 probabilities = vec2(1.0);
-    bool guided = false;
-    #if SETTING_DEBUG_LIGHT_VISIBILITY > 0
-    bool chooseBase = ls_random(rng) < 0.1;
-    #else
-    bool chooseBase = true;
-    #endif
+    pdf = 1.0;
     while ((floatBitsToUint(node.boundsMaxLink.w) & LS_LEAF_BIT) == 0u && node.boundsMinMass.w > 0.0) {
         uint child = floatBitsToUint(node.boundsMaxLink.w);
         LightSamplingNode left = ls_nodes[child];
         LightSamplingNode right = ls_nodes[child + 1u];
-        vec2 leftWeight = ls_weights(left, origin, normal);
-        vec2 rightWeight = ls_weights(right, origin, normal);
-        vec2 probability = leftWeight / (leftWeight + rightWeight);
-        if (leftWeight.y + rightWeight.y == 0.0) probability.y = probability.x;
-        guided = guided || abs(probability.x - probability.y) > 1e-6;
-        bool chooseLeft = ls_random(rng) < (chooseBase ? probability.x : probability.y);
-        probabilities *= chooseLeft ? probability : vec2(1.0) - probability;
+        float leftWeight = ls_weight(left, origin, normal);
+        float rightWeight = ls_weight(right, origin, normal);
+        float probability = leftWeight / (leftWeight + rightWeight);
+        bool chooseLeft = ls_random(rng) < probability;
+        pdf *= chooseLeft ? probability : 1.0 - probability;
         node = chooseLeft ? left : right;
     }
-    #if SETTING_DEBUG_LIGHT_VISIBILITY > 0
-    if (guided) atomicAdd(ls_guidedSelections, 1u);
-    pdf = 0.1 * probabilities.x + 0.9 * probabilities.y;
-    #else
-    pdf = probabilities.x;
-    #endif
-    if (auditSlot != LSV_INVALID) {
+    #ifdef SETTING_DEBUG_LIGHT_AUDIT
+    if (auditSlot != LS_INVALID) {
         uint offset = auditSlot * 4u;
-        lsv_audit[offset] = vec4(origin, node.boundsMaxLink.w);
-        lsv_audit[offset + 1u] = vec4(normal, pdf);
-        lsv_audit[offset + 2u] = vec4(probabilities, float(chooseBase), 1.0);
-        lsv_audit[offset + 3u] = vec4(node.boundsMinMass.xyz, uintBitsToFloat(lsv_brick(origin)));
+        ls_audit[offset] = vec4(origin, node.boundsMaxLink.w);
+        ls_audit[offset + 1u] = vec4(normal, pdf);
+        ls_audit[offset + 3u] = vec4(node.boundsMinMass.xyz, 1.0);
     }
+    #endif
     return node;
 }
 #endif
