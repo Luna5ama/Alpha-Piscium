@@ -12,7 +12,7 @@ layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 #include "/util/BitPacking.glsl"
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/gi/ReservoirSplat.glsl"
-#include "/techniques/voxel/VoxelTrace.glsl"
+#include "/techniques/voxel/VoxelVisibility.glsl"
 #include "/techniques/gi/PathGuiding.glsl"
 
 #ifdef PATH_GUIDING_ENABLED
@@ -57,10 +57,8 @@ void main() {
     float expectedHitDistance = length(rayOffsetView);
     vec3 worldPos = coords_pos_viewToWorld(rayOriginView, gbufferModelViewInverse) + vec3(cameraPositionInt) + cameraPositionFract;
     vec3 worldDir = coords_dir_viewToWorld(rayOffsetView * rcp(expectedHitDistance));
-    VoxelRay voxelRay = voxelray_setup(worldPos, worldDir, 0u);
-    VoxelHit hit = voxel_traceRay(voxelRay, 128, true);
-    vec3 expectedHitPos = worldPos + worldDir * expectedHitDistance;
-    if (!hit.hit || distanceSq(hit.hitPos, expectedHitPos) > 0.05) {
+    // Exclude the endpoint tolerance from the segment to avoid self-occlusion.
+    if (!voxel_isVisible(worldPos, worldDir, expectedHitDistance - sqrt(0.05), 128)) {
         transient_gi_shadowHint_store(texelPos, vec4(1.0));
         // The occluded neighbor sample contributes nothing: visibility-deferred RIS has zero contribution here.
         // The BRDF-ratio specular has no visibility term and stays, as in SpatialShade's ratio-only output.
