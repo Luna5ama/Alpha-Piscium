@@ -1,0 +1,1937 @@
+{
+  "protocol": "1080p diffuse direct only; cube sampling, old weights; no visibility guiding, RC, ReSTIR, denoising or TAA; 1 spp single and 32-frame linear mean. Variance is a short-window estimate, not reference MSE. Common complete-pixel mask excludes any pixel with missing samples in any case; Incomplete pixels are counted per case. Existing cube sampler numerical issue remains unresolved.",
+  "quality": [
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-1",
+      "case": "count-plain",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 10870,
+        "emitters": 3921,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1623935,
+        "visible": 219648,
+        "receivers": 2022476,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.10860351371289449,
+        "visible_per_trace": 0.13525664512434304,
+        "reachable_nodes": 8723,
+        "leaf_set_sha256": "51f5126510ce3e376c753db5254f769a06771fadc52bf67f0ba5275d15154c7f",
+        "mean_leaf_depth": 18.303749043611322,
+        "max_leaf_depth": 21
+      },
+      "pdf": {
+        "samples": 62,
+        "max_relative_pdf_error": 6.85263275235215e-07
+      },
+      "cube_pdf": {
+        "samples": 46,
+        "max_relative_pdf_error": 4.854923117181276e-05,
+        "p95_relative_pdf_error": 3.2898599875430534e-05
+      },
+      "mean_luminance": 0.010862361501148688,
+      "roi_coordinates": {
+        "region_a": [
+          820,
+          840,
+          1130,
+          1030
+        ],
+        "region_b": [
+          1500,
+          50,
+          1850,
+          250
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 1010952,
+        "brightest_1": 20220,
+        "region_a": 58900,
+        "region_b": 70000
+      },
+      "variance": {
+        "dark_half": 0.005314195528626442,
+        "brightest_1": 8.00953483581543,
+        "region_a": 0.029975399374961853,
+        "region_b": 0.009932496584951878
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.0,
+        "brightest_1": 1.0,
+        "region_a": 1.0,
+        "region_b": 1.0
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-1",
+      "case": "count-ahead",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 10870,
+        "emitters": 3921,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1706010,
+        "visible": 251968,
+        "receivers": 2022476,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.12458392584139441,
+        "visible_per_trace": 0.14769432770030658,
+        "reachable_nodes": 8723,
+        "leaf_set_sha256": "51f5126510ce3e376c753db5254f769a06771fadc52bf67f0ba5275d15154c7f",
+        "mean_leaf_depth": 18.303749043611322,
+        "max_leaf_depth": 21
+      },
+      "pdf": {
+        "samples": 62,
+        "max_relative_pdf_error": 1.4725368413515127e-06
+      },
+      "cube_pdf": {
+        "samples": 51,
+        "max_relative_pdf_error": 8.756662617948052e-05,
+        "p95_relative_pdf_error": 3.113059003567731e-05
+      },
+      "mean_luminance": 0.010894426081793137,
+      "roi_coordinates": {
+        "region_a": [
+          820,
+          840,
+          1130,
+          1030
+        ],
+        "region_b": [
+          1500,
+          50,
+          1850,
+          250
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 1010952,
+        "brightest_1": 20220,
+        "region_a": 58900,
+        "region_b": 70000
+      },
+      "variance": {
+        "dark_half": 0.0017871776362881064,
+        "brightest_1": 1.836777687072754,
+        "region_a": 0.007218928076326847,
+        "region_b": 0.003191409632563591
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.3363025742393106,
+        "brightest_1": 0.2293238901789178,
+        "region_a": 0.2408284201996903,
+        "region_b": 0.3213099149108898
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-1",
+      "case": "spatial-plain",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 7842,
+        "emitters": 3921,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1607142,
+        "visible": 220069,
+        "receivers": 2022476,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.10881167440305843,
+        "visible_per_trace": 0.13693189525256635,
+        "reachable_nodes": 8307,
+        "leaf_set_sha256": "51f5126510ce3e376c753db5254f769a06771fadc52bf67f0ba5275d15154c7f",
+        "mean_leaf_depth": 18.381025248661057,
+        "max_leaf_depth": 23
+      },
+      "pdf": {
+        "samples": 62,
+        "max_relative_pdf_error": 4.8046377540966745e-06
+      },
+      "cube_pdf": {
+        "samples": 46,
+        "max_relative_pdf_error": 6.195283846643918e-05,
+        "p95_relative_pdf_error": 5.4353890751646095e-05
+      },
+      "mean_luminance": 0.010849318832142654,
+      "roi_coordinates": {
+        "region_a": [
+          820,
+          840,
+          1130,
+          1030
+        ],
+        "region_b": [
+          1500,
+          50,
+          1850,
+          250
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 1010952,
+        "brightest_1": 20220,
+        "region_a": 58900,
+        "region_b": 70000
+      },
+      "variance": {
+        "dark_half": 0.006056777201592922,
+        "brightest_1": 7.003249645233154,
+        "region_a": 0.028093568980693817,
+        "region_b": 0.009706384502351284
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.1397354818742274,
+        "brightest_1": 0.8743640908979419,
+        "region_a": 0.9372208399718635,
+        "region_b": 0.9772351210325949
+      }
+    },
+    {
+      "incomplete_pixels": 1,
+      "scene": "light-sampling-1",
+      "case": "spatial-ahead",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 7842,
+        "emitters": 3921,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1721891,
+        "visible": 258696,
+        "receivers": 2022476,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.12791054133646085,
+        "visible_per_trace": 0.15023947508872512,
+        "reachable_nodes": 8307,
+        "leaf_set_sha256": "51f5126510ce3e376c753db5254f769a06771fadc52bf67f0ba5275d15154c7f",
+        "mean_leaf_depth": 18.381025248661057,
+        "max_leaf_depth": 23
+      },
+      "pdf": {
+        "samples": 62,
+        "max_relative_pdf_error": 1.0095571105761536e-06
+      },
+      "cube_pdf": {
+        "samples": 50,
+        "max_relative_pdf_error": 6.767078129832349e-05,
+        "p95_relative_pdf_error": 3.252335131480598e-05
+      },
+      "mean_luminance": 0.010889544087977411,
+      "roi_coordinates": {
+        "region_a": [
+          820,
+          840,
+          1130,
+          1030
+        ],
+        "region_b": [
+          1500,
+          50,
+          1850,
+          250
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 1010952,
+        "brightest_1": 20220,
+        "region_a": 58900,
+        "region_b": 70000
+      },
+      "variance": {
+        "dark_half": 0.0017619726713746786,
+        "brightest_1": 1.916366457939148,
+        "region_a": 0.00744154816493392,
+        "region_b": 0.0030804655980318785
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.33155962400768024,
+        "brightest_1": 0.23926064337343603,
+        "region_a": 0.24825517991762838,
+        "region_b": 0.3101401114699506
+      }
+    },
+    {
+      "incomplete_pixels": 1,
+      "scene": "light-sampling-2",
+      "case": "count-plain",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "efcae9477b4887d9fe2a79bcba7d92de17f8010f6d9777c591319ae43b4cdcfe",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 5810,
+        "emitters": 2137,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1220461,
+        "visible": 76965,
+        "receivers": 1981376,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.03884421735198165,
+        "visible_per_trace": 0.06306223631889916,
+        "reachable_nodes": 5339,
+        "leaf_set_sha256": "f7c80cbaf56e3c923a8080ce1d81e58a672e899779d4ed3fae909c05ff6aad85",
+        "mean_leaf_depth": 15.937763219466541,
+        "max_leaf_depth": 18
+      },
+      "pdf": {
+        "samples": 64,
+        "max_relative_pdf_error": 1.8119184741482997e-06
+      },
+      "cube_pdf": {
+        "samples": 30,
+        "max_relative_pdf_error": 8.916627717558967e-05,
+        "p95_relative_pdf_error": 5.032380580835544e-05
+      },
+      "mean_luminance": 0.024343462283765164,
+      "roi_coordinates": {
+        "region_a": [
+          800,
+          800,
+          1100,
+          1030
+        ],
+        "region_b": [
+          200,
+          50,
+          450,
+          300
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 982132,
+        "brightest_1": 19643,
+        "region_a": 69000,
+        "region_b": 62500
+      },
+      "variance": {
+        "dark_half": 0.03948932886123657,
+        "brightest_1": 34.54750442504883,
+        "region_a": 0.08495678752660751,
+        "region_b": 1.024106740951538
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.0,
+        "brightest_1": 1.0,
+        "region_a": 1.0,
+        "region_b": 1.0
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-2",
+      "case": "count-ahead",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "efcae9477b4887d9fe2a79bcba7d92de17f8010f6d9777c591319ae43b4cdcfe",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 5810,
+        "emitters": 2137,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1652730,
+        "visible": 289792,
+        "receivers": 1981376,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.14625795406828385,
+        "visible_per_trace": 0.17534140482716476,
+        "reachable_nodes": 5339,
+        "leaf_set_sha256": "f7c80cbaf56e3c923a8080ce1d81e58a672e899779d4ed3fae909c05ff6aad85",
+        "mean_leaf_depth": 15.937763219466541,
+        "max_leaf_depth": 18
+      },
+      "pdf": {
+        "samples": 64,
+        "max_relative_pdf_error": 4.658518444333737e-07
+      },
+      "cube_pdf": {
+        "samples": 55,
+        "max_relative_pdf_error": 6.13091352501538e-05,
+        "p95_relative_pdf_error": 3.704714202530376e-05
+      },
+      "mean_luminance": 0.0242349852923111,
+      "roi_coordinates": {
+        "region_a": [
+          800,
+          800,
+          1100,
+          1030
+        ],
+        "region_b": [
+          200,
+          50,
+          450,
+          300
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 982132,
+        "brightest_1": 19643,
+        "region_a": 69000,
+        "region_b": 62500
+      },
+      "variance": {
+        "dark_half": 0.010744436644017696,
+        "brightest_1": 5.1421003341674805,
+        "region_a": 0.012472957372665405,
+        "region_b": 0.19129107892513275
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.2720845593950984,
+        "brightest_1": 0.14884144078549352,
+        "region_a": 0.14681531324096989,
+        "region_b": 0.1867882236058681
+      }
+    },
+    {
+      "incomplete_pixels": 1,
+      "scene": "light-sampling-2",
+      "case": "spatial-plain",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "efcae9477b4887d9fe2a79bcba7d92de17f8010f6d9777c591319ae43b4cdcfe",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 4274,
+        "emitters": 2137,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1217190,
+        "visible": 75648,
+        "receivers": 1981376,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.03817952776252463,
+        "visible_per_trace": 0.06214970546915436,
+        "reachable_nodes": 4805,
+        "leaf_set_sha256": "f7c80cbaf56e3c923a8080ce1d81e58a672e899779d4ed3fae909c05ff6aad85",
+        "mean_leaf_depth": 15.873186710341601,
+        "max_leaf_depth": 21
+      },
+      "pdf": {
+        "samples": 64,
+        "max_relative_pdf_error": 1.6533129487683595e-06
+      },
+      "cube_pdf": {
+        "samples": 34,
+        "max_relative_pdf_error": 8.753235284553185e-05,
+        "p95_relative_pdf_error": 5.8888529779965674e-05
+      },
+      "mean_luminance": 0.024257952733382975,
+      "roi_coordinates": {
+        "region_a": [
+          800,
+          800,
+          1100,
+          1030
+        ],
+        "region_b": [
+          200,
+          50,
+          450,
+          300
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 982132,
+        "brightest_1": 19643,
+        "region_a": 69000,
+        "region_b": 62500
+      },
+      "variance": {
+        "dark_half": 0.036783602088689804,
+        "brightest_1": 13.882962226867676,
+        "region_a": 0.07566656172275543,
+        "region_b": 0.989150881767273
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.93148207754924,
+        "brightest_1": 0.4018513770506031,
+        "region_a": 0.890647633057659,
+        "region_b": 0.9658669767647596
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-2",
+      "case": "spatial-ahead",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "efcae9477b4887d9fe2a79bcba7d92de17f8010f6d9777c591319ae43b4cdcfe",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 4274,
+        "emitters": 2137,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1652414,
+        "visible": 266673,
+        "receivers": 1981376,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.13458980021964534,
+        "visible_per_trace": 0.16138389047781004,
+        "reachable_nodes": 4805,
+        "leaf_set_sha256": "f7c80cbaf56e3c923a8080ce1d81e58a672e899779d4ed3fae909c05ff6aad85",
+        "mean_leaf_depth": 15.873186710341601,
+        "max_leaf_depth": 21
+      },
+      "pdf": {
+        "samples": 64,
+        "max_relative_pdf_error": 6.529022835710663e-07
+      },
+      "cube_pdf": {
+        "samples": 53,
+        "max_relative_pdf_error": 7.299528195625626e-05,
+        "p95_relative_pdf_error": 1.6083882451312084e-05
+      },
+      "mean_luminance": 0.024243069750595522,
+      "roi_coordinates": {
+        "region_a": [
+          800,
+          800,
+          1100,
+          1030
+        ],
+        "region_b": [
+          200,
+          50,
+          450,
+          300
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 982132,
+        "brightest_1": 19643,
+        "region_a": 69000,
+        "region_b": 62500
+      },
+      "variance": {
+        "dark_half": 0.011530861258506775,
+        "brightest_1": 4.275362014770508,
+        "region_a": 0.0160505473613739,
+        "region_b": 0.20039863884449005
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.2919994234145031,
+        "brightest_1": 0.12375313603464326,
+        "region_a": 0.18892601555051797,
+        "region_b": 0.1956813980721304
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-3",
+      "case": "count-plain",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "9bdaaa43b8370619979ac1644f8cad6dde3190c0abb7cc77d381dcb6e73a428d",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 6204,
+        "emitters": 2194,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1842025,
+        "visible": 329376,
+        "receivers": 1953456,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.1686119369978131,
+        "visible_per_trace": 0.1788119053758771,
+        "reachable_nodes": 5219,
+        "leaf_set_sha256": "3bd808aff2e5ff374f2c789f8ad0d95c2fa94d40d90d5e14e8d323c5030ba87e",
+        "mean_leaf_depth": 17.130811303555152,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 7.696964385850436e-07
+      },
+      "cube_pdf": {
+        "samples": 58,
+        "max_relative_pdf_error": 8.603278934504743e-05,
+        "p95_relative_pdf_error": 3.2087884598430706e-05
+      },
+      "mean_luminance": 0.009616862910096067,
+      "roi_coordinates": {
+        "region_a": [
+          810,
+          700,
+          1100,
+          960
+        ],
+        "region_b": [
+          700,
+          500,
+          850,
+          620
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 969198,
+        "brightest_1": 19384,
+        "region_a": 75400,
+        "region_b": 17903
+      },
+      "variance": {
+        "dark_half": 0.004061652813106775,
+        "brightest_1": 7.255163669586182,
+        "region_a": 0.014280280098319054,
+        "region_b": 0.004734648857265711
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.0,
+        "brightest_1": 1.0,
+        "region_a": 1.0,
+        "region_b": 1.0
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-3",
+      "case": "count-ahead",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "9bdaaa43b8370619979ac1644f8cad6dde3190c0abb7cc77d381dcb6e73a428d",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 6204,
+        "emitters": 2194,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1894664,
+        "visible": 406011,
+        "receivers": 1953461,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.207841876546294,
+        "visible_per_trace": 0.21429182166336616,
+        "reachable_nodes": 5219,
+        "leaf_set_sha256": "3bd808aff2e5ff374f2c789f8ad0d95c2fa94d40d90d5e14e8d323c5030ba87e",
+        "mean_leaf_depth": 17.130811303555152,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 1.0040789525378457e-06
+      },
+      "cube_pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 8.603278934504743e-05,
+        "p95_relative_pdf_error": 3.200917958756655e-05
+      },
+      "mean_luminance": 0.009646697364651,
+      "roi_coordinates": {
+        "region_a": [
+          810,
+          700,
+          1100,
+          960
+        ],
+        "region_b": [
+          700,
+          500,
+          850,
+          620
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 969198,
+        "brightest_1": 19384,
+        "region_a": 75400,
+        "region_b": 17903
+      },
+      "variance": {
+        "dark_half": 0.002618402475491166,
+        "brightest_1": 1.9115358591079712,
+        "region_a": 0.007233540061861277,
+        "region_b": 0.002759356750175357
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.6446642773212167,
+        "brightest_1": 0.2634724654277856,
+        "region_a": 0.5065404888460657,
+        "region_b": 0.5828007172994245
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-3",
+      "case": "spatial-plain",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "9bdaaa43b8370619979ac1644f8cad6dde3190c0abb7cc77d381dcb6e73a428d",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 4388,
+        "emitters": 2194,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1846307,
+        "visible": 329274,
+        "receivers": 1953452,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.1685600669993427,
+        "visible_per_trace": 0.17834195504864575,
+        "reachable_nodes": 4815,
+        "leaf_set_sha256": "3bd808aff2e5ff374f2c789f8ad0d95c2fa94d40d90d5e14e8d323c5030ba87e",
+        "mean_leaf_depth": 17.4102096627165,
+        "max_leaf_depth": 23
+      },
+      "pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 8.323203829485593e-07
+      },
+      "cube_pdf": {
+        "samples": 60,
+        "max_relative_pdf_error": 6.041640954679295e-05,
+        "p95_relative_pdf_error": 3.4798085012877056e-05
+      },
+      "mean_luminance": 0.009722100414932178,
+      "roi_coordinates": {
+        "region_a": [
+          810,
+          700,
+          1100,
+          960
+        ],
+        "region_b": [
+          700,
+          500,
+          850,
+          620
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 969198,
+        "brightest_1": 19384,
+        "region_a": 75400,
+        "region_b": 17903
+      },
+      "variance": {
+        "dark_half": 0.003989588934928179,
+        "brightest_1": 8.248985290527344,
+        "region_a": 0.013743871822953224,
+        "region_b": 0.005186747759580612
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.9822574992264111,
+        "brightest_1": 1.136981282049816,
+        "region_a": 0.9624371320679508,
+        "region_b": 1.0954873140425436
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-3",
+      "case": "spatial-ahead",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "9bdaaa43b8370619979ac1644f8cad6dde3190c0abb7cc77d381dcb6e73a428d",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 4388,
+        "emitters": 2194,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1898764,
+        "visible": 407535,
+        "receivers": 1953456,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.2086225643167801,
+        "visible_per_trace": 0.21463172885097884,
+        "reachable_nodes": 4815,
+        "leaf_set_sha256": "3bd808aff2e5ff374f2c789f8ad0d95c2fa94d40d90d5e14e8d323c5030ba87e",
+        "mean_leaf_depth": 17.4102096627165,
+        "max_leaf_depth": 23
+      },
+      "pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 9.515066647924897e-07
+      },
+      "cube_pdf": {
+        "samples": 59,
+        "max_relative_pdf_error": 6.150258666270947e-05,
+        "p95_relative_pdf_error": 1.9959308145567314e-05
+      },
+      "mean_luminance": 0.009592705057222052,
+      "roi_coordinates": {
+        "region_a": [
+          810,
+          700,
+          1100,
+          960
+        ],
+        "region_b": [
+          700,
+          500,
+          850,
+          620
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 969198,
+        "brightest_1": 19384,
+        "region_a": 75400,
+        "region_b": 17903
+      },
+      "variance": {
+        "dark_half": 0.0025585840921849012,
+        "brightest_1": 1.9404065608978271,
+        "region_a": 0.006853341590613127,
+        "region_b": 0.003039485542103648
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.6299366809315811,
+        "brightest_1": 0.267451796991439,
+        "region_a": 0.4799164682645014,
+        "region_b": 0.6419664126600024
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-4",
+      "case": "count-plain",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "1d7e7ae554645aee94707d6cc840757a838eb95bb406f0f680944cd1b162a7a6",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 2556,
+        "emitters": 908,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1846059,
+        "visible": 214018,
+        "receivers": 2058706,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.10395753449011175,
+        "visible_per_trace": 0.11593237269231374,
+        "reachable_nodes": 2297,
+        "leaf_set_sha256": "7f965b2cbcc5754765b42cf78358028d9278362e9e6f39d6450e56d0b347567a",
+        "mean_leaf_depth": 16.48898678414097,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 63,
+        "max_relative_pdf_error": 7.357354785408887e-07
+      },
+      "cube_pdf": {
+        "samples": 55,
+        "max_relative_pdf_error": 6.795635273171285e-05,
+        "p95_relative_pdf_error": 3.23287922016413e-05
+      },
+      "mean_luminance": 0.003515230933563635,
+      "roi_coordinates": {
+        "region_a": [
+          700,
+          800,
+          1100,
+          1010
+        ],
+        "region_b": [
+          700,
+          50,
+          1050,
+          220
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 1029119,
+        "brightest_1": 20583,
+        "region_a": 84000,
+        "region_b": 59500
+      },
+      "variance": {
+        "dark_half": 0.0008360026404261589,
+        "brightest_1": 1.0043679475784302,
+        "region_a": 0.003174345474690199,
+        "region_b": 0.0029075441416352987
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.0,
+        "brightest_1": 1.0,
+        "region_a": 1.0,
+        "region_b": 1.0
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-4",
+      "case": "count-ahead",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "1d7e7ae554645aee94707d6cc840757a838eb95bb406f0f680944cd1b162a7a6",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 2556,
+        "emitters": 908,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1988736,
+        "visible": 337257,
+        "receivers": 2058706,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.1638198946328422,
+        "visible_per_trace": 0.1695835948059471,
+        "reachable_nodes": 2297,
+        "leaf_set_sha256": "7f965b2cbcc5754765b42cf78358028d9278362e9e6f39d6450e56d0b347567a",
+        "mean_leaf_depth": 16.48898678414097,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 63,
+        "max_relative_pdf_error": 6.10997017647108e-07
+      },
+      "cube_pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 5.8841808390663886e-05,
+        "p95_relative_pdf_error": 1.7709493422057854e-05
+      },
+      "mean_luminance": 0.0035287603525884738,
+      "roi_coordinates": {
+        "region_a": [
+          700,
+          800,
+          1100,
+          1010
+        ],
+        "region_b": [
+          700,
+          50,
+          1050,
+          220
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 1029119,
+        "brightest_1": 20583,
+        "region_a": 84000,
+        "region_b": 59500
+      },
+      "variance": {
+        "dark_half": 0.00036354325129650533,
+        "brightest_1": 0.19546902179718018,
+        "region_a": 0.0022312283981591463,
+        "region_b": 0.0005351532599888742
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.434858974980254,
+        "brightest_1": 0.19461893648484455,
+        "region_a": 0.7028940031730174,
+        "region_b": 0.18405679636144281
+      }
+    },
+    {
+      "incomplete_pixels": 1,
+      "scene": "light-sampling-4",
+      "case": "spatial-plain",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "1d7e7ae554645aee94707d6cc840757a838eb95bb406f0f680944cd1b162a7a6",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 1816,
+        "emitters": 908,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1812182,
+        "visible": 195888,
+        "receivers": 2058706,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.0951510317646133,
+        "visible_per_trace": 0.10809510303049032,
+        "reachable_nodes": 2105,
+        "leaf_set_sha256": "7f965b2cbcc5754765b42cf78358028d9278362e9e6f39d6450e56d0b347567a",
+        "mean_leaf_depth": 16.548458149779737,
+        "max_leaf_depth": 23
+      },
+      "pdf": {
+        "samples": 63,
+        "max_relative_pdf_error": 2.838132948879135e-06
+      },
+      "cube_pdf": {
+        "samples": 55,
+        "max_relative_pdf_error": 3.344284230555328e-05,
+        "p95_relative_pdf_error": 2.2302432268472828e-05
+      },
+      "mean_luminance": 0.0035215793047077013,
+      "roi_coordinates": {
+        "region_a": [
+          700,
+          800,
+          1100,
+          1010
+        ],
+        "region_b": [
+          700,
+          50,
+          1050,
+          220
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 1029119,
+        "brightest_1": 20583,
+        "region_a": 84000,
+        "region_b": 59500
+      },
+      "variance": {
+        "dark_half": 0.0008427728898823261,
+        "brightest_1": 0.9827820062637329,
+        "region_a": 0.0028211241587996483,
+        "region_b": 0.0026819806080311537
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.008098358939053,
+        "brightest_1": 0.978507934899016,
+        "region_a": 0.8887262527954607,
+        "region_b": 0.9224212866198205
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-4",
+      "case": "spatial-ahead",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "1d7e7ae554645aee94707d6cc840757a838eb95bb406f0f680944cd1b162a7a6",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 1816,
+        "emitters": 908,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1991176,
+        "visible": 318551,
+        "receivers": 2058706,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.1547336045069087,
+        "visible_per_trace": 0.1599813376617637,
+        "reachable_nodes": 2105,
+        "leaf_set_sha256": "7f965b2cbcc5754765b42cf78358028d9278362e9e6f39d6450e56d0b347567a",
+        "mean_leaf_depth": 16.548458149779737,
+        "max_leaf_depth": 23
+      },
+      "pdf": {
+        "samples": 63,
+        "max_relative_pdf_error": 1.0917700972168376e-06
+      },
+      "cube_pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 4.63335329183856e-05,
+        "p95_relative_pdf_error": 2.3138058018679075e-05
+      },
+      "mean_luminance": 0.003529945025624198,
+      "roi_coordinates": {
+        "region_a": [
+          700,
+          800,
+          1100,
+          1010
+        ],
+        "region_b": [
+          700,
+          50,
+          1050,
+          220
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 1029119,
+        "brightest_1": 20583,
+        "region_a": 84000,
+        "region_b": 59500
+      },
+      "variance": {
+        "dark_half": 0.0003783961001317948,
+        "brightest_1": 0.1684279888868332,
+        "region_a": 0.0022414177656173706,
+        "region_b": 0.000564985501114279
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.4526254844588821,
+        "brightest_1": 0.1676955037174569,
+        "region_a": 0.7061039144884261,
+        "region_b": 0.19431708465705788
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-5",
+      "case": "count-plain",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 2494,
+        "emitters": 877,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1611201,
+        "visible": 98649,
+        "receivers": 2066956,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.04772670535802407,
+        "visible_per_trace": 0.06122699774888422,
+        "reachable_nodes": 1989,
+        "leaf_set_sha256": "e6ae560b479d2b67adbec9924b5aaf0d5b1d2eb34ee101619ff6ec4f0a8037a4",
+        "mean_leaf_depth": 18.395667046750287,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 64,
+        "max_relative_pdf_error": 1.3471303307310833e-06
+      },
+      "cube_pdf": {
+        "samples": 52,
+        "max_relative_pdf_error": 3.7171662594648325e-05,
+        "p95_relative_pdf_error": 2.7934677879232192e-05
+      },
+      "mean_luminance": 0.007413575220914815,
+      "roi_coordinates": {
+        "region_a": [
+          400,
+          700,
+          650,
+          900
+        ],
+        "region_b": [
+          600,
+          250,
+          750,
+          450
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 715507,
+        "brightest_1": 14311,
+        "region_a": 49999,
+        "region_b": 30000
+      },
+      "variance": {
+        "dark_half": 0.0014753008726984262,
+        "brightest_1": 2.3821253776550293,
+        "region_a": 0.0010424795327708125,
+        "region_b": 0.008061414584517479
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.0,
+        "brightest_1": 1.0,
+        "region_a": 1.0,
+        "region_b": 1.0
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-5",
+      "case": "count-ahead",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 2494,
+        "emitters": 877,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1830890,
+        "visible": 169096,
+        "receivers": 2066956,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.08180919187442791,
+        "visible_per_trace": 0.09235726886923845,
+        "reachable_nodes": 1989,
+        "leaf_set_sha256": "e6ae560b479d2b67adbec9924b5aaf0d5b1d2eb34ee101619ff6ec4f0a8037a4",
+        "mean_leaf_depth": 18.395667046750287,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 64,
+        "max_relative_pdf_error": 9.266461920010016e-07
+      },
+      "cube_pdf": {
+        "samples": 58,
+        "max_relative_pdf_error": 5.4090293083008945e-05,
+        "p95_relative_pdf_error": 3.0387205213305837e-05
+      },
+      "mean_luminance": 0.007411530814867808,
+      "roi_coordinates": {
+        "region_a": [
+          400,
+          700,
+          650,
+          900
+        ],
+        "region_b": [
+          600,
+          250,
+          750,
+          450
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 715507,
+        "brightest_1": 14311,
+        "region_a": 49999,
+        "region_b": 30000
+      },
+      "variance": {
+        "dark_half": 0.0008504540310241282,
+        "brightest_1": 1.150770902633667,
+        "region_a": 0.0005721371271647513,
+        "region_b": 0.0040279836393892765
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.5764614166251997,
+        "brightest_1": 0.4830857827334382,
+        "region_a": 0.5488233669624809,
+        "region_b": 0.4996621371049823
+      }
+    },
+    {
+      "incomplete_pixels": 2,
+      "scene": "light-sampling-5",
+      "case": "spatial-plain",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 1754,
+        "emitters": 877,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1599556,
+        "visible": 97940,
+        "receivers": 2066956,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.047383688864204174,
+        "visible_per_trace": 0.061229491183803504,
+        "reachable_nodes": 1899,
+        "leaf_set_sha256": "e6ae560b479d2b67adbec9924b5aaf0d5b1d2eb34ee101619ff6ec4f0a8037a4",
+        "mean_leaf_depth": 18.529076396807298,
+        "max_leaf_depth": 21
+      },
+      "pdf": {
+        "samples": 64,
+        "max_relative_pdf_error": 7.460062239283971e-06
+      },
+      "cube_pdf": {
+        "samples": 56,
+        "max_relative_pdf_error": 6.504777199412004e-05,
+        "p95_relative_pdf_error": 3.888041683622334e-05
+      },
+      "mean_luminance": 0.00739950578508576,
+      "roi_coordinates": {
+        "region_a": [
+          400,
+          700,
+          650,
+          900
+        ],
+        "region_b": [
+          600,
+          250,
+          750,
+          450
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 715507,
+        "brightest_1": 14311,
+        "region_a": 49999,
+        "region_b": 30000
+      },
+      "variance": {
+        "dark_half": 0.00149029481690377,
+        "brightest_1": 2.398742198944092,
+        "region_a": 0.0010532309534028172,
+        "region_b": 0.008144872263073921
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.0101633127742402,
+        "brightest_1": 1.0069756283380098,
+        "region_a": 1.010313315795686,
+        "region_b": 1.0103527337145926
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "light-sampling-5",
+      "case": "spatial-ahead",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 1754,
+        "emitters": 877,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 1825423,
+        "visible": 169040,
+        "receivers": 2066956,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.08178209889325172,
+        "visible_per_trace": 0.09260319388985457,
+        "reachable_nodes": 1899,
+        "leaf_set_sha256": "e6ae560b479d2b67adbec9924b5aaf0d5b1d2eb34ee101619ff6ec4f0a8037a4",
+        "mean_leaf_depth": 18.529076396807298,
+        "max_leaf_depth": 21
+      },
+      "pdf": {
+        "samples": 64,
+        "max_relative_pdf_error": 8.491892100614962e-07
+      },
+      "cube_pdf": {
+        "samples": 56,
+        "max_relative_pdf_error": 5.414510389356586e-05,
+        "p95_relative_pdf_error": 3.380575397984864e-05
+      },
+      "mean_luminance": 0.00740379628921133,
+      "roi_coordinates": {
+        "region_a": [
+          400,
+          700,
+          650,
+          900
+        ],
+        "region_b": [
+          600,
+          250,
+          750,
+          450
+        ]
+      },
+      "mask_pixels": {
+        "dark_half": 715507,
+        "brightest_1": 14311,
+        "region_a": 49999,
+        "region_b": 30000
+      },
+      "variance": {
+        "dark_half": 0.0008563593146391213,
+        "brightest_1": 1.1484357118606567,
+        "region_a": 0.0005798384663648903,
+        "region_b": 0.004073054064065218
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.580464182246962,
+        "brightest_1": 0.4821054855606215,
+        "region_a": 0.5562108877319962,
+        "region_b": 0.5052530199709376
+      }
+    }
+  ],
+  "timing_status": "Partial: 38 of 40 cases completed; job 04beca95-e5d4-4ef1-a939-be0d0a7332a9 stalled in scene5 count-ahead loading. Idle-priority image analysis and encoding overlapped profiling and may affect timings.",
+  "timing": [
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-1",
+      "initial_ms": 18.448384,
+      "build_ms": 0.067584,
+      "sentinel_ms": 0.142336,
+      "total_build_avg_ms": 0.526328
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-1",
+      "initial_ms": 27.94496,
+      "build_ms": 0.067584,
+      "sentinel_ms": 0.141312,
+      "total_build_avg_ms": 0.538264
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-1",
+      "initial_ms": 17.811968,
+      "build_ms": 0.118784,
+      "sentinel_ms": 0.142336,
+      "total_build_avg_ms": 0.662568
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-1",
+      "initial_ms": 27.413504,
+      "build_ms": 0.118784,
+      "sentinel_ms": 0.142336,
+      "total_build_avg_ms": 0.6486
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-1",
+      "initial_ms": 26.46016,
+      "build_ms": 0.118784,
+      "sentinel_ms": 0.142336,
+      "total_build_avg_ms": 0.562544
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-1",
+      "initial_ms": 17.992192,
+      "build_ms": 0.118784,
+      "sentinel_ms": 0.142336,
+      "total_build_avg_ms": 0.712528
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-1",
+      "initial_ms": 12.242432,
+      "build_ms": 0.067584,
+      "sentinel_ms": 0.142336,
+      "total_build_avg_ms": 0.206888
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-1",
+      "initial_ms": 7.854592,
+      "build_ms": 0.067584,
+      "sentinel_ms": 0.142336,
+      "total_build_avg_ms": 0.201432
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-2",
+      "initial_ms": 4.835328,
+      "build_ms": 0.08704,
+      "sentinel_ms": 0.155648,
+      "total_build_avg_ms": 0.35204
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-2",
+      "initial_ms": 8.2304,
+      "build_ms": 0.08704,
+      "sentinel_ms": 0.155648,
+      "total_build_avg_ms": 0.3446
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-2",
+      "initial_ms": 4.873216,
+      "build_ms": 0.152576,
+      "sentinel_ms": 0.155648,
+      "total_build_avg_ms": 0.366728
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-2",
+      "initial_ms": 8.548864,
+      "build_ms": 0.152576,
+      "sentinel_ms": 0.155648,
+      "total_build_avg_ms": 0.396952
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-2",
+      "initial_ms": 8.884736,
+      "build_ms": 0.151552,
+      "sentinel_ms": 0.155648,
+      "total_build_avg_ms": 0.416472
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-2",
+      "initial_ms": 4.745216,
+      "build_ms": 0.151552,
+      "sentinel_ms": 0.155648,
+      "total_build_avg_ms": 0.373064
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-2",
+      "initial_ms": 8.264192,
+      "build_ms": 0.08704,
+      "sentinel_ms": 0.155648,
+      "total_build_avg_ms": 0.30976
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-2",
+      "initial_ms": 4.739584,
+      "build_ms": 0.08704,
+      "sentinel_ms": 0.155648,
+      "total_build_avg_ms": 0.311616
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-3",
+      "initial_ms": 13.905408,
+      "build_ms": 0.067584,
+      "sentinel_ms": 0.121856,
+      "total_build_avg_ms": 0.159464
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-3",
+      "initial_ms": 17.647104,
+      "build_ms": 0.067584,
+      "sentinel_ms": 0.121856,
+      "total_build_avg_ms": 0.159144
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-3",
+      "initial_ms": 13.66784,
+      "build_ms": 0.116736,
+      "sentinel_ms": 0.12288,
+      "total_build_avg_ms": 0.214352
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-3",
+      "initial_ms": 17.772032,
+      "build_ms": 0.116736,
+      "sentinel_ms": 0.121856,
+      "total_build_avg_ms": 0.224544
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-3",
+      "initial_ms": 17.5872,
+      "build_ms": 0.116736,
+      "sentinel_ms": 0.121856,
+      "total_build_avg_ms": 0.249384
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-3",
+      "initial_ms": 14.587392,
+      "build_ms": 0.116736,
+      "sentinel_ms": 0.122368,
+      "total_build_avg_ms": 0.235
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-3",
+      "initial_ms": 17.60768,
+      "build_ms": 0.067584,
+      "sentinel_ms": 0.121856,
+      "total_build_avg_ms": 0.159904
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-3",
+      "initial_ms": 13.691904,
+      "build_ms": 0.067584,
+      "sentinel_ms": 0.121856,
+      "total_build_avg_ms": 0.162504
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-4",
+      "initial_ms": 5.993984,
+      "build_ms": 0.062464,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.156368
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-4",
+      "initial_ms": 9.216512,
+      "build_ms": 0.062464,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.161336
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-4",
+      "initial_ms": 6.247424,
+      "build_ms": 0.10752,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.200048
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-4",
+      "initial_ms": 9.2672,
+      "build_ms": 0.10752,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.199264
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-4",
+      "initial_ms": 9.561088,
+      "build_ms": 0.108544,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.198016
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-4",
+      "initial_ms": 6.181376,
+      "build_ms": 0.10752,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.196504
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-4",
+      "initial_ms": 9.53856,
+      "build_ms": 0.062976,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.158816
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-4",
+      "initial_ms": 6.47424,
+      "build_ms": 0.062464,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.154192
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-5",
+      "initial_ms": 3.324416,
+      "build_ms": 0.043008,
+      "sentinel_ms": 0.141312,
+      "total_build_avg_ms": 0.133656
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-5",
+      "initial_ms": 6.179328,
+      "build_ms": 0.044032,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.135672
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-5",
+      "initial_ms": 3.493376,
+      "build_ms": 0.074752,
+      "sentinel_ms": 0.135168,
+      "total_build_avg_ms": 0.157288
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-5",
+      "initial_ms": 6.404608,
+      "build_ms": 0.075776,
+      "sentinel_ms": 0.136192,
+      "total_build_avg_ms": 0.15896
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-5",
+      "initial_ms": 6.64064,
+      "build_ms": 0.075776,
+      "sentinel_ms": 0.136192,
+      "total_build_avg_ms": 0.16728
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "retry_exhausted": false,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "preset_id": "light-sampling-5",
+      "initial_ms": 3.568128,
+      "build_ms": 0.075264,
+      "sentinel_ms": 0.142336,
+      "total_build_avg_ms": 0.157736
+    }
+  ],
+  "timing_note": "128 warmup + 128 measured frames, palindrome, up to two runs per case; the final two cases are missing. Report available runs to show drift. Build and initial are reported separately. Idle-priority CPU image analysis and AVIF encoding overlapped this job and may have influenced timing."
+}
