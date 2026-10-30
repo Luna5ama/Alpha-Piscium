@@ -8,7 +8,7 @@
 #include "/util/Colors.glsl"
 #include "/util/Coords.glsl"
 // Experiment snapshots select the Morton prefix radix without adding a user option.
-#define LS_TREE_BITS 2
+#define LS_TREE_BITS 3
 #define LS_TREE_ARITY (1 << LS_TREE_BITS)
 
 const uint LS_INVALID = 0xffffffffu;
