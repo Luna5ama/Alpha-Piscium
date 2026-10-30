@@ -25,6 +25,7 @@ layout(local_size_x = 256) in;
 #if LS_BUILD_STAGE == 0
 const ivec3 workGroups = ivec3(256, 1, 1);
 #elif LS_BUILD_STAGE == 1
+#include "/techniques/debug/LightSamplingGilbert.glsl"
 const ivec3 workGroups = ivec3(SETTING_VOXEL_POOL_SIZE, 1, 1);
 shared uint ls_spatial[8192];
 shared uint ls_next;
@@ -53,9 +54,12 @@ void main() {
     uint allocation = gl_WorkGroupID.x;
     if (allocation >= voxel_brickAllocCounter) return;
     uint lane = gl_LocalInvocationID.x;
+    // Leaves follow Gilbert order; voxel storage and the outer tree remain Morton.
     // Low 13 bits hold occupancy; upper bits hold the compact output slot.
     for (uint i = lane; i < 4096u; i += 256u) {
-        uint materialID = voxel_decodeMaterialID(voxel_materials[allocation * 4096u + i]);
+        uvec3 localPosition = uvec3(ls_gilbertPosition(i));
+        uint storageIndex = morton3D_30bEncode(localPosition);
+        uint materialID = voxel_decodeMaterialID(voxel_materials[allocation * 4096u + storageIndex]);
         ls_spatial[4096u + i] = uint(ls_isEmitter(materialID));
     }
     barrier();
@@ -100,9 +104,11 @@ void main() {
     ivec3 brickOrigin = gridOrigin + ivec3(morton3D_30bDecode(brickMorton) << 4u);
     for (uint i = lane; i < 4096u; i += 256u) {
         if ((ls_spatial[4096u + i] & 8191u) == 0u) continue;
-        uint materialID = voxel_decodeMaterialID(voxel_materials[allocation * 4096u + i]);
+        uvec3 localPosition = uvec3(ls_gilbertPosition(i));
+        uint storageIndex = morton3D_30bEncode(localPosition);
+        uint materialID = voxel_decodeMaterialID(voxel_materials[allocation * 4096u + storageIndex]);
         HardcodedPBR pbr = hardcodedpbr_decode(materialID);
-        vec3 position = vec3(brickOrigin + ivec3(morton3D_30bDecode(i)));
+        vec3 position = vec3(brickOrigin + ivec3(localPosition));
         float mass = ldexp(pow(pbr.emissive, SETTING_EMISSIVE_PBR_VALUE_CURVE), pbr.emissiveMultiplier);
         #ifdef SETTING_DEBUG_LIGHT_WEIGHT
         mass = max(ls_emissionMass(materialID), mass * 0.000001);
