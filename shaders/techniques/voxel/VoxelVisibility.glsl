@@ -78,15 +78,7 @@ bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, float maxT, int maxS
             if ((materialData & 1u) != 0u) return false;
 
             uint material = voxel_decodeMaterialID(materialData);
-            #ifndef VOXEL_TRACE_TRUST_MATERIAL_ID
-            bool isKnown = material < textureSize(usam_pbrLUT0, 0).x &&
-                material < textureSize(usam_pbrLUT1, 0).x &&
-                material < textureSize(usam_pbrLUT2, 0).y;
-            uint lookupMaterial = isKnown ? material : 0u;
-            #else
-            uint lookupMaterial = material;
-            #endif
-            uint modelData = texelFetch(usam_pbrLUT2, ivec2(int(rayFaceMask), int(lookupMaterial)), 0).x;
+            uint modelData = texelFetch(usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0).x;
             if (modelData != 0u && material != MATERIAL_ID_WATER &&
                 _voxel_blockModelOccludes(modelData, posGrid - vec3(blockPos), worldRayDir, inverseRayDir, maxT)) {
                 return false;
