@@ -76,8 +76,21 @@ float ls_geometricWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     vec3 delta = node.boundsMinMass.xyz + halfSize - origin;
     float radius = length(halfSize);
     float distanceSquared = dot(delta, delta);
+    #ifdef SETTING_DEBUG_LIGHT_WEIGHT
+    // Uniform projected extent approximates the hemisphere-clipped cosine.
+    // This is a contribution estimate, not a conservative bound.
+    float extent = dot(abs(normal), halfSize);
+    float height = dot(normal, delta);
+    float clippedHeight = height >= extent ? height : (height <= -extent ? 0.0 : (height + extent) * (height + extent) / (4.0 * extent));
+    float spreadSquared = dot(halfSize, halfSize) / 3.0;
+    float scaleSquared = distanceSquared + spreadSquared;
+    float cosine = clamp(clippedHeight * inversesqrt(scaleSquared), 0.0, 1.0);
+    // A small proposal floor preserves support despite coarse energy estimates.
+    return node.boundsMinMass.w * max(cosine, 0.001) / scaleSquared;
+    #else
     float cosineBound = clamp((dot(normal, delta) + radius) * inversesqrt(max(distanceSquared, 0.25)), 0.001, 1.0);
     return node.boundsMinMass.w * cosineBound / max(distanceSquared, max(radius * radius, 0.25));
+    #endif
 }
 
 float ls_oneLevelWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
@@ -103,10 +116,17 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
         uint child = floatBitsToUint(node.boundsMaxLink.w);
         LightSamplingNode left = ls_nodes[child];
         LightSamplingNode right = ls_nodes[child + 1u];
+        float coin = ls_random(rng);
+        #ifdef SETTING_DEBUG_LIGHT_WEIGHT
+        if (left.boundsMinMass.w == 0.0 || right.boundsMinMass.w == 0.0) {
+            node = left.boundsMinMass.w > 0.0 ? left : right;
+            continue;
+        }
+        #endif
         float leftWeight = ls_weight(left, origin, normal);
         float rightWeight = ls_weight(right, origin, normal);
         float probability = leftWeight / (leftWeight + rightWeight);
-        bool chooseLeft = ls_random(rng) < probability;
+        bool chooseLeft = coin < probability;
         pdf *= chooseLeft ? probability : 1.0 - probability;
         node = chooseLeft ? left : right;
     }

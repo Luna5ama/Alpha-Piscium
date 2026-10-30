@@ -452,6 +452,9 @@ const float sunPathRotation = -20.0;//[-90.0 -89.0 -88.0 -87.0 -86.0 -85.0 -84.0
 //#define SETTING_DEBUG_LIGHT_AUDIT
 #ifdef SETTING_DEBUG_LIGHT_AUDIT
 #endif
+//#define SETTING_DEBUG_LIGHT_WEIGHT
+#ifdef SETTING_DEBUG_LIGHT_WEIGHT
+#endif
 //#define SETTING_DEBUG_LIGHT_CUBE
 #ifdef SETTING_DEBUG_LIGHT_CUBE
 #endif

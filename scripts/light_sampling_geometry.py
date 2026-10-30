@@ -54,6 +54,53 @@ def audit_cube(path):
     assert errors
     return dict(samples=len(errors), max_relative_pdf_error=max(errors), p95_relative_pdf_error=float(np.quantile(errors,.95)))
 
+def audit_tree(tree_path, audit_path, improved, lookahead):
+    words = np.fromfile(tree_path, '<u4')[8:].reshape(-1,8)
+    nodes = words.view('<f4').astype(float)
+    parents, leaves = {}, {}
+    pending = [1]
+    while pending:
+        index = pending.pop()
+        if nodes[index,3] == 0:
+            continue
+        link = int(words[index,7])
+        if link & 0x80000000:
+            leaves[tuple(nodes[index,:3])] = index
+        else:
+            parents[link] = parents[link+1] = index
+            pending.extend((link,link+1))
+    records=np.fromfile(audit_path,'<f4').reshape(64,4,4).astype(float)
+    errors=[]
+    for record in records:
+        if record[3,3] == 0:
+            continue
+        origin,normal=record[0,:3],record[1,:3]
+        def score(index, depth):
+            node=nodes[index]; mass=node[3];link=int(words[index,7])
+            if mass == 0:
+                return 0.
+            if depth and not link & 0x80000000:
+                return score(link,depth-1)+score(link+1,depth-1)
+            half=(node[4:7]-node[:3])*.5
+            delta=node[:3]+half-origin
+            d2=delta@delta;r2=half@half
+            if improved:
+                e=abs(normal)@half;h=normal@delta
+                h=h if h>=e else (0 if h<=-e else (h+e)**2/(4*e))
+                scale=d2+r2/3
+                return mass*max(np.clip(h/np.sqrt(scale),0,1),.001)/scale
+            cosine=np.clip((normal@delta+np.sqrt(r2))/np.sqrt(max(d2,.25)),.001,1)
+            return mass*cosine/max(d2,r2,.25)
+        index=leaves[tuple(record[3,:3])];pdf=1.
+        while index!=1:
+            parent=parents[index];left=int(words[parent,7]);depth=2 if lookahead else 0
+            a,b=score(left,depth),score(left+1,depth)
+            pdf*=a/(a+b) if index==left else b/(a+b)
+            index=parent
+        errors.append(abs(record[1,3]/pdf-1))
+    assert errors and max(errors)<.005, errors
+    return dict(samples=len(errors),max_relative_pdf_error=max(errors))
+
 if __name__ == '__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--audit', type=Path)

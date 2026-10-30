@@ -927,6 +927,7 @@ value.SETTING_DEBUG_LIGHT_SAMPLING.0=Off
 value.SETTING_DEBUG_LIGHT_SAMPLING.1=Cosine BRDF
 value.SETTING_DEBUG_LIGHT_SAMPLING.2=Light Tree
 option.SETTING_DEBUG_LIGHT_AUDIT=Light Sampling PDF Audit
+option.SETTING_DEBUG_LIGHT_WEIGHT=Emission and Finite-Extent Tree Weights
 option.SETTING_DEBUG_LIGHT_CUBE=Projected Solid Angle Cube Sampling
 option.SETTING_DEBUG_LIGHT_LOOKAHEAD=Light Tree Two-Level Lookahead
 option.SETTING_DEBUG_RC_MODE=RC Debug Mode
