@@ -15,9 +15,8 @@ LUMA = np.array([0.2126, 0.7152, 0.0722])
 def read_image(path):
     metadata = json.loads(path.with_suffix(".json").read_text())
     assert metadata["scalar_type"] == "FLOAT32"
-    assert metadata["width"] == 1280 and metadata["height"] == 720
     assert metadata["channel_count"] == 4
-    values = np.fromfile(path, dtype="<f4").reshape(720, 1280, 4)
+    values = np.fromfile(path, dtype="<f4").reshape(metadata["height"], metadata["width"], 4)
     assert np.isfinite(values).all(), path
     return values, metadata
 
