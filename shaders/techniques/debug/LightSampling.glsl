@@ -7,6 +7,10 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Coords.glsl"
+// Experiment snapshots select the Morton prefix radix without adding a user option.
+#define LS_TREE_BITS 2
+#define LS_TREE_ARITY (1 << LS_TREE_BITS)
+
 const uint LS_INVALID = 0xffffffffu;
 layout(std430, binding = 14) buffer LightSamplingAudit {
     vec4 ls_audit[];
@@ -30,6 +34,19 @@ layout(std430, binding = 12) buffer LightSamplingData {
     uint ls_reserved;
     LightSamplingNode ls_nodes[];
 };
+
+// Internal links pack the child base in bits 0..27 and count - 1 in bits 28..30.
+uint ls_childBase(uint link) {
+    return link & 0x0fffffffu;
+}
+
+uint ls_childCount(uint link) {
+    return ((link >> 28u) & 7u) + 1u;
+}
+
+uint ls_childLink(uint base, uint count) {
+    return base | ((count - 1u) << 28u);
+}
 
 bool ls_isEmitter(uint materialID) {
     return materialID > 1u && hardcodedpbr_decode(materialID).emissive > 0.0;
@@ -93,42 +110,42 @@ float ls_geometricWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     #endif
 }
 
-float ls_oneLevelWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
-    uint link = floatBitsToUint(node.boundsMaxLink.w);
-    if (node.boundsMinMass.w == 0.0 || (link & LS_LEAF_BIT) != 0u) return ls_geometricWeight(node, origin, normal);
-    return ls_geometricWeight(ls_nodes[link], origin, normal) + ls_geometricWeight(ls_nodes[link + 1u], origin, normal);
-}
-
-float ls_weight(LightSamplingNode node, vec3 origin, vec3 normal) {
-    #ifdef SETTING_DEBUG_LIGHT_LOOKAHEAD
-    uint link = floatBitsToUint(node.boundsMaxLink.w);
-    if (node.boundsMinMass.w == 0.0 || (link & LS_LEAF_BIT) != 0u) return ls_geometricWeight(node, origin, normal);
-    return ls_oneLevelWeight(ls_nodes[link], origin, normal) + ls_oneLevelWeight(ls_nodes[link + 1u], origin, normal);
-    #else
-    return ls_geometricWeight(node, origin, normal);
-    #endif
-}
-
 LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint auditSlot, out float pdf) {
     LightSamplingNode node = ls_nodes[1];
     pdf = 1.0;
     while ((floatBitsToUint(node.boundsMaxLink.w) & LS_LEAF_BIT) == 0u && node.boundsMinMass.w > 0.0) {
-        uint child = floatBitsToUint(node.boundsMaxLink.w);
-        LightSamplingNode left = ls_nodes[child];
-        LightSamplingNode right = ls_nodes[child + 1u];
-        float coin = ls_random(rng);
-        #ifdef SETTING_DEBUG_LIGHT_WEIGHT
-        if (left.boundsMinMass.w == 0.0 || right.boundsMinMass.w == 0.0) {
-            node = left.boundsMinMass.w > 0.0 ? left : right;
-            continue;
-        }
+        uint link = floatBitsToUint(node.boundsMaxLink.w);
+        uint child = ls_childBase(link);
+        uint count = ls_childCount(link);
+        vec4 weightsLow = vec4(0.0);
+        #if LS_TREE_ARITY == 8
+        vec4 weightsHigh = vec4(0.0);
         #endif
-        float leftWeight = ls_weight(left, origin, normal);
-        float rightWeight = ls_weight(right, origin, normal);
-        float probability = leftWeight / (leftWeight + rightWeight);
-        bool chooseLeft = coin < probability;
-        pdf *= chooseLeft ? probability : 1.0 - probability;
-        node = chooseLeft ? left : right;
+        float total = 0.0;
+        for (uint i = 0u; i < count; ++i) {
+            float weight = ls_geometricWeight(ls_nodes[child + i], origin, normal);
+            #if LS_TREE_ARITY == 8
+            if (i >= 4u) weightsHigh[i - 4u] = weight;
+            else
+            #endif
+            weightsLow[i] = weight;
+            total += weight;
+        }
+        float threshold = ls_random(rng) * total;
+        uint selected = 0u;
+        float selectedWeight = weightsLow.x;
+        float cumulative = selectedWeight;
+        while (threshold >= cumulative) {
+            ++selected;
+            #if LS_TREE_ARITY == 8
+            selectedWeight = selected < 4u ? weightsLow[selected] : weightsHigh[selected - 4u];
+            #else
+            selectedWeight = weightsLow[selected];
+            #endif
+            cumulative += selectedWeight;
+        }
+        pdf *= selectedWeight / total;
+        node = ls_nodes[child + selected];
     }
     #ifdef SETTING_DEBUG_LIGHT_AUDIT
     if (auditSlot != LS_INVALID) {

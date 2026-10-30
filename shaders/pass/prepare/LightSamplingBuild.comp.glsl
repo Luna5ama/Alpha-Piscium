@@ -29,7 +29,7 @@ const ivec3 workGroups = ivec3(SETTING_VOXEL_POOL_SIZE, 1, 1);
 shared uint ls_spatial[8192];
 shared uint ls_next;
 shared uint ls_base;
-shared uint ls_padded;
+shared uint ls_leafCount;
 #else
 const ivec3 workGroups = ivec3(LS_REDUCE_GROUPS, 1, 1);
 #endif
@@ -59,16 +59,19 @@ void main() {
         ls_spatial[4096u + i] = uint(ls_isEmitter(materialID));
     }
     barrier();
-    for (uint width = 2048u; width != 0u; width >>= 1u) {
+    for (uint width = 4096u / uint(LS_TREE_ARITY); width != 0u; width >>= LS_TREE_BITS) {
         for (uint i = lane; i < width; i += 256u) {
             uint node = width + i;
-            ls_spatial[node] = ls_spatial[node * 2u] + ls_spatial[node * 2u + 1u];
+            uint count = 0u;
+            for (uint j = 0u; j < uint(LS_TREE_ARITY); ++j) count += ls_spatial[node * uint(LS_TREE_ARITY) + j];
+            ls_spatial[node] = count;
         }
         barrier();
     }
     if (lane == 0u) {
         uint count = ls_spatial[1];
-        ls_padded = count;
+        ls_leafCount = count;
+        // Keep the binary baseline's emitter capacity budget; unused slots stay reserved.
         ls_base = atomicAdd(ls_allocatedNodes, count * 2u);
         atomicAdd(ls_emitterCount, count);
         if (ls_base + count * 2u > LS_LOCAL_NODE_CAPACITY) atomicAdd(ls_overflowCount, count);
@@ -76,21 +79,19 @@ void main() {
         ls_next = 2u;
     }
     barrier();
-    if (ls_padded == 0u || ls_base + ls_padded * 2u > LS_LOCAL_NODE_CAPACITY) return;
+    if (ls_leafCount == 0u || ls_base + ls_leafCount * 2u > LS_LOCAL_NODE_CAPACITY) return;
     uint base = LS_OUTER_NODE_COUNT + ls_base;
-    for (uint width = 1u; width < 4096u; width <<= 1u) {
+    for (uint width = 1u; width < 4096u; width <<= LS_TREE_BITS) {
         for (uint i = lane; i < width; i += 256u) {
             uint node = width + i;
             if ((ls_spatial[node] & 8191u) == 0u) continue;
             uint slot = ls_spatial[node] >> 13u;
-            uint left = ls_spatial[node * 2u];
-            uint right = ls_spatial[node * 2u + 1u];
-            if (left != 0u && right != 0u) {
-                uint child = atomicAdd(ls_next, 2u);
-                ls_spatial[node * 2u] |= child << 13u;
-                ls_spatial[node * 2u + 1u] |= (child + 1u) << 13u;
-            } else {
-                ls_spatial[node * 2u + uint(left == 0u)] |= slot << 13u;
+            uint first = node * uint(LS_TREE_ARITY);
+            uint count = 0u;
+            for (uint j = 0u; j < uint(LS_TREE_ARITY); ++j) count += uint(ls_spatial[first + j] != 0u);
+            uint child = count > 1u ? atomicAdd(ls_next, count) : slot;
+            for (uint j = 0u; j < uint(LS_TREE_ARITY); ++j) {
+                if (ls_spatial[first + j] != 0u) ls_spatial[first + j] |= child++ << 13u;
             }
         }
         barrier();
@@ -114,22 +115,46 @@ void main() {
     }
     memoryBarrierBuffer();
     barrier();
-    for (uint width = 2048u; width != 0u; width >>= 1u) {
+    for (uint width = 4096u / uint(LS_TREE_ARITY); width != 0u; width >>= LS_TREE_BITS) {
         for (uint i = lane; i < width; i += 256u) {
             uint node = width + i;
-            uint left = ls_spatial[node * 2u];
-            uint right = ls_spatial[node * 2u + 1u];
-            if ((left & 8191u) == 0u || (right & 8191u) == 0u) continue;
-            uint child = base + (left >> 13u);
-            ls_nodes[base + (ls_spatial[node] >> 13u)] = ls_merge(ls_nodes[child], ls_nodes[child + 1u], child);
+            LightSamplingNode merged = ls_emptyNode();
+            uint childBase = 0u;
+            uint count = 0u;
+            for (uint j = 0u; j < uint(LS_TREE_ARITY); ++j) {
+                uint entry = ls_spatial[node * uint(LS_TREE_ARITY) + j];
+                if ((entry & 8191u) == 0u) continue;
+                uint child = base + (entry >> 13u);
+                if (count == 0u) childBase = child;
+                merged = ls_merge(merged, ls_nodes[child], 0u);
+                ++count;
+            }
+            if (count > 1u) {
+                merged.boundsMaxLink.w = uintBitsToFloat(ls_childLink(childBase, count));
+                ls_nodes[base + (ls_spatial[node] >> 13u)] = merged;
+            }
         }
         memoryBarrierBuffer();
         barrier();
     }
     if (lane == 0u) ls_nodes[uint(VOXEL_GRID_BRICKS) + brickMorton] = ls_nodes[base + 1u];
     #else
+    #if LS_REDUCE_LEVEL % LS_TREE_BITS == 0 || (VOXEL_GRID_BRICKS >> LS_REDUCE_LEVEL) == 1
+    // A 32^3 grid has 15 Morton bits: its quaternary root has two children.
+    #if LS_REDUCE_LEVEL % LS_TREE_BITS == 0
+    const uint count = uint(LS_TREE_ARITY);
+    #else
+    const uint count = 1u << (LS_REDUCE_LEVEL % LS_TREE_BITS);
+    #endif
     uint first = uint(VOXEL_GRID_BRICKS) >> LS_REDUCE_LEVEL;
     uint node = first + gl_GlobalInvocationID.x;
-    if (node < first * 2u) ls_nodes[node] = ls_merge(ls_nodes[node * 2u], ls_nodes[node * 2u + 1u], node * 2u);
+    if (node < first * 2u) {
+        uint child = node * count;
+        LightSamplingNode merged = ls_emptyNode();
+        for (uint j = 0u; j < count; ++j) merged = ls_merge(merged, ls_nodes[child + j], 0u);
+        merged.boundsMaxLink.w = uintBitsToFloat(ls_childLink(child, count));
+        ls_nodes[node] = merged;
+    }
+    #endif
     #endif
 }
