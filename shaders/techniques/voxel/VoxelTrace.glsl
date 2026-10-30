@@ -246,6 +246,9 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 uint materialData = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
                 uint material = voxel_decodeMaterialID(materialData);
                 bool isFullCube = bool(materialData & 1u);
+                #ifdef VOXEL_EMISSIVE_CUBES
+                isFullCube = isFullCube || hardcodedpbr_decode(material).emissive > 0.0;
+                #endif
 
                 if (isFullCube) {
                     VoxelHit result;

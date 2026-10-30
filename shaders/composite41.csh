@@ -1,4 +1,7 @@
 #version 460 compatibility
 #define COMP 1
+/*const*/
+#define LSV_STAGE 1
+/*const*/
 
-#include "/pass/composite/TranslucentBackComposite.glsl"
+#include "/pass/composite/LightSamplingVisibility.comp.glsl"

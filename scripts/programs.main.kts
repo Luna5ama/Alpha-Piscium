@@ -144,6 +144,10 @@ programs {
         pass("/pass/begin/ClearVoxelData.comp.glsl") {
             constDefine("VOXEL_CLEAR_ALL", 1)
         }
+        pass("/pass/composite/LightSamplingVisibility.comp.glsl") {
+            constDefine("LSV_STAGE", 0)
+            cond("SETTING_DEBUG_LIGHT_SAMPLING > 0")
+        }
     }
 
     ProgramType.BEGIN {
@@ -202,6 +206,20 @@ programs {
         }
         pass("/pass/shadow/VoxelTreePropagatorUpper.comp.glsl") {
             cond("SETTING_VOXEL_GRID_SIZE == 64")
+        }
+        for (stage in 0..1) {
+            pass("/pass/prepare/LightSamplingBuild.comp.glsl") {
+                constDefine("LS_BUILD_STAGE", stage)
+                cond("SETTING_DEBUG_LIGHT_SAMPLING > 0")
+            }
+        }
+        for (level in 1..18) {
+            pass("/pass/prepare/LightSamplingBuild.comp.glsl") {
+                constDefine("LS_BUILD_STAGE", 2)
+                constDefine("LS_REDUCE_LEVEL", level)
+                constDefine("LS_REDUCE_GROUPS", maxOf(1, 262144 shr (level + 8)))
+                cond("SETTING_DEBUG_LIGHT_SAMPLING > 0 && SETTING_VOXEL_GRID_SIZE * SETTING_VOXEL_GRID_SIZE * SETTING_VOXEL_GRID_SIZE >= ${1 shl level}")
+            }
         }
     }
 
@@ -270,26 +288,34 @@ programs {
         pass("/pass/composite/DOFFocus.comp.glsl") {
             cond("defined(SETTING_DOF) && !defined(SETTING_DOF_MANUAL_FOCUS)")
         }
-        pass("/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl")
-        pass("/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl")
-        pass("/pass/composite/GIReferenceAccumulate.comp.glsl") {
-            cond("SETTING_GI_USE_REFERENCE > 0")
+        pass("/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl") {
+            cond("SETTING_DEBUG_LIGHT_SAMPLING == 0")
         }
-        pass("/pass/composite/GIReSTIRTemporalReuse.comp.glsl")
+        pass("/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl") {
+            cond("SETTING_DEBUG_LIGHT_SAMPLING == 0")
+        }
+        pass("/pass/composite/GIReferenceAccumulate.comp.glsl") {
+            cond("SETTING_GI_USE_REFERENCE > 0 && SETTING_DEBUG_LIGHT_SAMPLING == 0")
+        }
+        pass("/pass/composite/GIReSTIRTemporalReuse.comp.glsl") {
+            cond("SETTING_DEBUG_LIGHT_SAMPLING == 0")
+        }
         pass("/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl") {
-            cond("defined(SETTING_GI_DECORRELATE)")
+            cond("defined(SETTING_GI_DECORRELATE) && SETTING_DEBUG_LIGHT_SAMPLING == 0")
         }
         for (i in 0..<4) {
             pass("/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl") {
                 constDefine("PASS_INDEX", i.toString())
                 constDefine("PASS_BASE_SAMPLE_INDEX", (i * 7).toString())
                 indirect(0, 48)
-                cond("defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > ${i * 7}")
+                cond("defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > ${i * 7} && SETTING_DEBUG_LIGHT_SAMPLING == 0")
             }
         }
-        pass("/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl")
+        pass("/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl") {
+            cond("SETTING_DEBUG_LIGHT_SAMPLING == 0")
+        }
         pass("/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl") {
-            cond("defined(SETTING_GI_SPATIAL_REUSE)")
+            cond("defined(SETTING_GI_SPATIAL_REUSE) && SETTING_DEBUG_LIGHT_SAMPLING == 0")
         }
         pass("/pass/composite/GIPathGuideSplat.comp.glsl") {
             cond("defined(SETTING_GI_PATH_GUIDING) && defined(SETTING_RC_ENABLE)")
@@ -322,6 +348,15 @@ programs {
         }
         pass("/pass/composite/SSTStepDebug.comp.glsl") {
             cond("defined(SETTING_DEBUG_SST_STEPS)")
+        }
+        for (stage in 1..5) {
+            pass("/pass/composite/LightSamplingVisibility.comp.glsl") {
+                constDefine("LSV_STAGE", stage)
+                cond("SETTING_DEBUG_LIGHT_SAMPLING > 0")
+            }
+        }
+        pass("/pass/composite/LightSamplingInitial.comp.glsl") {
+            cond("SETTING_DEBUG_LIGHT_SAMPLING > 0")
         }
         pass("/pass/composite/TranslucentBackComposite.glsl")
         pass("/pass/composite/TranslucentSST.glsl")

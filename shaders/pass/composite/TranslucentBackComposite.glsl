@@ -20,9 +20,19 @@ layout(rgba16f) uniform writeonly image2D uimg_temp3;
 #endif
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
+#if SETTING_DEBUG_LIGHT_SAMPLING > 0
+uniform sampler2D usam_lightSampling;
+#endif
 
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        #if SETTING_DEBUG_LIGHT_SAMPLING > 0
+        vec3 directSample = texelFetch(usam_lightSampling, texelPos, 0).rgb;
+        directSample = colors_colorspaces_convert(COLORS_COLORSPACES_SRGB, COLORS_WORKING_COLORSPACE, directSample);
+        imageStore(uimg_main, texelPos, vec4(directSample, 1.0));
+        transient_exposureWeights_store(texelPos, vec4(1.0));
+        return;
+        #endif
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
         float solidViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
         vec4 exposureWeights = vec4(1.0);

@@ -4344,6 +4344,44 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     6 value "覆盖"
                 }
             }
+            toggle("SETTING_DEBUG_LIGHT_SAMPLING", 0, 0..2) {
+                lang {
+                    name = "Diffuse Direct Sampling Experiment"
+                    comment = "Raw one-sample Lambertian direct lighting from emissive voxel cubes. No sky, sun, radiance cache, ReSTIR or denoising. Uses built-in emission."
+                    0 value "Off"
+                    1 value "Cosine BRDF"
+                    2 value "Light Tree"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "漫反射直接光采样实验"
+                    comment = "发光体素立方体的原始单样本朗伯直接光。无天空、太阳、辐射缓存、ReSTIR和降噪。使用内置自发光。"
+                    0 value "关闭"
+                    1 value "余弦BRDF"
+                    2 value "灯光树"
+                }
+            }
+            toggle("SETTING_DEBUG_LIGHT_VISIBILITY", 0, 0..3) {
+                lang {
+                    name = "Light Sampling Visibility Estimate"
+                    comment = "Frozen first-blocker probes shared by all representations: 512 equal-area directions and up to 16 shading origins per 16-cubed brick."
+                    0 value "Off"
+                    1 value "Directional CDF"
+                    2 value "Binned Two Moments"
+                    3 value "SH Two Moments"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "灯光采样可见性估计"
+                    comment = "各表示共享冻结的首次遮挡探测：每个16立方brick使用512个等面积方向和至多16个着色起点。"
+                    0 value "关闭"
+                    1 value "方向距离CDF"
+                    2 value "方向分桶双矩"
+                    3 value "SH双矩"
+                }
+            }
+            toggle("SETTING_DEBUG_LIGHT_LOOKAHEAD", true) {
+                lang { name = "Light Tree Two-Level Lookahead" }
+                lang(Locale.SIMPLIFIED_CHINESE) { name = "灯光树两层几何前瞻" }
+            }
             toggle("SETTING_GI_USE_REFERENCE", 0, 0..3) {
                 lang {
                     name = "Monte Carlo Reference"
