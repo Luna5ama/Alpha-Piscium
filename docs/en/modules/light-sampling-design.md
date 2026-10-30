@@ -77,6 +77,29 @@ Questions to resolve next:
   and PDF/emitter-set consistency. Comparing only the core construction kernel is insufficient, and tighter
   grouping does not itself establish lower noise.
 
+### Expected sampling-quality impact
+
+There are no H-PLOC sampling-quality measurements yet. It is a topology candidate worth comparing, with a
+hypothesized benefit. Current node weights approximate subtree contribution using aggregate emission mass,
+the AABB center, bounding-sphere radius, and receiver normal. Clustering could reduce branch-probability error
+by avoiding broad bounds across empty space or grouping nearby emitters across brick boundaries separately.
+Near-field, sparse, or uneven emitter distributions are plausible beneficiaries, not guaranteed wins for every
+receiver.
+
+H-PLOC's area-based merge criterion does not use the receiver, normal, emission mass, or actual visibility.
+Smaller area does not guarantee a better contribution estimate, nor does it identify lights separated by a wall.
+Current leaves are equal-sized unit cubes and the baseline already uses Morton spatial grouping. The paper's
+BVH-quality benefits for differently sized geometry cannot predict a noise-reduction percentage here.
+With conditional emitter sampling and actual contribution definitions fixed, and support and PDFs correct,
+topology changes affect sampling variance while preserving the target mean.
+
+The existing five-scene spatial-grouping comparison (record commit `181878b9`) was itself mixed: without
+lookahead, dark-region variance rose about 14% in scene 1 and fell about 7% in scene 2. This motivates studying
+grouping but is not evidence of H-PLOC benefit. Judge the first comparison by sampling error/variance and
+contribution tails with the same emitter set, four-way branching, and node weights; then include all build costs
+in an equal-time comparison. Tree area, SAH, and visible-hit rate are explanatory diagnostics, not substitutes
+for sampling-quality measurements or evidence that H-PLOC can replace lookahead.
+
 ## Scope and decisions
 
 - Target a pure Iris shaderpack. Do not depend on modifying Iris or a companion mod to supply light geometry.
