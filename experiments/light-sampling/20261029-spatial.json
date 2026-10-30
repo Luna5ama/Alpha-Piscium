@@ -1,0 +1,664 @@
+{
+  "protocol": "720p diffuse direct only; cube sampling, old weights; no visibility guiding, RC, ReSTIR, denoising or TAA; 1 spp single and 32-frame linear mean. Variance is a short-window estimate, not reference MSE. Common complete-pixel mask excludes any pixel with missing samples in any case; gishadow count-ahead has one incomplete RGB pixel. Existing cube sampler numerical issue remains unresolved.",
+  "quality": [
+    {
+      "incomplete_pixels": 0,
+      "scene": "gishadow",
+      "case": "count-plain",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "f432165ffd89e7e4e03a9556bb371325a03c62c10faa2ecf46c37810514a30d7",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 178,
+        "emitters": 72,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 723471,
+        "visible": 204643,
+        "receivers": 851610,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.24030131163325935,
+        "visible_per_trace": 0.2828627546923097,
+        "reachable_nodes": 235,
+        "leaf_set_sha256": "ef3e0962cf0ab333b44771a09aec1dbf68f22d35659aa51c13b4d167a773a7c7",
+        "mean_leaf_depth": 17.166666666666668,
+        "max_leaf_depth": 18
+      },
+      "pdf": {
+        "samples": 58,
+        "max_relative_pdf_error": 1.5294845043811733e-06
+      },
+      "cube_pdf": {
+        "samples": 50,
+        "max_relative_pdf_error": 7.622390052719474e-05,
+        "p95_relative_pdf_error": 1.888676847071613e-05
+      },
+      "mean_luminance": 0.02293633122408358,
+      "variance": {
+        "dark_half": 0.0057243481278419495,
+        "brightest_1": 2.1078832149505615,
+        "wall": 0.017499376088380814,
+        "near_light": 0.2290671318769455
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.0,
+        "brightest_1": 1.0,
+        "wall": 1.0,
+        "near_light": 1.0
+      }
+    },
+    {
+      "incomplete_pixels": 1,
+      "scene": "gishadow",
+      "case": "count-ahead",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "f432165ffd89e7e4e03a9556bb371325a03c62c10faa2ecf46c37810514a30d7",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 178,
+        "emitters": 72,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 773370,
+        "visible": 319319,
+        "receivers": 851610,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.3749591949366494,
+        "visible_per_trace": 0.41289292318036647,
+        "reachable_nodes": 235,
+        "leaf_set_sha256": "ef3e0962cf0ab333b44771a09aec1dbf68f22d35659aa51c13b4d167a773a7c7",
+        "mean_leaf_depth": 17.166666666666668,
+        "max_leaf_depth": 18
+      },
+      "pdf": {
+        "samples": 58,
+        "max_relative_pdf_error": 8.163742895028747e-07
+      },
+      "cube_pdf": {
+        "samples": 54,
+        "max_relative_pdf_error": 1.9335222085636872e-05,
+        "p95_relative_pdf_error": 4.2835972350774215e-06
+      },
+      "mean_luminance": 0.022951414852874327,
+      "variance": {
+        "dark_half": 0.002904631197452545,
+        "brightest_1": 1.3404607772827148,
+        "wall": 0.008730572648346424,
+        "near_light": 0.11806531995534897
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.5074169377164657,
+        "brightest_1": 0.6359274402752688,
+        "wall": 0.4989076527215919,
+        "near_light": 0.5154179868056037
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "gishadow",
+      "case": "spatial-plain",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "f432165ffd89e7e4e03a9556bb371325a03c62c10faa2ecf46c37810514a30d7",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 144,
+        "emitters": 72,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 723376,
+        "visible": 208748,
+        "receivers": 851610,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.24512159321755264,
+        "visible_per_trace": 0.2885746831523302,
+        "reachable_nodes": 221,
+        "leaf_set_sha256": "ef3e0962cf0ab333b44771a09aec1dbf68f22d35659aa51c13b4d167a773a7c7",
+        "mean_leaf_depth": 17.22222222222222,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 58,
+        "max_relative_pdf_error": 9.65317039858249e-07
+      },
+      "cube_pdf": {
+        "samples": 49,
+        "max_relative_pdf_error": 2.7305744823014066e-05,
+        "p95_relative_pdf_error": 1.893587890482437e-05
+      },
+      "mean_luminance": 0.022922226874046325,
+      "variance": {
+        "dark_half": 0.004803644493222237,
+        "brightest_1": 2.445103168487549,
+        "wall": 0.014194204472005367,
+        "near_light": 0.20498697459697723
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.8391600905364899,
+        "brightest_1": 1.1599803780139197,
+        "wall": 0.8111263167508009,
+        "near_light": 0.89487729172379
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "gishadow",
+      "case": "spatial-ahead",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "f432165ffd89e7e4e03a9556bb371325a03c62c10faa2ecf46c37810514a30d7",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 144,
+        "emitters": 72,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 773442,
+        "visible": 319271,
+        "receivers": 851610,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.3749028311081364,
+        "visible_per_trace": 0.4127924265814373,
+        "reachable_nodes": 221,
+        "leaf_set_sha256": "ef3e0962cf0ab333b44771a09aec1dbf68f22d35659aa51c13b4d167a773a7c7",
+        "mean_leaf_depth": 17.22222222222222,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 58,
+        "max_relative_pdf_error": 1.5100114381105811e-06
+      },
+      "cube_pdf": {
+        "samples": 53,
+        "max_relative_pdf_error": 0.00014606168938557929,
+        "p95_relative_pdf_error": 1.2351510341113127e-05
+      },
+      "mean_luminance": 0.022950357213120685,
+      "variance": {
+        "dark_half": 0.0029068649746477604,
+        "brightest_1": 1.3393332958221436,
+        "wall": 0.008709164336323738,
+        "near_light": 0.11810140311717987
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.5078071615717114,
+        "brightest_1": 0.6353925522641236,
+        "wall": 0.4976842769901051,
+        "near_light": 0.5155755090198788
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "tunnel",
+      "case": "count-plain",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "5803b5f9a3357e0cd9c8175c08ef209e5208b9ff009ab0d22275ab7c761e4940",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 5396,
+        "emitters": 1874,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 673713,
+        "visible": 33024,
+        "receivers": 892234,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.037012711911897554,
+        "visible_per_trace": 0.04901790525045531,
+        "reachable_nodes": 4301,
+        "leaf_set_sha256": "9006e195945c744a2cb08e312db1ddb0bbc4f0dbb99f36e548f45c851498b417",
+        "mean_leaf_depth": 18.281750266808963,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 1.130954196737477e-06
+      },
+      "cube_pdf": {
+        "samples": 53,
+        "max_relative_pdf_error": 1.9628354360090583e-05,
+        "p95_relative_pdf_error": 1.4848467109729312e-05
+      },
+      "mean_luminance": 0.01584055314554689,
+      "variance": {
+        "dark_half": 0.020982032641768456,
+        "brightest_1": 127.3643798828125,
+        "floor": 0.9101060032844543,
+        "wall": 0.3645416796207428
+      },
+      "variance_over_count_plain": {
+        "dark_half": 1.0,
+        "brightest_1": 1.0,
+        "floor": 1.0,
+        "wall": 1.0
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "tunnel",
+      "case": "count-ahead",
+      "revision": "4920b6d93be11e2c4fb8a1e0ea800ac3fb137ae8",
+      "scene_sha256": "5803b5f9a3357e0cd9c8175c08ef209e5208b9ff009ab0d22275ab7c761e4940",
+      "source_sha256": "176bc1c8571f545bcc266f93cf211896de91521c590ff359a3d61d7fde4e8a86",
+      "tree": {
+        "allocated_nodes": 5396,
+        "emitters": 1874,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 794275,
+        "visible": 114332,
+        "receivers": 892234,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.12814127235680325,
+        "visible_per_trace": 0.14394510717320827,
+        "reachable_nodes": 4301,
+        "leaf_set_sha256": "9006e195945c744a2cb08e312db1ddb0bbc4f0dbb99f36e548f45c851498b417",
+        "mean_leaf_depth": 18.281750266808963,
+        "max_leaf_depth": 20
+      },
+      "pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 9.631825230727031e-07
+      },
+      "cube_pdf": {
+        "samples": 56,
+        "max_relative_pdf_error": 4.206967026199049e-05,
+        "p95_relative_pdf_error": 1.7209908709930888e-05
+      },
+      "mean_luminance": 0.01591065479410523,
+      "variance": {
+        "dark_half": 0.008272434584796429,
+        "brightest_1": 24.784563064575195,
+        "floor": 0.1270940601825714,
+        "wall": 0.05011717602610588
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.39426278311705043,
+        "brightest_1": 0.19459571889235736,
+        "floor": 0.13964753525842644,
+        "wall": 0.13747996135379129
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "tunnel",
+      "case": "spatial-plain",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "5803b5f9a3357e0cd9c8175c08ef209e5208b9ff009ab0d22275ab7c761e4940",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 3748,
+        "emitters": 1874,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 666991,
+        "visible": 37417,
+        "receivers": 892234,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.041936308188210716,
+        "visible_per_trace": 0.05609820822170014,
+        "reachable_nodes": 4055,
+        "leaf_set_sha256": "9006e195945c744a2cb08e312db1ddb0bbc4f0dbb99f36e548f45c851498b417",
+        "mean_leaf_depth": 18.444503735325508,
+        "max_leaf_depth": 23
+      },
+      "pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 8.290846658098872e-07
+      },
+      "cube_pdf": {
+        "samples": 47,
+        "max_relative_pdf_error": 2.307403752555004e-05,
+        "p95_relative_pdf_error": 1.18804820830931e-05
+      },
+      "mean_luminance": 0.015898051086162258,
+      "variance": {
+        "dark_half": 0.018267206847667694,
+        "brightest_1": 66.25862121582031,
+        "floor": 0.5818009376525879,
+        "wall": 0.18830326199531555
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.8706118782459418,
+        "brightest_1": 0.5202288212511585,
+        "floor": 0.6392672233266717,
+        "wall": 0.5165479628864937
+      }
+    },
+    {
+      "incomplete_pixels": 0,
+      "scene": "tunnel",
+      "case": "spatial-ahead",
+      "revision": "bb7c7978f0a1fa1cfa61ffdc93025a14926213e4",
+      "scene_sha256": "5803b5f9a3357e0cd9c8175c08ef209e5208b9ff009ab0d22275ab7c761e4940",
+      "source_sha256": "226cab4b653efcec4000fc3b8da2f0df2b910164c13a53dac02a3e23d9133ec2",
+      "tree": {
+        "allocated_nodes": 3748,
+        "emitters": 1874,
+        "overflow": 0,
+        "exhausted": 0,
+        "traces": 793663,
+        "visible": 119909,
+        "receivers": 892234,
+        "guided_selections": 0,
+        "visible_per_receiver": 0.13439187477724454,
+        "visible_per_trace": 0.15108301634320864,
+        "reachable_nodes": 4055,
+        "leaf_set_sha256": "9006e195945c744a2cb08e312db1ddb0bbc4f0dbb99f36e548f45c851498b417",
+        "mean_leaf_depth": 18.444503735325508,
+        "max_leaf_depth": 23
+      },
+      "pdf": {
+        "samples": 61,
+        "max_relative_pdf_error": 7.645725538241166e-07
+      },
+      "cube_pdf": {
+        "samples": 54,
+        "max_relative_pdf_error": 2.2389159109681422e-05,
+        "p95_relative_pdf_error": 6.885340432605233e-06
+      },
+      "mean_luminance": 0.015855216692641186,
+      "variance": {
+        "dark_half": 0.008151215501129627,
+        "brightest_1": 22.22901725769043,
+        "floor": 0.11737837642431259,
+        "wall": 0.05064792558550835
+      },
+      "variance_over_count_plain": {
+        "dark_half": 0.38848550282507843,
+        "brightest_1": 0.17453087965523223,
+        "floor": 0.12897220323864395,
+        "wall": 0.1389358979148853
+      }
+    }
+  ],
+  "timing": [
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "preset_id": "gi-shadow-1-720p",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 0,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.219584,
+      "build_ms": 0.032768,
+      "sentinel_ms": 0.104448,
+      "total_build_avg_ms": 0.13816
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "preset_id": "gi-shadow-1-720p",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 1,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.57696,
+      "build_ms": 0.032768,
+      "sentinel_ms": 0.105472,
+      "total_build_avg_ms": 0.161048
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "preset_id": "gi-shadow-1-720p",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 2,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.219584,
+      "build_ms": 0.057344,
+      "sentinel_ms": 0.10496,
+      "total_build_avg_ms": 0.182552
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "preset_id": "gi-shadow-1-720p",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 3,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.622528,
+      "build_ms": 0.057344,
+      "sentinel_ms": 0.104448,
+      "total_build_avg_ms": 0.199304
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "preset_id": "gi-shadow-1-720p",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 4,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.609728,
+      "build_ms": 0.057344,
+      "sentinel_ms": 0.104448,
+      "total_build_avg_ms": 0.175168
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "preset_id": "gi-shadow-1-720p",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 5,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.186304,
+      "build_ms": 0.057344,
+      "sentinel_ms": 0.10496,
+      "total_build_avg_ms": 0.221304
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "preset_id": "gi-shadow-1-720p",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 6,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.590272,
+      "build_ms": 0.032768,
+      "sentinel_ms": 0.105472,
+      "total_build_avg_ms": 0.162792
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "preset_id": "gi-shadow-1-720p",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 7,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.1904,
+      "build_ms": 0.032768,
+      "sentinel_ms": 0.105472,
+      "total_build_avg_ms": 0.189864
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "preset_id": "codex-fg-night-tunnel",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 0,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.01376,
+      "build_ms": 0.05632,
+      "sentinel_ms": 0.146432,
+      "total_build_avg_ms": 0.20524
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "preset_id": "codex-fg-night-tunnel",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 1,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 2.174464,
+      "build_ms": 0.05632,
+      "sentinel_ms": 0.146432,
+      "total_build_avg_ms": 0.189224
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "preset_id": "codex-fg-night-tunnel",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 2,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.005568,
+      "build_ms": 0.09728,
+      "sentinel_ms": 0.146432,
+      "total_build_avg_ms": 0.298704
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "preset_id": "codex-fg-night-tunnel",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 3,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 2.186752,
+      "build_ms": 0.09728,
+      "sentinel_ms": 0.146432,
+      "total_build_avg_ms": 0.297176
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "preset_id": "codex-fg-night-tunnel",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 4,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 2.230272,
+      "build_ms": 0.09728,
+      "sentinel_ms": 0.146432,
+      "total_build_avg_ms": 0.284472
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "spatial--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "preset_id": "codex-fg-night-tunnel",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 5,
+      "source_id": "spatial",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.005568,
+      "build_ms": 0.09728,
+      "sentinel_ms": 0.146432,
+      "total_build_avg_ms": 0.301056
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--ahead",
+      "config_id": "ahead",
+      "error": null,
+      "frames": 128,
+      "preset_id": "codex-fg-night-tunnel",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 6,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 2.187776,
+      "build_ms": 0.05632,
+      "sentinel_ms": 0.147456,
+      "total_build_avg_ms": 0.176072
+    },
+    {
+      "attempt_count": 1,
+      "case_id": "count--plain",
+      "config_id": "plain",
+      "error": null,
+      "frames": 128,
+      "preset_id": "codex-fg-night-tunnel",
+      "retry_exhausted": false,
+      "round": 0,
+      "run": 7,
+      "source_id": "count",
+      "status": "passed",
+      "warmup_frames": 128,
+      "initial_ms": 1.315328,
+      "build_ms": 0.05632,
+      "sentinel_ms": 0.147456,
+      "total_build_avg_ms": 0.20224
+    }
+  ],
+  "timing_note": "128 warmup + 128 measured frames, palindrome, two runs per case. Tunnel count/plain initial pass drifted 1.014 to 1.315 ms despite stable sentinel; do not infer a precise speedup. Build and initial are reported separately."
+}
