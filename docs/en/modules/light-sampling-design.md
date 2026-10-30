@@ -40,10 +40,12 @@ acceptance against a high-sample reference.
 ## Architecture reassessment (2026-10-30)
 
 The [architecture reassessment](light-sampling-reassessment.md) revisits whether per-query light-tree traversal
-fits this workload, comparing one-sample MIS, spatial probability tables, fresh RIS, ReGIR-style sharing, and
-improved tree weights. It separates topology from receiver-dependent importance and shared computation.
-Its proposed diagnostic comparisons recommend reconsidering H-PLOC's priority; they do not accept a replacement,
-change the baseline above, or start experiments. Global cross-brick clustering remains the agreed H-PLOC scope.
+fits this workload, separating topology, receiver-dependent importance, and shared computation. Following the
+user's correction, regional estimates target bounded sets of tree clusters rather than individual lights;
+standalone small-candidate RIS is not a scalable replacement, and ReGIR is a complementary direction.
+The record expands cluster weights, regional cuts, visibility statistics, and their coupling to topology updates.
+Its diagnostic proposals do not accept a replacement, change the baseline above, or start experiments.
+Global cross-brick clustering remains the agreed H-PLOC scope.
 
 ## Global H-PLOC clustering candidate
 

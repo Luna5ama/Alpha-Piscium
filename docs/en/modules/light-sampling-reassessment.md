@@ -13,14 +13,16 @@ follow one irreversible path through approximate aggregate weights. Three choice
 are grouped, how receiver-dependent importance is estimated, and how that work is shared between queries.
 H-PLOC principally changes the first; it cannot settle the other two.
 
-The next comparison should include a simple spatial probability table and, if multiple cheap candidates are
-allowed, fresh RIS before a more involved ReGIR implementation. A one-ray BRDF/light MIS baseline is valuable
-alongside either approach. Keep the accepted Morton four-way/cube baseline for comparison. Global cross-brick
-H-PLOC remains a candidate; this research recommends reconsidering its priority, not revoking its agreed scope.
+The user's follow-up rejects per-region, per-light tables as too fine and expensive, favoring tree clusters as
+the estimation unit. Fixed-budget global-candidate RIS is not a suitable replacement at large light counts;
+ReGIR is a complementary sharing/resampling direction that can use a tree-based proposal. The earlier ranking
+mixed these different levels. This revision removes the dense-table and standalone-RIS experiment priorities.
 
-The per-query budget for multiple cheap candidates is not yet confirmed. Sections below distinguish a strict
-single-candidate budget from multiple candidates followed by one actual visibility ray. Neither implies running
-screen-space ReSTIR, temporal reuse, or a denoiser in the isolated initial-sampling experiment.
+The focus is now cluster importance, receiver-region cuts and visibility, and the global clustering that
+supports them. Keep the accepted Morton four-way/cube baseline. Global cross-brick H-PLOC remains a candidate,
+not an accepted quality improvement. MIS is a separate proposal-combination choice. Full per-leaf scans remain
+small diagnostic references, not a second production architecture alongside spatial tables. No experiment or
+temporal-reuse implementation is authorized by this discussion.
 
 ## What the existing evidence establishes
 
@@ -32,7 +34,7 @@ record at `181878b9`, and wide-tree record at `3e7f66b9`. These records and expe
 | Condition or observation | Consequence for this reassessment |
 |--------------------------|-----------------------------------|
 | Pure Iris, software voxel tracing, unit-cube emitters, direct diffuse isolation | Hardware ray-tracing paper timings and glossy-heavy quality wins are not predictions for this path. |
-| Five wide-tree scenes contain 3,921 / 2,111 / 2,194 / 908 / 877 emitters | Also consider simple methods for thousands of lights; this sample is not a maximum scene-size guarantee. |
+| Five wide-tree scenes contain 3,921 / 2,111 / 2,194 / 908 / 877 emitters | These counts are not an upper bound; design for growth rather than approving O(regions * lights) storage from this sample. |
 | Four-way trees have unweighted mean leaf depths of about 8.9–11.0, with many two-child nodes | Four-way capacity does not imply a balanced depth of approximately log4(N), nor establish sampled traversal cost. |
 | Cube sampling fixed much of the old bounding-cone rejection | Retain it; do not attribute that improvement to topology or visibility guidance. |
 | Lookahead improved quality at extra cost; spatial regrouping had mixed results | Aggregate importance is a plausible bottleneck. These observations do not prove H-PLOC will help. |
@@ -83,14 +85,13 @@ score is not additive: a parent can receive a very different score from the sum 
 errors survive even if later levels and cube sampling are accurate. Better grouping, better aggregate weights,
 selective refinement, and avoiding aggregate decisions are distinct ways to address that approximation.
 
-## Alternatives under these conditions
+## Distinct design dimensions
 
 | Route | What changes | Final visibility rays per query | Main limitation |
 |-------|--------------|---------------------------------|-----------------|
 | One-sample BRDF/light MIS | Combine complementary proposals with the correct mixture density | One | Needs reverse light PMF and conditional density evaluation; does not make either proposal cheap. |
-| Spatial CDF/alias table | Precompute receiver-region light probabilities, then sample a flat distribution | One | Region approximation, table memory, and update cost; no automatic visibility knowledge. |
-| Fresh per-query RIS | Score several cheap light candidates at the actual receiver, then select one | One | Missing an important light in the candidate pool cannot be repaired by resampling. |
-| ReGIR-style candidate grid | Share candidate generation in world space and resample at the actual receiver | One | Shared-sample correlation, finite coverage, update ownership, and estimator-weight accounting. |
+| Receiver-region tree cut | Cache a bounded partition of the light tree, select a cluster, then a light | One | Per-query cluster scoring and region mismatch; no automatic visibility knowledge. |
+| RIS / ReGIR | Resample candidates and optionally share their generation in world space | One in the proposed one-final-sample usage | Depends on source coverage; complementary to a tree, not a direct replacement for it. |
 | Improved light tree | Better near-field weights, SG aggregates, or shared refinement | One if kept to one final sample | Still uses aggregate approximations; some published splitting methods actually trace multiple lights. |
 
 ### One-sample MIS: a useful control before replacing the structure
@@ -109,79 +110,87 @@ density for that hit. Area and solid-angle PDFs must be converted consistently, 
 small-projection branch. [PBRT's light sampler interface](https://www.pbr-book.org/4ed/Light_Sources/Light_Sampling)
 is a useful reference for the reverse-PMF requirement.
 
-### Spatial tables: include the simpler non-BVH baseline
+### Correcting the table and resampling classification
 
-A receiver cell owns a distribution over lights; it does not own those emitters. Precompute positive approximate
-weights and a CDF or alias table, then use its actual normalized probabilities for one light sample. Inaccurate
-cell weights affect variance, not the mean, provided support and PDF accounting remain correct. PBRT v3's
-[SpatialLightDistribution](https://github.com/mmp/pbrt-v3/blob/master/src/core/lightdistrib.cpp) demonstrates this
-principle with receiver-voxel distributions and a positive floor. Its CPU construction strategy is not a GPU
-implementation plan.
+A dense regional distribution needs O(RN) entries for R receiving regions and N lights. Merely replacing each
+light with every internal tree node still needs O(RN) storage. The useful change is a bounded selection of
+clusters per region, not a different name for the entries. The earlier full-leaf diagnostic and proposed spatial
+table also shared the same underlying scoring idea: one was a per-point reference, the other a cached regional
+approximation. They should not have been presented as independent algorithmic directions. MIS remains separate.
 
-With C active cells and N lights, a simple full scan costs O(CN) score evaluations per rebuild. As a scale
-illustration, C=1,024 and N=4,096 means about 4.2 million scores and 16 MiB for one FP32 weight table alone,
-before extra CDF/alias/scratch storage. This is arithmetic, not a timing prediction. A much smaller local list
-can use a global full-support component:
+For M independent uniform candidates among N lights, the chance of including one particular important light
+is 1-(1-1/N)^M, approximately M/N for small M/N. Resampling cannot select a missing candidate. This invalidates
+fixed-small-M global RIS as our scalable replacement; it does not establish a universal light-count limit for
+the RIS operator. A good tree or cluster proposal can supply its candidates.
+
+[ReGIR](https://cwyman.org/papers/rtg2-manyLightReGIR.pdf) shares candidate preparation in world space and reweights
+at actual receivers. It can be combined with that proposal, independently of choosing Morton or H-PLOC topology.
+The [RTXDI integration guide](https://github.com/NVIDIA-RTX/RTXDI/blob/main/Doc/Integration.md) distinguishes this
+machinery from screen-space ReSTIR. Coverage, correlation, and update costs still matter; the original chapter
+also reports slight bias. If this separate direction is pursued, derive the estimator weight rather than treating
+a reservoir weight as an exact PDF; [GRIS](https://research.nvidia.com/labs/rtr/publication/lin2022generalized/)
+provides the relevant framework. It is not a prerequisite for the cluster-weight research below.
+
+## Receiver regions and tree clusters
+
+### Share a bounded cut, with complete coverage
+
+For each active receiving region R, keep a cut K_R through the global light tree. Its nodes are disjoint subtrees
+whose leaves cover the complete emitter set. Nearby or difficult clusters may be split deeply, while distant
+compact clusters stay coarse. Reaching a size budget stops further splitting; it does not drop the remaining
+lights. Storing only the most important clusters would instead require a separate full-support proposal.
+
+With at most K clusters per region, regional storage is O(RK), in addition to the O(N) global tree. K is a memory
+and quality budget, not a scene-independent accuracy guarantee. A cut must not contain both a node and its
+descendant. Store references to global nodes, rather than copying their bounds and light populations per region.
+
+| Order | Stage | Purpose |
+|-------|-------|---------|
+| 1 | Region preparation | Select a bounded cut from the current tree, using valid representative shading locations; share the partition and receiver-independent terms. |
+| 2 | Cluster selection | At the actual point and normal, score the cut nodes and normalize their probabilities. |
+| 3 | Conditional light selection | Select a leaf inside the chosen cluster using a defined conditional sampler. |
+| 4 | Conditional cube sampling and tracing | Use the retained cube sampler, trace the true visibility once, and divide by the full sampling probability. |
 
 $$
-q(l\mid x)=(1-\epsilon)q_{\mathrm{cell}(x)}(l)+\epsilon q_{\mathrm{global}}(l),
-\qquad 0<\epsilon<1.
+q_l(x)=P(C\mid x,R)P(l\mid C,x),\qquad
+p(l,y\mid x)=q_l(x)p(y\mid l,x).
 $$
 
-Lights outside the local list remain reachable. Evaluate both terms for the selected light; a fixed spatial
-cutoff without the global component would lose illumination. List selection and its PMF lookup cost must also
-be counted. Start without visibility history. The cell size is a sampling decision, not automatically the
-existing 16³ extraction brick; a large cell can mix incompatible positions or normals just as before.
+[Adaptive Direct Illumination Sampling (2016)](https://cgg.mff.cuni.cz/~jaroslav/papers/2016-directillum/2016-vevoda-directillum-abstract.pdf)
+already uses regional cuts, query-dependent cluster probabilities, and power-proportional light selection
+inside the selected cluster. It samples one light; this is a closer precedent than adapting a multi-light
+lightcut estimator. Our variants could retain geometric traversal inside the chosen subtree, or use power-only
+selection if the cut resolves the important geometric variation. The latter saves importance evaluations but
+may lose quality within broad clusters; it needs a separate comparison.
 
-This is worth testing when many shading queries reuse a modest number of cells. It loses appeal when the
-number of active cells, light count, or rebuild frequency makes O(CN) work and storage too large. A full table
-is a diagnostic baseline, not a requirement to retain dense storage in production.
+Cut sharing removes repeated partition search, not necessarily repeated probability evaluation. Recomputing K
+weights per point plus a subtree traversal can cost more than the present root-to-leaf traversal. Sharing a
+single scalar PMF instead would save that work but reintroduce position/normal mismatch. Do not conflate these
+two tradeoffs. A receiver region is not automatically one 16³ extraction brick, and a point inside solid geometry
+is not a representative receiver. Which regions to use and the cut budget remain design questions.
 
-### Fresh RIS: multiple cheap scores, one expensive visibility test
+### Better cluster importance without changing the emitter mass
 
-Draw M light IDs from a known full-support source q0, evaluate an unoccluded receiver-dependent score a_l, and
-use weighted reservoir selection with w_i=a_i/q0(i). Only the selected light needs cube sampling and true
-visibility. For these independent initial candidates, use
+First isolate emission mass from geometric weighting. For the current diffuse scope, the desired unoccluded
+cluster score approximates a sum of emitter contributions, including their angular extent and receiver cosine.
+The present center/radius score can assign a large weight to empty portions of a bound or poorly represent a
+cluster crossing the receiver horizon. This affects cut probabilities as well as ordinary tree branching.
+
+Two different levels of improvement are worth distinguishing: a cheap correction to near-field distance
+weighting, and a richer representation of where the emitting energy actually lies. For the latter, global nodes
+could aggregate flux-weighted position and spread:
 
 $$
-\widehat L_{\mathrm{RIS}}=
-Z_{l^*}\frac{\sum_{i=1}^{M}w_i}{M a_{l^*}}.
+\Phi_C=\sum_l\Phi_l,\qquad
+\mu_C=\frac{\sum_l\Phi_l\mu_l}{\Phi_C},\qquad
+s_C^2=\frac{\sum_l\Phi_l(s_l^2+\|\mu_l-\mu_C\|^2)}{\Phi_C}.
 $$
 
-The normalized reservoir selection weight is not the selected light's marginal PDF. Keeping the estimator
-weight is essential; see [RIS](https://doi.org/10.2312/EGWR/EGSR05/139-146) and the later
-[GRIS treatment of weighted and correlated samples](https://research.nvidia.com/labs/rtr/publication/lin2022generalized/).
-An approximate score is acceptable if it remains positive wherever the true contribution can be nonzero.
-
-The proposed diagnostic is M=1/4/8, changing only candidate count first. M=1 reduces to the source sampler and
-checks the weight convention. Uniform or global-power candidates are simple controls, but with thousands of
-lights they can miss a nearby dominant light even at M=8. A local spatial source with a global component is
-therefore a separate candidate dimension. Running M complete light-tree traversals would mix better selection
-with M times the traversal work and is not the intended cheap alternative.
-
-Resampling does not discover visibility before the final ray. If the main error is occlusion rather than the
-unoccluded contribution estimate, increasing M without visibility information may give little benefit.
-
-### ReGIR: share candidate work when independent RIS is useful but costly
-
-[ReGIR](https://cwyman.org/papers/rtg2-manyLightReGIR.pdf) prepares multiple light reservoirs per world-space cell,
-then reweights candidates for the actual shading point. The grid stores candidate samples rather than assigning
-each emitter to one spatial bin. This differs from the current per-brick emitter subtrees. The
-[RTXDI integration guide](https://github.com/NVIDIA-RTX/RTXDI/blob/main/Doc/Integration.md) separates this initial
-candidate machinery from screen-space ReSTIR; the concept does not require adopting that SDK.
-
-Our proposed first version would refresh candidates without temporal reuse. Measure the amortization using
-C cells, S slots, K candidates per slot, and M candidates per shading query: approximately C*S*K+Q*M score
-evaluations for Q queries, plus storage and sampling overhead. A BVH may remain useful to build those pools
-without being traversed by every pixel.
-
-Do not copy the original chapter's approximate PDF treatment and claim an unbiased implementation: its results
-section explicitly reports slight bias. Use a derived weighted-resampling estimator, preserve coverage, and
-check convergence. Shared finite pools can produce correlated noise even with correct weights. A cell-center
-proposal also cannot distinguish opposite sides of a wall without additional receiver information. These are
-reasons to compare the simpler table and fresh RIS first, not reasons to assume ReGIR is unsuitable.
-
-### Retaining the tree: compare relevant improvements, not only builders
+Include each cube's finite extent in s_l². These moments are shared globally and can distinguish a thin energetic
+group from a mostly empty AABB. They still collapse multimodal or elongated arrangements; using them to estimate
+illumination requires a model, such as an SG approximation, with verified support and numerical behavior. They
+are not the blocker-distance moments used by the previous visibility field. More stored statistics alone do not
+establish a better estimator or an acceptable node size.
 
 [Real-Time Stochastic Lightcuts](https://www.cemyuksel.com/research/stochasticlightcuts/realtime_stochastic_lightcuts-preprint.pdf)
 offers a near-field heuristic that averages two separately normalized branch distributions based on minimum
@@ -189,12 +198,9 @@ and maximum cluster distances. It is not an average of the raw weights. A contro
 mass fixed and compare this with the original geometric score. Its published binary rule needs an explicit
 multi-child extension and zero-distance handling before use in our four-way sampler.
 
-The same work shares cut selection between pixels, while sampling independently inside cut nodes. That is a
-way to amortize refinement, distinct from repeating geometric lookahead per pixel. However, the published
-lightcut estimator uses multiple representative lights. [Adaptive Tree Splitting](https://fpsunflower.github.io/ckulla/data/many-lights-hpg2018.pdf)
-also creates multiple light samples. Choosing only one sample from a shared cut, with a full cut-to-leaf PMF or
-RIS weight, would be our adaptation and needs its own validation. It is not an already demonstrated one-ray
-replacement in either paper.
+The same work shares cut selection between pixels, but its lightcut estimator uses multiple representative
+lights. [Adaptive Tree Splitting](https://fpsunflower.github.io/ckulla/data/many-lights-hpg2018.pdf) likewise creates
+multiple light samples. Keep these separate from the single-light regional-cut precedent above.
 
 [The 2024 SG light-tree paper](https://yusuketokuyoshi.com/papers/2024/Hierarchical_Light_Sampling_with_Accurate_Spherical_Gaussian_Lighting.pdf)
 directly addresses inaccurate node importance with one light per traversal. Omnidirectional emitters do not
@@ -206,17 +212,65 @@ floats, so “more compact” than its own reference is not evidence of being sm
 Treat a diffuse-only adaptation as a candidate, not a high-confidence upgrade, and consult the
 [published errata](https://gpuopen.com/download/Hierarchical_Light_Sampling_with_Accurate_Spherical_Gaussian_Lighting_(errata).pdf).
 
+### Visibility: learn receiver-region / cluster behavior
+
+The relevant cache key is a receiving region plus a selected cut cluster. It represents illumination sampled
+from that cluster, rather than a universal blocker-distance distribution for the entire receiving brick.
+For our candidate, begin with unoccluded cluster geometry and investigate a learned visibility/contribution
+correction. Continue evaluating position and normal effects at the query; cached darkening across a wall must
+not be treated as a certificate that every point in the region is occluded.
+
+For a fixed conditional light sampler r_l=P(l|C,x), define Y_C=Z_l/r_l. The final estimate is Y_C/P(C|x,R), so
+
+$$
+P^*(C\mid x)\propto\sqrt{E[Y_C^2]}.
+$$
+
+Thus a visibility hit fraction alone is not generally the best cluster-selection weight. The conditional PMF
+and cube PDF matter when collecting contribution statistics; averaging raw hit brightness does not estimate
+the cluster's contribution. Statistics collected only when a cluster is chosen also reflect the receiver
+positions favored by that proposal, not automatically a uniform average over the region.
+
+[Bayesian Online Regression for Adaptive Direct Illumination Sampling (2018)](https://cgg.mff.cuni.cz/~jaroslav/papers/2018-bayesianlighting/2018-vevoda-bayesianlighting-paper.pdf)
+directly learns region/cluster statistics and derives the second-moment objective. It separates occlusion from
+visible contribution, models distance variation, and uses an unoccluded prior when data are sparse. Its CPU
+implementation amortizes distribution construction over 16 samples and explicitly flags the cost without
+splitting. This is a model reference, not evidence of affordable one-sample GPU execution here.
+
+For this project, first validate frozen statistics from representative actual receivers, then consider online
+updates. Preserve nonzero proposal support, retain the final true visibility ray, and consume a published
+statistics snapshot when sampling. A sample must not retroactively change its own probability. Initially this
+does not require a neural model, control variates, or the paper's full Bayesian fitting machinery.
+
+Splitting light clusters cannot repair a receiver region that combines two rooms. Conversely, refining receiver
+regions cannot distinguish visible and hidden lights inside an unresolved cluster. These are separate spatial
+resolution budgets; increasing SH order alone repairs neither lost distinction.
+
+### H-PLOC: provide clusters and account for cache stability
+
 H-PLOC changes topology and build scheduling, with merged-AABB area as its criterion. Its
 [ray-tracing evidence](https://gpuopen.com/download/HPLOC.pdf) cannot rank it above the receiver-aware alternatives
 for this sampling workload. If retained in experiments, preserve the agreed global cross-brick scope and
 separate construction, conversion, and sampling costs.
+
+Its relevant hypothesis here is that tighter cross-brick clusters make the same importance model or fixed-size
+regional cut more accurate. A light-sampling construction objective would instead care about contribution
+variation across receivers and the remaining conditional variance. Merely multiplying SAH by flux does not
+prove that objective is optimized. Receiver-conditioned cuts can express local grouping resolution while the
+global hierarchy stays receiver-independent.
+
+Topology and learned statistics also couple through identity. A rebuilt node index can denote a different light
+set; retaining its old regional statistics would attach observations to the wrong cluster. Stable-topology refit
+can preserve membership, whereas topology changes require cut regeneration and deliberate invalidation or
+mapping. No remapping mechanism is selected here. A faster builder that constantly destroys learned context
+may lose overall efficiency, so evaluate rebuild cadence and statistics lifetime alongside geometric quality.
 
 ## Directions not prioritized in the next comparison
 
 | Direction | Why it does not resolve the immediate question |
 |-----------|-----------------------------------------------|
 | More SH coefficients for the existing brick visibility field | They cannot recover shading-origin information lost by mixing positions across walls. |
-| Visibility-aware spatial tables or neural visibility | Potentially useful, but add a receiver/light visibility model, update work, and support protection. [Neural Visibility Cache](https://jcgt.org/published/0014/02/01/paper-lowres.pdf) is evidence for learning proposal visibility, not proof that online training is affordable in this Iris path. |
+| Dense per-light tables or neural visibility | Dense tables violate the selected estimation granularity. [Neural Visibility Cache](https://jcgt.org/published/0014/02/01/paper-lowres.pdf) supports learned proposal visibility, but does not establish that online neural training is affordable here; simple cluster statistics remain a different candidate. |
 | Full screen-space ReSTIR or denoising | Relevant later, but would change the initial-sampling experiment and confound its diagnosis. |
 | Merging adjacent emissive faces into larger lights | Could reduce N, but changes emitter identity, conditional sampling, and textured-emission handling. It exceeds the current cube-list comparison. |
 | STBN or low-discrepancy random-number remapping | A separate noise-distribution experiment; it does not repair an incorrect importance estimate or support. |
@@ -230,10 +284,13 @@ explicitly isolates them.
 | Order | Comparison | Question answered |
 |-------|------------|-------------------|
 | 1 | On selected real receivers, compare the current tree PMF with normalized sums of the exact same per-leaf score; then with per-cube unoccluded contribution estimates | Is the error primarily aggregate non-additivity, the leaf score, or something not modeled by unoccluded weights? Full scans are diagnostic, not proposed per-pixel production work. |
-| 2 | Independent BRDF, current light tree, and their one-sample MIS mixture | Can complementary coverage address the near-light versus dark-region tradeoff with one ray? |
-| 3 | Spatial table against the current tree; fresh RIS at M=1/4/8 if multiple candidates are allowed | Is direct receiver-based scoring better than serial aggregate decisions, and what does it cost? |
-| 4 | ReGIR-style sharing only if fresh RIS shows useful quality but too much query work | Does sharing amortize the work without objectionable correlation or cell mismatch? |
-| 5 | Controlled near-field weight change, SG adaptation, or H-PLOC based on the diagnosed error | Which specific remaining approximation is worth improving? These are separate candidates, not a combined patch. |
+| 2 | Fixed topology and emission mass; original versus a near-field weight candidate, then a separate SG candidate if justified | Does the cluster importance estimate improve enough to pay for its cost? |
+| 3 | Fixed weights and topology; per-query tree traversal versus a bounded regional cut | Does exposing appropriate clusters before selection justify partition storage and query scoring? |
+| 4 | Fixed cut and conditional sampler; frozen region/cluster visibility-contribution statistics versus unoccluded weights | Is remaining variance driven by occlusion, and does the receiving-region resolution preserve useful information? |
+| 5 | Same sampling policy; Morton versus global H-PLOC, including cut rebuilding and statistics invalidation | Does improved global grouping help after accounting for its complete downstream cost? |
+
+One-sample BRDF/light MIS is an orthogonal comparison once reverse probabilities can be evaluated. ReGIR may
+later consume a chosen tree/cluster proposal; standalone small-candidate RIS is not a prerequisite experiment.
 
 For a small diagnostic receiver set, conditional per-light samples with true visibility can also estimate
 E[Z_l²]. Comparing that target with the unoccluded references separates visibility/conditional-sampling limits
@@ -242,15 +299,15 @@ from hierarchy error. Do not infer that distinction from visible-hit rate alone.
 Use the following decision rules rather than treating the tree as a commitment:
 
 - If exact leaf-score sums are much better than the hierarchy, the present aggregate estimator is the main
-  suspect. Shared tables, RIS, better weights, or refinement all remain viable; this does not prove trees fail.
+  suspect. Better cluster weights and regional refinement address it; this does not prove trees fail.
 - If unoccluded per-cube selection is already good and topology changes are minor, H-PLOC has limited room to
   improve sampling quality. Cost or shared work becomes the more relevant comparison.
 - If visibility-aware references dominate all unoccluded proposals, changing tree topology or unoccluded
   resampling alone will not remove the main source of variance. Revisit receiver-conditioned visibility.
-- If a flat/shared method wins at equal total cost across the relevant scenes, remove per-query BVH traversal
-  from that path. A tree can still serve preprocessing; no requirement says it must remain the final sampler.
+- If a regional cut wins at equal total cost, replace repeated upper-tree decisions with that cut. Keep the
+  chosen conditional sampler inside each cluster; neither tree removal nor RIS follows automatically.
 - If active-cell counts or dynamic updates destroy amortization, keep a per-query hierarchy as a serious
-  contender. Representative counts from five scenes are insufficient to assume shared tables always fit.
+  contender. Representative counts from five scenes are insufficient to assume regional caches always fit.
 
 Acceptance needs both 1-spp and 32-frame outputs, separate dark-region and near-emitter errors, contribution
 tails, and low-frequency spatial error against a sufficiently converged reference for representative crops.
