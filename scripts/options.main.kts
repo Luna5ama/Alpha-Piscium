@@ -4368,13 +4368,25 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 lang { name = "Emission and Finite-Extent Tree Weights" }
                 lang(Locale.SIMPLIFIED_CHINESE) { name = "发光能量及有限尺寸树权重" }
             }
-            toggle("SETTING_DEBUG_LIGHT_CUBE", false) {
+            toggle("SETTING_DEBUG_LIGHT_CUBE", true) {
                 lang { name = "Projected Solid Angle Cube Sampling" }
                 lang(Locale.SIMPLIFIED_CHINESE) { name = "立方体投影立体角采样" }
             }
-            toggle("SETTING_DEBUG_LIGHT_LOOKAHEAD", true) {
-                lang { name = "Light Tree Two-Level Lookahead" }
-                lang(Locale.SIMPLIFIED_CHINESE) { name = "灯光树两层几何前瞻" }
+            slider("SETTING_DEBUG_LIGHT_ARITY", 4, listOf(2, 4, 8)) {
+                lang {
+                    name = "Light Tree Branching"
+                    comment = "Morton light-tree branching factor. All choices use direct child weights without geometric lookahead."
+                    2 value "Binary"
+                    4 value "Four-way"
+                    8 value "Eight-way"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "灯光树分叉数"
+                    comment = "Morton灯光树的分叉数。各选项均直接使用子节点权重，不做几何前瞻。"
+                    2 value "二叉"
+                    4 value "四叉"
+                    8 value "八叉"
+                }
             }
             toggle("SETTING_GI_USE_REFERENCE", 0, 0..3) {
                 lang {

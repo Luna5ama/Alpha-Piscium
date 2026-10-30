@@ -2,9 +2,27 @@
 
 语言：简体中文 | [English](../../en/modules/light-sampling-design.md)
 
-本文记录 2026-10-29 的 Alpha Piscium 灯光采样设计与首轮 CPU 实验：紧凑 light BVH，
-结合按 shading brick 共享的方向遮挡距离统计。初始 SH 候选没有表现出稳定统计收益，详见下方实验结果。
-目前尚未建立运行时 shader 路径，也未验证 GPU 收益。
+本文保留 2026-10-29 的 Alpha Piscium 灯光采样初始设计与 CPU 实验，并记录后续选定的运行时基线与暂缓事项。
+
+## 当前选择与 backlog（2026-10-30）
+
+运行时实验默认采用四叉 Morton 灯光树，保留投影立体角立方体采样与原有几何权重。
+`SETTING_DEBUG_LIGHT_ARITY` 提供二叉和八叉备选；三者均直接使用子节点权重，不做前瞻。
+直接光实验本身仍默认关闭。实现入口为 [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl)、
+[LightSamplingBuild](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl) 和
+[选项注册](../../../scripts/options.main.kts)。
+
+[五场景宽树实验](../../../experiments/light-sampling/20261030-wide-tree.json) 保存了本次选择依据的
+20 组质量采集与 40 次计时。四叉是本次选定的成本与质量折中，并非方差最低的方案：
+二叉两层前瞻在五个场景的两个统计亮度区域中，实测方差都更低。灯内立方体采样继续保留；
+visibility 引导与改进树权重仍不属于选定基线。Gilbert 已放弃并删除实现，历史结果和源码提交保留。
+
+Backlog：几何前瞻暂缓，移除其不再生效的选项。后续只有在明确比较采样质量与遍历成本时，
+才重新与选定的四叉基线对照。二叉前瞻实现仍可从提交 `921caa33` 与上述实验记录恢复。
+H-PLOC 接入仍处于讨论阶段，尚未实现 H-PLOC 构建器，也未建立收益结论。
+
+下文保留最初设计与 CPU 实验的上下文。其中暂缓实现的事项和验收限制描述的是当时的实验，
+与本节冲突时以当前选择为准。
 
 ## 范围与决定
 

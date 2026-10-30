@@ -7,9 +7,14 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Coords.glsl"
-// Experiment snapshots select the Morton prefix radix without adding a user option.
+#define LS_TREE_ARITY SETTING_DEBUG_LIGHT_ARITY
+#if LS_TREE_ARITY == 2
+#define LS_TREE_BITS 1
+#elif LS_TREE_ARITY == 4
+#define LS_TREE_BITS 2
+#else
 #define LS_TREE_BITS 3
-#define LS_TREE_ARITY (1 << LS_TREE_BITS)
+#endif
 
 const uint LS_INVALID = 0xffffffffu;
 layout(std430, binding = 14) buffer LightSamplingAudit {

@@ -2,9 +2,32 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-design.md)
 
-This records the Alpha Piscium light-sampling design and first CPU experiments of 2026-10-29: a compact light BVH
-combined with directional blocker-distance statistics shared by shading bricks. The initial SH candidate did not
-show stable statistical benefit; see the experiment results below. No runtime shader path or GPU benefit is established.
+This records the initial Alpha Piscium light-sampling design and CPU experiments of 2026-10-29,
+followed by the selected runtime baseline and deferred work.
+
+## Current selection and backlog (2026-10-30)
+
+The runtime experiment now defaults to a four-way Morton light tree with projected-solid-angle cube sampling
+and the original geometric weights. `SETTING_DEBUG_LIGHT_ARITY` retains binary and eight-way alternatives;
+all three use direct child weights without lookahead. The direct-lighting experiment itself remains disabled
+by default. The implementation is in [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
+[LightSamplingBuild](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl), and
+[option registration](../../../scripts/options.main.kts).
+
+The [five-scene wide-tree experiment](../../../experiments/light-sampling/20261030-wide-tree.json) contains the
+20 quality captures and 40 timing runs behind this choice. Four-way branching is the selected cost/quality
+tradeoff, not the lowest-variance result: binary two-level lookahead had lower measured variance in both reported
+luminance regions in all five scenes. Cube sampling is retained; visibility guiding and the revised weights
+remain outside the selected baseline. Gilbert was rejected and its implementation removed; historical results
+and source commits remain available.
+
+Backlog: geometric lookahead is deferred and its inactive option is removed. Revisit it only with an explicit
+sampling-quality versus traversal-cost comparison against the selected four-way baseline. The binary lookahead
+implementation remains recoverable from commit `921caa33` and the experiment record above. H-PLOC integration is
+under discussion; no H-PLOC builder or claimed benefit has been implemented.
+
+The sections below preserve the original design and CPU-experiment context. Their deferred implementation
+items and validation limits describe those earlier experiments unless superseded by this current selection.
 
 ## Scope and decisions
 

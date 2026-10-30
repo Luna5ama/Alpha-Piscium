@@ -5,7 +5,7 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = ROOT / 'builds/light-sampling/20261030-wide-tree'
+BUILD = ROOT / 'builds/light-sampling/20261030-arity-default'
 
 
 def main():
@@ -35,8 +35,8 @@ uint hash_pcg_11(uint value) { return value; }
 '''
     builder = builder_path.read_text().replace('#include "/techniques/debug/LightSampling.glsl"', '')
     checks = []
-    for bits in (2, 3):
-        variant = header.replace('#define LS_TREE_BITS 2', f'#define LS_TREE_BITS {bits}').replace('#define LS_TREE_BITS 3', f'#define LS_TREE_BITS {bits}')
+    for bits in (1, 2, 3):
+        variant = f'#define SETTING_DEBUG_LIGHT_ARITY {1 << bits}\n' + header
         for grid in (16, 32, 64):
             for stage, level in [(0, 0), (1, 0)] + [(2, n) for n in range(1, 3 * (grid.bit_length() - 1) + 1)]:
                 defines = f'#version 450\n#define SETTING_DEBUG_LIGHT_AUDIT\n#define SETTING_VOXEL_GRID_SIZE {grid}\n#define LS_BUILD_STAGE {stage}\n#define LS_REDUCE_LEVEL {level}\n#define LS_REDUCE_GROUPS 1\n'
