@@ -26,7 +26,8 @@ layout(local_size_x = 256) in;
 const ivec3 workGroups = ivec3(256, 1, 1);
 #elif LS_BUILD_STAGE == 1
 const ivec3 workGroups = ivec3(SETTING_VOXEL_POOL_SIZE, 1, 1);
-shared uint ls_scan[4096];
+shared uint ls_spatial[8192];
+shared uint ls_next;
 shared uint ls_base;
 shared uint ls_padded;
 #else
@@ -52,63 +53,75 @@ void main() {
     uint allocation = gl_WorkGroupID.x;
     if (allocation >= voxel_brickAllocCounter) return;
     uint lane = gl_LocalInvocationID.x;
+    // Low 13 bits hold occupancy; upper bits hold the compact output slot.
     for (uint i = lane; i < 4096u; i += 256u) {
         uint materialID = voxel_decodeMaterialID(voxel_materials[allocation * 4096u + i]);
-        ls_scan[i] = uint(ls_isEmitter(materialID));
+        ls_spatial[4096u + i] = uint(ls_isEmitter(materialID));
     }
     barrier();
-    // Blelloch exclusive scan keeps the compact leaves in block Morton order.
-    for (uint stride = 1u; stride < 4096u; stride <<= 1u) {
-        for (uint i = (lane + 1u) * stride * 2u - 1u; i < 4096u; i += 512u * stride) {
-            ls_scan[i] += ls_scan[i - stride];
+    for (uint width = 2048u; width != 0u; width >>= 1u) {
+        for (uint i = lane; i < width; i += 256u) {
+            uint node = width + i;
+            ls_spatial[node] = ls_spatial[node * 2u] + ls_spatial[node * 2u + 1u];
         }
         barrier();
     }
     if (lane == 0u) {
-        uint count = ls_scan[4095];
-        ls_padded = count == 0u ? 0u : 1u << uint(findMSB(count - 1u) + 1);
-        ls_base = atomicAdd(ls_allocatedNodes, ls_padded * 2u);
+        uint count = ls_spatial[1];
+        ls_padded = count;
+        ls_base = atomicAdd(ls_allocatedNodes, count * 2u);
         atomicAdd(ls_emitterCount, count);
-        if (ls_base + ls_padded * 2u > LS_LOCAL_NODE_CAPACITY) atomicAdd(ls_overflowCount, count);
-        ls_scan[4095] = 0u;
+        if (ls_base + count * 2u > LS_LOCAL_NODE_CAPACITY) atomicAdd(ls_overflowCount, count);
+        ls_spatial[1] |= 1u << 13u;
+        ls_next = 2u;
     }
     barrier();
     if (ls_padded == 0u || ls_base + ls_padded * 2u > LS_LOCAL_NODE_CAPACITY) return;
-    for (uint stride = 2048u; stride != 0u; stride >>= 1u) {
-        for (uint i = (lane + 1u) * stride * 2u - 1u; i < 4096u; i += 512u * stride) {
-            uint prefix = ls_scan[i - stride];
-            ls_scan[i - stride] = ls_scan[i];
-            ls_scan[i] += prefix;
+    uint base = LS_OUTER_NODE_COUNT + ls_base;
+    for (uint width = 1u; width < 4096u; width <<= 1u) {
+        for (uint i = lane; i < width; i += 256u) {
+            uint node = width + i;
+            if ((ls_spatial[node] & 8191u) == 0u) continue;
+            uint slot = ls_spatial[node] >> 13u;
+            uint left = ls_spatial[node * 2u];
+            uint right = ls_spatial[node * 2u + 1u];
+            if (left != 0u && right != 0u) {
+                uint child = atomicAdd(ls_next, 2u);
+                ls_spatial[node * 2u] |= child << 13u;
+                ls_spatial[node * 2u + 1u] |= (child + 1u) << 13u;
+            } else {
+                ls_spatial[node * 2u + uint(left == 0u)] |= slot << 13u;
+            }
         }
         barrier();
     }
-    uint base = LS_OUTER_NODE_COUNT + ls_base;
-    for (uint i = lane; i < ls_padded; i += 256u) ls_nodes[base + ls_padded + i] = ls_emptyNode();
-    memoryBarrierBuffer();
-    barrier();
     uint brickMorton = voxel_allocatedBricks[allocation];
     ivec3 gridOrigin = ((cameraPositionInt >> 4) - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
     ivec3 brickOrigin = gridOrigin + ivec3(morton3D_30bDecode(brickMorton) << 4u);
     for (uint i = lane; i < 4096u; i += 256u) {
+        if ((ls_spatial[4096u + i] & 8191u) == 0u) continue;
         uint materialID = voxel_decodeMaterialID(voxel_materials[allocation * 4096u + i]);
-        if (!ls_isEmitter(materialID)) continue;
         HardcodedPBR pbr = hardcodedpbr_decode(materialID);
         vec3 position = vec3(brickOrigin + ivec3(morton3D_30bDecode(i)));
         float mass = ldexp(pow(pbr.emissive, SETTING_EMISSIVE_PBR_VALUE_CURVE), pbr.emissiveMultiplier);
         #ifdef SETTING_DEBUG_LIGHT_WEIGHT
         mass = max(ls_emissionMass(materialID), mass * 0.000001);
         #endif
-        ls_nodes[base + ls_padded + ls_scan[i]] = LightSamplingNode(
+        uint slot = ls_spatial[4096u + i] >> 13u;
+        ls_nodes[base + slot] = LightSamplingNode(
             vec4(position, mass), vec4(position + 1.0, uintBitsToFloat(LS_LEAF_BIT | materialID))
         );
     }
     memoryBarrierBuffer();
     barrier();
-    for (uint width = ls_padded >> 1u; width != 0u; width >>= 1u) {
+    for (uint width = 2048u; width != 0u; width >>= 1u) {
         for (uint i = lane; i < width; i += 256u) {
-            uint node = base + width + i;
-            uint child = base + (width + i) * 2u;
-            ls_nodes[node] = ls_merge(ls_nodes[child], ls_nodes[child + 1u], child);
+            uint node = width + i;
+            uint left = ls_spatial[node * 2u];
+            uint right = ls_spatial[node * 2u + 1u];
+            if ((left & 8191u) == 0u || (right & 8191u) == 0u) continue;
+            uint child = base + (left >> 13u);
+            ls_nodes[base + (ls_spatial[node] >> 13u)] = ls_merge(ls_nodes[child], ls_nodes[child + 1u], child);
         }
         memoryBarrierBuffer();
         barrier();
