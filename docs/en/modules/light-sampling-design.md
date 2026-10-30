@@ -37,7 +37,15 @@ Default settings and lookahead-option removal are in `f9dc71bf`; the five-scene 
 had lower variance in both reported luminance regions in that round. A 32-frame variance window is not error
 acceptance against a high-sample reference.
 
-## Next topic: global H-PLOC clustering
+## Architecture reassessment (2026-10-30)
+
+The [architecture reassessment](light-sampling-reassessment.md) revisits whether per-query light-tree traversal
+fits this workload, comparing one-sample MIS, spatial probability tables, fresh RIS, ReGIR-style sharing, and
+improved tree weights. It separates topology from receiver-dependent importance and shared computation.
+Its proposed diagnostic comparisons recommend reconsidering H-PLOC's priority; they do not accept a replacement,
+change the baseline above, or start experiments. Global cross-brick clustering remains the agreed H-PLOC scope.
+
+## Global H-PLOC clustering candidate
 
 The confirmed scope allows global emitter clustering across 16³ brick boundaries. Bricks own emitter extraction,
 not the final light-tree grouping. This decision is recorded in experiment commit `5c022ba1`; no H-PLOC builder
