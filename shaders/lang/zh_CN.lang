@@ -740,6 +740,7 @@ value.SETTING_DEBUG_LIGHT_SAMPLING.0=关闭
 value.SETTING_DEBUG_LIGHT_SAMPLING.1=余弦BRDF
 value.SETTING_DEBUG_LIGHT_SAMPLING.2=灯光树
 option.SETTING_DEBUG_LIGHT_AUDIT=灯光采样PDF审计
+option.SETTING_DEBUG_LIGHT_CUBE=立方体投影立体角采样
 option.SETTING_DEBUG_LIGHT_LOOKAHEAD=灯光树两层几何前瞻
 option.SETTING_GI_USE_REFERENCE=蒙特卡洛参考
 option.SETTING_GI_USE_REFERENCE.comment=相机静止时以FP32累加初始GI候选的单样本估计，并用其均值替代降噪后的GI。冻结Li会去掉命中点的辐射缓存项；熔炉模式输出cos/(πq)。

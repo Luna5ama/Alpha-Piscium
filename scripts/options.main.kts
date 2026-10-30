@@ -4364,6 +4364,10 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 lang { name = "Light Sampling PDF Audit" }
                 lang(Locale.SIMPLIFIED_CHINESE) { name = "灯光采样PDF审计" }
             }
+            toggle("SETTING_DEBUG_LIGHT_CUBE", false) {
+                lang { name = "Projected Solid Angle Cube Sampling" }
+                lang(Locale.SIMPLIFIED_CHINESE) { name = "立方体投影立体角采样" }
+            }
             toggle("SETTING_DEBUG_LIGHT_LOOKAHEAD", true) {
                 lang { name = "Light Tree Two-Level Lookahead" }
                 lang(Locale.SIMPLIFIED_CHINESE) { name = "灯光树两层几何前瞻" }

@@ -2,6 +2,9 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #include "/techniques/debug/LightSampling.glsl"
+#ifdef SETTING_DEBUG_LIGHT_CUBE
+#include "/techniques/debug/LightSamplingCube.glsl"
+#endif
 #include "/techniques/voxel/SurfaceData.glsl"
 #define VOXEL_TRACE_TRUST_MATERIAL_ID
 #define VOXEL_EMISSIVE_CUBES a
@@ -25,6 +28,10 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     if (ls_nodes[1].boundsMinMass.w == 0.0) return vec3(0.0);
     float lightPdf;
     LightSamplingNode emitter = ls_select(origin, normal, rng, auditSlot, lightPdf);
+    float conditionalPdf;
+    #ifdef SETTING_DEBUG_LIGHT_CUBE
+    if (!ls_sampleCube(emitter, origin, normal, vec2(ls_random(rng), ls_random(rng)), direction, conditionalPdf)) return vec3(0.0);
+    #else
     vec3 delta = emitter.boundsMinMass.xyz + 0.5 - origin;
     float distanceSquared = dot(delta, delta);
     vec3 axis = distanceSquared > 0.0 ? delta * inversesqrt(distanceSquared) : normal;
@@ -36,6 +43,8 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     float phi = 6.28318530718 * ls_random(rng);
     vec3 tangent = normalize(cross(axis, abs(axis.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0)));
     direction = axis * cosineTheta + (tangent * cos(phi) + cross(axis, tangent) * sin(phi)) * sineTheta;
+    conditionalPdf = 1.0 / (6.28318530718 * coneWidth);
+    #endif
     float cosine = max(dot(normal, direction), 0.0);
     if (cosine == 0.0) return vec3(0.0);
     vec3 t0 = (emitter.boundsMinMass.xyz - origin) / direction;
@@ -46,10 +55,10 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     float farT = min(exitT.x, min(exitT.y, exitT.z));
     if (nearT < 0.0 || nearT > farT) return vec3(0.0);
     target = origin + direction * nearT;
-    weight = cosine * (2.0 * coneWidth) / lightPdf;
+    weight = cosine / (3.14159265359 * conditionalPdf * lightPdf);
     targetMaterial = floatBitsToUint(emitter.boundsMaxLink.w) & ~LS_LEAF_BIT;
     #ifdef SETTING_DEBUG_LIGHT_AUDIT
-    if (auditSlot != LS_INVALID) ls_audit[auditSlot * 4u + 2u] = vec4(direction, 1.0 / (6.28318530718 * coneWidth));
+    if (auditSlot != LS_INVALID) ls_audit[auditSlot * 4u + 2u] = vec4(direction, conditionalPdf);
     #endif
     #endif
 
