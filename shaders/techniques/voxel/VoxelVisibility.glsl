@@ -68,9 +68,11 @@ bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, float maxT, int maxS
         uint mortonPrefix = fullMorton >> (6u * uint(level - 1));
         uint maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (mortonPrefix >> 5u)];
         bool occupied = (maskPart & (1u << (mortonPrefix & 31u))) != 0u;
-        if (occupied && level != 1) {
-            level--;
-            continue;
+        while (occupied && level != 1) {
+            --level;
+            mortonPrefix = fullMorton >> (6u * uint(level - 1));
+            maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (mortonPrefix >> 5u)];
+            occupied = (maskPart & (1u << (mortonPrefix & 31u))) != 0u;
         }
         if (occupied) {
             uint allocID = voxel_brickAllocID[fullMorton >> 12u];
