@@ -6,6 +6,16 @@ This is a task prompt for the experiment session. Writing this document does not
 Use the latest scope at the top when executing. Earlier batch protocols remain below for provenance;
 do not repeat the completed full experiment.
 
+## Completion status (2026-10-31)
+
+This iteration is complete. On recovery, read the [accepted mappings and results](../../../experiments/light-sampling/20261031-nearfar-iteration.json)
+and [targeted findings](light-sampling-reassessment.md#half-space-default-and-targeted-near-far-iteration-2026-10-31); do not automatically rerun this prompt or the old seven-method matrix.
+Commit `7de5c430` implements and verifies the half-space A default. A + near/far in `78823b54` still regresses on both ls1 faces; `fa8ac641` provides completed per-light M2 for the actual light set and user pixels.
+One size-saturated near-distance correction was checked offline at fixed points, partially improving model 6 without beating A. There is no runtime model 7 and no automatic near/far default change.
+The final accepted ls1/2/4/5 set contains 12 raw 1-spp/32-total-frame qualities, 24 timings and matched references; the [comparator](../../../builds/light-sampling/20261031-nearfar-iteration/comparison-final.html) has 24 images.
+Earlier ls4 cohorts, mistaken 256-frame qualities and the initial derived error from unreachable-node mapping remain traceable and excluded without relabeling originals.
+Nonfinite RGB remains unrepaired. Results retain scope, artifacts, costs and reproducible analyzers. Items 1–5 below record the original authorization and execution boundaries.
+
 ## Acceptance and targeted iteration (2026-10-31)
 
 After reviewing the images, the user accepted half-space A as default and requested further research and iteration on

@@ -935,3 +935,86 @@ are limited to common complete pixels.
 All 70 native Scene/Sampler/Accumulation combinations and source-PNG/lossless-AVIF hashes were checked; scenes 1/3 use replacements.
 No browser connection was available, so interactive QA remains incomplete. These results cover independent diffuse-direct initial
 sampling rather than production GI, ReSTIR or dynamic-world acceptance.
+
+## Half-space default and targeted near-far iteration (2026-10-31)
+
+**Half-space A remains default; adding A does not resolve every local near/far regression.**
+The [tracked result](../../../experiments/light-sampling/20261031-nearfar-iteration.json) retains accepted mappings, raw hashes, input identity, regional statistics, timings and conditional point moments.
+The [final comparator](../../../builds/light-sampling/20261031-nearfar-iteration/comparison-final.html) and adjacent assets directory contain 24 primary images.
+Commit `7de5c430` separately changes the default; [effective-default evidence](../../../experiments/light-sampling/20261031-halfspace-default.json) comes from a target-Iris load without a model override.
+Commit `78823b54` applies the same conservative half-space rejection to both near and far branch weights, keeping the coefficient, distances, mass, four-way Morton tree and conditional emitter sampler fixed.
+Moment layouts are restricted explicitly to models 4/5, so model 6 remains 32B and the grid16 tree buffer is 8,650,784B.
+Commit `fa8ac641` replaces the old Room2/fixed-grid-slot [per-light diagnostic](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl) with
+[the current 3,921-light ls1 fixture and two user pixels](../../../experiments/light-sampling/20261031-ls1-point-fixture.json), checking actual material, normal, position and emitter count.
+Diagnostic alpha is now summed squared RGB, matching this experiment's variance metric. Preprocessed primary modes 1/2 are unchanged; older captures retain their actual source revision.
+
+Dedicated ls1, ls2, ls4 and ls5 run at native 1920×1080, diffuse direct initial only, with RC, guiding, reuse, ReSTIR, TAA, denoising and normal mapping disabled and PBR=0.
+The accepted set has 12 quality captures, 24 timings and 14 BRDF reference windows over seven crops. Quality is a raw 1-spp frame and 32 total consecutive frames, eight batches of four.
+There is no brightness cutoff. Statistics use complete finite pixels with matching geometric normal, material, albedo and depth across methods and references.
+
+### User regions and results
+
+Coordinates use the native image's bottom-left origin. The ls1 pillar and wall use the user pixels `(1400,550)` and `(120,700)`, with fixed boxes `[1384,534,32,32]` and `[104,684,32,32]`, both normal `-Z`, materials 3328/10938.
+Their world receiver positions are approximately `(146.459,150.155,87.997)` and `(159.756,151.405,82.997)`.
+The ls4 left birch-leaf crop selects only material 832, normal `+Y`, inside `[400,380,32,32]`, represented by `(166.253,70.003,-723.794)`; holes, background and other faces are separate.
+The ls5 small-wall crop is `[688,500,32,32]`, material 9965 and normal `-Z`, represented by `(310.690,12.417,259.997)`.
+These boxes use image semantics and common-surface coverage, not noise or error selection. They do not represent all foliage or wall faces.
+Actual-camera reconstruction agrees with independent GPU audit points within `3.8e-5` world units.
+
+Variance below is the regional mean of per-pixel summed RGB channel sample variances, not luminance variance. MSE is linear RGB error against matched two-window references; A=1.
+
+| Region | Common pixels | Near/far variance / A | A + near/far variance / A | Near/far MSE / A | A + near/far MSE / A |
+|---|---:|---:|---:|---:|---:|
+| ls1 pillar | 1024 | 1.714 | 1.656 | 1.585 | 1.628 |
+| ls1 wall | 844 | 1.178 | 1.193 | 1.192 | 1.229 |
+| ls1 floor guard | 32768 | 0.462 | 0.385 | 0.464 | 0.400 |
+| ls2 supplemental floor | 32768 | 1.854 | 0.659 | 1.796 | 0.684 |
+| ls4 birch-leaf face | 621 | 0.752 | 0.344 | 0.712 | 0.401 |
+| ls5 small wall | 1024 | 0.401 | 0.411 | 0.494 | 0.479 |
+| ls5 near-light guard | 32768 | 0.416 | 0.405 | 0.471 | 0.458 |
+
+Both ls1 regressions reproduce and remain after adding A. The original near/far ls2 floor regression improves. The selected ls4 leaf face improves; both near/far methods beat A on the selected ls5 small wall, so the older local regression did not reproduce there.
+The ls1 floor and ls5 near-light guards retain their gains. Reference-window differences are empirical uncertainty, not a convergence proof; differences of a few percent do not establish a stable ranking.
+
+### Probability attribution and one offline correction
+
+At the two user pixels, original near/far assigns 54.091%/63.007% of leaf PMF to lights fully behind the receiving hemisphere. A and model 6 eliminate this geometrically guaranteed zero-contribution probability.
+That alone does not solve variance. Two nonoverlapping 32-frame per-light reference windows collect 264×32 conditional samples per light and point, retaining true texture contributions and actual voxel visibility.
+Independent extraction checks `E[||Z||²] = ||E[Z]||² + 31/32 * sum(sampleVarianceRGB)` and predicts point variance as `sum(M2_l/q_l) - ||sum(E[Z_l])||²`. A, original near/far and A+near/far have no measured positive-M2 support failures.
+Only root-reachable nodes are indexed: stale reserved nodes initially caused two false support failures. Correcting the mapping matches independent extraction without changing native samples.
+
+Model 6 predicts about 1.81/1.30 times A's variance at the two points in both windows; point predictions and regional averages are different objects.
+At the pillar, selection probability on lights with measured positive M2 rises from A's 0.476 to model 6's 0.671 while variance increases: selecting a contributing light more often does not establish better contribution allocation.
+For example, light `(147,145,76)` falls from PMF 0.00935 under A to 0.00496; the other point's major light `(161,151,79)` falls from 0.02429 to 0.01920.
+
+When a sibling AABB contains the receiver, the near arm's zero-distance limit selects only containing children. The pure near proposal gives zero probability at one or more levels to 33/19 of the 44/19 lights with measured positive M2. The full mixture still retains support through its far arm.
+This motivates one parameter-free offline correction: replace the near denominator by `max(dmin², halfDiagonal², 0.25)`, reusing A's size-saturation floor while keeping the far arm, 1/2 coefficient, mass, topology and support rule fixed.
+Both windows predict about 21.1%/15.6% less variance than model 6, still about 1.425–1.428/1.095 times A. This is partial relief only: there is no GPU model 7, whole-ROI acceptance or measured cost for it.
+A separate offline hypothesis that chooses near/far only once for the whole path performs worse and is rejected. No coefficient sweep follows.
+
+### Cost and evidence limits
+
+Each entry averages the means of forward/reverse runs with 128 native GPU samples each. Build sums compute means for all 14 builder kernels.
+Initial includes tree selection, conditional cube sampling and true tracing; its difference is not isolated tree-query cost. Shared
+[`/pass/shadow/VoxelTreeBuilder`](../../../shaders/pass/shadow/VoxelTreeBuilder.comp.glsl) and
+[`/pass/shadow/VoxelTreePropagator`](../../../shaders/pass/shadow/VoxelTreePropagator.comp.glsl) costs are retained separately in the result, not presented as whole-frame time.
+Final ls4 has an additional source-load warmup before its immediate 128-frame metric warmup; all three methods use the same procedure within that scene.
+
+| Scene | A build / initial ms | Near/far build / initial ms | A + near/far build / initial ms | Sentinel max/min |
+|---|---:|---:|---:|---:|
+| ls1 | 0.144 / 4.683 | 0.141 / 4.578 | 0.141 / 4.928 | 1.054 |
+| ls2 | 0.163 / 3.003 | 0.168 / 2.836 | 0.162 / 2.940 | 1.033 |
+| ls4 | 0.258 / 4.025 | 0.262 / 3.969 | 0.267 / 4.233 | 1.038 |
+| ls5 | 0.126 / 2.089 | 0.123 / 2.364 | 0.117 / 2.386 | 1.033 |
+
+Observed build+initial ratios for model 6 versus A are approximately 1.050/0.980/1.051/1.130 in ls1/2/4/5.
+Builder code and layout are the same, so small build fluctuations are not attributed to weight-model work. Two orders do not establish the significance of small differences.
+
+ls4 produced different 5,776/5,885-light quality cohorts and a 908-light reference; these are retained and excluded. A later BRDF→A→BRDF same-scene control matched complete inputs and did not reproduce a systematic mode difference; the drift remains unattributed.
+Taking BRDF reference first, then three 32-frame qualities and six timings, finally matches 5,885 lights, 554,616 nonempty voxels, hash `22e453a1…`. Actual source and complete input are checked after each timing and after quality.
+Three mistaken 256-frame qualities are excluded without relabeling. The main comparison actually collected 21 qualities and 36 timings, accepting only 12/24; probes and point references are separate.
+
+The accepted raw quality still contains five nonfinite RGB pixel-sample events (15 channel events). Originals are retained and statistics use common complete pixels; no numerical-path repair is claimed.
+Source hashes, dimension combinations and Chrome headless rendering were checked for 24 PNG/lossless-AVIF images. Older images and the comparator are retained.
+The [regional/cost analyzer](../../../scripts/light_sampling_nearfar_analysis.py) and [conditional M2/offline-correction analyzer](../../../scripts/light_sampling_nearfar_reference.py) write new recomputed files by default, preserving native captures.
+This does not change production GI/ReSTIR, branching or emitter sampling. Near/far stays experimental; lookahead, cut, visibility guidance, MIS and H-PLOC remain in the backlog.

@@ -27,7 +27,7 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 | Item | Confirmed choice |
 |------|------------------|
 | Conditional emitter sampling | Retain projected-solid-angle cube sampling without repeating its adoption comparison |
-| Node weights | After visual review, the user accepted half-space A (32B) as default; near/far remains experimental, with A as the accepted baseline for investigating local regressions |
+| Node weights | Half-space A (32B) is implemented as default; near/far and A + near/far remain explicit experiments with unresolved local regressions |
 | Spatial grouping | Retain Morton spatial grouping; Gilbert was rejected and its experimental implementation removed |
 | Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
 | Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
@@ -51,7 +51,13 @@ distortion and near-field back-hemisphere weighting problems.
 
 ## Weight experiment status (2026-10-31)
 
-Current evidence uses the user-selected native 1920×1080 `light-sampling-1` through `light-sampling-5` presets.
+The latest [targeted iteration](../../../experiments/light-sampling/20261031-nearfar-iteration.json) compares A, original near/far and A + near/far in ls1/2/4/5,
+accepting 12 raw 1-spp/32-frame quality captures, 24 timings and matched two-window references. The [comparator](../../../builds/light-sampling/20261031-nearfar-iteration/comparison-final.html) contains 24 primary images.
+The default, candidate and point diagnostic are separately committed as `7de5c430`, `78823b54` and `fa8ac641`. Both user-selected ls1 faces still regress; the selected ls4 birch-leaf face improves, while the selected ls5 wall does not reproduce the earlier regression.
+Per-light M2 identifies zero-near-distance branching and probability mismatch among contributing lights. Size-saturated near distance provides partial offline point relief, remains worse than A, and has no new runtime model.
+See the [targeted findings](light-sampling-reassessment.md#half-space-default-and-targeted-near-far-iteration-2026-10-31) for regions, excluded input drift/incorrect frame counts, costs and nonfinite events.
+
+The earlier five-scene screening uses the user-selected native 1920×1080 `light-sampling-1` through `light-sampling-5` presets.
 The [tracked results](../../../experiments/light-sampling/20261031-weights-presets1080.json) retain 35 quality cases, 70 matching timings,
 five two-window references and 70 images. The [dedicated-preset findings](light-sampling-reassessment.md#dedicated-preset-rerun-1080p)
 separate crop error, full-image/fixed-ROI variance, input identity, full build/initial cost and limitations.
@@ -63,9 +69,8 @@ MSE and fixed-floor RGB variance are respectively 1.811 and 1.872 times A. These
 full-image variance does not resolve them. The user then identified three priority regressions: ls1's wall facing toward
 the area behind the camera, ls4's left-side grass/leaves, and ls5's small wall at middle-left. Scene 2's floor remains
 a supplemental comparison rather than replacing these three regions.
-Current near/far does not apply A's half-space rejection. First isolate A, existing near/far, and A plus near/far before changing
-distance or mixing parameters. See the [acceptance and targeted iteration prompt](light-sampling-weight-experiment-prompt.md#acceptance-and-targeted-iteration-2026-10-31)
-for entry points, regression locations, and checks. The [legacy 720p supplement](../../../experiments/light-sampling/20261031-weights-results.json)
+Original near/far model 3 does not apply A's half-space rejection. The model-6 controlled comparison and subsequent point validation are now complete and do not support automatically replacing A.
+See the [completed targeted-iteration prompt](light-sampling-weight-experiment-prompt.md#completion-status-2026-10-31) for implementation entry points and original authorization. The [legacy 720p supplement](../../../experiments/light-sampling/20261031-weights-results.json)
 stays separate; its dark-region regressions are not relabeled as current dedicated-scene results.
 Observed input drift was handled with matching-cohort recaptures, without diagnosing its cause. Rare nonfinite RGB remains
 unrepaired; statistics apply to common complete pixels. This run does not retroactively validate old 1080p arity/lookahead
