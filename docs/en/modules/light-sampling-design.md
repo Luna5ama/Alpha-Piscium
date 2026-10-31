@@ -35,8 +35,10 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 | H-PLOC | On hold at the user's request; retain the global cross-brick scope if reopened |
 
 These choices apply to the experimental path; the direct-lighting experiment itself remains disabled by default.
-The experiment chat owns implementing and verifying the half-space default and recording completion. Earlier default
-settings and lookahead-option removal are in `f9dc71bf`; the five-scene wide-tree experiment record is in
+The option generator now implements half-space A as default. Target Iris reports model 1 with default origin,
+four-way branching, cube sampling enabled, and 32B nodes. The [default validation record](../../../experiments/light-sampling/20261031-halfspace-default.json)
+retains source snapshots, artifact hashes and a 63-point PDF audit. The disabled experiment configuration separately passed compilation;
+this does not retroactively change the methods used in earlier captures. Earlier default settings and lookahead-option removal are in `f9dc71bf`; the five-scene wide-tree experiment record is in
 `3e7f66b9`. Four-way branching is the selected tradeoff, not the lowest-variance result: binary two-level lookahead
 had lower variance in both reported luminance regions in that round. A 32-frame variance window is not error
 acceptance against a high-sample reference.
