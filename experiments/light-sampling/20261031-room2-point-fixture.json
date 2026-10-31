@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "scope": "Room2 fixed-point reference only; not a light proposal or production table",
+  "source_revision": "4c5b33c04ab93a2de7b2b4b58ff63cfa6ac8e675",
+  "source_tree": "builds\\light-sampling\\20261031-weights\\near-cohort\\room2\\original\\tree.bin",
+  "source_tree_sha256": "8fb9fc41f2cbdf07f9ccaf52983192d9583e0e07c9e4277b44e1b60d6a35bbb0",
+  "texture": "shaders\\textures\\light_sampling_room2_reference.bin",
+  "texture_sha256": "f191ef5457cd11731365a6c632371da66e8873290ceb5cad4cc4ef02945a3967",
+  "layout": "853 x 1 RGBA32I little-endian int32: cube min x,y,z,material ID; sorted by min,material,mass",
+  "leaf_count": 853,
+  "leaf_mass_sha256": "5ce97594ff7aabf7bdcf0bfaa0c9a6964407f3fad98657a5748f686c855d46ef",
+  "topology_sha256": "b32b53bd172e4e49555fb5d67c6c28504dec000cae516ee2f84513f313929616",
+  "receiver_slots": [
+    54,
+    2
+  ],
+  "mode": 3,
+  "output": "RGB = conditional direct linear sRGB Z_l without light PMF division; alpha = luminance(Z_l)^2. All zero outcomes retained. Full screen flattened row-major index: light=index%N, point=(index//N)%2; only first floor(width*height/(2*N))*2*N pixels used.",
+  "audit": "First two records (4 vec4 each): origin/slot; normal/samples per light per frame; working-space albedo/receiver flag; raw pixel xy/light count/mode marker3. Audit writes are unique even when audit atomics off.",
+  "acceptance": "Exact leaf/mass identity and topology must match source tree before/after acquisition; receiver origins/normals must match primary audit. Preserve nonfinite/incomplete samples and reference uncertainty."
+}

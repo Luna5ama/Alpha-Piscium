@@ -683,3 +683,12 @@ Counters 0..9 are exclusive terminal outcomes; counter 10 separately counts nonf
 The first target-Iris moment audit failed in basilica (node 9210: stored variance 3.5045831, child-derived 3.4910553). The follow-up copies empty merges exactly, uses both positive mass fractions directly, and anchors the mean at the heavier child. This avoids amplifying reciprocal/subtraction error by absolute world-position squared; audit tolerances stay unchanged. GPU revalidation is required; the failed capture remains evidence, not an accepted candidate.
 
 The half-space margin also bounds the absolute products inside the normal/delta dot product, not only its possibly cancelled result. A float32 counterexample had true front extent +4.364748e-6 but computed -2.503395e-6; the earlier result-based margin could falsely reject it. The corrected product-sum margin retains support. A/B captures and timings use the corrected guard; other model code is unchanged.
+
+The room2 near-light regression triggers a small real-point reference. Experiment mode 3 in the same
+[initial pass](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl) uses a
+[reference texture contract](../../../experiments/light-sampling/20261031-room2-point-fixture.json) with stable light identities,
+sampling every light equally at audit points 54 and 2. It retains the original conditional cube sampler, tracing and texture
+emission numerator, sets the light-selection probability to 1, and outputs linear sRGB conditional contribution Z_l and its
+squared luminance. Analysis must check the actual receivers, light set, topology, nonfinite and missing samples, and report
+means, second moments and uncertainty. This mode is for fixed-point diagnosis rather than full-image lighting; it neither
+learns nor applies visibility guiding. Normal BRDF and tree modes retain equivalent preprocessed code.

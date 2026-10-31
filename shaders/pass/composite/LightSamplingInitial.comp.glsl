@@ -13,8 +13,15 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "/util/Coords.glsl"
 
 layout(rgba32f) uniform writeonly image2D uimg_lightSampling;
+#if SETTING_DEBUG_LIGHT_SAMPLING == 3
+uniform isampler2D usam_lightSamplingReference;
+#endif
 
-vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint auditSlot, out uint reason) {
+vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint auditSlot, out uint reason
+    #if SETTING_DEBUG_LIGHT_SAMPLING == 3
+    , LightSamplingNode fixedEmitter
+    #endif
+) {
     reason = 0u;
     vec3 direction;
     float weight = 1.0;
@@ -26,10 +33,15 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     vec3 tangent = normalize(cross(normal, abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0)));
     direction = tangent * (radius * cos(phi)) + cross(normal, tangent) * (radius * sin(phi)) + normal * sqrt(1.0 - radius * radius);
     #else
+    #if SETTING_DEBUG_LIGHT_SAMPLING == 3
+    float lightPdf = 1.0;
+    LightSamplingNode emitter = fixedEmitter;
+    #else
     if (ls_nodes[1].boundsMinMass.w == 0.0) return vec3(0.0);
     float lightPdf;
     LightSamplingNode emitter = ls_select(origin, normal, rng, auditSlot, lightPdf);
     if (lightPdf == 0.0) return vec3(0.0);
+    #endif
     float conditionalPdf;
     #ifdef SETTING_DEBUG_LIGHT_CUBE
     if (!ls_sampleCube(emitter, origin, normal, vec2(ls_random(rng), ls_random(rng)), direction, conditionalPdf)) { reason = 1u; return vec3(0.0); }
@@ -82,7 +94,7 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     // A primary point inside an emissive cube proxy has no surface entry.
     // Light sampling also assigns zero to this case (negative nearT).
     if (dot(hit.normal, hit.normal) == 0.0) { reason = 6u; return vec3(0.0); }
-    #if SETTING_DEBUG_LIGHT_SAMPLING == 2
+    #if SETTING_DEBUG_LIGHT_SAMPLING == 2 || SETTING_DEBUG_LIGHT_SAMPLING == 3
     if (hit.materialID != targetMaterial || distance(hit.hitPos, target) > 0.01) { reason = 7u; return vec3(0.0); }
     #endif
     #ifdef SETTING_DEBUG_LIGHT_AUDIT
@@ -94,6 +106,47 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     return contribution;
 }
 
+#if SETTING_DEBUG_LIGHT_SAMPLING == 3
+void main() {
+    voxel_initShared();
+    if (any(greaterThanEqual(texelPos, uval_mainImageSizeI))) return;
+    uint index = uint(texelPos.x + texelPos.y * uval_mainImageSizeI.x);
+    uint lights = uint(textureSize(usam_lightSamplingReference, 0).x);
+    uint groups = lights * 2u;
+    uint samples = uint(uval_mainImageSizeI.x * uval_mainImageSizeI.y) / groups;
+    vec4 result = vec4(0.0);
+    if (index < groups * samples) {
+        uint light = index % lights;
+        uint point = (index / lights) % 2u;
+        uint slot = point == 0u ? 54u : 2u;
+        ivec2 pixel = (ivec2(int(slot % 8u), int(slot / 8u)) * 2 + 1) * uval_mainImageSizeI / 16;
+        vec3 origin = vec3(0.0), normal = vec3(0.0), albedo = vec3(0.0);
+        bool receiver = ls_loadReceiver(pixel, origin, normal, albedo);
+        if (light == 0u && index < groups) {
+            ls_audit[point * 4u] = vec4(origin, float(slot));
+            ls_audit[point * 4u + 1u] = vec4(normal, float(samples));
+            ls_audit[point * 4u + 2u] = vec4(albedo, receiver ? 1.0 : 0.0);
+            ls_audit[point * 4u + 3u] = vec4(vec2(pixel), float(lights), 3.0);
+        }
+        if (receiver) {
+            ivec4 record = texelFetch(usam_lightSamplingReference, ivec2(int(light), 0), 0);
+            LightSamplingNode emitter = ls_emptyNode();
+            emitter.boundsMinMass = vec4(vec3(record.xyz), 1.0);
+            emitter.boundsMaxLink = vec4(vec3(record.xyz) + 1.0, uintBitsToFloat(uint(record.w) | LS_LEAF_BIT));
+            uint rng = hash_pcg_11(uint(texelPos.x) + uint(texelPos.y) * 65536u) ^ hash_pcg_11(uint(frameCounter));
+            uint reason;
+            vec3 contribution = ls_evaluate(origin, normal, albedo, rng, LS_INVALID, reason, emitter);
+            result.rgb = colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_COLORSPACES_SRGB, contribution);
+            float luminance = dot(result.rgb, vec3(0.2126, 0.7152, 0.0722));
+            result.a = luminance * luminance;
+        } else {
+            result = vec4(uintBitsToFloat(0x7FC00000u));
+        }
+    }
+    if (ls_overflowCount != 0u) result = vec4(uintBitsToFloat(0x7FC00000u));
+    imageStore(uimg_lightSampling, texelPos, result);
+}
+#else
 void main() {
     voxel_initShared();
     if (any(greaterThanEqual(texelPos, uval_mainImageSizeI))) return;
@@ -135,3 +188,4 @@ void main() {
     if (ls_overflowCount != 0u) result.rgb = vec3(uintBitsToFloat(0x7FC00000u));
     imageStore(uimg_lightSampling, texelPos, result);
 }
+#endif
