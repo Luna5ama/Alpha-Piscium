@@ -4351,7 +4351,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     0 value "Off"
                     1 value "Cosine BRDF"
                     2 value "Light Tree"
-                    3 value "Room2 per-light reference"
+                    3 value "Fixture per-light reference"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "漫反射直接光采样实验"
@@ -4359,7 +4359,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     0 value "关闭"
                     1 value "余弦BRDF"
                     2 value "灯光树"
-                    3 value "Room2逐灯定点参考"
+                    3 value "固定输入逐灯参考"
                 }
             }
             toggle("SETTING_DEBUG_LIGHT_AUDIT", false) {

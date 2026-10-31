@@ -1,0 +1,63 @@
+{
+  "schema": 2,
+  "scope": "Dedicated light-sampling-1 actual two user pixels only, mode3 diagnostic; not a runtime proposal table",
+  "source_revision": "78823b540d1164190cd86566f783707ee63c2c8f",
+  "source_tree": "builds/light-sampling/20261031-nearfar-iteration/candidate-runtime-evidence/ls1-a-quality/iris_ssbo_12.bin",
+  "source_tree_sha256": "99e4daf45cbc150f419c4860b3551d4d4a45da6a99d64cd69c79cde98492c27a",
+  "leaf_count": 3921,
+  "leaf_mass_sha256": "7e360e543208fe2d8fa3c63b759943e87d6877331d24d3c197f8e478e97bc87f",
+  "topology_sha256": "e1f3321bb154f27c559b268edb868c6095d730f8fd2b412247ace7daa19be8f9",
+  "texture": "shaders/textures/light_sampling_reference.bin",
+  "texture_sha256": "c4c6f86c3cb050ee614846e1a94e55ee6ae7e634a5cf80917f263cddf63c1f56",
+  "layout": "3925x1 little-endian RGBA32I: 2 header records per receiver then sorted x,y,z,material light records; position header xyz float32 bits, w octSnorm2x16 normal bits",
+  "receivers": [
+    {
+      "raw_xy": [
+        1400,
+        550
+      ],
+      "display_xy": [
+        1400,
+        530
+      ],
+      "material_id": 3328,
+      "normal": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "origin": [
+        146.4592093383915,
+        150.1549411551224,
+        87.99700074001129
+      ],
+      "view_z": -5.8387322425842285
+    },
+    {
+      "raw_xy": [
+        120,
+        700
+      ],
+      "display_xy": [
+        120,
+        380
+      ],
+      "material_id": 10938,
+      "normal": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "origin": [
+        159.75595771218676,
+        151.4045956919311,
+        82.99700335081815
+      ],
+      "view_z": -4.702076435089111
+    }
+  ],
+  "receiver_validation": "Actual material, origin within .005 world units, normal cosine >.999, and exact emitter count; host must additionally verify full leaf/mass/topology and voxel identities",
+  "output": "RGB conditional linear-sRGB Z_l with lightPdf=1; alpha dot(Z_l,Z_l), the summed RGB second moment. Retain zero outcomes. Flatten index: light=index%N, point=(index//N)%2, samples=floor(width*height/(2*N)); trailing pixels zero.",
+  "audit": "First2 records: origin/material; normal/per-frame conditional samples; albedo/receiver-valid; rawpixel xy/lightcount/mode3. Compare actual origins/normals/albedo to primary sampling inputs.",
+  "acceptance": "Full current light and nonemissive input identity before/after, receiver validation, common complete raw samples, nonfinite counts, two disjoint windows. Infer sum(M2/q)-norm(sum(mean))^2, not mathematical convergence or measured whole-ROI error."
+}

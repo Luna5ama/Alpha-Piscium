@@ -111,25 +111,32 @@ void main() {
     voxel_initShared();
     if (any(greaterThanEqual(texelPos, uval_mainImageSizeI))) return;
     uint index = uint(texelPos.x + texelPos.y * uval_mainImageSizeI.x);
-    uint lights = uint(textureSize(usam_lightSamplingReference, 0).x);
+    // Two receiver headers (pixel/material/count, position/normal) precede the light list.
+    uint lights = uint(textureSize(usam_lightSamplingReference, 0).x) - 4u;
     uint groups = lights * 2u;
     uint samples = uint(uval_mainImageSizeI.x * uval_mainImageSizeI.y) / groups;
     vec4 result = vec4(0.0);
     if (index < groups * samples) {
         uint light = index % lights;
         uint point = (index / lights) % 2u;
-        uint slot = point == 0u ? 54u : 2u;
-        ivec2 pixel = (ivec2(int(slot % 8u), int(slot / 8u)) * 2 + 1) * uval_mainImageSizeI / 16;
+        ivec4 receiverHeader = texelFetch(usam_lightSamplingReference, ivec2(int(point * 2u), 0), 0);
+        ivec4 receiverExpected = texelFetch(usam_lightSamplingReference, ivec2(int(point * 2u + 1u), 0), 0);
+        ivec2 pixel = receiverHeader.xy;
         vec3 origin = vec3(0.0), normal = vec3(0.0), albedo = vec3(0.0);
         bool receiver = ls_loadReceiver(pixel, origin, normal, albedo);
+        uint materialID = texelFetch(usam_gbufferSolidData1, pixel, 0).a >> 16u;
+        receiver = receiver && materialID == uint(receiverHeader.z) && lights == ls_emitterCount
+            && lights == uint(receiverHeader.w)
+            && distance(origin, intBitsToFloat(receiverExpected.xyz)) < 0.005
+            && dot(normal, nzpacking_unpackNormalOct32(uint(receiverExpected.w))) > 0.999;
         if (light == 0u && index < groups) {
-            ls_audit[point * 4u] = vec4(origin, float(slot));
+            ls_audit[point * 4u] = vec4(origin, float(materialID));
             ls_audit[point * 4u + 1u] = vec4(normal, float(samples));
             ls_audit[point * 4u + 2u] = vec4(albedo, receiver ? 1.0 : 0.0);
             ls_audit[point * 4u + 3u] = vec4(vec2(pixel), float(lights), 3.0);
         }
         if (receiver) {
-            ivec4 record = texelFetch(usam_lightSamplingReference, ivec2(int(light), 0), 0);
+            ivec4 record = texelFetch(usam_lightSamplingReference, ivec2(int(light + 4u), 0), 0);
             LightSamplingNode emitter = ls_emptyNode();
             emitter.boundsMinMass = vec4(vec3(record.xyz), 1.0);
             emitter.boundsMaxLink = vec4(vec3(record.xyz) + 1.0, uintBitsToFloat(uint(record.w) | LS_LEAF_BIT));
@@ -137,8 +144,7 @@ void main() {
             uint reason;
             vec3 contribution = ls_evaluate(origin, normal, albedo, rng, LS_INVALID, reason, emitter);
             result.rgb = colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_COLORSPACES_SRGB, contribution);
-            float luminance = dot(result.rgb, vec3(0.2126, 0.7152, 0.0722));
-            result.a = luminance * luminance;
+            result.a = dot(result.rgb, result.rgb);
         } else {
             result = vec4(uintBitsToFloat(0x7FC00000u));
         }
