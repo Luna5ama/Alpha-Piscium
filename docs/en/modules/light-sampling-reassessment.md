@@ -4,7 +4,8 @@ Language: English | [简体中文](../../sc/modules/light-sampling-reassessment.
 
 Research record, 2026-10-30 through 2026-10-31. This extends the [design record](light-sampling-design.md), following the request to
 reconsider light BVHs and alternative sampling methods from first principles. It records research and proposed
-comparisons, not an implemented replacement or authorization to start experiments.
+comparisons separately from the subsequent runtime results. Unimplemented cuts, visibility guiding and H-PLOC remain
+candidates, without automatic authorization to start them.
 
 ## Assessment
 
@@ -652,14 +653,14 @@ order is not identity; a refreshed light list must not reinterpret a cached inde
 rebuild from the same-frame list and publish before queries. Temporal reuse would require deliberate mapping
 or invalidation. This is an ownership requirement, not a reason to introduce a general cache framework now.
 
-This round updates documentation and adds an offline review script and evidence record. No runtime shader,
+The pre-implementation review above updated documentation and added an offline review script and evidence record. At that point no runtime shader,
 setting, emitter representation, or sampling default was changed; no old runtime code was removed and no new
 GPU captures or timings were made.
 
 
 ## Weight experiment formula contract (2026-10-31)
 
-Implementation preparation, not measured acceptance. Model IDs: 0 original, 1 half-space A, 2 cosine B,
+These formulas are implemented; measured scope and conclusions are in the [runtime experiment](#runtime-weight-experiment-2026-10-31). Model IDs: 0 original, 1 half-space A, 2 cosine B,
 3 near/far probability mixture, 4 moment sphere, 5 diffuse SG. Leaf emission mass and the target contribution stay fixed.
 A/B retain the specified formulas; classify a box as behind only when h+e is below a conservative floating-point
 margin 1e-6*(dot(abs(normal),abs(delta))+e+1). An all-zero child sum returns a zero sample without retry; audit includes its probability.
@@ -676,11 +677,12 @@ Use the Section 4 endpoint interpolation and the corrected t(k) rational fit fro
 integrals handle k<0.05. At zero distance the SG is isotropic. An explicit lower bound
 B/(2*pi)>=1e-6/(1+k) preserves numerical support at sharpness/underflow extremes; this is part of the proposal,
 not a modification of evaluated radiance. Actual child probabilities and their full path product are used by the estimator.
-Independent hemisphere quadrature must quantify the SG approximation error before GPU sampling acceptance.
+Independent hemisphere quadrature checked 210 parameter points, with maximum normalized absolute error 0.00086122.
+This measures the SG integral approximation, not cluster-importance accuracy.
 The audit uses 8x8 unique bin-center pixels at each actual resolution; 64 records plus 16 uint diagnostic counters.
 Counters 0..9 are exclusive terminal outcomes; counter 10 separately counts nonfinite final RGB values.
 
-The first target-Iris moment audit failed in basilica (node 9210: stored variance 3.5045831, child-derived 3.4910553). The follow-up copies empty merges exactly, uses both positive mass fractions directly, and anchors the mean at the heavier child. This avoids amplifying reciprocal/subtraction error by absolute world-position squared; audit tolerances stay unchanged. GPU revalidation is required; the failed capture remains evidence, not an accepted candidate.
+The first target-Iris moment audit failed in basilica (node 9210: stored variance 3.5045831, child-derived 3.4910553). The follow-up copies empty merges exactly, uses both positive mass fractions directly, and anchors the mean at the heavier child. This avoids amplifying reciprocal/subtraction error by absolute world-position squared; audit tolerances stay unchanged. The correction subsequently passed target-Iris auditing with unchanged tolerances; the failed capture remains evidence, not an accepted candidate.
 
 The half-space margin also bounds the absolute products inside the normal/delta dot product, not only its possibly cancelled result. A float32 counterexample had true front extent +4.364748e-6 but computed -2.503395e-6; the earlier result-based margin could falsely reject it. The corrected product-sum margin retains support. A/B captures and timings use the corrected guard; other model code is unchanged.
 
@@ -692,3 +694,121 @@ emission numerator, sets the light-selection probability to 1, and outputs linea
 squared luminance. Analysis must check the actual receivers, light set, topology, nonfinite and missing samples, and report
 means, second moments and uncertainty. This mode is for fixed-point diagnosis rather than full-image lighting; it neither
 learns nor applies visibility guiding. Normal BRDF and tree modes retain equivalent preprocessed code.
+
+
+## Runtime weight experiment (2026-10-31)
+
+The [results and provenance](../../../experiments/light-sampling/20261031-weights-results.json) and
+[offline comparator](../../../builds/light-sampling/20261031-weights/comparison.html) contain seven methods in five scenes.
+The comparator has native Scene, Sampler and Accumulation dimensions, with 70 combinations. Source images were inspected;
+no browser connection was available, so interactive QA remains incomplete. Raw dumps, same-frame tree/audit captures,
+receipts, hashes and rejected early cohorts remain in the [run directory](../../../builds/light-sampling/20261031-weights/).
+Work stays in wt4 on `2.0/light-sampling`; `2.0/dev` is untouched. Original weights and experiment-off remain the defaults.
+
+### Protocol and numerical scope
+
+The main matrix uses the five specified 1280×720 presets, 256 quality warmup frames, linear 1 spp and 32 consecutive frames
+of mean, variance and valid counts. All seven methods share complete light positions, material IDs, original mass and
+four-way topology within each scene. Final populations are 1041, 853, 1093, 782 and 1874.
+Each scene has two matching-light-set 1024-frame BRDF crop-reference windows. Quality and references share complete pixels;
+missing and nonfinite samples are zero. Window differences indicate empirical uncertainty, not independence or full convergence.
+The earlier nearly black room2 reference remains inconclusive; a separate matching near-light reference replaces it for analysis.
+
+Main quality uses `4c5b33c0`; unaffected basilica methods retain their actual `ca93e3b3` provenance rather than new labels.
+The fixed-point path uses `f5f59c1b`. Normal modes 1/2 have identical preprocessed tokens across all eight audit/cube combinations
+after that addition. Static checks cover the initial 918 combinations plus 306 for each relevant correction; these do not
+replace target Iris. Runtime covers six weights, BRDF, 48B binary/eight-way branches and an actual 1080p audit.
+Grid32/64 capacities have layout-arithmetic and static-branch checks, without a quality matrix. At 1080p the audit has 64 unique
+writers and maximum slot63, with 63 selected-light records. This does not retroactively validate old 1080p image quality.
+
+Full PMFs include zero outcomes; selected-leaf PMFs and conditional cube PDFs are independently reconstructed.
+Maximum main-matrix relative errors are 0.002157 and 0.0000873. The former is SG, with double-precision erf on the host versus
+float32 erfc approximation in the shader; other leaf-PMF errors stay below 1e-6. Independent SG hemisphere quadrature at
+210 points has maximum normalized absolute error 0.00086122; the float32-expression comparison gives 0.00086133.
+Independent review of all 35 trees passes complete leaf identity, AABB merges and same-frame audits. Direct all-leaf recomputation
+of 48B roots gives maximum mean error 3.37e-5 and relative variance error 3.97e-7. The initial moment-merge failure and half-space
+cancellation counterexample remain preserved; both were repaired and rechecked. The old option that also changed leaf mass
+was removed and replaced with a separate weight-model selector.
+
+### Build and sampling cost
+
+The table ranges over five scene means, each averaging forward/reverse stage means, in ms. Build sums the means of all
+14 stages. Initial includes light selection, conditional sampling and true tracing; it is not isolated tree-traversal time.
+Individual stages and sibling passes remain in the results JSON.
+
+| Method | Actual diagnostic node B | Build ms | Initial ms |
+|--------|--------------------------|----------|------------|
+| Original | 32 | 0.118–0.217 | 0.833–1.830 |
+| Half-space A | 32 | 0.119–0.257 | 0.880–1.942 |
+| Cosine B | 32 | 0.120–0.235 | 0.867–2.012 |
+| Near/far | 32 | 0.125–0.221 | 1.010–1.926 |
+| Moment sphere | 48 | 0.127–0.230 | 0.828–1.773 |
+| Diffuse SG | 48 | 0.127–0.240 | 0.939–1.953 |
+| Cosine BRDF | 32 | 0.121–0.234 | 0.309–0.744 |
+
+Grid16 tree buffers contain 8,650,784 bytes at 32B and 12,976,160 at 48B, about 50% more fixed capacity.
+BRDF actually executes the 32B diagnostic build, but its sampler does not require it. Equal-time cost therefore counts initial
+only for BRDF and full build plus initial for light selection. Main sentinel ranges are about 1.49×/1.51× in room1/room2.
+A six-case adjacent forward/reverse room2 repeat preserves all 853 lights and complete nonempty voxel-material identity,
+but near/far total cost still changes from 2.417 to 1.605 ms and original from 2.095 to 1.008 ms. These scenes do not support
+stable performance ordering. Timings are not forcibly normalized by the sentinel. Equal-time values extrapolate observed
+variance times required GPU cost, assuming inverse scaling with independent sample count. They are not separately measured
+equal-time images and inherit timing drift, correlation and finite-window tail uncertainty.
+
+### Scene quality and recommendations
+
+Values below are RGB MSE of the 32-frame image against its matching crop reference, divided by original MSE; lower is better.
+They describe the sampled crop, not whole-image short-window variance or other crop errors. Reference uncertainty and
+low-frequency MSE remain separately recorded.
+
+| Scene | Original | A | B | Near/far | Sphere | SG | BRDF |
+|-------|----------|---|---|----------|--------|----|------|
+| room1 | 1.000 | 0.969 | 2.259 | 0.321 | 0.527 | 0.355 | 0.931 |
+| room2 | 1.000 | 0.738 | 1.579 | 0.414 | 5.171 | 1.890 | 2.079 |
+| basilica | 1.000 | 0.763 | 0.628 | 0.313 | 0.667 | 0.361 | 0.870 |
+| gishadow | 1.000 | 0.959 | 2.155 | 0.420 | 1.698 | 2.858 | 0.408 |
+| tunnel | 1.000 | 0.976 | 1.914 | 0.031 | 0.307 | 0.297 | 0.023 |
+
+- Original remains the common default baseline, with both backside probability and upper-level aggregation error.
+- A has whole-image observed variance 0.712–0.978 times original, a modest improvement. Fixed room2 dark variance is 0.401,
+  but room1 near-light variance is 1.017; improvements are not universal.
+- B improves some low-energy areas but produces large tails, reaching 314× whole-image observed variance. Do not replace original.
+- Near/far is the most consistent candidate in these reference crops, with MSE 0.031–0.420 times original and lower bright tails.
+  Fixed room2 dark variance is nevertheless 2.510 and tunnel-floor variance 1.737. Keep it as a candidate without automatically
+  changing defaults or hiding these regressions in global averages.
+- Moment sphere helps room1, basilica and tunnel, but fixed room2 near-light variance is 5.131 and gishadow has severe whole-image
+  tails. It is not accepted as a general replacement.
+- SG helps basilica and room1's fixed dark area, but regresses near lights in room2/gishadow and requires 48B nodes. It is not
+  accepted as a general replacement.
+- BRDF is inexpensive and strong near lights in tunnel/gishadow, but fixed room1 dark variance is 3.110 and room2 near-light
+  variance 2.201. This complementarity motivates later discussion, not a claim that untested MIS already improves quality.
+
+Pooled dark/bright quantile masks use all short-window images and exclude luminance <=1e-6; they are exploratory metrics.
+Fixed wall, dark, near-light and floor ROIs retain complete receivers with zero contribution, without that luminance cutoff.
+Low-frequency error need not follow MSE: SG's room1 reference-crop MSE ratio is 0.355, but low-frequency MSE is 1.386;
+near/far's corresponding room2 ratios are 0.414/0.316. Both low-frequency structure and contribution tails matter.
+
+### Failure classes, depth errors and real fixed-point reference
+
+Original true traces mostly terminate at a nonemissive first hit, about 66.7%–84.4% across scenes. Conditional cube sampling
+fails about 14.3%–29.2%. These are different outcomes, not a single visibility hit rate or proof of visibility-cache benefit.
+For the current matched four-way baseline versus flat normalization of the identical original leaf formula, the first two
+levels account for about 91%/93% of pointwise KL on average in room2/gishadow. Depth, worst-point and branch diagnostics
+are in `current_four_way_diagnostics` in the tracked results, with full point records linked to raw artifacts.
+This motivates future upper-level probability/shared-cut work, without implementing cuts or restoring lookahead here.
+
+The [per-light reference](../../../builds/light-sampling/20261031-weights/point-reference/summary.json) samples every light
+at two real receivers in two windows of 17,280 conditional draws per light, retaining texture, true visibility and zero outcomes.
+All 853 lights, topology, receivers and before/after complete voxel-material identity match. Slot54 luminance-variance estimates
+are original 2.205e-6, A 1.500e-6, B 1.525e-6, near/far 7.240e-7, sphere 3.912e-6 and SG 3.262e-6. Original/near-far half-window
+differences are 5.95e-8/1.94e-8, empirical stability indicators only. Near/far has a worse unoccluded cube-proxy second moment
+than original, while SG's better unoccluded proxy has worse actual variance. Better unoccluded importance does not directly
+predict visible textured contribution. Only seven lights have observed nonzero contributions at slot54; 846 are zero-observed.
+All 853 are zero-observed at slot2. Neither proves invisibility nor provides a strict second-moment upper bound.
+The finite-sample sqrt(M2) ideal is diagnostic only. Each window is consecutive, with a 106-frame export gap; lane and temporal
+independence are not assumed.
+
+Cross-scene switches changed light and voxel inputs for an unattributed reason; mismatching cohorts remain excluded and preserved.
+The full-image matrix checks light identity/topology, while the point reference and timing repeat also check complete voxel
+materials. Neither establishes identical visibility inputs in every full-image frame. Conclusions apply to the independent
+diffuse-direct initial sampler, not production GI, ReSTIR, dynamic scenes or acceptance of a new default.

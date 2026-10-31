@@ -22,12 +22,12 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 [LightSamplingBuild](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl), and
 [option registration](../../../scripts/options.main.kts).
 
-## Current selection and backlog (2026-10-30)
+## Current selection and backlog (2026-10-31)
 
 | Item | Confirmed choice |
 |------|------------------|
 | Conditional emitter sampling | Retain projected-solid-angle cube sampling without repeating its adoption comparison |
-| Node weights | Keep the original geometric weights as baseline; add the [three weight variants](light-sampling-reassessment.md#weight-candidates-for-the-next-experiments) to the next experiment candidates |
+| Node weights | Original geometry remains the default; the three candidates and A/B now have [runtime weight results](light-sampling-reassessment.md#runtime-weight-experiment-2026-10-31). Near/far deserves further evaluation, without acceptance as a new default |
 | Spatial grouping | Retain Morton spatial grouping; Gilbert was rejected and its experimental implementation removed |
 | Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
 | Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
@@ -45,6 +45,19 @@ confirmed out-of-bounds and competing writes in the fixed 64-slot audit of the o
 That round's PDF/quality acceptance requires corrected captures; its timing captures had audit disabled.
 The defaults above remain unchanged. Validly addressed old 720p captures separately exposed aggregate
 distortion and near-field back-hemisphere weighting problems.
+
+## Weight experiment status (2026-10-31)
+
+The wt4 `2.0/light-sampling` experiment now implements and measures original geometry, half-space A, cosine B,
+near/far mixture, moment sphere and diffuse SG, with an independent cosine-BRDF baseline.
+The [tracked results](../../../experiments/light-sampling/20261031-weights-results.json) retain provenance for five scenes,
+1 spp, 32 frames, two 1024-frame reference windows and forward/reverse timings.
+The [formula and findings](light-sampling-reassessment.md#runtime-weight-experiment-2026-10-31) separate numerical checks,
+quality, complete build/initial cost and limitations. Near/far is the most consistent in these reference crops, but regresses
+in some fixed dark regions; B and the moment candidates have substantial contribution tails.
+The old 1080p audit is repaired and checked at actual resolution; this does not retroactively validate old image quality.
+Original weights and experiment-off remain the defaults. No cut, MIS, visibility guiding or H-PLOC is added;
+per-light visible contributions are references at two points only.
 
 ## Architecture reassessment (2026-10-30)
 

@@ -44,8 +44,34 @@ def preserve(job_file, destination, revision, preset):
         entries.append(dict(original=str(source), relative_path=name, byte_size=target.stat().st_size, sha256=actual))
     shutil.copy2(job_file, destination / 'job-result.json')
     manifest = dict(revision=revision, preset=preset, files=entries)
-    (destination / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+    (destination / 'preservation.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     return manifest
+
+
+def preserve_profile(job_file, destination, revision, preset):
+    job = json.loads(job_file.read_text(encoding='utf-8-sig'))
+    assert job['success'] and job['failed'] == 0
+    assert job['passed'] == job['requested_cases'] == job['completed_cases']
+    for case in job['cases']:
+        p = case['provenance']
+        assert case['status'] == 'passed' and case['frames'] == case['warmup_frames'] == 128
+        assert p['resolved_revision'] == revision and p['preset_id'] == preset
+        assert not p['stale'] and not p['head_changed'] and not p['dirty_shader_delta_sha256']
+        settings = {s['name']: s['value'] for s in p['effective_settings']['settings']}
+        assert settings['SETTING_DEBUG_LIGHT_AUDIT'] == 'false' and settings['SETTING_DEBUG_LIGHT_ARITY'] == '4'
+        assert 'SETTING_DEBUG_LIGHT_WEIGHT' not in settings and 'SETTING_DEBUG_LIGHT_LOOKAHEAD' not in settings
+    destination.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(job_file, destination / 'profile.json')
+    entries = []
+    for i, artifact in enumerate(job['artifacts']):
+        source = Path(artifact['relative_path'])
+        target = destination / f'{i:03d}-{source.name}'
+        shutil.copy2(source, target)
+        actual = digest(target)
+        assert actual == artifact.get('sha256', actual) and digest(source) == actual
+        entries.append(dict(original=str(source), relative_path=target.name, sha256=actual, byte_size=target.stat().st_size))
+    (destination / 'preservation.json').write_text(json.dumps(entries, indent=2) + '\n', encoding='utf-8')
+    return entries
 
 
 if __name__ == '__main__':
@@ -54,8 +80,10 @@ if __name__ == '__main__':
     parser.add_argument('destination', type=Path)
     parser.add_argument('--revision', required=True)
     parser.add_argument('--preset', required=True)
+    parser.add_argument('--profile', action='store_true')
     args = parser.parse_args()
     ready = json.loads((RUN / 'source-ready.json').read_text(encoding='utf-8-sig'))
     assert args.revision in ready.values(), 'Revision must match source-ready.json'
     assert args.destination.resolve().is_relative_to(RUN.resolve())
-    print(json.dumps(preserve(args.job, args.destination, args.revision, args.preset), indent=2))
+    function = preserve_profile if args.profile else preserve
+    print(json.dumps(function(args.job, args.destination, args.revision, args.preset), indent=2))

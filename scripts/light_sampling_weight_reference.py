@@ -28,6 +28,28 @@ def sg_cosine(k, c):
     return np.maximum(back+(front-back)*np.clip(u, 0, 1), 1e-6/(1+k))
 
 
+def sg_cosine_float32(k, c):
+    """Float32 shader expression, compared with independent quadrature below."""
+    k, c = np.float32(k), np.float32(c)
+    if k < .05:
+        front = .5 + k*(-1/6 + k*(1/24 - k/120))
+        back = .5 + k*(-5/6 + k*(17/24 - k*49/120))
+    else:
+        e = np.exp(-k)
+        front = (k-1+e)/(k*k)
+        back = e*(1-(1+k)*e)/(k*k)
+    t = k*np.sqrt(.5*(k*k+2.7360833*k+17.021297)/(k*k*k+4.0100827*k*k+15.219156*k+76.087896))
+    if t < .01:
+        u = .5*(c+1)+t*(c*c-1)*.2820947918
+    else:
+        v = np.array([abs(t*c), t], dtype='f4')
+        r = 1/(1+.3275911*v)
+        erfc = (((((1.061405429*r-1.453152027)*r)+1.421413741)*r-.284496736)*r+.254829592)*r*np.exp(-v*v)
+        q = np.exp(-v*v)*.5641895835-v*erfc
+        u = np.clip((2*max(t*c, 0)+q[0]-q[1])/(2*t), 0, 1)
+    return max(back+(front-back)*u, 1e-6/(1+k))
+
+
 def probabilities(nodes, model, origin, normal):
     mass = nodes[:, 3]
     half = (nodes[:, 4:7]-nodes[:, :3])*.5
@@ -155,8 +177,10 @@ def validate():
             reference,error=quad(integrand,0,1,epsabs=1e-13,points=[float(np.clip(c,0,1))],limit=300)
             actual=float(sg_cosine(k,c))
             normalization=k/(-np.expm1(-2*k)) if k>0 else .5
-            checks.append(dict(k=k,c=float(c),absolute_normalized_error=abs(actual-reference)*normalization,quadrature_error=error))
+            checks.append(dict(k=k,c=float(c),absolute_normalized_error=abs(actual-reference)*normalization,
+                               float32_expression_normalized_error=float(abs(sg_cosine_float32(k,c)-reference)*normalization),quadrature_error=error))
     assert max(x['absolute_normalized_error'] for x in checks)<.006
+    assert max(x['float32_expression_normalized_error'] for x in checks)<.006
     addressing=[]
     for w,h in [(1280,720),(1920,1080)]:
         points=[((2*x+1)*w//16,(2*y+1)*h//16,y*8+x) for y in range(8) for x in range(8)]
