@@ -24,6 +24,10 @@ not an accepted quality improvement. MIS is a separate proposal-combination choi
 small diagnostic references, not a second production architecture alongside spatial tables. No experiment or
 temporal-reuse implementation is authorized by this discussion.
 
+Current discussion scope: compare the costs of near/far-distance weights and spatial-moment/SG weights, and
+clarify tree cuts and shared upper-tree work. At the user's request, visibility discussion is deferred and
+H-PLOC is on hold. Their existing sections below are backlog context, not the next scheduled experiments.
+
 ## What the existing evidence establishes
 
 The experiment branch was inspected at `5c022ba1`, including the geometry record at `4920b6d9`, spatial grouping
@@ -135,6 +139,17 @@ provides the relevant framework. It is not a prerequisite for the cluster-weight
 
 ### Share a bounded cut, with complete coverage
 
+A tree cut is a frontier of nodes: every root-to-leaf path crosses exactly one selected node. The nodes need
+not be at the same depth. For example, if root children are A and B and A is expanded into A1 and A2, then
+{A1, A2, B} is a cut. It partitions the leaves without modifying or pruning the global tree.
+
+| Term | Meaning here |
+|------|--------------|
+| Tree cut / light cut | The node frontier or light-cluster partition itself. |
+| [Original Lightcuts](https://www.graphics.cornell.edu/~bjw/lightcuts.pdf) | An illumination algorithm that chooses a cut using an error criterion and sums representative-light approximations for its clusters. |
+| Stochastic Lightcuts | Uses randomized light representatives and probability correction inside cut clusters; the referenced algorithm still evaluates multiple cluster samples. |
+| Regional cut used as a proposal | Select one cluster from the cut, then one light from it, and use the full probability. The cut is not evaluated as a sum of representative lighting estimates. |
+
 For each active receiving region R, keep a cut K_R through the global light tree. Its nodes are disjoint subtrees
 whose leaves cover the complete emitter set. Nearby or difficult clusters may be split deeply, while distant
 compact clusters stay coarse. Reaching a size budget stops further splitting; it does not drop the remaining
@@ -168,6 +183,19 @@ weights per point plus a subtree traversal can cost more than the present root-t
 single scalar PMF instead would save that work but reintroduce position/normal mismatch. Do not conflate these
 two tradeoffs. A receiver region is not automatically one 16³ extraction brick, and a point inside solid geometry
 is not a representative receiver. Which regions to use and the cut budget remain design questions.
+
+It is reasonable to describe this as sharing the result of expanding the upper tree into a frontier. It does
+not share a single randomly chosen upper branch across all points. Each point still evaluates or obtains its
+own cluster probabilities and independently selects a cluster. Directly normalizing frontier-node weights
+also changes the approximation: it need not reproduce the product of the original upper-level probabilities,
+because aggregate weights are not additive.
+
+A cost counterexample is a full four-way tree expanded by two levels. Ordinary single-path sampling evaluates
+4+4=8 child weights in those levels; scoring all 16 frontier clusters takes 16 weights. A shared cut may improve
+importance estimates and remove dependent traversal steps, but it does not automatically reduce arithmetic or
+node reads. Compared with per-query adaptive cut construction, the partition search is amortized; compared
+with the current single-path baseline, region preparation is additional work. If every region uses the same
+cut, store that cut once rather than duplicate it per region.
 
 ### Better cluster importance without changing the emitter mass
 
@@ -212,7 +240,48 @@ floats, so “more compact” than its own reference is not evidence of being sm
 Treat a diffuse-only adaptation as a candidate, not a high-confidence upgrade, and consult the
 [published errata](https://gpuopen.com/download/Hierarchical_Light_Sampling_with_Accurate_Spherical_Gaussian_Lighting_(errata).pdf).
 
+### Cost comparison against the current node and traversal
+
+These are source-level storage and operation estimates, not GPU timings. The current experimental node is
+two vec4 values, 32B including AABB, mass, and packed link. Its geometric weight uses center distance, a radius,
+receiver cosine, and a distance denominator. Sampling already reads each evaluated child once.
+
+| Candidate | Node data with the current AABB retained | Preparation | Work for each evaluated child or sibling set |
+|-----------|------------------------------------------|-------------|---------------------------------------------|
+| Near/far-distance probability mixture | Same 32B; no new statistics | No extra node reduction | Compute squared distances to the closest and farthest AABB points; retain two weight sums and normalize the two distributions before mixing. Same visited children and tree depth. |
+| Flux-weighted center/spread with a simple spherical weight | Add a vec4 for center xyz and scalar spread: straightforward layout 48B | Extra weighted-moment reduction, still O(node count) | A simpler geometric model need not evaluate SG integrals. Exact ALU cost depends on the selected formula and cannot yet be ranked against the distance mixture. |
+| Spatial moments with diffuse SG integration | Same spatial summary as the spherical model; no need to add glossy BRDF machinery for this experiment | Same moment reduction | Compute incident-lobe parameters and approximate its clamped-cosine integral, including exponential functions, an error-function approximation, rational expressions, and numerical limit handling. More intermediate values remain live. |
+
+For AABB center c, half-size h, and a=abs(x-c), the two squared distances are
+
+$$
+d_{\min}^2=\|\max(a-h,0)\|^2,\qquad
+d_{\max}^2=\|a+h\|^2.
+$$
+
+They require no extra distance square roots. Keeping the current cosine estimate isolates the distance change;
+the additional work is abs/max/add/dot operations, a second distance reciprocal, and a second sibling
+normalization. Four-way selection can retain two four-element weight vectors and their totals, then combine
+the normalized probabilities. The actual register allocation is compiler-dependent. Zero minimum distances
+need the explicitly defined multi-child rule discussed above. This is extra arithmetic on already fetched
+nodes, not another traversal or lookahead.
+
+Appending center/spread increases the straightforward node's nominal storage and full-node payload by 50%,
+not necessarily memory transactions or pass time by 50%. It is not a fundamental SG size requirement. Under
+the omnidirectional approximation, replacing the AABB with center, radius, spread, flux, and link could fit a
+different 32B layout; that would require updating the bound-dependent consumers and validating the replacement.
+No such layout is implemented or selected. The uncompressed full-paper SG summary also includes emission
+direction parameters that this approximation may omit.
+
+Spatial moments and SG integration must therefore be evaluated separately. The former mainly changes node
+representation and reduction; the latter adds query arithmetic, special-function work, and register pressure.
+The paper's diffuse/glossy rendering timings do not predict our diffuse-only sampler or isolate its traversal
+cost. The near/far mixture is the smallest implementation change to compare first; a concrete spherical or SG
+formula is required before estimating a meaningful runtime multiplier.
+
 ### Visibility: learn receiver-region / cluster behavior
+
+Deferred at the user's request. The following retains the previously discussed direction.
 
 The relevant cache key is a receiving region plus a selected cut cluster. It represents illumination sampled
 from that cluster, rather than a universal blocker-distance distribution for the entire receiving brick.
@@ -248,6 +317,8 @@ resolution budgets; increasing SH order alone repairs neither lost distinction.
 
 ### H-PLOC: provide clusters and account for cache stability
 
+On hold at the user's request. The global cross-brick scope remains applicable if this work is reopened.
+
 H-PLOC changes topology and build scheduling, with merged-AABB area as its criterion. Its
 [ray-tracing evidence](https://gpuopen.com/download/HPLOC.pdf) cannot rank it above the receiver-aware alternatives
 for this sampling workload. If retained in experiments, preserve the agreed global cross-brick scope and
@@ -279,15 +350,15 @@ may lose overall efficiency, so evaluate rebuild cadence and statistics lifetime
 
 These are recommendations for the experiment discussion, not work started here. No candidate is accepted by
 this document. Keep the current cube sampler and actual contribution definition fixed unless a comparison
-explicitly isolates them.
+explicitly isolates them. Current discussion covers the first three rows only; the later two are deferred.
 
 | Order | Comparison | Question answered |
 |-------|------------|-------------------|
 | 1 | On selected real receivers, compare the current tree PMF with normalized sums of the exact same per-leaf score; then with per-cube unoccluded contribution estimates | Is the error primarily aggregate non-additivity, the leaf score, or something not modeled by unoccluded weights? Full scans are diagnostic, not proposed per-pixel production work. |
 | 2 | Fixed topology and emission mass; original versus a near-field weight candidate, then a separate SG candidate if justified | Does the cluster importance estimate improve enough to pay for its cost? |
 | 3 | Fixed weights and topology; per-query tree traversal versus a bounded regional cut | Does exposing appropriate clusters before selection justify partition storage and query scoring? |
-| 4 | Fixed cut and conditional sampler; frozen region/cluster visibility-contribution statistics versus unoccluded weights | Is remaining variance driven by occlusion, and does the receiving-region resolution preserve useful information? |
-| 5 | Same sampling policy; Morton versus global H-PLOC, including cut rebuilding and statistics invalidation | Does improved global grouping help after accounting for its complete downstream cost? |
+| Deferred: visibility | Fixed cut and conditional sampler; frozen region/cluster visibility-contribution statistics versus unoccluded weights | Is remaining variance driven by occlusion, and does the receiving-region resolution preserve useful information? |
+| Deferred: H-PLOC | Same sampling policy; Morton versus global H-PLOC, including cut rebuilding and statistics invalidation | Does improved global grouping help after accounting for its complete downstream cost? |
 
 One-sample BRDF/light MIS is an orthogonal comparison once reverse probabilities can be evaluated. ReGIR may
 later consume a chosen tree/cluster proposal; standalone small-candidate RIS is not a prerequisite experiment.

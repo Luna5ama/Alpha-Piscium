@@ -29,7 +29,8 @@ version maintained by this discussion.
 | Spatial grouping | Retain Morton spatial grouping; Gilbert was rejected and its experimental implementation removed |
 | Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
 | Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
-| Visibility guidance | Exclude from the current runtime baseline; retain as a research direction |
+| Visibility guidance | Exclude from the current runtime baseline; defer further discussion at the user's request |
+| H-PLOC | On hold at the user's request; retain the global cross-brick scope if reopened |
 
 These choices apply to the experimental path; the direct-lighting experiment itself remains disabled by default.
 Default settings and lookahead-option removal are in `f9dc71bf`; the five-scene wide-tree experiment record is in
@@ -46,8 +47,11 @@ standalone small-candidate RIS is not a scalable replacement, and ReGIR is a com
 The record expands cluster weights, regional cuts, visibility statistics, and their coupling to topology updates.
 Its diagnostic proposals do not accept a replacement, change the baseline above, or start experiments.
 Global cross-brick clustering remains the agreed H-PLOC scope.
+The current discussion focuses on weight costs and cut semantics; visibility and H-PLOC are deferred.
 
 ## Global H-PLOC clustering candidate
+
+This candidate is currently on hold. The following preserves its scope and research context.
 
 The confirmed scope allows global emitter clustering across 16³ brick boundaries. Bricks own emitter extraction,
 not the final light-tree grouping. This decision is recorded in experiment commit `5c022ba1`; no H-PLOC builder
