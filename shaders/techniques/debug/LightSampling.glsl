@@ -166,7 +166,7 @@ float ls_geometricWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     float height = dot(normal, delta);
     #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 1 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 2
     float extent = dot(abs(normal), halfSize);
-    if (height + extent < -0.000001 * (abs(height) + extent + 1.0)) return 0.0;
+    if (height + extent < -0.000001 * (dot(abs(normal), abs(delta)) + extent + 1.0)) return 0.0;
     #endif
     #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 2
     float clippedHeight = height >= extent ? height : max(height + extent, 0.0) * max(height + extent, 0.0) / (4.0 * extent);

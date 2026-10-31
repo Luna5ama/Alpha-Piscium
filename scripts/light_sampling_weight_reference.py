@@ -58,7 +58,7 @@ def probabilities(nodes, model, origin, normal):
         weight = mass*cosine/np.maximum.reduce([d2, radius2, np.full_like(d2, .25)])
         if model in (1, 2):
             extent = np.abs(normal)@half.T
-            weight = np.where(h+extent < -1e-6*(np.abs(h)+extent+1), 0, weight)
+            weight = np.where(h+extent < -1e-6*(np.sum(np.abs(delta*normal),axis=1)+extent+1), 0, weight)
     return weight/weight.sum() if weight.sum() > 0 else np.zeros_like(weight)
 
 
@@ -169,7 +169,16 @@ def validate():
         for model in range(6):
             q=probabilities(node,model,np.array(origin),np.array([0,0,1]))
             assert np.isfinite(q).all() and np.all(q>=0) and (abs(q.sum()-1)<1e-12 or q.sum()==0)
-    result=dict(sg_quadrature=checks,audit_addressing=addressing,support_edge_cases='passed')
+    normal=np.array([-.005037308670580387,-.7657549977302551,-.6431126594543457], dtype='f4')
+    delta=np.array([52.23280334472656,93.40628051757812,-110.5288314819336], dtype='f4')
+    h=np.sum(normal*delta,dtype='f4'); extent=np.sum(np.abs(normal)*np.float32(.5),dtype='f4')
+    actual=float(np.sum(normal.astype(float)*delta.astype(float))+np.sum(np.abs(normal.astype(float))*.5))
+    old_margin=np.float32(1e-6)*(abs(h)+extent+1)
+    new_margin=np.float32(1e-6)*(np.sum(np.abs(normal*delta),dtype='f4')+extent+1)
+    assert actual>0 and h+extent < -old_margin and not h+extent < -new_margin
+    result=dict(sg_quadrature=checks,audit_addressing=addressing,support_edge_cases='passed',
+                cancellation_regression=dict(exact_front_extent=actual,float_front_extent=float(h+extent),
+                                             old_margin=float(old_margin),new_margin=float(new_margin)))
     RUN.mkdir(parents=True,exist_ok=True);(RUN/'host-reference.json').write_text(json.dumps(result,indent=2))
     print(json.dumps(dict(sg_max_normalized_error=max(x['absolute_normalized_error'] for x in checks),sg_checks=len(checks),audit_addressing=addressing)))
 
