@@ -40,7 +40,7 @@ Use the formulas, costs, references, and limitations in that reassessment rather
 | [Wide-tree analysis](../../../scripts/light_sampling_wide_analysis.py), [geometry analysis](../../../scripts/light_sampling_geometry.py), and [runtime artifact helpers](../../../scripts/light_sampling_runtime.py) | Starting points for host-side audits, raw captures, and analysis; inspect their historical assumptions before reuse |
 | [Geometry record](../../../experiments/light-sampling/20261029-geometry.json) and [wide-tree record](../../../experiments/light-sampling/20261030-wide-tree.json) | Existing scenes, configuration, capture protocol, provenance, and limitations; these are historical evidence, not current runtime validation |
 
-Two known traps require direct handling:
+Known traps require direct handling:
 
 - `SETTING_DEBUG_LIGHT_WEIGHT` currently changes both the geometric formula and leaf emission mass through
   `ls_emissionMass`. Enabling that old switch does not implement this experiment. All candidates must retain
@@ -50,6 +50,11 @@ Two known traps require direct handling:
   auditor handles packed child counts but still assumes 32B nodes and the original formula; its run paths and
   revision map are also historical. Adapt the affected decoder and audit path to the actual layout and variant.
   Preserve historical records; do not relabel old captures as new validation.
+- The fixed 64-slot audit has 144 writers at 1080p, causing competing valid-slot writes and out-of-bounds
+  access. The [original-evidence review](light-sampling-reassessment.md#review-of-original-scene-evidence-2026-10-31)
+  checked the historical source and configuration. Before new captures, correct pixel selection and indexing
+  so writers are unique and within capacity at the actual resolution, updating host-side point decoding.
+  An old 1080p PDF audit pass is not correctness evidence; preferring 720p must not hide this defect.
 
 ## First deliverable: explicit formulas and data contracts
 
@@ -127,6 +132,13 @@ Before accepting quality or timing samples, verify the emitter-set and mass hash
 and exhaustion counts, node stride, finite values, and leaf PMF normalization. Independently reconstruct the
 actual selected-light PMF and conditional cube PDF. Check the same-frame tree and audit provenance. Original
 binary readers or a successful compiler run cannot substitute for this check.
+
+For the failure modes in the [evidence review](light-sampling-reassessment.md#review-of-original-scene-evidence-2026-10-31),
+record, at a few real receivers, selection probability assigned to entirely back-side emitters, tree versus
+flat normalization of the same leaf formula, and an unoccluded cube-integral reference with fixed mass.
+Inspect near-light/horizon tails as well as medians. The leaf formula can itself fail, so getting closer to
+its flat distribution is not the final quality objective. These are diagnostics for this matrix, not automatic
+additions of a separate half-space/cosine ablation or regional-cut candidate.
 
 Quality captures retain raw linear 1-spp frames and 32-frame means/variance with valid-sample counts. Use matched
 warmup and capture windows, starting from the existing 256-frame quality warmup. Record dark regions, near-light

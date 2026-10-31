@@ -2,7 +2,7 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-reassessment.md)
 
-Research record, 2026-10-30. This extends the [design record](light-sampling-design.md), following the request to
+Research record, 2026-10-30 through 2026-10-31. This extends the [design record](light-sampling-design.md), following the request to
 reconsider light BVHs and alternative sampling methods from first principles. It records research and proposed
 comparisons, not an implemented replacement or authorization to start experiments.
 
@@ -53,11 +53,138 @@ combine their milliseconds into one ranking. The recorded 32-frame variances are
 wide-tree cases have incomplete pixels; retain their counts as correctness evidence instead of treating the
 shared valid mask as proof that every sample was valid.
 
+The 2026-10-31 review also confirmed out-of-bounds and competing audit writes at 1080p, detailed below.
+That round's image-quality and PDF acceptance need corrected captures; its old audit pass is insufficient
+correctness evidence. The selected defaults remain unchanged.
+
 Source inspection also matters. The experiment multiplies actual branch probabilities, but has no general
 reverse PMF query for an arbitrary emitter. A material ID does not uniquely identify an emitter instance.
 After a light is selected, a different first-hit emitter returns zero; the BRDF baseline instead receives
 emission from its first hit. This is valid selected-emitter visibility testing, but it explains one difference
 between the proposals. Reusing that different emitter with the selected emitter's PDF would be incorrect.
+
+## Review of original scene evidence (2026-10-31)
+
+At the user's request, this review checks original images, statistics, capture settings, and source, and adds
+offline numerical reconstruction without starting a GPU experiment. The
+[review record](../../../experiments/light-sampling/20261031-evidence-review.json) preserves source hashes,
+results, and limits. The [review script](../../../scripts/light_sampling_evidence_review.py) reconstructs all
+light-selection probabilities from saved trees and audits. Run it from the repository root to reproduce the
+analysis; it requires historical binaries in the ignored build artifacts, not just the Git-tracked summaries.
+
+### Distinguishing aggregate and single-light errors
+
+The numerical review uses the old 720p geometry suite, whose audit addressing is valid: room1, room2,
+basilica, gishadow, and tunnel, with 515, 785, 1093, 72, and 1874 lights. It compares binary `cube-plain`
+and `cube-ahead`, not a new measurement of the current four-way baseline. At most 64 fixed audit pixels per
+scene yield 311 valid receivers and 622 records across the two configurations, with matching positions and
+normals. Checks cover manifest hashes, revisions/settings, tree mass conservation, probability normalization,
+and the GPU-selected emitter's PMF; maximum relative PMF discrepancy is 0.013%. These receivers are not a
+random survey of the scenes.
+
+Construct two references: first normalize **the exact same original leaf formula** across all emitters to
+isolate hierarchical aggregation; then analytically integrate each cube's hemisphere-clipped projected solid
+angle and multiply by the same leaf mass. The latter is an unoccluded, uniform-emission geometric reference.
+It still omits actual visibility, texture emission variation, and conditional-sampling error, so it is not
+a converged image reference.
+
+The second-moment factor below is `sum(p_cube² / q)`, with 1 for this geometric reference's ideal distribution.
+It is not a measured image-variance ratio. Every entry is a receiver median; ratios of these medians are not
+per-receiver or whole-image gains.
+
+| Scene | Tree probability for cubes entirely behind the receiver: original → lookahead | Second moment: original tree | Second moment: flat leaf formula | Second moment: lookahead |
+|-------|------------------------------------------------------------------------------|------------------------------|----------------------------------|--------------------------|
+| room1 | 11.0% → 6.0% | 1.635 | 1.030 | 1.424 |
+| room2 | 32.2% → 2.6% | 1.980 | 1.014 | 1.214 |
+| basilica | 17.3% → 2.4% | 2.832 | 1.020 | 1.646 |
+| gishadow | 0.12% → 0.05% | 2.136 | 1.075 | 1.197 |
+| tunnel | 19.5% → 2.6% | 7.409 | 1.018 | 2.027 |
+
+At most audited receivers, aggregation substantially distorts an otherwise useful per-light geometric
+estimate. Back-hemisphere probability is a more direct failure: with `delta = center - receiver` and
+`halfSize = (max - min) / 2`, the condition
+`dot(normal, delta) + dot(abs(normal), halfSize) <= 0` puts the entire emitter behind the diffuse receiving
+plane. Its contribution is zero without making any inference about occlusion. The existing score inflates
+cosine by the bounding-sphere radius and retains a positive floor, potentially giving such emitters or
+clusters substantial weight.
+
+**Medians must not hide the single-light formula's near-field tail.** In raw-buffer coordinates, gishadow
+`(400, 405)` and tunnel `(720, 585)` are counterexamples: the flat leaf formula still assigns 92.7%/95.4%
+of its probability to back-hemisphere lights, with second-moment factors 13.70/22.28. Conditioning just the
+flat distribution on front-side lights reduces these geometric-reference factors to 1.001/1.030. This is
+an offline counterfactual, not a measured tree modification. The original tree assigns 92.6%/27.8% to those
+back-side lights, so merely getting closer to the original leaf formula does not always mean improvement.
+Tunnel's flat-formula factor has p90 3.03 and maximum 22.28; better aggregation does not replace near-light
+and horizon checks.
+
+The depth-wise KL decomposition also argues against always sharing only the top levels. Relative to the
+original leaf formula, about 92% of room2's discrepancy occurs in the top three levels, and 74% for tunnel;
+room1 has only 19% there, with 59% at depths 9 and 10. Root depth is zero. This decomposes distribution
+approximation, not illumination error. Further cut research should refine problematic branches for the
+receiver instead of assuming a fixed top cut covers the problem. Whether shared receiver regions preserve
+those distinctions remains unmeasured.
+
+### What the images actually lose
+
+Rechecking the [old 720p image comparison](../../../builds/light-sampling/20261029-geometry-matrix/comparison.html)
+and linear variances identifies both near-light tails and losses over substantial receiving surfaces, beyond
+noise appearance alone. These are existing 32-frame statistics with same-scene BRDF variance equal to 1:
+
+| Scene / region | Original tree + cube | Same tree + two-level lookahead | Interpretation |
+|----------------|----------------------|---------------------------------|----------------|
+| tunnel floor ROI | 3.660 | 0.508 | Branch estimates alone substantially change surface noise with emitters and conditional sampling fixed |
+| tunnel brightest 1% | 50.890 | 10.921 | A large bright tail remains after lookahead; dark-region gains cannot replace near-light acceptance |
+| gishadow wall ROI | 0.271 | 0.135 | Light selection already beats BRDF in meaningful regions; this does not reject the whole light-BVH route |
+| room2 dark half | 5.732 | 3.537 | It still trails after geometric improvement; current counters do not isolate the remaining causes |
+
+These are sample variances, not reference-image MSE. Room2's short-window means also differ from BRDF by
+about +8.8%/+7.8%, insufficient to distinguish rare samples from bias. Existing `visible` counters combine
+multiple rejection reasons and cannot establish that all residual trouble is occlusion. For example,
+tunnel's original tree accepts the selected emitter for only 3.72% of receivers; that alone does not separate
+occlusion, non-emissive hits, proxy-geometry mismatch, or other rejections.
+
+The old visibility matrix actually covers five scenes but uses the old bounding-sphere cone sampler, not
+the retained cube sampler. Relative to each matching visibility-off control, no-lookahead variance is about
+0.68 times for room1, 1.37–1.43 for room2, and 1.16–1.22 for tunnel; guidance with lookahead makes tunnel
+1.47–1.61 times worse. This supports rejecting that old model as a universal improvement, not a claim that
+adding visibility fixes the remaining noise or that all visibility methods fail.
+
+### The 1080p audit fault and evidence limits
+
+Historical and current audit addressing in
+[LightSamplingInitial](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl) starts at `(80, 45)`,
+steps by `(160, 90)`, and indexes 64 records with a row width of 8, without limiting the grid's upper bounds.
+The [resource declaration](../../../scripts/shaders.properties) allocates only 4096B. At 720p this produces
+64 writers; at 1080p it produces 144, reaches slot 99, creates competing writes in 28 valid slots, and sends
+52 writers beyond the allocation.
+
+The check covers historical wide-tree revision `e9a0dfd0`, actual image and buffer sizes, and audit enabled
+in all 20 quality captures. The old 1080p PDF audit is therefore unreliable, and image-quality acceptance
+requires corrected captures. This does not attribute noise or incomplete pixels to the fault. All 40 timing
+captures have audit disabled, so this defect does not directly invalidate their timings. The initial pass
+still includes light selection, conditional sampling, and software tracing; its total does not isolate tree
+traversal cost. This review records the defect without changing shaders.
+
+### Narrowing the next work
+
+1. Correct audit addressing before new runtime captures, checking unique writers, capacity, and actual
+   resolution. Do not reuse the old 1080p pass as evidence.
+2. Retain the three queued weight candidates, recording aggregate distributions, back-hemisphere probability,
+   and near-light tails separately. An additional cheap ablation is worth proposing: fix mass, distance,
+   topology, and conditional sampling, changing only exact half-space rejection and cosine estimation.
+   This is a new suggestion, not an addition to the fixed three-candidate matrix. An entirely back-side
+   cluster can safely receive zero, but mixed clusters and all-zero child weights need explicit behavior;
+   retries or incorrect PDFs must not conceal failures.
+3. Judge a cut by whether it refines the branches that actually fail. Fixed top-level sharing has no general
+   support here. A more complex SG or a different builder does not replace this diagnosis.
+4. Separate remaining rejection reasons, and compare unoccluded and actually visible per-emitter
+   contributions/second moments at a few real receivers before prioritizing visibility. The near-light
+   bright/dark complementarity also motivates retaining one-sample BRDF/light MIS as a control, with no
+   measured benefit claimed yet.
+
+The evidence supports fixing importance estimates and does not establish that light BVHs are unsuitable.
+These numbers come from controlled reanalysis of the old binary tree. The current four-way tree needs the
+same diagnostics after the audit fix; it cannot inherit these percentages.
 
 ## Separate the sampling objective from the tree
 
@@ -520,5 +647,6 @@ order is not identity; a refreshed light list must not reinterpret a cached inde
 rebuild from the same-frame list and publish before queries. Temporal reuse would require deliberate mapping
 or invalidation. This is an ownership requirement, not a reason to introduce a general cache framework now.
 
-This round changes documentation only. No runtime shader, setting, emitter representation, or sampling default
-was changed; no old runtime code was removed and no new GPU measurements were made.
+This round updates documentation and adds an offline review script and evidence record. No runtime shader,
+setting, emitter representation, or sampling default was changed; no old runtime code was removed and no new
+GPU captures or timings were made.

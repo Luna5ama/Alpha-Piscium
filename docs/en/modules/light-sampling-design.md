@@ -40,6 +40,12 @@ Default settings and lookahead-option removal are in `f9dc71bf`; the five-scene 
 had lower variance in both reported luminance regions in that round. A 32-frame variance window is not error
 acceptance against a high-sample reference.
 
+The 2026-10-31 [original-evidence review](light-sampling-reassessment.md#review-of-original-scene-evidence-2026-10-31)
+confirmed out-of-bounds and competing writes in the fixed 64-slot audit of the old 1080p quality captures.
+That round's PDF/quality acceptance requires corrected captures; its timing captures had audit disabled.
+The defaults above remain unchanged. Validly addressed old 720p captures separately exposed aggregate
+distortion and near-field back-hemisphere weighting problems.
+
 ## Architecture reassessment (2026-10-30)
 
 The [architecture reassessment](light-sampling-reassessment.md) revisits whether per-query light-tree traversal
