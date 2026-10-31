@@ -655,3 +655,27 @@ or invalidation. This is an ownership requirement, not a reason to introduce a g
 This round updates documentation and adds an offline review script and evidence record. No runtime shader,
 setting, emitter representation, or sampling default was changed; no old runtime code was removed and no new
 GPU captures or timings were made.
+
+
+## Weight experiment formula contract (2026-10-31)
+
+Implementation preparation, not measured acceptance. Model IDs: 0 original, 1 half-space A, 2 cosine B,
+3 near/far probability mixture, 4 moment sphere, 5 diffuse SG. Leaf emission mass and the target contribution stay fixed.
+A/B retain the specified formulas; classify a box as behind only when h+e is below a conservative floating-point
+margin 1e-6*(abs(h)+e+1). An all-zero child sum returns a zero sample without retry; audit includes its probability.
+For model 3, use the original cosine bound and two separately normalized mass*cosine/distance-squared distributions,
+then average their probabilities. Zero minimum-distance children share the near distribution in proportion to mass*cosine;
+all other children receive zero near probability. The far distribution remains positive.
+Models 4/5 append mean.xyz and trace spatial variance to the AABB node (48B; models 0..3 remain 32B).
+Leaves use uniform area measure over all six unit-cube faces: mean=low+0.5, variance=5/12.
+Merge by emission mass using the parallel-variance formula in this record. Model 4 substitutes the weighted mean
+and effective radius sqrt(2*variance) into the original cosine-bound/distance model, retaining its 0.25 distance floor.
+Model 5 uses the paper's omnidirectional limit: k=distance^2/variance, axis=(mean-x)/distance,
+weight proportional to mass/variance times the cosine-weighted SG integral B/(2*pi).
+Use the Section 4 endpoint interpolation and the corrected t(k) rational fit from the errata; Taylor endpoint
+integrals handle k<0.05. At zero distance the SG is isotropic. An explicit lower bound
+B/(2*pi)>=1e-6/(1+k) preserves numerical support at sharpness/underflow extremes; this is part of the proposal,
+not a modification of evaluated radiance. Actual child probabilities and their full path product are used by the estimator.
+Independent hemisphere quadrature must quantify the SG approximation error before GPU sampling acceptance.
+The audit uses 8x8 unique bin-center pixels at each actual resolution; 64 records plus 16 uint diagnostic counters.
+Counters 0..9 are exclusive terminal outcomes; counter 10 separately counts nonfinite final RGB values.

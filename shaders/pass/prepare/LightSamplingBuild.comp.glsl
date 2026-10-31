@@ -1,26 +1,5 @@
 #include "/techniques/debug/LightSampling.glsl"
 
-#if defined(SETTING_DEBUG_LIGHT_WEIGHT) && LS_BUILD_STAGE == 1
-#include "/techniques/voxel/SurfaceData.glsl"
-
-float ls_emissionMass(uint materialID) {
-    GBufferData data = gbufferData_init();
-    data.materialID = materialID;
-    float mass = 0.0;
-    for (uint face = 0u; face < 6u; ++face) {
-        vec4 tc = unpackUnorm4x16(voxel_faceTexcoords[voxel_faceTexcoordIndex(materialID, face)]);
-        for (uint sampleIndex = 0u; sampleIndex < 16u; ++sampleIndex) {
-            vec2 uv = (vec2(sampleIndex & 3u, sampleIndex >> 2u) + 0.5) * 0.25;
-            data.albedo = textureLod(usam_blockAtlasColor, mix(tc.xw, tc.zy, uv), 0.0).rgb;
-            vec3 emission = material_decode(data).emissive;
-            vec3 linearSRGB = colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_COLORSPACES_SRGB, emission);
-            mass += dot(linearSRGB, vec3(0.2126, 0.7152, 0.0722));
-        }
-    }
-    return mass / 96.0;
-}
-#endif
-
 layout(local_size_x = 256) in;
 #if LS_BUILD_STAGE == 0
 const ivec3 workGroups = ivec3(256, 1, 1);
@@ -45,6 +24,9 @@ void main() {
         ls_visibleCount = 0u;
         ls_receiverCount = 0u;
         ls_reserved = 0u;
+        #ifdef SETTING_DEBUG_LIGHT_AUDIT
+        for (uint i = 0u; i < 16u; ++i) ls_reasons[i] = 0u;
+        #endif
     }
     for (uint i = gl_GlobalInvocationID.x; i < uint(VOXEL_GRID_BRICKS); i += 65536u) {
         ls_nodes[uint(VOXEL_GRID_BRICKS) + i] = ls_emptyNode();
@@ -105,13 +87,14 @@ void main() {
         HardcodedPBR pbr = hardcodedpbr_decode(materialID);
         vec3 position = vec3(brickOrigin + ivec3(morton3D_30bDecode(i)));
         float mass = ldexp(pow(pbr.emissive, SETTING_EMISSIVE_PBR_VALUE_CURVE), pbr.emissiveMultiplier);
-        #ifdef SETTING_DEBUG_LIGHT_WEIGHT
-        mass = max(ls_emissionMass(materialID), mass * 0.000001);
-        #endif
         uint slot = ls_spatial[4096u + i] >> 13u;
-        ls_nodes[base + slot] = LightSamplingNode(
-            vec4(position, mass), vec4(position + 1.0, uintBitsToFloat(LS_LEAF_BIT | materialID))
-        );
+        LightSamplingNode leaf = ls_emptyNode();
+        leaf.boundsMinMass = vec4(position, mass);
+        leaf.boundsMaxLink = vec4(position + 1.0, uintBitsToFloat(LS_LEAF_BIT | materialID));
+        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 4
+        leaf.meanVariance = vec4(position + 0.5, 5.0 / 12.0);
+        #endif
+        ls_nodes[base + slot] = leaf;
     }
     memoryBarrierBuffer();
     barrier();

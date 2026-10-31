@@ -14,7 +14,8 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba32f) uniform writeonly image2D uimg_lightSampling;
 
-vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint auditSlot) {
+vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint auditSlot, out uint reason) {
+    reason = 0u;
     vec3 direction;
     float weight = 1.0;
     vec3 target = vec3(0.0);
@@ -28,9 +29,10 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     if (ls_nodes[1].boundsMinMass.w == 0.0) return vec3(0.0);
     float lightPdf;
     LightSamplingNode emitter = ls_select(origin, normal, rng, auditSlot, lightPdf);
+    if (lightPdf == 0.0) return vec3(0.0);
     float conditionalPdf;
     #ifdef SETTING_DEBUG_LIGHT_CUBE
-    if (!ls_sampleCube(emitter, origin, normal, vec2(ls_random(rng), ls_random(rng)), direction, conditionalPdf)) return vec3(0.0);
+    if (!ls_sampleCube(emitter, origin, normal, vec2(ls_random(rng), ls_random(rng)), direction, conditionalPdf)) { reason = 1u; return vec3(0.0); }
     #else
     vec3 delta = emitter.boundsMinMass.xyz + 0.5 - origin;
     float distanceSquared = dot(delta, delta);
@@ -45,6 +47,7 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     direction = axis * cosineTheta + (tangent * cos(phi) + cross(axis, tangent) * sin(phi)) * sineTheta;
     conditionalPdf = 1.0 / (6.28318530718 * coneWidth);
     #endif
+    reason = 2u;
     float cosine = max(dot(normal, direction), 0.0);
     if (cosine == 0.0) return vec3(0.0);
     vec3 t0 = (emitter.boundsMinMass.xyz - origin) / direction;
@@ -68,21 +71,27 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     VoxelRay ray = voxelray_setup(origin, direction, 0u);
     VoxelHit hit = voxel_traceRay(ray, 2048, true);
     if (voxel_traceExhausted(hit, ray)) {
+        reason = 3u;
+        #ifdef SETTING_DEBUG_LIGHT_AUDIT
         atomicAdd(ls_exhaustedCount, 1u);
+        #endif
         return vec3(uintBitsToFloat(0x7FC00000u));
     }
-    if (!hit.hit || !ls_isEmitter(hit.materialID)) return vec3(0.0);
+    if (!hit.hit) { reason = 4u; return vec3(0.0); }
+    if (!ls_isEmitter(hit.materialID)) { reason = 5u; return vec3(0.0); }
     // A primary point inside an emissive cube proxy has no surface entry.
     // Light sampling also assigns zero to this case (negative nearT).
-    if (dot(hit.normal, hit.normal) == 0.0) return vec3(0.0);
+    if (dot(hit.normal, hit.normal) == 0.0) { reason = 6u; return vec3(0.0); }
     #if SETTING_DEBUG_LIGHT_SAMPLING == 2
-    if (hit.materialID != targetMaterial || distance(hit.hitPos, target) > 0.01) return vec3(0.0);
+    if (hit.materialID != targetMaterial || distance(hit.hitPos, target) > 0.01) { reason = 7u; return vec3(0.0); }
     #endif
     #ifdef SETTING_DEBUG_LIGHT_AUDIT
     atomicAdd(ls_visibleCount, 1u);
     #endif
     voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
-    return albedo * surface.material.emissive * weight;
+    vec3 contribution = albedo * surface.material.emissive * weight;
+    reason = any(notEqual(contribution, vec3(0.0))) ? 9u : 8u;
+    return contribution;
 }
 
 void main() {
@@ -91,8 +100,10 @@ void main() {
     vec4 result = vec4(0.0);
     uint auditSlot = LS_INVALID;
     #ifdef SETTING_DEBUG_LIGHT_AUDIT
-    if (texelPos.x >= 80 && texelPos.y >= 45 && (texelPos.x - 80) % 160 == 0 && (texelPos.y - 45) % 90 == 0) {
-        auditSlot = uint((texelPos.y - 45) / 90 * 8 + (texelPos.x - 80) / 160);
+    ivec2 bin = texelPos * 8 / uval_mainImageSizeI;
+    ivec2 samplePixel = (bin * 2 + 1) * uval_mainImageSizeI / 16;
+    if (all(equal(texelPos, samplePixel))) {
+        auditSlot = uint(bin.y * 8 + bin.x);
         ls_audit[auditSlot * 4u] = vec4(0.0);
         ls_audit[auditSlot * 4u + 1u] = vec4(0.0);
         ls_audit[auditSlot * 4u + 2u] = vec4(0.0);
@@ -105,7 +116,19 @@ void main() {
         #ifdef SETTING_DEBUG_LIGHT_AUDIT
         atomicAdd(ls_receiverCount, 1u);
         #endif
-        result.rgb = ls_evaluate(origin, normal, albedo, rng, auditSlot);
+        #if defined(SETTING_DEBUG_LIGHT_AUDIT) && SETTING_DEBUG_LIGHT_SAMPLING == 2
+        if (auditSlot != LS_INVALID) {
+            ls_audit[auditSlot * 4u] = vec4(origin, 0.0);
+            ls_audit[auditSlot * 4u + 1u] = vec4(normal, 0.0);
+            ls_audit[auditSlot * 4u + 3u].w = -1.0;
+        }
+        #endif
+        uint reason;
+        result.rgb = ls_evaluate(origin, normal, albedo, rng, auditSlot, reason);
+        #ifdef SETTING_DEBUG_LIGHT_AUDIT
+        atomicAdd(ls_reasons[reason], 1u);
+        if (any(isnan(result.rgb)) || any(isinf(result.rgb))) atomicAdd(ls_reasons[10], 1u);
+        #endif
         result.rgb = colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_COLORSPACES_SRGB, result.rgb);
         result.a = 1.0;
     }

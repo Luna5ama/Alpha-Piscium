@@ -5,7 +5,7 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD = ROOT / 'builds/light-sampling/20261030-arity-default'
+BUILD = ROOT / 'builds/light-sampling/20261031-weights/syntax'
 
 
 def main():
@@ -14,7 +14,7 @@ def main():
     builder_path = ROOT / 'shaders/pass/prepare/LightSamplingBuild.comp.glsl'
     header = header_path.read_text()
     header = '\n'.join(line for line in header.splitlines() if not line.startswith('#include'))
-    start, end = header.index('bool ls_loadReceiver('), header.index('float ls_geometricWeight(')
+    start, end = header.index('bool ls_loadReceiver('), header.index('// Cosine-weighted SG integral')
     header = header[:start] + header[end:]
     stub = '''
 #define SETTING_VOXEL_POOL_SIZE 1024
@@ -35,17 +35,18 @@ uint hash_pcg_11(uint value) { return value; }
 '''
     builder = builder_path.read_text().replace('#include "/techniques/debug/LightSampling.glsl"', '')
     checks = []
-    for bits in (1, 2, 3):
-        variant = f'#define SETTING_DEBUG_LIGHT_ARITY {1 << bits}\n' + header
-        for grid in (16, 32, 64):
-            for stage, level in [(0, 0), (1, 0)] + [(2, n) for n in range(1, 3 * (grid.bit_length() - 1) + 1)]:
-                defines = f'#version 450\n#define SETTING_DEBUG_LIGHT_AUDIT\n#define SETTING_VOXEL_GRID_SIZE {grid}\n#define LS_BUILD_STAGE {stage}\n#define LS_REDUCE_LEVEL {level}\n#define LS_REDUCE_GROUPS 1\n'
-                source = defines + stub + variant + '\n' + builder
-                result = subprocess.run(['glslangValidator', '--stdin', '-S', 'comp'], input=source, text=True, capture_output=True)
-                if result.returncode:
-                    (BUILD / 'failed.comp').write_text(source)
-                    raise RuntimeError(f'bits={bits}, grid={grid}, stage={stage}, level={level}\n{result.stdout}\n{result.stderr}')
-                checks.append(dict(arity=1 << bits, grid=grid, stage=stage, level=level))
+    for model in range(6):
+        for bits in (1, 2, 3):
+            variant = f'#define SETTING_DEBUG_LIGHT_ARITY {1 << bits}\n#define SETTING_DEBUG_LIGHT_WEIGHT_MODEL {model}\n' + header
+            for grid in (16, 32, 64):
+                for stage, level in [(0, 0), (1, 0)] + [(2, n) for n in range(1, 3 * (grid.bit_length() - 1) + 1)]:
+                    defines = f'#version 450\n#define SETTING_DEBUG_LIGHT_AUDIT\n#define SETTING_VOXEL_GRID_SIZE {grid}\n#define LS_BUILD_STAGE {stage}\n#define LS_REDUCE_LEVEL {level}\n#define LS_REDUCE_GROUPS 1\n'
+                    source = defines + stub + variant + '\n' + builder
+                    result = subprocess.run(['glslangValidator', '--stdin', '-S', 'comp'], input=source, text=True, capture_output=True)
+                    if result.returncode:
+                        (BUILD / 'failed.comp').write_text(source)
+                        raise RuntimeError(f'model={model}, bits={bits}, grid={grid}, stage={stage}, level={level}\n{result.stdout}\n{result.stderr}')
+                    checks.append(dict(model=model, arity=1 << bits, grid=grid, stage=stage, level=level))
     result = dict(scope='Static GLSL validation with stubbed external inputs, not target Iris or runtime evidence', checked=len(checks), sources={p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (header_path, builder_path)}, checks=checks)
     (BUILD / 'syntax-validation.json').write_text(json.dumps(result, indent=2) + '\n')
     print(f'Passed {len(checks)} stage/arity/grid combinations')
