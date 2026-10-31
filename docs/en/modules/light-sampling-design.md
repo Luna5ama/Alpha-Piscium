@@ -37,6 +37,7 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 Future light-sampling comparisons always include independent **Cosine BRDF** (cosine-weighted BRDF-only) as a basic control under the same scene, direct-only settings and sample budget. This is distinct from the Cosine B tree weight.
 Display names are Half-space A, Near/Far Mix, Half-space A + Near/Far Mix, Cosine BRDF and Original; original capture IDs and revisions stay unchanged.
 For this temporary juxtaposition, the user requested reuse of previous Cosine BRDF, Original and available ls3 captures without new sampling. Inputs can differ across batches; this does not create a new controlled quality or performance ranking.
+The [temporary viewer](../../../builds/light-sampling/20261031-temporary-baselines/comparison.html) includes five scenes and 48 existing images; the two ls3 combined-method images are unavailable. Its [source index](../../../experiments/light-sampling/20261031-temporary-baselines.json) preserves per-image provenance and verification hashes.
 
 These choices apply to the experimental path; the direct-lighting experiment itself remains disabled by default.
 The option generator now implements half-space A as default. Target Iris reports model 1 with default origin,
