@@ -6,6 +6,16 @@ This is a task prompt for the experiment session. Writing this document does not
 When the user starts it, perform the implementation and validation below, including the formula preparation
 that remains necessary; do not stop at a plan or an unmeasured shader change.
 
+## Dedicated-scene rerun correction (2026-10-31)
+
+The user requested rerunning this comparison on `light-sampling-1` through `light-sampling-5`, all natively 1920×1080.
+The previous legacy-scene run remains a [supplemental record](../../../experiments/light-sampling/20261031-weights-results.json);
+do not relabel it or treat it as dedicated-scene evidence. Reuse the committed weights, audit and original-mass implementation.
+Unchanged numerical/layout checks remain applicable, but recapture quality, references and timing for all seven methods.
+Use a separate run directory and tracked result. Do not use the old room2 fixed-light texture for points in these scenes.
+Pyxis Terra medium Fast still owns runtime capture and image comparison; the parent prepares commits, reviews evidence
+and updates the paired records.
+
 ## Result and working location
 
 First repair the audit and reassess the current four-way tree, completing independent half-space/cosine
@@ -72,7 +82,7 @@ Known traps require direct handling:
 
 Repair audit addressing first, checking unique in-bounds slots at the actual resolution. Include one 1080p
 audit check without requiring a rerun of the old full four-case arity/lookahead matrix. The main quality
-matrix remains matched 720p. Old 1080p results not recaptured remain pending revalidation; a new addressing
+rerun matrix uses the dedicated presets at native 1080p. Old 1080p results not recaptured remain pending revalidation; a new addressing
 check cannot retrospectively validate their image quality. Reconstruct actual selection distributions,
 back-hemisphere probabilities, leaf-formula and unoccluded-cube references, and depth/branch discrepancies
 for the current four-way baseline. Do not inherit binary percentages or inspect only distribution medians.
@@ -184,10 +194,9 @@ and report the missing runtime evidence; do not replace it with replay evidence 
 
 ## Evidence and acceptance
 
-Start from the five scene presets recorded in the geometry experiment: `flatroom-light-sampling-1-720p`,
-`flatroom-light-sampling-2-720p`, `basilica-1-720p`, `gi-shadow-1-720p`, and `codex-fg-night-tunnel`.
-Verify their availability and actual resolution. Use matched 720p conditions across methods; do not reuse the
-old 1080p wide-tree milliseconds as a control. If a preset is missing, report that gap instead of silently
+Use the five dedicated presets: `light-sampling-1`, `light-sampling-2`, `light-sampling-3`, `light-sampling-4`, and `light-sampling-5`.
+Verify their availability and actual resolution. Use matched native 1920×1080 conditions across methods; do not reuse
+old wide-tree milliseconds as a control. If a preset is missing, report that gap instead of silently
 substituting a differently named scene.
 
 Before accepting quality or timing samples, verify the emitter-set and mass hashes, bounds/child links, overflow

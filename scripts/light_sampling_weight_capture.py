@@ -81,9 +81,11 @@ if __name__ == '__main__':
     parser.add_argument('--revision', required=True)
     parser.add_argument('--preset', required=True)
     parser.add_argument('--profile', action='store_true')
+    parser.add_argument('--run-root', type=Path, default=RUN)
     args = parser.parse_args()
-    ready = json.loads((RUN / 'source-ready.json').read_text(encoding='utf-8-sig'))
+    run_root = args.run_root.resolve()
+    ready = json.loads((run_root / 'source-ready.json').read_text(encoding='utf-8-sig'))
     assert args.revision in ready.values(), 'Revision must match source-ready.json'
-    assert args.destination.resolve().is_relative_to(RUN.resolve())
+    assert args.destination.resolve().is_relative_to(run_root)
     function = preserve_profile if args.profile else preserve
     print(json.dumps(function(args.job, args.destination, args.revision, args.preset), indent=2))
