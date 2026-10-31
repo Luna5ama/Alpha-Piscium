@@ -19,7 +19,6 @@ the [Iris Shaders documentation](https://github.com/IrisShaders/docs).
 - [Geometry, G-buffer, and materials](modules/geometry-materials.md)
 - [Shadows](modules/shadows.md)
 - [Global illumination](modules/global-illumination.md)
-- [Light sampling design](modules/light-sampling-design.md)
 - [Atmosphere, sky, and clouds](modules/atmosphere-clouds.md)
 - [Water, caustics, and translucency](modules/water-translucency.md)
 - [Post-processing and display transform](modules/post-processing.md)

@@ -18,7 +18,6 @@
 - [几何、G-buffer 与材质](modules/geometry-materials.md)
 - [阴影](modules/shadows.md)
 - [全局光照](modules/global-illumination.md)
-- [Light Sampling 设计](modules/light-sampling-design.md)
 - [大气、天空与云](modules/atmosphere-clouds.md)
 - [水、焦散与半透明](modules/water-translucency.md)
 - [后处理与显示变换](modules/post-processing.md)
