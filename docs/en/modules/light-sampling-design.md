@@ -2,40 +2,119 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-design.md)
 
-This records the initial Alpha Piscium light-sampling design and CPU experiments of 2026-10-29,
-followed by the selected runtime baseline and deferred work.
+This records Alpha Piscium light-sampling decisions, candidates awaiting validation, and experimental evidence.
+The initial design and CPU experiments of 2026-10-29 remain below. Their implementation status and proposed next
+steps describe that earlier work; the current decisions below take precedence where they differ.
 
-## Current selection and backlog (2026-10-30)
+## Discussion and experiment responsibilities (2026-10-30)
 
-The runtime experiment now defaults to a four-way Morton light tree with projected-solid-angle cube sampling
-and the original geometric weights. `SETTING_DEBUG_LIGHT_ARITY` retains binary and eight-way alternatives;
-all three use direct child weights without lookahead. The direct-lighting experiment itself remains disabled
-by default. The implementation is in [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
+- The current discussion maintains this document and its Chinese counterpart, recording confirmed decisions,
+  rationale, hypotheses, and the questions subsequent experiments should answer.
+- Experiment chat `01a18648-f66e-78e0-8d01-cd906ca45429` owns candidate implementation, runtime captures, timings,
+  and image comparisons. Its code stays on `2.0/light-sampling`. A discussed candidate does not automatically
+  authorize starting an experiment.
+- Experimental results identify the source commit, configuration, scenes, and limitations before informing design
+  updates. Record selection, implementation, and validated benefit separately.
+
+Design, experiment sources, and tracked records are consolidated on `2.0/light-sampling`. The migration
+preserves experiment commit `5c022ba1` and the later design updates from `2.0/dev`. The runtime entry points
+are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 [LightSamplingBuild](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl), and
 [option registration](../../../scripts/options.main.kts).
 
-The [five-scene wide-tree experiment](../../../experiments/light-sampling/20261030-wide-tree.json) contains the
-20 quality captures and 40 timing runs behind this choice. Four-way branching is the selected cost/quality
-tradeoff, not the lowest-variance result: binary two-level lookahead had lower measured variance in both reported
-luminance regions in all five scenes. Cube sampling is retained; visibility guiding and the revised weights
-remain outside the selected baseline. Gilbert was rejected and its implementation removed; historical results
-and source commits remain available.
+## Current selection and backlog (2026-10-30)
 
-Backlog: geometric lookahead is deferred and its inactive option is removed. Revisit it only with an explicit
-sampling-quality versus traversal-cost comparison against the selected four-way baseline. The binary lookahead
-implementation remains recoverable from commit `921caa33` and the experiment record above. H-PLOC integration is
-under discussion; no H-PLOC builder or claimed benefit has been implemented.
+| Item | Confirmed choice |
+|------|------------------|
+| Conditional emitter sampling | Retain projected-solid-angle cube sampling without repeating its adoption comparison |
+| Node weights | Keep the original geometric weights; defer the revised weight candidate |
+| Spatial grouping | Retain Morton spatial grouping; Gilbert was rejected and its experimental implementation removed |
+| Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
+| Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
+| Visibility guidance | Exclude from the current runtime baseline; defer further discussion at the user's request |
+| H-PLOC | On hold at the user's request; retain the global cross-brick scope if reopened |
 
-The selected H-PLOC scope is global emitter clustering across 16³ brick boundaries: bricks own emitter
-extraction, not the final light-tree grouping. The integration candidate is a Morton-ordered emitter list,
-an H-PLOC binary hierarchy, and conversion to the packed four-way hierarchy consumed by the current sampler.
-The proposed first comparison retains cube sampling and the original weights, with visibility guiding and
-lookahead disabled. Binary scratch storage, GLSL synchronization, and construction cost still need validation;
-ray-tracing SAH quality does not establish lower light-sampling variance. See the
-[H-PLOC paper](https://gpuopen.com/download/HPLOC.pdf).
+These choices apply to the experimental path; the direct-lighting experiment itself remains disabled by default.
+Default settings and lookahead-option removal are in `f9dc71bf`; the five-scene wide-tree experiment record is in
+`3e7f66b9`. Four-way branching is the selected tradeoff, not the lowest-variance result: binary two-level lookahead
+had lower variance in both reported luminance regions in that round. A 32-frame variance window is not error
+acceptance against a high-sample reference.
 
-The sections below preserve the original design and CPU-experiment context. Their deferred implementation
-items and validation limits describe those earlier experiments unless superseded by this current selection.
+## Architecture reassessment (2026-10-30)
+
+The [architecture reassessment](light-sampling-reassessment.md) revisits whether per-query light-tree traversal
+fits this workload, separating topology, receiver-dependent importance, and shared computation. Following the
+user's correction, regional estimates target bounded sets of tree clusters rather than individual lights;
+standalone small-candidate RIS is not a scalable replacement, and ReGIR is a complementary direction.
+The record expands cluster weights, regional cuts, visibility statistics, and their coupling to topology updates.
+Its diagnostic proposals do not accept a replacement, change the baseline above, or start experiments.
+Global cross-brick clustering remains the agreed H-PLOC scope.
+The current discussion focuses on weight costs and cut semantics; visibility and H-PLOC are deferred.
+
+## Global H-PLOC clustering candidate
+
+This candidate is currently on hold. The following preserves its scope and research context.
+
+The confirmed scope allows global emitter clustering across 16³ brick boundaries. Bricks own emitter extraction,
+not the final light-tree grouping. This decision is recorded in experiment commit `5c022ba1`; no H-PLOC builder
+has been implemented.
+
+The existing experiment already has one global light tree over the current voxel volume. The binary option
+produces a global binary tree; the current default is four-way. Construction first creates a complete subtree
+for each brick, then combines brick roots through a fixed Morton hierarchy. Ancestors spanning bricks already
+exist, but a local cluster cannot first group only some emitters from two neighboring bricks while leaving
+their remaining emitters outside. Here, global clustering removes that complete-brick-subtree constraint; it
+does not introduce the first global root. H-PLOC candidate merges remain bounded by Morton ranges and local
+neighborhoods.
+
+The candidate for discussion is a globally Morton-ordered emitter list, H-PLOC binary construction, and conversion
+to a compact four-way tree for the existing sampler. [Section 3.4 of the H-PLOC paper](https://gpuopen.com/download/HPLOC.pdf#page=8)
+already provides wide-tree conversion: repeatedly open the internal child with the largest surface area until
+the target child count is reached or all children are leaves. The paper's complete pipeline outputs a four-way
+tree, but first constructs a binary tree and then runs a separate conversion kernel. Binary construction and
+wide conversion can each use one kernel launch. This is neither native four-way clustering nor a single
+dispatch for the whole preparation pipeline. Removing the intermediate binary topology requires further
+algorithm changes, rather than setting a branching parameter to four.
+
+The paper's ray-tracing results do not establish lower light-sampling variance here.
+A proposed first comparison retains the current emitter set, cube sampling, and
+node weights, with visibility guidance and lookahead disabled. This is a discussion starting point, not an
+experiment assignment.
+
+Questions to resolve next:
+
+- Merge criterion: start with merged-AABB surface area or introduce a light-sampling objective. The latter also
+  changes the topology objective and needs an explicit attribution argument.
+- Binary-to-four-way conversion: the paper's largest-surface-area expansion rule is a first-version candidate;
+  verify output layout and scheduling when converting temporary binary indices into contiguous children.
+- GPU execution: verify global Morton ordering, scratch capacity, subgroup capabilities, and cross-workgroup
+  publication. Do not assume the paper's execution mechanisms already exist in the GLSL path.
+- Experiment criteria: record all preparation and construction costs, initial-sampling time, raw sample quality,
+  and PDF/emitter-set consistency. Comparing only the core construction kernel is insufficient, and tighter
+  grouping does not itself establish lower noise.
+
+### Expected sampling-quality impact
+
+There are no H-PLOC sampling-quality measurements yet. It is a topology candidate worth comparing, with a
+hypothesized benefit. Current node weights approximate subtree contribution using aggregate emission mass,
+the AABB center, bounding-sphere radius, and receiver normal. Clustering could reduce branch-probability error
+by avoiding broad bounds across empty space or grouping nearby emitters across brick boundaries separately.
+Near-field, sparse, or uneven emitter distributions are plausible beneficiaries, not guaranteed wins for every
+receiver.
+
+H-PLOC's area-based merge criterion does not use the receiver, normal, emission mass, or actual visibility.
+Smaller area does not guarantee a better contribution estimate, nor does it identify lights separated by a wall.
+Current leaves are equal-sized unit cubes and the baseline already uses Morton spatial grouping. The paper's
+BVH-quality benefits for differently sized geometry cannot predict a noise-reduction percentage here.
+With conditional emitter sampling and actual contribution definitions fixed, and support and PDFs correct,
+topology changes affect sampling variance while preserving the target mean.
+
+The existing five-scene spatial-grouping comparison (record commit `181878b9`) was itself mixed: without
+lookahead, dark-region variance rose about 14% in scene 1 and fell about 7% in scene 2. This motivates studying
+grouping but is not evidence of H-PLOC benefit. Judge the first comparison by sampling error/variance and
+contribution tails with the same emitter set, four-way branching, and node weights; then include all build costs
+in an equal-time comparison. Tree area, SAH, and visible-hit rate are explanatory diagnostics, not substitutes
+for sampling-quality measurements or evidence that H-PLOC can replace lookahead.
 
 ## Scope and decisions
 
