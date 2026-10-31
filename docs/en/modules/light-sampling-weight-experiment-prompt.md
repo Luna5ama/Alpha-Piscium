@@ -3,8 +3,73 @@
 Language: English | [简体中文](../../sc/modules/light-sampling-weight-experiment-prompt.md)
 
 This is a task prompt for the experiment session. Writing this document does not start or dispatch the task.
-When the user starts it, perform the implementation and validation below, including the formula preparation
-that remains necessary; do not stop at a plan or an unmeasured shader change.
+Use the latest scope at the top when executing. Earlier batch protocols remain below for provenance;
+do not repeat the completed full experiment.
+
+## Acceptance and targeted iteration (2026-10-31)
+
+After reviewing the images, the user accepted half-space A as default and requested further research and iteration on
+near/far's local regressions. This supersedes the earlier batch's unchanged-default stopping condition. The checked snapshot
+is `b1365be4c`, still in `wt4` on `2.0/light-sampling`. Inspect HEAD and dirty files without resetting. Complete the default
+switch first, then perform an attributable local iteration.
+
+1. Change the `SETTING_DEBUG_LIGHT_WEIGHT_MODEL` default from 0 to 1 in [option registration](../../../scripts/options.main.kts),
+   using the existing generator to synchronize tracked outputs. Preserve the validated half-space rounding tolerance,
+   all-zero branch handling, and actual PDF. Keep 32B nodes, four-way topology, conditional emitter sampling, and experiment-off.
+   Retain original weights and existing near/far as explicit controls; do not change algorithms or remove models still needed
+   for comparison. Verify the effective default and necessary target-Iris loading. Reuse unchanged formula evidence without
+   repeating all 35 quality cases or the static matrix. Commit the default separately and record implementation status in the
+   [design record](light-sampling-design.md).
+2. Use half-space A as the accepted baseline. Read the [dedicated 1080p results](../../../experiments/light-sampling/20261031-weights-presets1080.json)
+   and [full analysis](../../../builds/light-sampling/20261031-weights-presets1080/analysis.json). Scene 2's reference-crop MSE is
+   near/far / A = 1.810682. Its fixed-floor sum of RGB sample variances is near/far / A = 1.872052 at display coordinates
+   `x=800, y=850, w=256, h=128` with a top-left origin. Improvement over original weights therefore does not establish parity
+   with the new baseline. The user supplied three priority regions below. Keep scene 2's floor as a supplemental comparison
+   without replacing the user's locations. Legacy 720p regressions remain supplemental, not dedicated-scene evidence.
+3. Model 3 in [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl) mixes separately normalized near/far branch
+   probabilities at each level and currently lacks A's half-space rejection. The first controlled candidate applies that same
+   conservative rejection to both distributions; compare A, existing near/far, and A plus near/far. Do not simultaneously change
+   the 1/2 mixing coefficient, distance formula, mass, topology, or conditional emitter sampling. Both distributions, including
+   zero-distance and all-zero cases, must use the same eligible children. Reuse the existing selector and host audit, verifying
+   the actual layout rather than accidentally entering a 48B path through a new model number. Add no permanent user toggle yet.
+4. At a few fixed real receivers in the regression region, trace sibling mass, AABB, near/far distances, half-space status,
+   normalized probabilities, and final leaf PMFs. Separately check wasted back-hemisphere probability, near-zero-distance
+   concentration, far-distance underestimation of broad clusters, and insufficient probability on contributing lights.
+   These are hypotheses to test. Reuse raw frames and four-way audits first; collect a few matching per-light visible-contribution
+   second moments only if existing diagnostics cannot distinguish the causes. Do not reuse the old room2 light fixture in these
+   dedicated scenes. Compare `sum(M2 / q) - mean²` against the same contribution reference, retaining zero outcomes,
+   finite-sample limitations, and support checks.
+5. Reproduce the user's three regressions first, retaining scene 2's floor as a supplement. Use scene 1's floor and scene 5's
+   near-light region in the same scenes to protect existing gains.
+   Fix ROIs and separately report 1 spp, the 32-frame mean, observed variance, matching-reference error, contribution tails,
+   and complete build/initial costs. Keep native 1080p presets, matching inputs, and common complete pixels. Existing references
+   are reusable only with matching source, receivers, lights, and occluders. Recapture identified gaps without restarting the
+   full seven-method matrix. If A plus near/far still regresses, use the diagnosed branch problem to choose one justified
+   correction, checking it offline or at fixed points before further captures; do not sweep parameters blindly.
+
+| Priority scene | User-reported region | Accepted quality-artifact directory |
+|----------------|----------------------|-------------------------------------|
+| `light-sampling-1` | The wall facing toward the area behind the camera; confirm orientation from the actual receiver normal, not image brightness | [quality-verified](../../../builds/light-sampling/20261031-weights-presets1080/light-sampling-1/quality-verified/) |
+| `light-sampling-4` | The patch of grass/leaves on the left | [light-sampling-4](../../../builds/light-sampling/20261031-weights-presets1080/light-sampling-4/) |
+| `light-sampling-5` | The small wall at middle-left | [light-sampling-5](../../../builds/light-sampling/20261031-weights-presets1080/light-sampling-5/) |
+
+Locate fixed display-coordinate ROIs and actual receivers from the source images, recording world position, normal, and material.
+Do not assume the previous 8×8 audit grid covers these surfaces; add only a few targeted points if needed. For grass/leaves,
+separate actual valid surfaces, background, and their normals rather than treating texture holes as one planar wall.
+The discussion chat inspected A and near/far's native 32-frame images from these accepted cohorts; exact pixel regions and
+probability attribution still need this iteration's investigation.
+
+Deliver the default commit and effective-setting evidence, regression locations and probability causes, inspectable artifacts,
+and one attributable candidate result. State the scope if precise locations remain ambiguous or a gain is not reproduced.
+Full-image averages do not override local regressions, and adding A does not itself resolve near/far. Do not automatically
+enable near/far by default; cuts, visibility, MIS, and H-PLOC remain in the backlog. Count existing nonfinite events separately,
+without silently treating them as zero or claiming a repair. Do not change `2.0/dev` or restart Minecraft. Retain the provenance,
+generation, validation, and artifact-preservation rules below.
+
+## Completed batch protocol
+
+The following records the completed seven-method experiment and its 1080p correction for reproducibility. Its earlier defaults,
+unimplemented work, and stopping conditions are superseded by the current scope above.
 
 ## Dedicated-scene rerun correction (2026-10-31)
 

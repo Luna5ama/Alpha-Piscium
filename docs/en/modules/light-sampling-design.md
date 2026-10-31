@@ -27,7 +27,7 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 | Item | Confirmed choice |
 |------|------------------|
 | Conditional emitter sampling | Retain projected-solid-angle cube sampling without repeating its adoption comparison |
-| Node weights | Original geometry remains default; the [dedicated 1080p rerun](light-sampling-reassessment.md#dedicated-preset-rerun-1080p) is current evidence. Near/far is most consistent, without a default switch |
+| Node weights | After visual review, the user accepted half-space A (32B) as default; near/far remains experimental, with A as the accepted baseline for investigating local regressions |
 | Spatial grouping | Retain Morton spatial grouping; Gilbert was rejected and its experimental implementation removed |
 | Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
 | Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
@@ -35,7 +35,8 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 | H-PLOC | On hold at the user's request; retain the global cross-brick scope if reopened |
 
 These choices apply to the experimental path; the direct-lighting experiment itself remains disabled by default.
-Default settings and lookahead-option removal are in `f9dc71bf`; the five-scene wide-tree experiment record is in
+The experiment chat owns implementing and verifying the half-space default and recording completion. Earlier default
+settings and lookahead-option removal are in `f9dc71bf`; the five-scene wide-tree experiment record is in
 `3e7f66b9`. Four-way branching is the selected tradeoff, not the lowest-variance result: binary two-level lookahead
 had lower variance in both reported luminance regions in that round. A 32-frame variance window is not error
 acceptance against a high-sample reference.
@@ -43,7 +44,7 @@ acceptance against a high-sample reference.
 The 2026-10-31 [original-evidence review](light-sampling-reassessment.md#review-of-original-scene-evidence-2026-10-31)
 confirmed out-of-bounds and competing writes in the fixed 64-slot audit of the old 1080p quality captures.
 That round's PDF/quality acceptance requires corrected captures; its timing captures had audit disabled.
-The defaults above remain unchanged. Validly addressed old 720p captures separately exposed aggregate
+That review did not change the defaults at the time. Validly addressed old 720p captures separately exposed aggregate
 distortion and near-field back-hemisphere weighting problems.
 
 ## Weight experiment status (2026-10-31)
@@ -52,8 +53,17 @@ Current evidence uses the user-selected native 1920×1080 `light-sampling-1` thr
 The [tracked results](../../../experiments/light-sampling/20261031-weights-presets1080.json) retain 35 quality cases, 70 matching timings,
 five two-window references and 70 images. The [dedicated-preset findings](light-sampling-reassessment.md#dedicated-preset-rerun-1080p)
 separate crop error, full-image/fixed-ROI variance, input identity, full build/initial cost and limitations.
-Near/far is most consistent in these reference crops and fixed ROIs; B and moment candidates still have substantial tails.
-Original weights and experiment-off remain defaults. The [legacy 720p supplement](../../../experiments/light-sampling/20261031-weights-results.json)
+Original weights remained default when the rerun completed. The user subsequently reviewed the images, accepted half-space A
+as default, and requested further research and iteration on near/far's local regressions. The experiment itself stays disabled
+by default. Acceptance does not validate production GI, ReSTIR, or every numerical path; the recorded nonfinite events remain open.
+The rerun's description of near/far as most consistent used original weights as its baseline. Against A, scene 2's reference-crop
+MSE and fixed-floor RGB variance are respectively 1.811 and 1.872 times A. These ratios use existing raw statistics; lower
+full-image variance does not resolve them. The user then identified three priority regressions: ls1's wall facing toward
+the area behind the camera, ls4's left-side grass/leaves, and ls5's small wall at middle-left. Scene 2's floor remains
+a supplemental comparison rather than replacing these three regions.
+Current near/far does not apply A's half-space rejection. First isolate A, existing near/far, and A plus near/far before changing
+distance or mixing parameters. See the [acceptance and targeted iteration prompt](light-sampling-weight-experiment-prompt.md#acceptance-and-targeted-iteration-2026-10-31)
+for entry points, regression locations, and checks. The [legacy 720p supplement](../../../experiments/light-sampling/20261031-weights-results.json)
 stays separate; its dark-region regressions are not relabeled as current dedicated-scene results.
 Observed input drift was handled with matching-cohort recaptures, without diagnosing its cause. Rare nonfinite RGB remains
 unrepaired; statistics apply to common complete pixels. This run does not retroactively validate old 1080p arity/lookahead
