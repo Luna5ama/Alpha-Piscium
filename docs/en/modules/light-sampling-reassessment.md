@@ -27,6 +27,8 @@ temporal-reuse implementation is authorized by this discussion.
 Current discussion scope: compare the costs of near/far-distance weights and spatial-moment/SG weights, and
 clarify tree cuts and shared upper-tree work. At the user's request, visibility discussion is deferred and
 H-PLOC is on hold. Their existing sections below are backlog context, not the next scheduled experiments.
+The user has now added all three weight variants to the next experiment candidates: near/far-distance mixing,
+flux-weighted center and spatial variance with a simple spherical weight, and full diffuse SG weighting.
 
 ## What the existing evidence establishes
 
@@ -348,14 +350,36 @@ may lose overall efficiency, so evaluate rebuild cadence and statistics lifetime
 
 ## Proposed experiments and decision rules
 
-These are recommendations for the experiment discussion, not work started here. No candidate is accepted by
-this document. Keep the current cube sampler and actual contribution definition fixed unless a comparison
-explicitly isolates them. Current discussion covers the first three rows only; the later two are deferred.
+The user has confirmed the three weight variants below for inclusion in the next experiment candidates.
+This records the comparison scope, not a default change, validated benefit, or instruction to run experiments
+in this discussion. Other diagnostic comparisons remain proposals; visibility and H-PLOC remain deferred.
+
+### Weight candidates for the next experiments
+
+The [experiment prompt](light-sampling-weight-experiment-prompt.md) packages the verified wt4 entry points,
+remaining formula work, comparison controls, and delivery criteria for the experiment session.
+
+| Candidate | Comparison scope | Details to settle before implementation |
+|-----------|------------------|-----------------------------------------|
+| Near/far-distance probability mixture | Retain the current 32B AABB node; compute and normalize near/far weights separately, then mix the probabilities | Four-child normalization and zero-minimum-distance behavior |
+| Flux-weighted center and spatial variance with a simple spherical weight | Add shared global spatial moments; use a geometric spherical estimate without SG integration. Retaining the AABB gives the straightforward 48B layout described above | Concrete spherical-weight formula, finite cube extent, near-field behavior, and support |
+| Full diffuse SG weight | Use the spatial summary to construct an incident SG and evaluate its diffuse clamped-cosine integral | Diffuse-only formula, numerical limits, support, and the paper's errata |
+
+Compare all three with the original geometric weight. Hold the emitter set, emission mass, Morton four-way
+topology, cube sampling, and actual contribution definition fixed; keep geometric lookahead and visibility
+guidance disabled. Do not combine the weight comparison with a regional cut or ReGIR change.
+
+For attribution, the spherical and SG candidates should use the same spatial moments and node layout, so their
+difference measures the weighting model and its query cost. A redesigned compact 32B spherical layout is a
+separate optimization, not part of this first comparison. Record the actual node bytes and all construction
+costs alongside sampling cost and quality; the common acceptance criteria below apply.
+
+The broader diagnostic comparisons remain:
 
 | Order | Comparison | Question answered |
 |-------|------------|-------------------|
 | 1 | On selected real receivers, compare the current tree PMF with normalized sums of the exact same per-leaf score; then with per-cube unoccluded contribution estimates | Is the error primarily aggregate non-additivity, the leaf score, or something not modeled by unoccluded weights? Full scans are diagnostic, not proposed per-pixel production work. |
-| 2 | Fixed topology and emission mass; original versus a near-field weight candidate, then a separate SG candidate if justified | Does the cluster importance estimate improve enough to pay for its cost? |
+| 2 | Fixed topology and emission mass; original versus all three weight candidates listed above | Does each cluster importance model improve enough to pay for its storage, construction, and query cost? |
 | 3 | Fixed weights and topology; per-query tree traversal versus a bounded regional cut | Does exposing appropriate clusters before selection justify partition storage and query scoring? |
 | Deferred: visibility | Fixed cut and conditional sampler; frozen region/cluster visibility-contribution statistics versus unoccluded weights | Is remaining variance driven by occlusion, and does the receiving-region resolution preserve useful information? |
 | Deferred: H-PLOC | Same sampling policy; Morton versus global H-PLOC, including cut rebuilding and statistics invalidation | Does improved global grouping help after accounting for its complete downstream cost? |

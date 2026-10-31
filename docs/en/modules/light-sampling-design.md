@@ -27,7 +27,7 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 | Item | Confirmed choice |
 |------|------------------|
 | Conditional emitter sampling | Retain projected-solid-angle cube sampling without repeating its adoption comparison |
-| Node weights | Keep the original geometric weights; defer the revised weight candidate |
+| Node weights | Keep the original geometric weights as baseline; add the [three weight variants](light-sampling-reassessment.md#weight-candidates-for-the-next-experiments) to the next experiment candidates |
 | Spatial grouping | Retain Morton spatial grouping; Gilbert was rejected and its experimental implementation removed |
 | Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
 | Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
