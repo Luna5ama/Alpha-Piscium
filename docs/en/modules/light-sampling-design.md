@@ -27,7 +27,7 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 | Item | Confirmed choice |
 |------|------------------|
 | Conditional emitter sampling | Retain projected-solid-angle cube sampling without repeating its adoption comparison |
-| Node weights | Original geometry remains the default; the three candidates and A/B now have [runtime weight results](light-sampling-reassessment.md#runtime-weight-experiment-2026-10-31). Near/far deserves further evaluation, without acceptance as a new default |
+| Node weights | Original geometry remains default; the [dedicated 1080p rerun](light-sampling-reassessment.md#dedicated-preset-rerun-1080p) is current evidence. Near/far is most consistent, without a default switch |
 | Spatial grouping | Retain Morton spatial grouping; Gilbert was rejected and its experimental implementation removed |
 | Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
 | Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
@@ -48,16 +48,16 @@ distortion and near-field back-hemisphere weighting problems.
 
 ## Weight experiment status (2026-10-31)
 
-The wt4 `2.0/light-sampling` experiment now implements and measures original geometry, half-space A, cosine B,
-near/far mixture, moment sphere and diffuse SG, with an independent cosine-BRDF baseline.
-The [tracked results](../../../experiments/light-sampling/20261031-weights-results.json) retain provenance for five scenes,
-1 spp, 32 frames, two 1024-frame reference windows and forward/reverse timings.
-The [formula and findings](light-sampling-reassessment.md#runtime-weight-experiment-2026-10-31) separate numerical checks,
-quality, complete build/initial cost and limitations. Near/far is the most consistent in these reference crops, but regresses
-in some fixed dark regions; B and the moment candidates have substantial contribution tails.
-The old 1080p audit is repaired and checked at actual resolution; this does not retroactively validate old image quality.
-Original weights and experiment-off remain the defaults. No cut, MIS, visibility guiding or H-PLOC is added;
-per-light visible contributions are references at two points only.
+Current evidence uses the user-selected native 1920×1080 `light-sampling-1` through `light-sampling-5` presets.
+The [tracked results](../../../experiments/light-sampling/20261031-weights-presets1080.json) retain 35 quality cases, 70 matching timings,
+five two-window references and 70 images. The [dedicated-preset findings](light-sampling-reassessment.md#dedicated-preset-rerun-1080p)
+separate crop error, full-image/fixed-ROI variance, input identity, full build/initial cost and limitations.
+Near/far is most consistent in these reference crops and fixed ROIs; B and moment candidates still have substantial tails.
+Original weights and experiment-off remain defaults. The [legacy 720p supplement](../../../experiments/light-sampling/20261031-weights-results.json)
+stays separate; its dark-region regressions are not relabeled as current dedicated-scene results.
+Observed input drift was handled with matching-cohort recaptures, without diagnosing its cause. Rare nonfinite RGB remains
+unrepaired; statistics apply to common complete pixels. This run does not retroactively validate old 1080p arity/lookahead
+controls, add cuts/MIS/visibility guiding/H-PLOC, or relabel the old fixed-point reference for these scenes.
 
 ## Architecture reassessment (2026-10-30)
 

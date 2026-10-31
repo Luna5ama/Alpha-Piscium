@@ -698,6 +698,8 @@ learns nor applies visibility guiding. Normal BRDF and tree modes retain equival
 
 ## Runtime weight experiment (2026-10-31)
 
+This section is the supplemental legacy720p run; current dedicated-preset conclusions are in the [1080p rerun](#dedicated-preset-rerun-1080p).
+
 The [results and provenance](../../../experiments/light-sampling/20261031-weights-results.json) and
 [offline comparator](../../../builds/light-sampling/20261031-weights/comparison.html) contain seven methods in five scenes.
 The comparator has native Scene, Sampler and Accumulation dimensions, with 70 combinations. Source images were inspected;
@@ -821,3 +823,115 @@ Cross-scene switches changed light and voxel inputs for an unattributed reason; 
 The full-image matrix checks light identity/topology, while the point reference and timing repeat also check complete voxel
 materials. Neither establishes identical visibility inputs in every full-image frame. Conclusions apply to the independent
 diffuse-direct initial sampler, not production GI, ReSTIR, dynamic scenes or acceptance of a new default.
+
+
+## Dedicated preset rerun (1080p)
+
+The user requested rerunning all seven methods on native 1920×1080 `light-sampling-1` through `light-sampling-5`.
+The [current results/provenance](../../../experiments/light-sampling/20261031-weights-presets1080.json),
+[new 70-image comparator](../../../builds/light-sampling/20261031-weights-presets1080/comparison.html), and
+[full analysis](../../../builds/light-sampling/20261031-weights-presets1080/analysis.json) are separate from the legacy 720p scenes above.
+Offline recomputation uses [light_sampling_weight_presets.py](../../../scripts/light_sampling_weight_presets.py).
+Capture revision is `1df099667`, with unchanged sampler shaders. This rerun changes capture/analysis/records rather than the
+algorithm or defaults. Original geometry remains default and the experiment remains off by default; no visibility guiding,
+lookahead, cuts, MIS or H-PLOC was added.
+
+### Actual data and identity
+
+The accepted set has 35 quality cases, 70 timings, five two-window references and 70 images. Quality warms 256 frames and retains
+1 spp plus 32 consecutive frames. References use two 1024-frame BRDF windows; timing uses 128 warmup and 128 measured frames.
+Emitter populations are 3921, 2111, 2173, 908, 877. Methods share four-way Morton grouping, original mass, the conditional cube sampler
+and textured contribution. RC, reuse, TAA, denoising and normal mapping are off. Actual resolution, source/preset SHA, complete
+light identities, quality/reference matching, node layout, child links and same-frame tree/audit captures were checked.
+
+Scene 1's first seven quality cases and the first 70 timings lacked required boundary evidence and remain historical.
+Scene 3 then showed an actual input change:2142 lights/122701 nonempty voxels became a stable 2173/123492, adding 31 lights and 791
+voxel records. Seven new quality cases and a reference match the latter timing cohort; old-input quality was not multiplied by
+new-input cost. Actual totals are 49 quality cases,140 timings and six references, while the accepted set stays 35/70/5.
+Originals, excluded cohorts and differences remain preserved; the drift's cause is unattributed.
+
+All five accepted timing groups have actual before/after complete nonempty voxel-material and light-tree snapshots. Post dumps
+do not reload shaders: active source UUID, load timestamp, configuration and preset match the final profiled case. Independent
+review also checks all 70 actual model settings,128 samples and stage means, plus the native coordinates, common complete masks
+and reference-window ordering for all 35 crop-MSE values. These checks support this run's identity, without retroactively validating
+old 1080p arity/lookahead results or proving unchanged inputs in all future frames.
+
+### Quality
+
+The table gives RGB MSE in each representative reference crop divided by original MSE; lower is better. It is not whole-image MSE.
+Empirical error for the two-window average is one quarter of the window-difference MSE. Relative to original MSE it is approximately
+1.3%,2.9%,3.0%,12.2%,9.2%. These are not confidence intervals; differences near or below that scale are unresolved.
+
+| Scene | Original | A | B | Near/far | Sphere | SG | BRDF |
+|-------|----------|---|---|----------|--------|----|------|
+| light-sampling-1 | 1.000 | 0.615 | 0.426 | 0.273 | 0.380 | 0.290 | 0.788 |
+| light-sampling-2 | 1.000 | 0.353 | 0.379 | 0.639 | 0.377 | 0.269 | 1.805 |
+| light-sampling-3 | 1.000 | 1.000 | 1.036 | 0.521 | 0.916 | 0.689 | 1.951 |
+| light-sampling-4 | 1.000 | 0.829 | 0.672 | 0.660 | 0.821 | 0.878 | 7.877 |
+| light-sampling-5 | 1.000 | 0.973 | 3.163 | 0.458 | 0.494 | 0.504 | 5.818 |
+
+The next table gives summed per-channel sample variance on common complete receivers divided by original. These 32-frame
+whole-image observations expose contribution tails; they are neither true luminance variance nor proof that rare events converged.
+
+| Scene | Original | A | B | Near/far | Sphere | SG | BRDF |
+|-------|----------|---|---|----------|--------|----|------|
+| light-sampling-1 | 1.000 | 0.748 | 60.792 | 0.198 | 0.460 | 0.367 | 0.411 |
+| light-sampling-2 | 1.000 | 0.854 | 25.390 | 0.184 | 0.498 | 0.360 | 0.645 |
+| light-sampling-3 | 1.000 | 0.897 | 5.953 | 0.404 | 153.475 | 0.483 | 0.820 |
+| light-sampling-4 | 1.000 | 0.680 | 10.960 | 0.261 | 5.212 | 0.670 | 2.510 |
+| light-sampling-5 | 1.000 | 0.941 | 5.525 | 0.395 | 2.685 | 3.128 | 2.212 |
+
+Fixed geometric ROIs retain low-energy receivers without a luminance cutoff, channel variances and null ratios for zero denominators.
+Near/far is most consistent: observed variance ratios are 0.031–0.657 across all 15 fixed ROIs, and crop-MSE ratios 0.273–0.660.
+SG is better in scene 2's reference crop; A is essentially unchanged in scene 3. B helps some floor crops but still has 5.5–60.8×
+whole-image variance, about 621× in scene 1's fixed dark ROI. Sphere reaches about 153× whole-image variance in scene 3 despite crop
+MSE 0.916: a single crop misses tails. SG reaches about 3.13× whole-image variance in scene 5. None of B, sphere or SG is supported
+as a universal replacement here.
+
+Low-frequency errors use normalized-mask Gaussian filters at sigma 2 and 12 pixels, with matched reference uncertainty.
+Near/far's sigma 12 error ratios are 0.422, 0.608, 0.486, 0.752, 0.384. These are observations in the selected regions. Original remains
+the default and near/far a candidate for later acceptance, without a claim that every pixel improves.
+
+### Cost
+
+Ranges below cover the five scene means, each averaging forward/reverse means, in ms. [LightSamplingBuild](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl) sums all 14 stage means.
+[LightSamplingInitial](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl) includes selection, conditional sampling and true tracing rather than isolated tree queries.
+
+| Method | Actual diagnostic node B | Build ms | Initial ms |
+|--------|--------------------------|----------|------------|
+| Original | 32 | 0.157–0.447 | 2.699–16.963 |
+| Half-space A | 32 | 0.132–0.467 | 2.675–17.070 |
+| Cosine B | 32 | 0.149–0.460 | 2.771–16.971 |
+| Near/far | 32 | 0.137–0.489 | 3.040–14.501 |
+| Moment sphere | 48 | 0.166–0.494 | 2.368–16.638 |
+| Diffuse SG | 48 | 0.151–0.549 | 3.009–16.947 |
+| Cosine BRDF | 32 | 0.154–0.481 | 0.912–8.189 |
+
+BRDF actually runs the 32B diagnostic build, although its sampler does not require it. Its required-cost proxy counts initial
+only; a runtime with the build completely removed was not separately measured. Grid 16 buffers contain 8650784/12976160 bytes
+at 32B/48B. Measured shared [VoxelTreeBuilder](../../../shaders/pass/shadow/VoxelTreeBuilder.comp.glsl) and
+[VoxelTreePropagator](../../../shaders/pass/shadow/VoxelTreePropagator.comp.glsl) costs are listed separately, with an added-cost sensitivity proxy. Unmeasured
+GBuffer/shadow costs are not declared zero, and these sums are not called full-frame time.
+
+Near/far build+initial cost ratios are approximately 1.213, 0.921, 0.861, 0.675, 1.112. More query arithmetic need not make the full
+initial pass slower because selected rays also change tracing work. Whole-image observed RGB variance times this cost gives
+ratios 0.240, 0.169, 0.348, 0.176, 0.440. This is an equal-time extrapolation assuming independent-sample variance scales with 1/N,
+not a measured equal-time image. [GenerateSkyViewLUT](../../../shaders/techniques/atmospherics/air/lut/GenerateSkyViewLUT.comp.glsl) sentinel max/min ranges about 1.07–1.18 across scenes; timings are not forcibly
+normalized by it. Small cost differences and finite-window tails remain uncertain.
+
+### Numerical and remaining limits
+
+Complete PMFs including zero outcomes and conditional cube PDFs are independently reconstructed at actual sampled points.
+Current depth/branch errors and unoccluded geometric references are retained; they are not visible-contribution references
+or evidence that visibility guiding works. Independent 32B/48B layout and spatial-moment checks remain applicable.
+
+Accepted quality captures contain 13 nonfinite RGB pixel-sample events in scene 1, affecting each RGB channel; the common complete
+mask excludes five receivers. Other accepted scenes contain none. An additional 64 batched reads observe reason 10 sum 7 and
+reason 3 zero, excluding explicit step-exhaustion returns for those reads. The exact numerical cause remains unattributed and
+unrepaired. Preview substitutions are display-only and counted; raw data are unchanged and invalid samples are not counted as
+zero contributions. Sampled PDF audits do not establish numerical acceptance for every pixel/random input; comparisons here
+are limited to common complete pixels.
+
+All 70 native Scene/Sampler/Accumulation combinations and source-PNG/lossless-AVIF hashes were checked; scenes 1/3 use replacements.
+No browser connection was available, so interactive QA remains incomplete. These results cover independent diffuse-direct initial
+sampling rather than production GI, ReSTIR or dynamic-world acceptance.

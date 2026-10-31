@@ -169,6 +169,11 @@ benchmark 保持可比条件。若全局 Gradle home 出问题，停止并报告
 接受质量或计时样本前，核对灯集合与 mass hash、包围范围／孩子链接、overflow 和 exhaustion 计数、
 节点 stride、有限值及包含零结果的完整 PMF 归一化。独立重建真实所选灯 PMF 与立方体条件 PDF，检查树与审计同帧来源。
 旧二叉读取器或成功编译不能代替这些检查。
+同 source／preset hash 不足以证明流式世界的几何相同。每场景质量、参考和计时须有前后完整有效分配的非空体素材料快照（含非发光遮挡体），
+按 brick／local Morton 与 packed material 归一化比较，忽略未分配池槽。计时末尾直接 dump，不重新加载 shader 或另作预热；
+活动 source UUID、加载时间、配置／preset 应与末项 profile 一致。发生漂移时保留并分开 cohort，采用有依据的一次稳定输入补采，
+不把不同输入的质量与成本混合，不无限追赶几何。主机友好标签不能替代真实 effective MODEL／SAMPLING 核对。
+
 
 针对[证据复查](light-sampling-reassessment.md#原始场景证据复查2026-10-31)中的失败模式，在少量真实接收点
 分别记录整灯位于背面却得到的选择概率、树分布与同叶子公式全量归一化分布，以及固定 mass 的无遮挡立方体积分参考。

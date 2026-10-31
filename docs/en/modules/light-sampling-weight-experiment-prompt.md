@@ -203,6 +203,13 @@ Before accepting quality or timing samples, verify the emitter-set and mass hash
 and exhaustion counts, node stride, finite values, and full PMF normalization including zero outcomes. Independently reconstruct the
 actual selected-light PMF and conditional cube PDF. Check the same-frame tree and audit provenance. Original
 binary readers or a successful compiler run cannot substitute for this check.
+Matching source/preset hashes do not establish matching streamed-world geometry. Each scene needs complete valid-allocation
+nonempty voxel-material snapshots, including nonemissive occluders, around quality, references and profiling. Compare canonical
+brick/local Morton and packed material records, ignoring unallocated pool slots. Read the actual profiling end state without
+reloading or extra warmup; active source UUID, load timestamp, settings and preset must match the final profile. Preserve and
+separate drifting cohorts, use one justified stable-input recapture, and never combine different-input quality and cost or chase
+geometry indefinitely. Friendly host labels do not replace actual effective MODEL/SAMPLING checks.
+
 
 For the failure modes in the [evidence review](light-sampling-reassessment.md#review-of-original-scene-evidence-2026-10-31),
 record, at a few real receivers, selection probability assigned to entirely back-side emitters, tree versus
