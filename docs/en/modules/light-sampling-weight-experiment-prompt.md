@@ -10,7 +10,7 @@ do not repeat the completed full experiment.
 
 The user subsequently requested clear display names, ls3, and reuse of previous Cosine BRDF and Original images for a temporary juxtaposition, without new sampling.
 Every future light-sampling comparison includes **Cosine BRDF** (cosine-weighted BRDF-only, not Cosine B tree weights), with matched scene, direct-only configuration and sample budget.
-Mixed-batch images must retain visible source information. The missing ls3 A + near/far capture must not be filled with another method or silently rerun.
+Mixed-batch images must retain visible source information. The user subsequently authorized filling the ls3 A + near/far gap: one supplementary capture adds its 1-spp and 32-frame-mean images, while all 48 historical images remain unchanged. See the [supplement record](../../../experiments/light-sampling/20261031-ls3-combination.json).
 
 This iteration is complete. On recovery, read the [accepted mappings and results](../../../experiments/light-sampling/20261031-nearfar-iteration.json)
 and [targeted findings](light-sampling-reassessment.md#half-space-default-and-targeted-near-far-iteration-2026-10-31); do not automatically rerun this prompt or the old seven-method matrix.

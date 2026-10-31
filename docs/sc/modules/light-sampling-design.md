@@ -33,8 +33,8 @@
 
 后续灯光采样对比固定加入独立的 **Cosine BRDF**（余弦加权 BRDF-only）作为基础对照，沿用相同场景、direct-only 和采样预算；它不是 Cosine B 灯光树权重。
 显示名使用 Half-space A、Near/Far Mix、Half-space A + Near/Far Mix、Cosine BRDF 和 Original；原始采集 ID 与提交保持原样。
-本次临时并图按用户要求复用上一轮的 Cosine BRDF、Original 和现存 ls3 数据，不重新采样；跨批次输入可能不同，不合并为新的受控质量或性能排名。
-[临时对比页](../../../builds/light-sampling/20261031-temporary-baselines/comparison.html) 包含五个场景和 48 张现存图片；ls3 组合方案的两张图片缺失。[来源索引](../../../experiments/light-sampling/20261031-temporary-baselines.json) 保留逐图来源及校验哈希。
+本次临时并图复用上一轮的 Cosine BRDF、Original 和现存 ls3 数据。用户随后要求补齐缺项，新增一次 ls3 组合方案采集，补上 1 spp 和 32 帧均值图；跨批次输入可能不同，不合并为新的受控质量或性能排名。
+[完整临时对比页](../../../builds/light-sampling/20261031-temporary-baselines-complete/comparison.html) 包含五个场景和 50 张图片，无缺失组合。[补采记录](../../../experiments/light-sampling/20261031-ls3-combination.json) 保留来源及校验哈希；[原 48 图记录](../../../experiments/light-sampling/20261031-temporary-baselines.json) 保持不变。
 
 这些是实验路径的选择，直接光实验本身仍默认关闭。半空间 A 默认已通过选项生成器落地，Target Iris 实际返回模型 1（默认来源）、四叉、cube 开启和 32B 节点；
 [默认验证记录](../../../experiments/light-sampling/20261031-halfspace-default.json) 保留源码快照、原件哈希及 63 点 PDF 审计。实验关闭的配置另通过编译检查；

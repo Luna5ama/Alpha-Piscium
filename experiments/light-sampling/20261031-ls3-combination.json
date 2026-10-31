@@ -1,0 +1,167 @@
+{
+  "schema": 1,
+  "status": "complete",
+  "preparation_commit": "feb08e1918140591d768cff2e2e3c538c62cb4b0",
+  "scope": "Fill the two missing ls3 combined-method images only; historical cross-batch juxtaposition, no new controlled ranking.",
+  "previous_index": "experiments/light-sampling/20261031-temporary-baselines.json",
+  "viewer": "builds/light-sampling/20261031-temporary-baselines-complete/comparison.html",
+  "images": 50,
+  "missing": [],
+  "new_sampling_jobs": 1,
+  "new_benchmark_jobs": 0,
+  "job_id": "e9484218-4536-4e46-8556-c2af3445c3bf",
+  "capture_directory": "builds/light-sampling/20261031-ls3-combination/capture",
+  "capture": {
+    "revision": "78823b540d1164190cd86566f783707ee63c2c8f",
+    "source_snapshot_sha256": "f1d8455bd7f520879340102d6d87ab460f69ebfa93705a1350dbf81535c7a4d8",
+    "preset_id": "light-sampling-3",
+    "preset_sha256": "34a3d51ed1d7e6e6502bc2ef0b8f5fb8ba13117ad31038caf4b53064f86985a8",
+    "scene_sha256": "9bdaaa43b8370619979ac1644f8cad6dde3190c0abb7cc77d381dcb6e73a428d",
+    "config_sha256": "855357dc08eef9d09ae372916a384d4f8e3c606163377c2d500e85e436f1403b",
+    "warmup_frames": 256,
+    "frames": 32,
+    "batches": 8,
+    "start_frame": 638889,
+    "end_frame": 638920,
+    "stale": false,
+    "head_changed": false,
+    "all_action_receipts_ok": true,
+    "restoration": "RECEIPT_STATUS_OK",
+    "request_settings": {
+      "SETTING_DEBUG_LIGHT_ARITY": "4",
+      "SETTING_DEBUG_LIGHT_AUDIT": "true",
+      "SETTING_DEBUG_LIGHT_CUBE": "true",
+      "SETTING_DEBUG_LIGHT_SAMPLING": "2",
+      "SETTING_DEBUG_LIGHT_WEIGHT_MODEL": "6",
+      "SETTING_DENOISER_ACCUM": "false",
+      "SETTING_DENOISER_ANTI_FIREFLY": "false",
+      "SETTING_DENOISER_SPATIAL": "false",
+      "SETTING_GI_PATH_GUIDING": "false",
+      "SETTING_GI_SPATIAL_REUSE": "false",
+      "SETTING_NORMAL_MAPPING": "false",
+      "SETTING_PBR_MATERIAL": "0",
+      "SETTING_RC_ENABLE": "false",
+      "SETTING_TAA": "false",
+      "SETTING_TAA_JITTER": "false",
+      "SETTING_VOXEL_GRID_SIZE": "16"
+    }
+  },
+  "input_identity": {
+    "new_emitters": 2173,
+    "old_emitters": 2173,
+    "same_emitter_positions_materials_and_mass": true,
+    "new_leaf_sha256": "1149ac6f00e4a6d7f46a53c274d5385cfc8ba81e17811c3994f1aecf54896c35",
+    "old_leaf_sha256": "1149ac6f00e4a6d7f46a53c274d5385cfc8ba81e17811c3994f1aecf54896c35"
+  },
+  "worker": {
+    "session_id": "session-60136-19",
+    "task_id": "task-60136-20",
+    "model": "gpt-6.1-terra",
+    "effort": "medium",
+    "service_tier": "priority",
+    "configuration_verified_by": "Parent Pyxis agent_status effective_config.native"
+  },
+  "artifacts_sha256": {
+    "comparison.html": "3c9570784cf02f8066ba892280a1da8b2198de48a1be559aff826fc82c7e27ca",
+    "manifest.json": "0068811d301009b3748e32cb15a41740616ff2e9ce08b5e48534bc5811b5fa31",
+    "provenance.json": "9fa180f3b36ceca4a4e4c41b1da6f80b40cd87780875fd784ac70529f815616b",
+    "worker-result.json": "babe6c958cd6a36db069ead736a239fa4ca11563fd3633127e3f95ca1def9aeb",
+    "browser-qa.png": "7b6ad97584be8265fef0163ec1fd71aeddceb2fcd613241c39ba7dcdeca46a0e"
+  },
+  "native_result_sha256": "48b0a3972056fc2bbd523cc8b61ced761719b97dbba5e2139859ee400822d38b",
+  "new_pngs": {
+    "single.png": {
+      "sha256": "2d6616562c0a2cb8756d241ffd56a24a0214f7dd10bef977a0148b34471e5d1e",
+      "raw_sha256": "346ebf5558083b7f09a9e24190a3fee92d9e750f1fbd5d0df9f9378817069d01",
+      "nonfinite_replaced": {
+        "nan": 0,
+        "positive_infinity": 0,
+        "negative_infinity": 0
+      }
+    },
+    "mean32.png": {
+      "sha256": "32ce16448f1b20fb33651b473ec78358ac5b4e40bc7f2a41c8c46afdc640c1ed",
+      "raw_sha256": "33637978ab9f6a419dc8641139ba3facaada8fec7066baff28bf27b76f4e8d75",
+      "nonfinite_replaced": {
+        "nan": 0,
+        "positive_infinity": 0,
+        "negative_infinity": 0
+      }
+    }
+  },
+  "old_48_source_hashes_unchanged": true,
+  "avif": {
+    "reused_count": 48,
+    "new_count": 2,
+    "all_50_decoded_pixels_match_sources": true
+  },
+  "browser_qa": {
+    "engine": "Playwright Chromium headless software rendering",
+    "ls3_combination_samples": [
+      {
+        "sample": "1 spp",
+        "loaded": true,
+        "image_src": "file:///I:/code/mcshaders/Alpha-Piscium-4/builds/light-sampling/20261031-temporary-baselines-complete/comparison.assets/970ad95ab42debc726e9ea21315984c481c776fcc1be9c03789b4c70f2f22207.avif"
+      },
+      {
+        "sample": "32 frame mean",
+        "loaded": true,
+        "image_src": "file:///I:/code/mcshaders/Alpha-Piscium-4/builds/light-sampling/20261031-temporary-baselines-complete/comparison.assets/ad9454e366d886b55d6d3b1f5a0fca687a3f0b2440b015e1f5db066474b36984.avif"
+      }
+    ],
+    "notice_visible": true,
+    "cosine_brdf_and_original_visible": true,
+    "combinations": 50,
+    "missing": 0,
+    "page_errors": [],
+    "screenshot": "browser-qa.png"
+  },
+  "sources": [
+    {
+      "dimensions": {
+        "Scene": "ls3",
+        "Method": "Half-space A + Near/Far Mix",
+        "Sample": "1 spp"
+      },
+      "source_png": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261031-ls3-combination\\capture\\single.png",
+      "sha256": "2d6616562c0a2cb8756d241ffd56a24a0214f7dd10bef977a0148b34471e5d1e",
+      "batch": "ls3-supplement",
+      "capture_directory": "builds/light-sampling/20261031-ls3-combination/capture",
+      "revision": "78823b540d1164190cd86566f783707ee63c2c8f",
+      "source_snapshot_sha256": "f1d8455bd7f520879340102d6d87ab460f69ebfa93705a1350dbf81535c7a4d8",
+      "preset_id": "light-sampling-3",
+      "preset_sha256": "34a3d51ed1d7e6e6502bc2ef0b8f5fb8ba13117ad31038caf4b53064f86985a8",
+      "scene_sha256": "9bdaaa43b8370619979ac1644f8cad6dde3190c0abb7cc77d381dcb6e73a428d",
+      "sampling": "2",
+      "weight_model": "6",
+      "emitters_in_native_header": 2173,
+      "frames": 32,
+      "start_frame": 638889,
+      "end_frame": 638920,
+      "native_result_sha256": "48b0a3972056fc2bbd523cc8b61ced761719b97dbba5e2139859ee400822d38b"
+    },
+    {
+      "dimensions": {
+        "Scene": "ls3",
+        "Method": "Half-space A + Near/Far Mix",
+        "Sample": "32 frame mean"
+      },
+      "source_png": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261031-ls3-combination\\capture\\mean32.png",
+      "sha256": "32ce16448f1b20fb33651b473ec78358ac5b4e40bc7f2a41c8c46afdc640c1ed",
+      "batch": "ls3-supplement",
+      "capture_directory": "builds/light-sampling/20261031-ls3-combination/capture",
+      "revision": "78823b540d1164190cd86566f783707ee63c2c8f",
+      "source_snapshot_sha256": "f1d8455bd7f520879340102d6d87ab460f69ebfa93705a1350dbf81535c7a4d8",
+      "preset_id": "light-sampling-3",
+      "preset_sha256": "34a3d51ed1d7e6e6502bc2ef0b8f5fb8ba13117ad31038caf4b53064f86985a8",
+      "scene_sha256": "9bdaaa43b8370619979ac1644f8cad6dde3190c0abb7cc77d381dcb6e73a428d",
+      "sampling": "2",
+      "weight_model": "6",
+      "emitters_in_native_header": 2173,
+      "frames": 32,
+      "start_frame": 638889,
+      "end_frame": 638920,
+      "native_result_sha256": "48b0a3972056fc2bbd523cc8b61ced761719b97dbba5e2139859ee400822d38b"
+    }
+  ]
+}
