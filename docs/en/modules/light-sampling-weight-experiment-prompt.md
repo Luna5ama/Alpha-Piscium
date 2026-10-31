@@ -1,4 +1,4 @@
-# Light Sampling Weight Experiment Prompt
+# Light Sampling Diagnostic and Weight Experiment Prompt
 
 Language: English | [简体中文](../../sc/modules/light-sampling-weight-experiment-prompt.md)
 
@@ -8,14 +8,16 @@ that remains necessary; do not stop at a plan or an unmeasured shader change.
 
 ## Result and working location
 
-Implement and compare the three accepted experiment candidates against the original geometric weight:
+First repair the audit and reassess the current four-way tree, completing independent half-space/cosine
+ablations and rejection-reason classification. Then implement and compare three weight candidates against
+the original geometric weight:
 
 1. Near/far-distance probability mixing.
 2. Flux-weighted center and spatial variance with a simple spherical weight.
 3. Full diffuse SG weighting using the same spatial summary as candidate 2.
 
 Work in `I:/code/mcshaders/Alpha-Piscium-4` (`wt4`), branch `2.0/light-sampling`. The source snapshot checked when
-writing this prompt was `8a6bd338c871dd6c7f65d80b59a26470fb3bdbf5`. Inspect the current branch, HEAD, and dirty
+updating this prompt and its evidence was `b8295409`. Inspect the current branch, HEAD, and dirty
 state before working; preserve other work and use the current relevant source. This hash is not a reset target.
 The historical experiment worktree is no longer the working location, and this task does not modify `2.0/dev`.
 
@@ -23,11 +25,20 @@ Deliver attributable implementations, independent probability checks, target-Iri
 comparisons, complete build and sampling timings, and a recommendation for each candidate. Inclusion in this
 experiment does not select a new default. Keep the original baseline default until separately accepted.
 
+| Previous recommendation | Scope of this batch |
+|-------------------------|---------------------|
+| Out-of-bounds / competing audit writes | Repair and validate 720p/1080p addressing, then capture the current four-way tree; old 1080p quality conclusions still require corresponding recaptures |
+| Half-space / cosine estimation | Run the two independent ablations below first, reusing matched scene/quality/timing protocols without crossing them with the three weights |
+| Three weight candidates | Implement all three against the original weight; do not silently fold diagnostic variants into the shared baseline |
+| Rejection reasons and residual occlusion questions | Add classified counters; if necessary, collect per-light visible contribution/second-moment references at a few real receivers |
+| Where a cut should refine | Report depth/branch distribution discrepancies; shared-cut implementation and benefit comparisons remain later work |
+| One-sample MIS, visibility guidance, H-PLOC | Retain as later work, outside this implementation batch; ReGIR remains complementary |
+
 ## Required starting material
 
 Read the [root rules](../../../AGENTS.md), [shader rules](../../../shaders/AGENTS.md),
 [tooling rules](../../../scripts/AGENTS.md), and [documentation rules](../../AGENTS.md). The authoritative scope is
-the [design record](light-sampling-design.md) and the
+the [design record](light-sampling-design.md), [evidence review and next work](light-sampling-reassessment.md#narrowing-the-next-work), and the
 [accepted weight candidates](light-sampling-reassessment.md#weight-candidates-for-the-next-experiments).
 Use the formulas, costs, references, and limitations in that reassessment rather than reopening unrelated designs.
 
@@ -39,6 +50,7 @@ Use the formulas, costs, references, and limitations in that reassessment rather
 | [Options](../../../scripts/options.main.kts), [program registration](../../../scripts/programs.main.kts), and [resource declarations](../../../scripts/shaders.properties) | Experiment selection, generated entry points, stage dependencies, and SSBO allocation |
 | [Wide-tree analysis](../../../scripts/light_sampling_wide_analysis.py), [geometry analysis](../../../scripts/light_sampling_geometry.py), and [runtime artifact helpers](../../../scripts/light_sampling_runtime.py) | Starting points for host-side audits, raw captures, and analysis; inspect their historical assumptions before reuse |
 | [Geometry record](../../../experiments/light-sampling/20261029-geometry.json) and [wide-tree record](../../../experiments/light-sampling/20261030-wide-tree.json) | Existing scenes, configuration, capture protocol, provenance, and limitations; these are historical evidence, not current runtime validation |
+| [Review record](../../../experiments/light-sampling/20261031-evidence-review.json) and [offline reconstruction](../../../scripts/light_sampling_evidence_review.py) | Back-hemisphere probability, depth discrepancies, unoccluded cube references, and counterexamples; the reconstruction assumes the old binary tree and needs adaptation for the current four-way tree |
 
 Known traps require direct handling:
 
@@ -56,7 +68,55 @@ Known traps require direct handling:
   so writers are unique and within capacity at the actual resolution, updating host-side point decoding.
   An old 1080p PDF audit pass is not correctness evidence; preferring 720p must not hide this defect.
 
-## First deliverable: explicit formulas and data contracts
+## Preliminary diagnostics and independent ablations
+
+Repair audit addressing first, checking unique in-bounds slots at the actual resolution. Include one 1080p
+audit check without requiring a rerun of the old full four-case arity/lookahead matrix. The main quality
+matrix remains matched 720p. Old 1080p results not recaptured remain pending revalidation; a new addressing
+check cannot retrospectively validate their image quality. Reconstruct actual selection distributions,
+back-hemisphere probabilities, leaf-formula and unoccluded-cube references, and depth/branch discrepancies
+for the current four-way baseline. Do not inherit binary percentages or inspect only distribution medians.
+Reproduce old counterexamples by world position/normal or choose equivalent near-light receivers rather
+than relying on old pixel-slot numbers after the audit grid changes.
+
+Both diagnostic variants retain 32B nodes, original mass and distance denominator, Morton four-way topology,
+cube sampling, and RNG policy:
+
+| Variant | Isolated change and control |
+|---------|-----------------------------|
+| A: exact half-space rejection | Against original weights, assign zero only to nodes whose entire AABB lies behind the receiving plane; retain the remaining cosine calculation |
+| B: AABB cosine estimate | Against A, replace only cosine estimation with the projected-extent approximation from the existing alternate-weight branch, excluding its different mass and distance terms |
+
+Let `h = dot(normal, delta)`, `e = dot(abs(normal), halfSize)`, and `d2 = dot(delta, delta)`.
+A's geometric condition is `h + e <= 0`; handle rounding conservatively so near-tangent positive contribution
+does not lose support. B retains A's zero test; otherwise its clipped height is
+`h >= e ? h : (h + e)² / (4e)`, divided by `sqrt(max(d2, 0.25))` and clamped to the original `[0.001, 1]`
+range. Keep the original distance denominator `max(d2, radius², 0.25)`. This isolates an existing cosine
+approximation; it is neither an exact cube integral nor an accepted new default.
+
+The current selection loop assumes positive total child weight. Introducing exact zero weights requires
+handling paths whose children all have zero weight. Return an explicit zero-contribution outcome without
+retrying or dividing by zero. Include that outcome in host probability audits, checking
+`sum(q_leaf) + q_zero = 1` instead of requiring leaf probabilities alone to sum to one for every receiver.
+Positive-contribution leaves must retain positive proposal probability. Report entirely zero-contribution
+reference points separately without normalizing an empty target. Here `q_zero` means only the selection
+stage's null outcome, not an extra probability for occlusion or other zero contributions after selecting a light.
+Check all-back-side, mixed-cluster, receiver-plane-crossing, and near-tangent cases.
+
+Add mutually exclusive terminal counters along actual return paths: no lights/zero selection outcome,
+cube-direction generation failure, invalid cosine or target intersection, exhausted trace, no hit,
+non-emissive first hit, proxy interior without a surface entry, emissive first hit not matching the target,
+and successful target hit. Within successful hits, distinguish zero and nonzero actual texture contribution;
+retain nonfinite counts. State denominators and reconcile terminal counts with receiver counts. Do not
+label every target mismatch as occlusion. Disable added diagnostic writes and reference probes for timing.
+
+If classified counts and the unoccluded reference still cannot explain room2's dark region or near-light
+tails, collect per-light conditional samples at a few fixed real receivers. Compare actually visible
+contribution means and second moments with the unoccluded reference, including sampling uncertainty.
+Expand only the points/samples needed to distinguish remaining causes. This diagnosis does not implement
+visibility guidance or full-image per-light scans.
+
+## Formulas and data contracts before implementation
 
 The three model families are selected for comparison; some implementation mathematics is still open. Before
 shader integration, write a compact specification for each candidate in the research record: the actual
@@ -89,8 +149,10 @@ at representative parameter values; duplicating the shader expression alone is n
   path guiding, ReSTIR, spatial reuse, TAA, or denoising. Do not change RNG policy to improve a candidate's images.
 - Keep geometric lookahead and visibility guidance disabled. Do not add tree cuts, H-PLOC, RIS/ReGIR, BRDF/light
   MIS, or new emitter geometry to this matrix. Visibility and H-PLOC remain deferred.
-- Compare original weight plus all three candidates. Keep an independent cosine-BRDF reference for interpreting
-  the images and mean energy; do not use it as a substitute for the original-tree control.
+- Compare original weight plus all three candidates, separately completing preliminary A/B ablations.
+  Repair only the audit in the main matrix's original sampling baseline; do not fold in A/B or automatically
+  test combinations. Keep an independent cosine-BRDF reference for interpreting images and mean energy,
+  rather than substituting it for the original-tree control.
 - Performance comparisons use arity 4. Preserve supported arity 2/8 behavior and check affected compilation and
   capacity branches; do not expand the performance study into an arity sweep.
 
@@ -98,11 +160,11 @@ at representative parameter values; duplicating the shader expression alone is n
 
 | Order | Work | Required outcome |
 |-------|------|------------------|
-| 1 | Formula and host-reference preparation | Defined models and meaningful checks, with remaining decisions explicit |
-| 2 | Builder, resources, and sampler integration | Every candidate reaches the existing raw direct-lighting output, with matching node layout and actual PDF |
-| 3 | Generator and compilation checks | Source and generated outputs agree; each affected variant compiles, including target Iris |
-| 4 | Runtime audits and captures | Verified source/configuration/scene, matching light set and mass, independently checked probabilities, and valid raw samples |
-| 5 | Matched quality and timing comparisons | Raw artifacts and a scene-specific result for all three candidates, including failures and regressions |
+| 1 | Audit repair, four-way reconstruction, and classified counters | Correct 720p/1080p addressing, reproducible current-baseline diagnostics, and rejection causes separated from aggregate hit rate |
+| 2 | A/B ablations and their required compilation, captures, and timing | Separate attribution for half-space rejection and cosine changes, with correct zero outcomes and actual PDFs |
+| 3 | Three-weight formula and host-reference preparation | Defined models and meaningful checks, with remaining decisions explicit |
+| 4 | Builder/resources/sampler integration and compilation | Each candidate reaches raw direct-lighting output; layouts/PDFs and maintained/generated sources agree, including target-Iris compilation |
+| 5 | Matched quality and timing comparisons | Raw artifacts and scene-specific results for all three weights, including failures/regressions; fixed-receiver visible-contribution references when needed |
 
 Register settings through the maintained options source and run the normal generator from the scripts
 directory when required. Do not edit generated wrappers or bindings directly. Keep GLSL indexing and dispatch
@@ -129,7 +191,7 @@ old 1080p wide-tree milliseconds as a control. If a preset is missing, report th
 substituting a differently named scene.
 
 Before accepting quality or timing samples, verify the emitter-set and mass hashes, bounds/child links, overflow
-and exhaustion counts, node stride, finite values, and leaf PMF normalization. Independently reconstruct the
+and exhaustion counts, node stride, finite values, and full PMF normalization including zero outcomes. Independently reconstruct the
 actual selected-light PMF and conditional cube PDF. Check the same-frame tree and audit provenance. Original
 binary readers or a successful compiler run cannot substitute for this check.
 
@@ -137,8 +199,8 @@ For the failure modes in the [evidence review](light-sampling-reassessment.md#re
 record, at a few real receivers, selection probability assigned to entirely back-side emitters, tree versus
 flat normalization of the same leaf formula, and an unoccluded cube-integral reference with fixed mass.
 Inspect near-light/horizon tails as well as medians. The leaf formula can itself fail, so getting closer to
-its flat distribution is not the final quality objective. These are diagnostics for this matrix, not automatic
-additions of a separate half-space/cosine ablation or regional-cut candidate.
+its flat distribution is not the final quality objective. Complete A/B ablations separately as specified
+above and report depth/branch diagnostics, without combining them with a regional-cut implementation.
 
 Quality captures retain raw linear 1-spp frames and 32-frame means/variance with valid-sample counts. Use matched
 warmup and capture windows, starting from the existing 256-frame quality warmup. Record dark regions, near-light
@@ -172,8 +234,10 @@ Commit scoped source, generated outputs, analysis, and tracked records on `2.0/l
 `git diff --check` and `git diff --cached --check`. Preserve unrelated work. This task does not publish, merge to
 `2.0/dev`, start another session, or send external messages.
 
-Finish with a table for baseline and each candidate: actual node bytes, build cost, initial-pass cost, dark/bright
-quality, numerical/PDF result, and recommendation. Distinguish implementation, target compilation, measured
+Finish with a table for the baseline, A/B ablations, and each of the three weights: actual node bytes, build
+cost, initial-pass cost, dark/bright quality, numerical/PDF result, and recommendation. Also deliver audit-repair
+evidence, current four-way rejection/depth diagnostics, and any necessary fixed-receiver references; if the
+latter were not triggered, explain why the existing evidence was sufficient. Distinguish implementation, target compilation, measured
 quality, and measured performance. If a candidate fails or runtime evidence is unavailable, retain the useful
 results and state the unresolved obligation. Stop after this comparison and report; do not automatically extend
 into tree cuts, visibility, H-PLOC, or a new default.

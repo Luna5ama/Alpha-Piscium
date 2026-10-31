@@ -21,8 +21,9 @@ mixed these different levels. This revision removes the dense-table and standalo
 The focus is now cluster importance, receiver-region cuts and visibility, and the global clustering that
 supports them. Keep the accepted Morton four-way/cube baseline. Global cross-brick H-PLOC remains a candidate,
 not an accepted quality improvement. MIS is a separate proposal-combination choice. Full per-leaf scans remain
-small diagnostic references, not a second production architecture alongside spatial tables. No experiment or
-temporal-reuse implementation is authorized by this discussion.
+small diagnostic references, not a second production architecture alongside spatial tables. Experiment startup
+and scope follow the user's latest instructions to the designated experiment chat; this discussion maintains
+the handoff documents, and temporal-reuse implementation is outside the current task.
 
 Current discussion covers the costs of near/far-distance weights and spatial-moment/SG weights, tree cuts,
 shared upper-tree work, and receiver-region choices. At the user's request, visibility discussion is deferred and
@@ -170,9 +171,11 @@ traversal cost. This review records the defect without changing shaders.
 1. Correct audit addressing before new runtime captures, checking unique writers, capacity, and actual
    resolution. Do not reuse the old 1080p pass as evidence.
 2. Retain the three queued weight candidates, recording aggregate distributions, back-hemisphere probability,
-   and near-light tails separately. An additional cheap ablation is worth proposing: fix mass, distance,
+   and near-light tails separately. Run cheap independent ablations first: fix mass, distance,
    topology, and conditional sampling, changing only exact half-space rejection and cosine estimation.
-   This is a new suggestion, not an addition to the fixed three-candidate matrix. An entirely back-side
+   The completed prompt now runs this as independent A/B ablations before the three weights; see the
+   [experiment prompt](light-sampling-weight-experiment-prompt.md#preliminary-diagnostics-and-independent-ablations)
+   for formulas and ordering, without crossing the ablations with those weights. An entirely back-side
    cluster can safely receive zero, but mixed clusters and all-zero child weights need explicit behavior;
    retries or incorrect PDFs must not conceal failures.
 3. Judge a cut by whether it refines the branches that actually fail. Fixed top-level sharing has no general
@@ -576,7 +579,9 @@ may lose overall efficiency, so evaluate rebuild cadence and statistics lifetime
 
 The user has confirmed the three weight variants below for inclusion in the next experiment candidates.
 This records the comparison scope, not a default change, validated benefit, or instruction to run experiments
-in this discussion. Other diagnostic comparisons remain proposals; visibility and H-PLOC remain deferred.
+in this discussion. The prompt now includes audit repair, current four-way reconstruction, half-space/cosine
+A/B ablations, classified rejections, and necessary fixed-receiver references. Shared-cut and MIS implementation
+remain later candidates; visibility guidance and H-PLOC remain deferred.
 
 ### Weight candidates for the next experiments
 
