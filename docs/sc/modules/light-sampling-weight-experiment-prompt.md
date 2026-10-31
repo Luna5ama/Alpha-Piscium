@@ -7,6 +7,10 @@
 
 ## 本轮完成状态（2026-10-31）
 
+用户随后要求临时并图改用明确显示名、补 ls3，并复用上一轮 Cosine BRDF 与 Original，不为此启动新采样。
+后续每轮灯光采样对比都固定包含 **Cosine BRDF**（余弦加权 BRDF-only，非 Cosine B 树权重），使用匹配的场景、direct-only 配置和采样预算。
+跨批次原件并图必须显示来源；缺少的 ls3 A＋近远不得借其它方案填充，也不擅自补跑。
+
 本轮已完成，恢复时先读[接受映射与结果](../../../experiments/light-sampling/20261031-nearfar-iteration.json)
 及[定向迭代复查](light-sampling-reassessment.md#半空间默认与近远定向迭代2026-10-31)，不要自动重跑下文或旧七方法矩阵。
 半空间 A 默认已于 `7de5c430` 落地并验证；`78823b54` 的 A＋近远仍有 ls1 两处退化，`fa8ac641` 的当前灯集合／用户像素逐灯 M2 已完成。

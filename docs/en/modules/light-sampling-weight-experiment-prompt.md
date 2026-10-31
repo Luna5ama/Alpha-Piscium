@@ -8,6 +8,10 @@ do not repeat the completed full experiment.
 
 ## Completion status (2026-10-31)
 
+The user subsequently requested clear display names, ls3, and reuse of previous Cosine BRDF and Original images for a temporary juxtaposition, without new sampling.
+Every future light-sampling comparison includes **Cosine BRDF** (cosine-weighted BRDF-only, not Cosine B tree weights), with matched scene, direct-only configuration and sample budget.
+Mixed-batch images must retain visible source information. The missing ls3 A + near/far capture must not be filled with another method or silently rerun.
+
 This iteration is complete. On recovery, read the [accepted mappings and results](../../../experiments/light-sampling/20261031-nearfar-iteration.json)
 and [targeted findings](light-sampling-reassessment.md#half-space-default-and-targeted-near-far-iteration-2026-10-31); do not automatically rerun this prompt or the old seven-method matrix.
 Commit `7de5c430` implements and verifies the half-space A default. A + near/far in `78823b54` still regresses on both ls1 faces; `fa8ac641` provides completed per-light M2 for the actual light set and user pixels.
