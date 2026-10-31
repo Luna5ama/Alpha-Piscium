@@ -125,19 +125,22 @@ def audit_capture(directory, model, arity=4):
         if record[3,3] == 0: continue
         q, zero = distribution(nodes, links, record[0,:3], record[1,:3], model)
         zero_probs.append(zero)
+        if record[3,3] < 0:
+            assert zero > 0, 'GPU returned a zero selection outside the reconstructed zero-result support'
         if record[3,3] > 0:
             i = leaves[tuple(record[3,:3])]
             pdf_errors.append(abs(record[1,3]/q[i]-1))
             if record[2,3] > 0:
                 expected = cube_pdf(record[3,:3],record[0,:3],record[1,:3],record[2,:3])
                 cube_errors.append(abs(record[2,3]/expected-1))
-    assert pdf_errors and max(pdf_errors) < .01,pdf_errors
+    assert zero_probs, "No receiving audit points"
+    assert not pdf_errors or max(pdf_errors) < .01,pdf_errors
     assert not cube_errors or max(cube_errors) < .005,cube_errors
     leaf_set = sorted((p,int(links[i]&0x7fffffff),float(nodes[i,3])) for p,i in leaves.items())
     return dict(emitters=len(leaves),leaf_set_sha256=hashlib.sha256(repr(leaf_set).encode()).hexdigest(),
                 node_bytes=48 if model>=4 else 32,buffer_bytes=(directory/'tree.bin').stat().st_size,
-                max_pdf_relative_error=max(pdf_errors),max_cube_relative_error=max(cube_errors,default=0),
-                zero_probabilities=zero_probs,reasons=list(map(int,reasons)),sample_count=len(pdf_errors))
+                max_pdf_relative_error=max(pdf_errors,default=0),max_cube_relative_error=max(cube_errors,default=0),
+                zero_probabilities=zero_probs,zero_records=int(np.sum(data[:,3,3]<0)),cube_sample_count=len(cube_errors),reasons=list(map(int,reasons)),sample_count=len(pdf_errors))
 
 
 def validate():

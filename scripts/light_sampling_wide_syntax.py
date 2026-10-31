@@ -1,4 +1,5 @@
 """Syntax-check the wide-tree GLSL bodies with external pipeline inputs stubbed."""
+import argparse
 import hashlib
 import json
 from pathlib import Path
@@ -9,7 +10,12 @@ BUILD = ROOT / 'builds/light-sampling/20261031-weights/syntax'
 
 
 def main():
-    BUILD.mkdir(parents=True, exist_ok=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--models', type=int, nargs='+', default=list(range(6)))
+    parser.add_argument('--output', type=Path, default=BUILD)
+    args = parser.parse_args()
+    build = args.output
+    build.mkdir(parents=True, exist_ok=True)
     header_path = ROOT / 'shaders/techniques/debug/LightSampling.glsl'
     builder_path = ROOT / 'shaders/pass/prepare/LightSamplingBuild.comp.glsl'
     header = header_path.read_text()
@@ -35,7 +41,7 @@ uint hash_pcg_11(uint value) { return value; }
 '''
     builder = builder_path.read_text().replace('#include "/techniques/debug/LightSampling.glsl"', '')
     checks = []
-    for model in range(6):
+    for model in args.models:
         for bits in (1, 2, 3):
             variant = f'#define SETTING_DEBUG_LIGHT_ARITY {1 << bits}\n#define SETTING_DEBUG_LIGHT_WEIGHT_MODEL {model}\n' + header
             for grid in (16, 32, 64):
@@ -44,11 +50,11 @@ uint hash_pcg_11(uint value) { return value; }
                     source = defines + stub + variant + '\n' + builder
                     result = subprocess.run(['glslangValidator', '--stdin', '-S', 'comp'], input=source, text=True, capture_output=True)
                     if result.returncode:
-                        (BUILD / 'failed.comp').write_text(source)
+                        (build / 'failed.comp').write_text(source)
                         raise RuntimeError(f'model={model}, bits={bits}, grid={grid}, stage={stage}, level={level}\n{result.stdout}\n{result.stderr}')
                     checks.append(dict(model=model, arity=1 << bits, grid=grid, stage=stage, level=level))
     result = dict(scope='Static GLSL validation with stubbed external inputs, not target Iris or runtime evidence', checked=len(checks), sources={p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in (header_path, builder_path)}, checks=checks)
-    (BUILD / 'syntax-validation.json').write_text(json.dumps(result, indent=2) + '\n')
+    (build / 'syntax-validation.json').write_text(json.dumps(result, indent=2) + '\n')
     print(f'Passed {len(checks)} stage/arity/grid combinations')
 
 

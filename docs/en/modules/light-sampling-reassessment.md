@@ -679,3 +679,5 @@ not a modification of evaluated radiance. Actual child probabilities and their f
 Independent hemisphere quadrature must quantify the SG approximation error before GPU sampling acceptance.
 The audit uses 8x8 unique bin-center pixels at each actual resolution; 64 records plus 16 uint diagnostic counters.
 Counters 0..9 are exclusive terminal outcomes; counter 10 separately counts nonfinite final RGB values.
+
+The first target-Iris moment audit failed in basilica (node 9210: stored variance 3.5045831, child-derived 3.4910553). The follow-up copies empty merges exactly, uses both positive mass fractions directly, and anchors the mean at the heavier child. This avoids amplifying reciprocal/subtraction error by absolute world-position squared; audit tolerances stay unchanged. GPU revalidation is required; the failed capture remains evidence, not an accepted candidate.

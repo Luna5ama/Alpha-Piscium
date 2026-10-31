@@ -72,20 +72,29 @@ LightSamplingNode ls_emptyNode() {
 }
 
 LightSamplingNode ls_merge(LightSamplingNode a, LightSamplingNode b, uint child) {
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 4
+    // Copy empty merges exactly: reciprocal error must not multiply world-position squared.
+    if (a.boundsMinMass.w == 0.0) { b.boundsMaxLink.w = uintBitsToFloat(child); return b; }
+    if (b.boundsMinMass.w == 0.0) { a.boundsMaxLink.w = uintBitsToFloat(child); return a; }
+    #else
     if (a.boundsMinMass.w == 0.0) a.boundsMinMass.xyz = b.boundsMinMass.xyz;
     if (b.boundsMinMass.w == 0.0) b.boundsMinMass.xyz = a.boundsMinMass.xyz;
     if (a.boundsMinMass.w == 0.0) a.boundsMaxLink.xyz = b.boundsMaxLink.xyz;
     if (b.boundsMinMass.w == 0.0) b.boundsMaxLink.xyz = a.boundsMaxLink.xyz;
+    #endif
     LightSamplingNode merged = ls_emptyNode();
     merged.boundsMinMass = vec4(min(a.boundsMinMass.xyz, b.boundsMinMass.xyz), a.boundsMinMass.w + b.boundsMinMass.w);
     merged.boundsMaxLink = vec4(max(a.boundsMaxLink.xyz, b.boundsMaxLink.xyz), uintBitsToFloat(child));
     #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 4
     float mass = merged.boundsMinMass.w;
     if (mass > 0.0) {
+        float wa = a.boundsMinMass.w / mass;
         float wb = b.boundsMinMass.w / mass;
         vec3 delta = b.meanVariance.xyz - a.meanVariance.xyz;
-        merged.meanVariance = vec4(a.meanVariance.xyz + wb * delta,
-            mix(a.meanVariance.w, b.meanVariance.w, wb) + (1.0 - wb) * wb * dot(delta, delta));
+        vec3 mean = a.boundsMinMass.w >= b.boundsMinMass.w
+            ? a.meanVariance.xyz + wb * delta : b.meanVariance.xyz - wa * delta;
+        merged.meanVariance = vec4(mean,
+            wa * a.meanVariance.w + wb * b.meanVariance.w + wa * wb * dot(delta, delta));
     }
     #endif
     return merged;
