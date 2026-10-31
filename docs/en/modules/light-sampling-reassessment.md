@@ -24,8 +24,8 @@ not an accepted quality improvement. MIS is a separate proposal-combination choi
 small diagnostic references, not a second production architecture alongside spatial tables. No experiment or
 temporal-reuse implementation is authorized by this discussion.
 
-Current discussion scope: compare the costs of near/far-distance weights and spatial-moment/SG weights, and
-clarify tree cuts and shared upper-tree work. At the user's request, visibility discussion is deferred and
+Current discussion covers the costs of near/far-distance weights and spatial-moment/SG weights, tree cuts,
+shared upper-tree work, and receiver-region choices. At the user's request, visibility discussion is deferred and
 H-PLOC is on hold. Their existing sections below are backlog context, not the next scheduled experiments.
 The user has now added all three weight variants to the next experiment candidates: near/far-distance mixing,
 flux-weighted center and spatial variance with a simple spherical weight, and full diffuse SG weighting.
@@ -198,6 +198,103 @@ importance estimates and remove dependent traversal steps, but it does not autom
 node reads. Compared with per-query adaptive cut construction, the partition search is amortized; compared
 with the current single-path baseline, region preparation is additional work. If every region uses the same
 cut, store that cut once rather than duplicate it per region.
+
+### Sharing cuts in world space and screen space
+
+This round discusses both region types and both visible-surface and indirect-hit queries. The user has not
+restricted the consumers or selected an implementation. Regions group receivers; the global light tree and
+its emitter clusters remain shared. Each region stores a complete cut, and each receiver independently picks
+one cluster, one light, and one conditional emitter sample. K frontier nodes do not mean K shadow rays per pixel.
+
+Both arrangements have precedents. Section 3.3 of
+[Real-Time Stochastic Lightcuts](https://www.cemyuksel.com/research/stochasticlightcuts/realtime_stochastic_lightcuts.pdf)
+shares a cut across a pixel block and samples independently per pixel. Its multiple-cluster samples and
+interleaved reconstruction are not evidence of a gain in our single-light, unfiltered path.
+[Adaptive Direct Illumination Sampling](https://cgg.mff.cuni.cz/~jaroslav/papers/2016-directillum/2016-vevoda-directillum-abstract.pdf)
+caches cuts on demand in world-grid cells, evaluates cluster probabilities at the actual receiver, and picks
+one cluster and one light. Its queries can occur at different path vertices.
+
+| Property | Screen-space regions | World-space regions |
+|----------|----------------------|---------------------|
+| Main reuse | Nearby visible pixels, usually with contiguous G-buffer access | Spatially nearby actual hits, potentially from different pixels or bounces |
+| Natural advantage | Work scales with active screen queries; nearby threads can read common cut data | Partition does not depend on camera projection; can organize off-screen and indirect receivers |
+| Main mismatch | Depth discontinuities, silhouettes, and differently oriented surfaces in one tile | A cell crossing walls, containing multiple surfaces, or spanning too large an area |
+| Refinement | Group by depth, world-position extent, and normals, rather than pixel distance alone | Group actual surfaces and normals within active cells; do not necessarily cover empty volume |
+| Updates and amortization | Straightforward per-frame rebuild; motion and disocclusion change membership | Potential reuse, requiring active-region management and current tree identity and lifetime |
+
+The goal is to group receivers with similar importance distributions. Screen proximity does not guarantee
+world proximity, and world proximity does not guarantee similar normals or visible emitters. Points on one
+flat wall may share well, while nearby points around a corridor corner may need different refinement. With
+visibility still deferred, consider at least position extent, normal extent, and relative distance to important
+light clusters. Region-size-to-light-distance ratios can suggest near-field variation, but alone neither
+guarantee distribution similarity nor establish a chosen threshold.
+
+A compromise candidate is to form a few receiver groups inside each screen tile using world positions and
+normals, with one cut per group. This retains screen scheduling and contiguous access while reducing mixtures
+across silhouettes and surfaces. Grouping, membership indices, and additional cuts cost work; the benefit is
+unmeasured. For indirect lighting, do not assume that a ray can use its originating pixel tile's cut: nearby
+pixels can send rays to unrelated locations. Regrouping actual secondary hits entails hit storage, binning,
+and subsequent scheduling. Sparse queries with few samples per region may not amortize that work.
+
+### Sharing node lists and sharing probabilities are distinct candidates
+
+| Shared data | Work remaining per receiver | Main tradeoff |
+|-------------|-----------------------------|---------------|
+| Cut node references and reusable node data | Score K clusters at the actual position and normal, normalize, then select a light in the chosen subtree | Can change coarse-cluster estimation error and expose common reads, but need not reduce weight evaluations |
+| Cut plus a regional cluster PMF/CDF | Draw a cluster from the shared distribution, then use a defined conditional light sampler | Removes K per-query cluster scores; within-region mismatch can increase variance and contribution tails |
+
+With shared probabilities, the actual sampling density is
+
+$$
+p(l,y\mid x,R)=P_R(C)P(l\mid C,x)p(y\mid l,x).
+$$
+
+Complete contribution support and the actual probabilities can preserve the Monte Carlo estimator's
+unbiasedness; they do not guarantee low variance. Continuing geometric traversal within a chosen cluster
+improves only its conditional allocation and cannot repair a severely underestimated regional cluster PMF.
+Do not share the randomly selected cluster itself or copy representative-point lighting across the region.
+Shared structure does not require shared random numbers. This round does not adopt interleaved reconstruction
+that assigns fixed cluster subsets to pixels and recovers lighting through neighborhood filtering.
+
+Cut construction should consider more than which cluster is brightest. Geometric variation over the region,
+uncertainty in coarse-node estimates, and refinement cost also affect allocation. One representative point is
+cheap but can miss the needs of small receiver surfaces. Several representatives or regional bounds cover
+more variation while adding preparation cost or excessive refinement. These are construction strategies to
+compare, not inherited original-Lightcuts illumination error guarantees. Keep coarse clusters when the budget
+is exhausted; do not discard the remaining emitters.
+
+As a counting example, a full four-way tree with 4,096 leaves evaluates 24 child weights across six levels for
+one root-to-leaf sample. Sharing its 16-node depth-two cut while scoring it per query requires 16 cluster
+weights plus 16 weights across the remaining four levels: 32 total, before preparation. Sharing the cluster
+PMF instead leaves 16 geometric weights, plus CDF lookup, subtree reads, and amortized cut preparation. This is
+not a measurement of our irregular tree. Common node reads, caching, parallel scoring, and dependency-chain
+length can change GPU time; evaluation counts do not replace timing.
+
+Persistent regional storage need not copy full 32B nodes. With K=16 and a 4B node index plus 4B CDF value per
+entry, each region needs 128B. At 720p, 8×8 tiles give 14,400 regions and about 1.76 MiB; 16×16 tiles give 3,600
+regions and about 0.44 MiB. Index-only cuts halve those amounts. Fully populated 32³/64³ world-cell grids need
+4/32 MiB respectively. These are entry payloads only, excluding region descriptors, counts, membership maps,
+alignment, and multiple buffers. Active-region storage avoids empty-volume waste but still needs indexing
+and allocation.
+
+Two current source constraints matter:
+
+- [LightSamplingInitial](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl) uses 16×16 workgroups
+  and obtains visible-surface receivers from the G-buffer through
+  [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl). This supplies a screen-oriented entry
+  point, not proof that 16×16 is the best sharing size. A separate preparation stage can produce cuts for the
+  sampler; same-workgroup shared memory is another execution choice with synchronization and occupancy costs.
+- [LightSamplingBuild](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl) clears and rebuilds the tree,
+  allocating local node ranges atomically. Stable world-cell identity therefore does not imply stable cut-node
+  indices. Updating cuts against the current tree is the direct option; reuse across frames requires emitter
+  membership identity, tree-update, and invalidation contracts before reusing old indices.
+
+The recommendation remains conditional: dense visible-surface queries favor investigating geometrically
+grouped screen cuts; arbitrary bounce points favor active world/surface regions. If a region mixes many
+dissimilar receivers, or queries cannot amortize preparation, per-query light-tree traversal remains an
+essential control. Judge shared cuts and shared PMFs separately, comparing equal-sample quality and total
+cost including region preparation. This discussion adds no cut variant to the scheduled three-weight
+experiment and establishes no new runtime acceptance result.
 
 ### Better cluster importance without changing the emitter mass
 
