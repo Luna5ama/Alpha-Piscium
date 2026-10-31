@@ -808,6 +808,15 @@ All 853 are zero-observed at slot2. Neither proves invisibility nor provides a s
 The finite-sample sqrt(M2) ideal is diagnostic only. Each window is consecutive, with a 106-frame export gap; lane and temporal
 independence are not assumed.
 
+Summing the [per-light arrays](../../../builds/light-sampling/20261031-weights/point-reference/per-light.npz) again,
+the seven lights with observed nonzero contributions at slot54 receive total selection probabilities of 2.413% original,
+3.546% A, 3.406% B, 7.336% near/far, 1.351% sphere and 1.592% SG. They form one short row at
+`x=308, y=19, z=134..140`. Recomputing luminance variance from the saved per-light second moments and actual proposals
+gives near/far and SG ratios of 0.328/1.480 to original, matching the record. This locates the point's failure more
+concretely in insufficient probability for the contributing light set. Unoccluded-proxy rankings alone cannot explain
+it, nor can all zero contributions be attributed to the back hemisphere. It motivates receiver-dependent cluster
+contribution statistics without establishing the benefit or cost of shared cuts or visibility guidance.
+
 Cross-scene switches changed light and voxel inputs for an unattributed reason; mismatching cohorts remain excluded and preserved.
 The full-image matrix checks light identity/topology, while the point reference and timing repeat also check complete voxel
 materials. Neither establishes identical visibility inputs in every full-image frame. Conclusions apply to the independent
