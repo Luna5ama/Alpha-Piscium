@@ -28,7 +28,7 @@ const uint LS_LEAF_BIT = 0x80000000u;
 struct LightSamplingNode {
     vec4 boundsMinMass;
     vec4 boundsMaxLink;
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 4
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 4 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 5
     vec4 meanVariance;
     #endif
 };
@@ -65,14 +65,14 @@ LightSamplingNode ls_emptyNode() {
     LightSamplingNode node;
     node.boundsMinMass = vec4(0.0);
     node.boundsMaxLink = vec4(0.0);
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 4
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 4 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 5
     node.meanVariance = vec4(0.0);
     #endif
     return node;
 }
 
 LightSamplingNode ls_merge(LightSamplingNode a, LightSamplingNode b, uint child) {
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 4
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 4 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 5
     // Copy empty merges exactly: reciprocal error must not multiply world-position squared.
     if (a.boundsMinMass.w == 0.0) { b.boundsMaxLink.w = uintBitsToFloat(child); return b; }
     if (b.boundsMinMass.w == 0.0) { a.boundsMaxLink.w = uintBitsToFloat(child); return a; }
@@ -85,7 +85,7 @@ LightSamplingNode ls_merge(LightSamplingNode a, LightSamplingNode b, uint child)
     LightSamplingNode merged = ls_emptyNode();
     merged.boundsMinMass = vec4(min(a.boundsMinMass.xyz, b.boundsMinMass.xyz), a.boundsMinMass.w + b.boundsMinMass.w);
     merged.boundsMaxLink = vec4(max(a.boundsMaxLink.xyz, b.boundsMaxLink.xyz), uintBitsToFloat(child));
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 4
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 4 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 5
     float mass = merged.boundsMinMass.w;
     if (mass > 0.0) {
         float wa = a.boundsMinMass.w / mass;
@@ -148,12 +148,17 @@ float ls_sgCosine(float k, float c) {
     return max(mix(back, front, u), 0.000001 / (1.0 + k));
 }
 
+bool ls_behindReceiver(vec3 delta, vec3 halfSize, vec3 normal) {
+    float extent = dot(abs(normal), halfSize);
+    return dot(normal, delta) + extent < -0.000001 * (dot(abs(normal), abs(delta)) + extent + 1.0);
+}
+
 float ls_geometricWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     if (node.boundsMinMass.w == 0.0) return 0.0;
     vec3 halfSize = (node.boundsMaxLink.xyz - node.boundsMinMass.xyz) * 0.5;
     vec3 delta = node.boundsMinMass.xyz + halfSize - origin;
     float radius = length(halfSize);
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 4
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 4 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 5
     delta = node.meanVariance.xyz - origin;
     radius = sqrt(2.0 * node.meanVariance.w);
     #endif
@@ -165,10 +170,10 @@ float ls_geometricWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     #else
     float height = dot(normal, delta);
     #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 1 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 2
-    float extent = dot(abs(normal), halfSize);
-    if (height + extent < -0.000001 * (dot(abs(normal), abs(delta)) + extent + 1.0)) return 0.0;
+    if (ls_behindReceiver(delta, halfSize, normal)) return 0.0;
     #endif
     #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 2
+    float extent = dot(abs(normal), halfSize);
     float clippedHeight = height >= extent ? height : max(height + extent, 0.0) * max(height + extent, 0.0) / (4.0 * extent);
     float cosineBound = clamp(clippedHeight * inversesqrt(max(distanceSquared, 0.25)), 0.001, 1.0);
     #else
@@ -189,7 +194,7 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
         #if LS_TREE_ARITY == 8
         vec4 weightsHigh = vec4(0.0);
         #endif
-        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3
+        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
         vec4 nearLow = vec4(0.0), zeroLow = vec4(0.0);
         #if LS_TREE_ARITY == 8
         vec4 nearHigh = vec4(0.0), zeroHigh = vec4(0.0);
@@ -200,11 +205,14 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
         for (uint i = 0u; i < count; ++i) {
             LightSamplingNode candidate = ls_nodes[child + i];
             float weight = ls_geometricWeight(candidate, origin, normal);
-            #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3
+            #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
             vec3 halfSize = (candidate.boundsMaxLink.xyz - candidate.boundsMinMass.xyz) * 0.5;
             vec3 delta = candidate.boundsMinMass.xyz + halfSize - origin;
             float cosine = clamp((dot(normal, delta) + length(halfSize)) * inversesqrt(max(dot(delta, delta), 0.25)), 0.001, 1.0);
             float amplitude = candidate.boundsMinMass.w * cosine;
+            #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
+            if (ls_behindReceiver(delta, halfSize, normal)) amplitude = 0.0;
+            #endif
             vec3 nearest = max(abs(delta) - halfSize, 0.0);
             vec3 farthest = abs(delta) + halfSize;
             float nearD2 = dot(nearest, nearest);
@@ -227,7 +235,7 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
             total += weight;
         }
         if (total == 0.0) { pdf = 0.0; return ls_emptyNode(); }
-        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3
+        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
         weightsLow = 0.5 * (weightsLow / total + (zeroTotal > 0.0 ? zeroLow / zeroTotal : nearLow / nearTotal));
         #if LS_TREE_ARITY == 8
         weightsHigh = 0.5 * (weightsHigh / total + (zeroTotal > 0.0 ? zeroHigh / zeroTotal : nearHigh / nearTotal));

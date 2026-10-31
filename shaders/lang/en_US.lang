@@ -935,6 +935,7 @@ value.SETTING_DEBUG_LIGHT_WEIGHT_MODEL.2=Cosine B
 value.SETTING_DEBUG_LIGHT_WEIGHT_MODEL.3=Near/far probability mixture
 value.SETTING_DEBUG_LIGHT_WEIGHT_MODEL.4=Moment sphere
 value.SETTING_DEBUG_LIGHT_WEIGHT_MODEL.5=Diffuse SG
+value.SETTING_DEBUG_LIGHT_WEIGHT_MODEL.6=Half-space A + near/far mixture
 option.SETTING_DEBUG_LIGHT_CUBE=Projected Solid Angle Cube Sampling
 option.SETTING_DEBUG_LIGHT_ARITY=Light Tree Branching
 option.SETTING_DEBUG_LIGHT_ARITY.comment=Morton light-tree branching factor. All choices use direct child weights without geometric lookahead.

@@ -91,7 +91,7 @@ void main() {
         LightSamplingNode leaf = ls_emptyNode();
         leaf.boundsMinMass = vec4(position, mass);
         leaf.boundsMaxLink = vec4(position + 1.0, uintBitsToFloat(LS_LEAF_BIT | materialID));
-        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 4
+        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 4 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 5
         leaf.meanVariance = vec4(position + 0.5, 5.0 / 12.0);
         #endif
         ls_nodes[base + slot] = leaf;

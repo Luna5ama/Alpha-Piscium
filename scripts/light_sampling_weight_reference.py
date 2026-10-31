@@ -10,7 +10,7 @@ from light_sampling_geometry import cube_pdf
 
 ROOT = Path(__file__).resolve().parents[1]
 RUN = ROOT / 'builds/light-sampling/20261031-weights'
-MODELS = ['original', 'halfspace-a', 'cosine-b', 'near-far', 'moment-sphere', 'diffuse-sg']
+MODELS = ['original', 'halfspace-a', 'cosine-b', 'near-far', 'moment-sphere', 'diffuse-sg', 'halfspace-near-far']
 
 
 def sg_cosine(k, c):
@@ -55,7 +55,7 @@ def probabilities(nodes, model, origin, normal):
     half = (nodes[:, 4:7]-nodes[:, :3])*.5
     delta = nodes[:, :3]+half-origin
     radius2 = np.sum(half*half, axis=1)
-    if model >= 4:
+    if model in (4, 5):
         delta = nodes[:, 8:11]-origin
         radius2 = 2*nodes[:, 11]
     d2 = np.sum(delta*delta, axis=1)
@@ -64,13 +64,19 @@ def probabilities(nodes, model, origin, normal):
     if model == 5:
         variance = np.where(mass > 0, nodes[:, 11], 1)
         weight = mass/variance*sg_cosine(d2/variance, np.clip(h/np.sqrt(np.maximum(d2, 1e-30)), -1, 1))
-    elif model == 3:
+    elif model in (3, 6):
         amplitude = mass*cosine
+        if model == 6:
+            extent = np.abs(normal)@half.T
+            excluded = h+extent < -1e-6*(np.sum(np.abs(delta*normal),axis=1)+extent+1)
+            amplitude = np.where(excluded, 0, amplitude)
         nearest = np.sum(np.maximum(np.abs(delta)-half, 0)**2, axis=1)
         farthest = np.sum((np.abs(delta)+half)**2, axis=1)
-        zero = (nearest == 0)&(mass > 0)
+        zero = (nearest == 0)&(amplitude > 0)
         near = np.where(zero, amplitude, 0) if zero.any() else amplitude/np.maximum(nearest, 1e-300)
         far = np.divide(amplitude, farthest, out=np.zeros_like(amplitude), where=farthest > 0)
+        if far.sum() == 0:
+            return np.zeros_like(amplitude)
         return .5*(near/near.sum()+far/far.sum())
     else:
         if model == 2:
@@ -87,7 +93,7 @@ def probabilities(nodes, model, origin, normal):
 def load_tree(path, model):
     words = np.fromfile(path, '<u4')
     header = words[:8]
-    stride = 12 if model >= 4 else 8
+    stride = 12 if model in (4, 5) else 8
     nodes = words[8:].reshape(-1, stride)
     return header, nodes.view('<f4').astype(float), nodes[:, 7]
 
@@ -124,7 +130,7 @@ def audit_capture(directory, model, arity=4):
         if links[i]&0x80000000:
             assert np.all(node[4:7]-node[:3] == 1)
             leaves[tuple(node[:3])] = i
-            if model >= 4:
+            if model in (4, 5):
                 assert np.allclose(node[8:11], node[:3]+.5) and np.isclose(node[11], 5/12)
             continue
         link = int(links[i]); base, count = link&0x0fffffff, ((link>>28)&7)+1
@@ -132,7 +138,7 @@ def audit_capture(directory, model, arity=4):
         child = nodes[base:base+count]; assert np.isclose(node[3], child[:, 3].sum(), rtol=2e-6)
         active = child[child[:, 3] > 0]
         assert np.all(active[:, :3] >= node[:3]) and np.all(active[:, 4:7] <= node[4:7])
-        if model >= 4:
+        if model in (4, 5):
             mean = np.average(active[:, 8:11], axis=0, weights=active[:, 3])
             variance = np.average(active[:, 11]+np.sum((active[:, 8:11]-mean)**2,axis=1), weights=active[:, 3])
             assert np.allclose(mean, node[8:11], atol=.003)
@@ -160,7 +166,7 @@ def audit_capture(directory, model, arity=4):
     assert not cube_errors or max(cube_errors) < .005,cube_errors
     leaf_set = sorted((p,int(links[i]&0x7fffffff),float(nodes[i,3])) for p,i in leaves.items())
     return dict(emitters=len(leaves),leaf_set_sha256=hashlib.sha256(repr(leaf_set).encode()).hexdigest(),
-                node_bytes=48 if model>=4 else 32,buffer_bytes=(directory/'tree.bin').stat().st_size,
+                node_bytes=48 if model in (4, 5) else 32,buffer_bytes=(directory/'tree.bin').stat().st_size,
                 max_pdf_relative_error=max(pdf_errors,default=0),max_cube_relative_error=max(cube_errors,default=0),
                 zero_probabilities=zero_probs,zero_records=int(np.sum(data[:,3,3]<0)),cube_sample_count=len(cube_errors),reasons=list(map(int,reasons)),sample_count=len(pdf_errors))
 

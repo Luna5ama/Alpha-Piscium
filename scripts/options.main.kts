@@ -4366,7 +4366,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 lang { name = "Light Sampling PDF Audit" }
                 lang(Locale.SIMPLIFIED_CHINESE) { name = "灯光采样PDF审计" }
             }
-            slider("SETTING_DEBUG_LIGHT_WEIGHT_MODEL", 1, listOf(0, 1, 2, 3, 4, 5)) {
+            slider("SETTING_DEBUG_LIGHT_WEIGHT_MODEL", 1, listOf(0, 1, 2, 3, 4, 5, 6)) {
                 lang {
                     name = "Light Tree Weight Model"
                     0 value "Original"
@@ -4375,6 +4375,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     3 value "Near/far probability mixture"
                     4 value "Moment sphere"
                     5 value "Diffuse SG"
+                    6 value "Half-space A + near/far mixture"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "灯光树权重模型"
@@ -4384,6 +4385,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     3 value "近远概率混合"
                     4 value "空间矩球形"
                     5 value "漫反射 SG"
+                    6 value "半空间 A + 近远混合"
                 }
             }
             toggle("SETTING_DEBUG_LIGHT_CUBE", true) {
