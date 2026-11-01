@@ -132,11 +132,54 @@ class Tree:
                         if len(self.children[grandchild]) and crosses[grandchild]:
                             reads[i, 1] += len(self.children[grandchild])
                             evaluations[i, 1] += len(self.children[grandchild]) - 1
-        return dict(scope='Naive static expansion without early parent-bound rejection or reuse; not GPU timing.',
+        return dict(scope='Zero-mass children removed: nonempty logical records only, not native slot reads. No early parent-bound rejection or reuse; not GPU timing.',
                     eligible_candidates=int(sum(crosses[i] and len(self.children[i]) > 0 for i in range(1, len(self.nodes)))),
-                    whole_tree_additional_reads=reads.sum(axis=0).tolist(),
-                    expected_additional_reads_per_sample=[float(q[:, 4 + k] @ reads[:, k]) for k in range(2)],
-                    expected_additional_A_evaluations_per_sample=[float(q[:, 4 + k] @ evaluations[:, k]) for k in range(2)])
+                    whole_tree_additional_nonempty_records=reads.sum(axis=0).tolist(),
+                    expected_additional_nonempty_records_per_sample=[float(q[:, 4 + k] @ reads[:, k]) for k in range(2)],
+                    expected_additional_nonempty_A_geometry_evaluations_per_sample=[float(q[:, 4 + k] @ evaluations[:, k]) for k in range(2)],
+                    A_geometry_scope='Net nonempty A evaluations after replacing the candidate weight. Empty mass==0 returns and their scalar mass tests are excluded.')
+
+
+def expansion_work(tree, q, crosses, native_path=None):
+    result = tree.work(q, crosses)
+    if native_path is None:
+        result['physical_layout_scope'] = 'Offline logical tree; physical slots are not modelled.'
+        return result
+    _, nodes, links = load_tree(native_path, 1)
+    indices, slots = [1], []
+    for i, index in enumerate(indices):
+        np.testing.assert_array_equal(nodes[index, [0, 1, 2, 4, 5, 6]], tree.nodes[i, [0, 1, 2, 4, 5, 6]])
+        assert np.isclose(nodes[index, 3], tree.nodes[i, 3], rtol=2e-6)
+        link = int(links[index])
+        if link & 0x80000000:
+            assert tree.materials[i] == link & 0x7fffffff
+            slots.append(0)
+        else:
+            base, count = link & 0x0fffffff, ((link >> 28) & 7) + 1
+            children = [child for child in range(base, base + count) if nodes[child, 3] > 0]
+            start = len(indices)
+            indices.extend(children)
+            np.testing.assert_array_equal(tree.children[i], np.arange(start, len(indices)))
+            slots.append(count)
+    assert len(indices) == len(tree.nodes)
+    physical = np.zeros((len(tree.nodes), 2), dtype=int)
+    for i, children in enumerate(tree.children):
+        for child in children:
+            if len(tree.children[child]) and crosses[child]:
+                physical[i] += slots[child]
+                for grandchild in tree.children[child]:
+                    if len(tree.children[grandchild]) and crosses[grandchild]:
+                        physical[i, 1] += slots[grandchild]
+    expected = [float(q[:, 4 + k] @ physical[:, k]) for k in range(2)]
+    logical = result['expected_additional_nonempty_records_per_sample']
+    result['native_gpu_layout'] = dict(
+        source_tree=native_path.as_posix(), source_tree_sha256=hashlib.sha256(native_path.read_bytes()).hexdigest(),
+        scope='Captured childBase/childCount, including zero-mass slots. Naive expansion, no early parent-bound rejection or reuse; not memory transactions or GPU timing.',
+        whole_tree_additional_child_slots=physical.sum(axis=0).tolist(),
+        expected_additional_child_slots_per_sample=expected,
+        expected_additional_empty_mass_returns_per_sample=[p - l for p, l in zip(expected, logical)],
+        A_geometry_scope='The nonempty A-geometry counts above still apply: reading an empty slot incurs its mass test and early return, without A geometry arithmetic.')
+    return result
 
 
 def tree_variants(folder, fixture, layout, grid=16):
@@ -163,7 +206,7 @@ def tree_variants(folder, fixture, layout, grid=16):
     return result, camera
 
 
-def score(tree, records, moments, origin, normal, output):
+def score(tree, records, moments, origin, normal, output, native_path=None):
     by_key = {tuple(map(int, record)): i for i, record in enumerate(records)}
     assert set(by_key) == set(tree.keys)
     order = np.array([by_key[key] for key in tree.keys])
@@ -172,11 +215,12 @@ def score(tree, records, moments, origin, normal, output):
     unavailable = np.flatnonzero(moments['complete_samples'][order] == 0)
     weights, crosses = tree.weights(origin, normal)
     q, null = tree.pmf(weights)
+    work = expansion_work(tree, q, crosses, native_path)
     leaf_q = q[tree.leaves]
     np.savez_compressed(output, keys=np.asarray(tree.keys, '<i4'), mean_rgb=mu, m2=m2, probabilities=leaf_q,
                         null_probability=null, modes=np.asarray(MODES), masses=tree.nodes[tree.leaves, 3])
     if len(unavailable):
-        return dict(unavailable_lights=[tree.keys[i] for i in unavailable], methods=None, work=tree.work(q, crosses))
+        return dict(unavailable_lights=[tree.keys[i] for i in unavailable], methods=None, work=work)
     assert np.isfinite(mu).all() and np.isfinite(m2).all() and (m2 >= 0).all()
     total_mu = mu.sum(axis=0)
     mu_squared = float(total_mu @ total_mu)
@@ -223,7 +267,7 @@ def score(tree, records, moments, origin, normal, output):
                                      sqrt_m2_share=float(aggregate_sqrt[i] / aggregate_sqrt[0]) if aggregate_sqrt[0] > 0 else None))
     return dict(methods=methods, mean_rgb_total=total_mu.tolist(), fixed_conditional_optimal_variance=optimal_second - mu_squared,
                 optimal_leaf_diagnostic='q proportional to sqrt(M2) for these finite conditional samples; not a cheap production proposal.',
-                low_y_clusters=low_clusters, work=tree.work(q, crosses))
+                low_y_clusters=low_clusters, work=work)
 
 
 def analyze(run):
@@ -254,7 +298,8 @@ def analyze(run):
                 row = dict(dataset=dataset['id'], point=receiver['id'], window=window, camera=camera,
                            origin=origin.tolist(), normal=normal.tolist(), albedo=audit[point_index, 2, :3].tolist(), trees={})
                 for variant, tree in trees.items():
-                    row['trees'][variant] = score(tree, records, moments, origin, normal, output / f"{dataset['id']}-{name}-{variant}.npz")
+                    native_path = folder / 'tree.bin' if dataset['layout'] == 'world-prefix' and variant == 'world-prefix' else None
+                    row['trees'][variant] = score(tree, records, moments, origin, normal, output / f"{dataset['id']}-{name}-{variant}.npz", native_path)
                 def base(variant):
                     methods = row['trees'][variant]['methods']
                     return methods['A']['variance'] if methods is not None else None
@@ -271,8 +316,33 @@ def analyze(run):
     return dict(points=sorted({row['point'] for row in results}), point_window_rows=len(results), output=str(run / 'screening.json'))
 
 
+def revise_work(run):
+    """Refresh costs only; assert the retained full PMFs and leave all moment arrays untouched."""
+    datasets = {row['id']: row for row in read(run / 'point-cases.json')}
+    rows = read(run / 'screening.json')
+    loaded = {}
+    for row in rows:
+        dataset = datasets[row['dataset']]
+        folder = resolve(dataset['folder'])
+        if row['dataset'] not in loaded:
+            loaded[row['dataset']] = tree_variants(folder, read(resolve(dataset['fixture'])), dataset['layout'])[0]
+        for variant, tree in loaded[row['dataset']].items():
+            weights, crosses = tree.weights(np.asarray(row['origin']), np.asarray(row['normal']))
+            q, null = tree.pmf(weights)
+            path = run / 'screening' / f"{dataset['id']}-{row['point']}-window{row['window']}-{variant}.npz"
+            with np.load(path) as saved:
+                np.testing.assert_array_equal(saved['keys'], np.asarray(tree.keys))
+                np.testing.assert_array_equal(saved['probabilities'], q[tree.leaves])
+                np.testing.assert_array_equal(saved['null_probability'], null)
+            native_path = folder / 'tree.bin' if dataset['layout'] == 'world-prefix' and variant == 'world-prefix' else None
+            row['trees'][variant]['work'] = expansion_work(tree, q, crosses, native_path)
+    (run / 'screening.json').write_text(json.dumps(rows, indent=2, allow_nan=False) + '\n', encoding='utf-8')
+    return dict(point_window_rows=len(rows), retained_PMFS_match=True, updated='work only')
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--run', type=Path, required=True)
+    parser.add_argument('--work-only', action='store_true')
     args = parser.parse_args()
-    print(json.dumps(analyze(args.run)))
+    print(json.dumps(revise_work(args.run) if args.work_only else analyze(args.run)))

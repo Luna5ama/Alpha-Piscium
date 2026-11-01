@@ -541,20 +541,39 @@
         0.00012002864863031075
       ],
       "work": {
-        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "scope": "Zero-mass children removed: nonempty logical records only, not native slot reads. No early parent-bound rejection or reuse; not GPU timing.",
         "eligible_candidates": 344,
-        "whole_tree_additional_reads": [
+        "whole_tree_additional_nonempty_records": [
           888,
           1772
         ],
-        "expected_additional_reads_per_sample": [
+        "expected_additional_nonempty_records_per_sample": [
           46.45441661315583,
           143.69680907161955
         ],
-        "expected_additional_A_evaluations_per_sample": [
+        "expected_additional_nonempty_A_geometry_evaluations_per_sample": [
           28.18715210439221,
           87.88992344478241
-        ]
+        ],
+        "A_geometry_scope": "Net nonempty A evaluations after replacing the candidate weight. Empty mass==0 returns and their scalar mass tests are excluded.",
+        "native_gpu_layout": {
+          "source_tree": "I:/code/mcshaders/Alpha-Piscium-4/builds/light-sampling/20261101-moving4-point-m2/captures/sides/tree.bin",
+          "source_tree_sha256": "4b4113abcaf8f666a0aba56d452a73fd3a5c1aae51d9db6f521614f6786ae71c",
+          "scope": "Captured childBase/childCount, including zero-mass slots. Naive expansion, no early parent-bound rejection or reuse; not memory transactions or GPU timing.",
+          "whole_tree_additional_child_slots": [
+            1364,
+            2724
+          ],
+          "expected_additional_child_slots_per_sample": [
+            65.06905803505447,
+            207.22754250734863
+          ],
+          "expected_additional_empty_mass_returns_per_sample": [
+            18.61464142189864,
+            63.530733435729076
+          ],
+          "A_geometry_scope": "The nonempty A-geometry counts above still apply: reading an empty slot incurs its mass test and early return, without A geometry arithmetic."
+        }
       }
     },
     {
@@ -713,20 +732,39 @@
         0.0003490700452572507
       ],
       "work": {
-        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "scope": "Zero-mass children removed: nonempty logical records only, not native slot reads. No early parent-bound rejection or reuse; not GPU timing.",
         "eligible_candidates": 344,
-        "whole_tree_additional_reads": [
+        "whole_tree_additional_nonempty_records": [
           888,
           1772
         ],
-        "expected_additional_reads_per_sample": [
+        "expected_additional_nonempty_records_per_sample": [
           46.53673628301315,
           143.51911163830005
         ],
-        "expected_additional_A_evaluations_per_sample": [
+        "expected_additional_nonempty_A_geometry_evaluations_per_sample": [
           28.25298565120289,
           87.73310284596032
-        ]
+        ],
+        "A_geometry_scope": "Net nonempty A evaluations after replacing the candidate weight. Empty mass==0 returns and their scalar mass tests are excluded.",
+        "native_gpu_layout": {
+          "source_tree": "I:/code/mcshaders/Alpha-Piscium-4/builds/light-sampling/20261101-moving4-point-m2/captures/sides/tree.bin",
+          "source_tree_sha256": "4b4113abcaf8f666a0aba56d452a73fd3a5c1aae51d9db6f521614f6786ae71c",
+          "scope": "Captured childBase/childCount, including zero-mass slots. Naive expansion, no early parent-bound rejection or reuse; not memory transactions or GPU timing.",
+          "whole_tree_additional_child_slots": [
+            1364,
+            2724
+          ],
+          "expected_additional_child_slots_per_sample": [
+            65.13500252724103,
+            207.14403516935892
+          ],
+          "expected_additional_empty_mass_returns_per_sample": [
+            18.59826624422788,
+            63.62492353105887
+          ],
+          "A_geometry_scope": "The nonempty A-geometry counts above still apply: reading an empty slot incurs its mass test and early return, without A geometry arithmetic."
+        }
       }
     },
     {
@@ -885,20 +923,39 @@
         0.012416657620500746
       ],
       "work": {
-        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "scope": "Zero-mass children removed: nonempty logical records only, not native slot reads. No early parent-bound rejection or reuse; not GPU timing.",
         "eligible_candidates": 344,
-        "whole_tree_additional_reads": [
+        "whole_tree_additional_nonempty_records": [
           888,
           1772
         ],
-        "expected_additional_reads_per_sample": [
+        "expected_additional_nonempty_records_per_sample": [
           44.999586444330866,
           157.79347213362593
         ],
-        "expected_additional_A_evaluations_per_sample": [
+        "expected_additional_nonempty_A_geometry_evaluations_per_sample": [
           28.373365457088948,
           101.89671986524336
-        ]
+        ],
+        "A_geometry_scope": "Net nonempty A evaluations after replacing the candidate weight. Empty mass==0 returns and their scalar mass tests are excluded.",
+        "native_gpu_layout": {
+          "source_tree": "I:/code/mcshaders/Alpha-Piscium-4/builds/light-sampling/20261101-moving4-point-m2/captures/side-top/tree.bin",
+          "source_tree_sha256": "05f96a32b6d8d2b2768ed9e024d926cd94e19b5c1117e3903dfe693c66f220d7",
+          "scope": "Captured childBase/childCount, including zero-mass slots. Naive expansion, no early parent-bound rejection or reuse; not memory transactions or GPU timing.",
+          "whole_tree_additional_child_slots": [
+            1364,
+            2724
+          ],
+          "expected_additional_child_slots_per_sample": [
+            58.50488394896769,
+            207.58700907353025
+          ],
+          "expected_additional_empty_mass_returns_per_sample": [
+            13.505297504636822,
+            49.79353693990433
+          ],
+          "A_geometry_scope": "The nonempty A-geometry counts above still apply: reading an empty slot incurs its mass test and early return, without A geometry arithmetic."
+        }
       }
     },
     {
@@ -1057,20 +1114,22 @@
         0.00014370854230183325
       ],
       "work": {
-        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "scope": "Zero-mass children removed: nonempty logical records only, not native slot reads. No early parent-bound rejection or reuse; not GPU timing.",
         "eligible_candidates": 94,
-        "whole_tree_additional_reads": [
+        "whole_tree_additional_nonempty_records": [
           245,
           478
         ],
-        "expected_additional_reads_per_sample": [
+        "expected_additional_nonempty_records_per_sample": [
           42.86570301453989,
           128.3117636847988
         ],
-        "expected_additional_A_evaluations_per_sample": [
+        "expected_additional_nonempty_A_geometry_evaluations_per_sample": [
           29.16005474817035,
           85.52201263245345
-        ]
+        ],
+        "A_geometry_scope": "Net nonempty A evaluations after replacing the candidate weight. Empty mass==0 returns and their scalar mass tests are excluded.",
+        "physical_layout_scope": "Offline logical tree; physical slots are not modelled."
       }
     },
     {
@@ -1229,20 +1288,22 @@
         0.0001230512713750759
       ],
       "work": {
-        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "scope": "Zero-mass children removed: nonempty logical records only, not native slot reads. No early parent-bound rejection or reuse; not GPU timing.",
         "eligible_candidates": 94,
-        "whole_tree_additional_reads": [
+        "whole_tree_additional_nonempty_records": [
           245,
           478
         ],
-        "expected_additional_reads_per_sample": [
+        "expected_additional_nonempty_records_per_sample": [
           42.27794178419809,
           127.75851214146375
         ],
-        "expected_additional_A_evaluations_per_sample": [
+        "expected_additional_nonempty_A_geometry_evaluations_per_sample": [
           28.7353118347511,
           85.12754919052057
-        ]
+        ],
+        "A_geometry_scope": "Net nonempty A evaluations after replacing the candidate weight. Empty mass==0 returns and their scalar mass tests are excluded.",
+        "physical_layout_scope": "Offline logical tree; physical slots are not modelled."
       }
     }
   ],
@@ -1322,6 +1383,133 @@
       "nodes": 7614,
       "saved_native_folder": "builds/light-sampling/20261101-world-grouping/captures/g16/moving-4/old-a-recapture",
       "scope": "Same emitters/masses and camera window; verifies reconstruction only. Historical nonemissive input is different and its moments were not reused."
+    },
+    "static_cost_revision": {
+      "passed": true,
+      "revision_scope": "Static expansion cost accounting only",
+      "retained_quality_fields_equal": true,
+      "retained_array_and_table_hashes_equal": true,
+      "retained_files_sha256": {
+        "builds/light-sampling/20261101-moving4-point-m2/derived-manifest.json": "9c73d7dad471e73c7a5d041cf4a5141aa3179e818a9cd612572f2e3661862d75",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/legacy/ls1-pillar-window1.npz": "df97bd4d3649198149d0f97ee83aa8bb2bb6942878362d4ee68d19c790a50e8f",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/legacy/ls1-pillar-window2.npz": "bce357625c621af5af6fbf01482075812d88df3af3d932eb693f62918167f4ed",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/legacy/ls1-wall-window1.npz": "4b446b445826e1614879631dd1283401b16b4aa9dc11a81d43a263782db9ff84",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/legacy/ls1-wall-window2.npz": "334e3d5753633c8aa03c9ad83f5bed5636db32bee4df4d6bd1b359f3e46ec566",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/side-top/side-27-window1.npz": "e5f71991f3b7369cc7229c8e6035b028748c4f0bf9b15a8a9216b66f0441af5d",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/side-top/side-27-window2.npz": "9bc8a707eeec64a733161b2053366d8c6f89c08e365fbfbea48d75a900271529",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/side-top/top-28-window1.npz": "a551e93171ac419e119bb7b0683b99caa4392bab5cd1ee6481c61631034fc7ee",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/side-top/top-28-window2.npz": "163d3b8e09d74d44414dc8ef2995ea2ed2eb21489e962527b0162e355da16c69",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/sides/side-26-window1.npz": "32b6fcd7d40a431edf6bfbf8fad414ca8975fef75abbb912282b2354714bdaf1",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/sides/side-26-window2.npz": "fd7291a019b62487c9aeb3f2bfd9ea120a330f47a93ca42c594178942709a452",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/sides/side-27-window1.npz": "5f5e0047d11679d9f8d54c127c08036ebb3e564d003ae9481af9cfd4bf460b8b",
+        "builds/light-sampling/20261101-moving4-point-m2/moments/sides/side-27-window2.npz": "6b2070f367fe9726a70a9751fe929fe4146b8a1af66d84a4463ee1c0e0bda7e6",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-pillar-window1-camera-relative.npz": "8c1c50e4012ed7a70b1864d10ad06656e0d117a9fcffcd1bf5d31aadacb017ec",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-pillar-window1-legacy-native.npz": "8c1c50e4012ed7a70b1864d10ad06656e0d117a9fcffcd1bf5d31aadacb017ec",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-pillar-window1-world-prefix.npz": "cce94fa7fb2ade877fa756e2c9ec16f4bfc6f86a702fd89603d45d5722212502",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-pillar-window2-camera-relative.npz": "01090c0ef3f6718cc146542f98cb89aa3e47f9e8e80d8b9030bf5a466421510d",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-pillar-window2-legacy-native.npz": "01090c0ef3f6718cc146542f98cb89aa3e47f9e8e80d8b9030bf5a466421510d",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-pillar-window2-world-prefix.npz": "bcd713f2f694526f1c8a34365f5b295af3d1f18fdb333ce5cffb1a14b52231e2",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-wall-window1-camera-relative.npz": "0e92ac719d80076a96a6f1287df0ffbbcb15b98f4b6fd1db79aa00e2686a2333",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-wall-window1-legacy-native.npz": "0e92ac719d80076a96a6f1287df0ffbbcb15b98f4b6fd1db79aa00e2686a2333",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-wall-window1-world-prefix.npz": "54d1234527458485ed3ea3652b5424afda94121a6f7a51e19e03106c2311aa93",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-wall-window2-camera-relative.npz": "4776e1fb6ce2cff70664568fca3fcd97f1d348c7287e2d8ecdfaa6efac6fa533",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-wall-window2-legacy-native.npz": "4776e1fb6ce2cff70664568fca3fcd97f1d348c7287e2d8ecdfaa6efac6fa533",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/legacy-ls1-ls1-wall-window2-world-prefix.npz": "11edcfe524a45739944010a8173d4b2dd4913d5b87d71a7cf673272b27c9b000",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-side-top-side-27-window1-camera-relative.npz": "8ffffdb4311c03ab35e3969cd9aee3c7f141686238b0a74f79b5640e014f3ca7",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-side-top-side-27-window1-world-prefix.npz": "b774cc2dc45ccb166f8cbea9a760cbd9ef6f30356100f943a755a0e7442efbe1",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-side-top-side-27-window2-camera-relative.npz": "13dc7c105b94e3808b24f35e3881f8e7b86e23110003f6b419f2d6c268a49b6d",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-side-top-side-27-window2-world-prefix.npz": "0c3d70be7b8ecd8c289dc96c930cebec983f0cacbae8bf4c8c667b85581f57dc",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-side-top-top-28-window1-camera-relative.npz": "ef5cea8f610aeb7ac102f09cfb6e08e301998fca5bf52b6b621ac988c4c4651d",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-side-top-top-28-window1-world-prefix.npz": "84edfe5f821aee52c06e620596f43e1801b127f3f1f14cd579c5f1f6312087b4",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-side-top-top-28-window2-camera-relative.npz": "87cc149aa7508ddb4a97c4308dea9b42f3d59c8c52351009193369fa6dd26949",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-side-top-top-28-window2-world-prefix.npz": "e693e8839eaed50edff440d9ac28b3a93bfa71e2f5bb0de4316505a5f13d836a",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-sides-side-26-window1-camera-relative.npz": "292cc91d8a889303411ef5a7da86ece5dca80fc43befcc99234de09efcccf357",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-sides-side-26-window1-world-prefix.npz": "ebff01920dc81e156cbf5719d1c50a3da8058bcf0ff7d66e937b36742f636608",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-sides-side-26-window2-camera-relative.npz": "9c85d02db998081d2e4a14cb3ad597446659b0573d9923d1dfaf075f02ca90f0",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-sides-side-26-window2-world-prefix.npz": "00e020c8f856a0e10d7354820071c1bb2018d0391b7465b602936905afdfa152",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-sides-side-27-window1-camera-relative.npz": "55dbdc1f1a096a0ba58d3989c0fe902563f3e56a21f4ab397da47c9490cc81bc",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-sides-side-27-window1-world-prefix.npz": "467d5f7873b6be5f9950cf04fbe98e1f8695ddb62a59d40a1ca8e23288dec92c",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-sides-side-27-window2-camera-relative.npz": "7a3cd75e737e266c52ba06809177b3df8192b9eb0752d8cd22b38174054b6b68",
+        "builds/light-sampling/20261101-moving4-point-m2/screening/moving4-sides-side-27-window2-world-prefix.npz": "806af13e48658e066eba10f68077dc31d8adac699a54664a3f601d970cb02506",
+        "builds/light-sampling/20261101-moving4-point-m2/screening-table.csv": "b85981aad2b21c03693860276f851d98e59e110dab56aee1f24dc208d1b92956"
+      },
+      "complete_PMFs_exactly_equal": true,
+      "logical_counts_preserved": true,
+      "physical_counts_match_independent_review": [
+        {
+          "dataset": "moving4-sides",
+          "point": "side-26",
+          "window": 1,
+          "additional_child_slots": [
+            65.06905803505447,
+            207.22754250734863
+          ]
+        },
+        {
+          "dataset": "moving4-sides",
+          "point": "side-26",
+          "window": 2,
+          "additional_child_slots": [
+            65.06905803505447,
+            207.22754250734863
+          ]
+        },
+        {
+          "dataset": "moving4-sides",
+          "point": "side-27",
+          "window": 1,
+          "additional_child_slots": [
+            65.13500252724103,
+            207.14403516935892
+          ]
+        },
+        {
+          "dataset": "moving4-sides",
+          "point": "side-27",
+          "window": 2,
+          "additional_child_slots": [
+            65.13500252724103,
+            207.14403516935892
+          ]
+        },
+        {
+          "dataset": "moving4-side-top",
+          "point": "side-27",
+          "window": 1,
+          "additional_child_slots": [
+            65.13500252724103,
+            207.14403516935892
+          ]
+        },
+        {
+          "dataset": "moving4-side-top",
+          "point": "side-27",
+          "window": 2,
+          "additional_child_slots": [
+            65.13500252724103,
+            207.14403516935892
+          ]
+        },
+        {
+          "dataset": "moving4-side-top",
+          "point": "top-28",
+          "window": 1,
+          "additional_child_slots": [
+            58.50488394896769,
+            207.58700907353025
+          ]
+        },
+        {
+          "dataset": "moving4-side-top",
+          "point": "top-28",
+          "window": 2,
+          "additional_child_slots": [
+            58.50488394896769,
+            207.58700907353025
+          ]
+        }
+      ],
+      "legacy_prefix_physical_slots_modelled": false
     }
   },
   "runtime": {
@@ -1340,8 +1528,8 @@
     "source_evaluation_diff": "No differences in Initial, Cube, Polygon, VoxelTrace, SurfaceData or Colors source between actual legacy sampling revision and current base."
   },
   "artifacts": {
-    "builds/light-sampling/20261101-moving4-point-m2/report.md": "511569c35729dbbaea6280c2dc7fa642a65bc8e4bf899b4099a6d312097e612a",
-    "builds/light-sampling/20261101-moving4-point-m2/screening.json": "7bee90ba1fbb2daa1fad4b719da0855a544e6e3abdf5ad031decf5a63323efed",
+    "builds/light-sampling/20261101-moving4-point-m2/report.md": "ed8abd281b40a3973d8289d7b88154135613ca659f5026cf886fa5c4a54a3cdc",
+    "builds/light-sampling/20261101-moving4-point-m2/screening.json": "e7d67fd81a8d11e8f22f5e8d546edecd6b95d00076240357d4c31dbab24940a9",
     "builds/light-sampling/20261101-moving4-point-m2/screening-table.csv": "b85981aad2b21c03693860276f851d98e59e110dab56aee1f24dc208d1b92956",
     "builds/light-sampling/20261101-moving4-point-m2/point-cases.json": "f3b6fb43b296d72cd1713554b4453bfce15c81ce092b15dc4f83634a4adf0840",
     "builds/light-sampling/20261101-moving4-point-m2/legacy-fixture.json": "879cf8b66c132df504511a039d967399cda233056575bedac1f286c1eaaabd71",
@@ -1356,7 +1544,8 @@
     "builds/light-sampling/20261101-moving4-point-m2/captures/side-top/capture-ready.json": "3b14ad4d33f527c144039bf3ae032e073a4d0366ba533356c0cedf03a33b22b5",
     "builds/light-sampling/20261101-moving4-point-m2/pilot/pilot-ready.json": "a143a5965f34219c6f6bae2b2ffd7e143110eee01179becb50af738f8776948d",
     "builds/light-sampling/20261101-moving4-point-m2/pilot/voxel-difference.json": "cbe66affefd777c87caae40b41b58d285b41192578da6dba8b85c11c9182f09a",
-    "builds/light-sampling/20261101-moving4-point-m2/camera-rebuild-validation.json": "40396642106887bd6eb06685db482c1acd65216dac6d7648c5b20040200d4590"
+    "builds/light-sampling/20261101-moving4-point-m2/camera-rebuild-validation.json": "40396642106887bd6eb06685db482c1acd65216dac6d7648c5b20040200d4590",
+    "builds/light-sampling/20261101-moving4-point-m2/cost-revision-validation.json": "391fc780aab5e34a6f853b5b6e816da74c38db38801293af148d36c0fe6533fe"
   },
   "limits": [
     "Finite conditional references, not convergence, strict confidence intervals or full-image validation.",
@@ -1364,15 +1553,25 @@
     "Candidate probabilities are offline full unconditional PMFs including null outcomes.",
     "Old-scene prefix trees are offline checked rebuilds, not new GPU captures.",
     "One/two-level expansion still exceeds camera-A variance at both moving side points; no full repair claim.",
-    "Static work counts exclude early bound rejection/reuse and are not GPU performance.",
+    "Nonempty logical records and captured native child slots are separate static counts; empty mass tests/returns are excluded from A geometry. No early rejection/reuse credit, memory-transaction or GPU-time claim.",
     "Shared cut, H-PLOC and visibility implementations were not changed."
   ],
   "production_shader_defaults_changed": false,
   "candidate_implementation": "Offline only; no production proposal or shared cut was installed.",
   "producer_sha256": {
     "scripts/light_sampling_point_moments.py": "43c8a8fe44c22cdb906d676c5a7457ff41921f8a57652fc90bb605805340d2d7",
-    "scripts/light_sampling_point_screening.py": "8d054ed8a588969f19ea9758f73cc892b8aa9237cacf547cdbfaf11dc7ee8258",
+    "scripts/light_sampling_point_screening.py": "20d6d41ffb27290435c1f71ac31e47f106dcfa822c44eec5bf73288b9b610de4",
     "scripts/light_sampling_world_layout.py": "197f9dd086f89205cfc04ec6653bee247e9626193441d6be047a50d40e8dbd99",
     "scripts/light_sampling_weight_reference.py": "bfe5ffb89ac8b07aac49df395f18b8ce00cc51206a9fac9140c8d8d9d5898870"
+  },
+  "static_cost_revision": {
+    "reason": "Prior child-record counts removed zero-mass logical children and undercounted captured native slots.",
+    "retained_logical_counts": true,
+    "native_slots_include_empty": true,
+    "legacy_prefix_physical_layout_modelled": false,
+    "A_geometry_counts_exclude_empty_mass_tests_and_early_returns": true,
+    "PMFs_M2_and_quality_unchanged": true,
+    "validation_path": "builds/light-sampling/20261101-moving4-point-m2/cost-revision-validation.json",
+    "scope": "Offline static child-slot and arithmetic counts only; no shader, proposal, runtime or GPU timing changes."
   }
 }
