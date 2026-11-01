@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "conditional_capture_and_screening_complete_pending_independent_review",
+  "status": "conditional_capture_and_screening_independently_reviewed_no_full_repair",
   "task_commit": "746dad61cc569a3e719546aa4ce38c38b2eb6ad6",
   "implementation_commits": [
     "1b9b62c599cb373e0740f162a3748a3b65346472",
@@ -1545,7 +1545,13 @@
     "builds/light-sampling/20261101-moving4-point-m2/pilot/pilot-ready.json": "a143a5965f34219c6f6bae2b2ffd7e143110eee01179becb50af738f8776948d",
     "builds/light-sampling/20261101-moving4-point-m2/pilot/voxel-difference.json": "cbe66affefd777c87caae40b41b58d285b41192578da6dba8b85c11c9182f09a",
     "builds/light-sampling/20261101-moving4-point-m2/camera-rebuild-validation.json": "40396642106887bd6eb06685db482c1acd65216dac6d7648c5b20040200d4590",
-    "builds/light-sampling/20261101-moving4-point-m2/cost-revision-validation.json": "391fc780aab5e34a6f853b5b6e816da74c38db38801293af148d36c0fe6533fe"
+    "builds/light-sampling/20261101-moving4-point-m2/cost-revision-validation.json": "391fc780aab5e34a6f853b5b6e816da74c38db38801293af148d36c0fe6533fe",
+    "builds/light-sampling/20261101-moving4-point-m2/discussion_review.py": "74b1c886c134fc6fc9bcadf089d41e44db1f2541ae88e307c4672d2e0941ed54",
+    "builds/light-sampling/20261101-moving4-point-m2/discussion-review.json": "1747517fe330559926374863701257753c7c6b197f2d6ba9a3c58fb73971e040",
+    "builds/light-sampling/20261101-moving4-point-m2/discussion_inputs.py": "bc9730f08c8b07c5dfca330726754c6dadc257eeb113c9d6d1532f4b08b6f4ac",
+    "builds/light-sampling/20261101-moving4-point-m2/discussion-input-review.json": "377d31dce88c91d6ccbc18ef8c26e4d9fa66a5abef175f74b819903be019499b",
+    "builds/light-sampling/20261101-moving4-point-m2/discussion_costs.py": "2d37d6b54cd94fb79c203839f7af95e675312eaaa32ce80dc5e8a1b6066980db",
+    "builds/light-sampling/20261101-moving4-point-m2/discussion-cost-review.json": "bde5fad7ba3bddd420ee3e32e82ff90592169a0f7ead2f77a98bf6c54da8c1d8"
   },
   "limits": [
     "Finite conditional references, not convergence, strict confidence intervals or full-image validation.",
@@ -1573,5 +1579,22 @@
     "PMFs_M2_and_quality_unchanged": true,
     "validation_path": "builds/light-sampling/20261101-moving4-point-m2/cost-revision-validation.json",
     "scope": "Offline static child-slot and arithmetic counts only; no shader, proposal, runtime or GPU timing changes."
+  },
+  "independent_review": {
+    "date": "2026-11-01",
+    "reviewed_revision": "b8dcd2dd9b57e21a2024aef750fca274cc65e210",
+    "accepted_scope": "Native conditional references and offline candidate screening for the five primary receivers; no full repair or default promotion.",
+    "native_manifest_files_verified": 164,
+    "point_window_rows": 12,
+    "candidate_tree_point_window_cases": 168,
+    "maximum_relative_PMF_error": 9.992007221626409e-16,
+    "maximum_second_moment_identity_error_including_legacy": 4.103238859297023e-07,
+    "same_new_world_inputs_verified": true,
+    "historical_nonemissive_differences_verified": 10,
+    "native_empty_slot_cost_correction_verified": true,
+    "retained_quality_files_verified": 42,
+    "reviewer_participation": "Identified the logical-child/native-slot undercount, requested the experiment-chat correction, and independently rechecked b8dcd2dd9. No shader, candidate PMF or moment changes.",
+    "runtime_exit_originals": "builds/light-sampling/20261101-moving4-point-m2/runtime-exit/raw",
+    "limits": "Finite conditional references and offline full PMFs only. No new GPU capture, implemented expansion timing, full-image or continuous-motion acceptance; no shared-cut implementation selected."
   }
 }

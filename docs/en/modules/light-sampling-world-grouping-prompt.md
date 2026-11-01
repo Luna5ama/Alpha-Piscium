@@ -15,7 +15,7 @@ Use `I:/code/mcshaders/Alpha-Piscium-4` (wt4), branch `2.0/light-sampling`. Hist
 
 Deliver actual conditional RGB means/M2 for the three specified receivers, a candidate table covering them and the two old ls1 points, per-light/branch attribution, and a repair recommendation. Follow the [selected main-design route](light-sampling-design.md#current-selection-and-backlog-2026-11-01): start from the latest full-world-prefix A and correct coarse cross-brick importance.
 This is a fixed-point capture and offline screening task. Necessary fixture, mode-3 diagnostic, capture/analysis tooling and generated-binding changes are authorized. Do not change production sampling defaults, implement shared cuts, reopen H-PLOC/visibility, launch a whole-scene quality/performance matrix, or promote a screened candidate directly to default.
-This section retains the task contract. Three-point capture and joint screening are complete, pending independent review; see the results below. Do not rerun the G16/G64 four-scene matrix.
+This section retains the task contract. Three-point capture, joint screening and independent review are complete: the conditional references and offline screening are accepted, but no complete repair was found; see the results below. Do not rerun the G16/G64 four-scene matrix.
 
 ### Three receivers and the previous reference
 
@@ -87,7 +87,7 @@ Include implementation/diagnostic commits, absolute task/result-index paths, ori
 
 The completed full-world-prefix implementation task and historical diagnosis follow for provenance and limitations.
 
-## Three-point M2 and joint screening results (2026-11-01, pending independent review)
+## Three-point M2 and joint screening results (2026-11-01)
 
 The [result index](../../../experiments/light-sampling/20261101-moving4-point-m2.json), [complete dual-baseline table](../../../builds/light-sampling/20261101-moving4-point-m2/screening-table.csv) and [per-light/branch report](../../../builds/light-sampling/20261101-moving4-point-m2/report.md) preserve this measurement. Source/binding commits are `1b9b62c5` and `f06dcbe3`; restoration is `c091fc40`; actual-receiver and reconstruction checks are in `dcfe59ae` and `6d7c0c3d`. Production defaults are unchanged. The legacy reference texture and 3925 binding are restored.
 
@@ -114,6 +114,16 @@ Static work distinguishes nonempty logical records from native child slots. Reta
 The [conditional arrays](../../../builds/light-sampling/20261101-moving4-point-m2/moments/), [complete PMFs](../../../builds/light-sampling/20261101-moving4-point-m2/screening/), [branch identity checks](../../../builds/light-sampling/20261101-moving4-point-m2/branch-decomposition-validation.json) and [legacy recomputation](../../../builds/light-sampling/20261101-moving4-point-m2/legacy-native-validation.json) support independent recalculation. Use the [moment tool](../../../scripts/light_sampling_point_moments.py) and [screening tool](../../../scripts/light_sampling_point_screening.py). Origins/normals come directly from actual mode-3 audit; fixture expectations only accept identity and no offset is added twice. GPU trees and replays match per-node bounds/mass/ordered children; historical full-prefix trees are explicitly offline same-emitter rebuilds.
 
 Runtime has exited mode 3, retaining frozen `c091fc40`, moving-4 preset, G16/four-way/model 1/cube, sampler 2, with no live capture jobs. Actual active source UUID is `d4bc57f6-3bf3-4e1e-8c68-4d143e4607ce`; the interface does not expose a human-readable pack name, so none is guessed. See the [runtime handoff](../../../builds/light-sampling/20261101-moving4-point-m2/runtime-exit/runtime-final.json) for actual settings/state.
+
+### Independent review (2026-11-01)
+
+Accept the native conditional references and offline screening conclusions, without accepting any candidate as a complete repair or default replacement. Review covers `a2405c170` and cost correction `b8dcd2dd9`. Two-level expansion still leaves the side points at about 2.40×/3.05× camera A, with the main probability waste in the low cluster intact; near/far raises the old pillar's variance on its same-light complete-prefix tree to about 1.49×. Improvement at the three new points therefore does not justify selecting near/far, and improvement over prefix A does not establish quality acceptance for the movement repair.
+
+The [independent recomputation](../../../builds/light-sampling/20261101-moving4-point-m2/discussion_review.py) imports none of the submitted capture, moment, layout-reconstruction or screening implementations. It aggregates conditional moments from raw means/sample variances/completeness data, independently decodes native trees, constructs complete world prefixes and traverses full PMFs. Its [results](../../../builds/light-sampling/20261101-moving4-point-m2/discussion-review.json) match all 12 point-window rows and 168 candidate/tree/point-window combinations. Maximum relative PMF difference is about 1.0e-15; maximum relative moment-identity error is below 2.97e-7 for the new windows and 4.11e-7 including the historical windows. No observed contribution in finite windows still does not prove exactly zero transport.
+
+The [input review](../../../builds/light-sampling/20261101-moving4-point-m2/discussion_inputs.py) and [results](../../../builds/light-sampling/20261101-moving4-point-m2/discussion-input-review.json) independently verify sizes/hashes for 164 native files, actual frozen sources/effective settings, receivers and before/between/after world input. Both new groups share complete nonemissive input; the ten nonemissive material differences from historical moving-4 are independently reproduced, without applying historical M2 to new input. The eight exit-state originals are preserved and verified under [runtime-exit/raw](../../../builds/light-sampling/20261101-moving4-point-m2/runtime-exit/raw/). Exit-state claims refer to saved cleanup records, not a fresh live-runtime check during review.
+
+Review found that the original static read counts included only nonempty logical children. The experiment chat corrected native empty slots in `b8dcd2dd9`. The [independent cost script](../../../builds/light-sampling/20261101-moving4-point-m2/discussion_costs.py) and [results](../../../builds/light-sampling/20261101-moving4-point-m2/discussion-cost-review.json) confirm the physical-slot figures above and unchanged hashes for 42 quality arrays/tables/manifests. The reviewer requested the correction and rechecked the revision; shader behavior, PMFs and M2 were unchanged. Review launched no GPU captures and did not measure implemented expansion performance, full-image quality or continuous movement, or select a shared-cut implementation.
 
 ## Authorization, status and starting point (2026-11-01)
 

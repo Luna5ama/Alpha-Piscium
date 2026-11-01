@@ -15,7 +15,7 @@
 
 本轮交付三处指定接收点的真实条件 RGB 均值／M2、与旧 ls1 两点共同组成的候选筛选表、逐灯／分叉归因和后续修法建议。沿[主设计的已选路线](light-sampling-design.md#当前选择与-backlog2026-11-01)，以最新完整世界前缀 A 为研究起点，修跨 brick 粗簇估权。
 这是一轮定点补测与离线筛选，允许完成它所必需的 fixture、mode 3 诊断、采集／分析脚本和生成绑定调整。不改生产采样默认，不实现共享 cut，不重开 H-PLOC／visibility，不启动全场景质量／性能矩阵；也不把筛出的候选直接提升为默认。
-本节保留本轮任务契约；三点采集及联合筛选已完成，结果见下方本轮摘要，等待独立复查。后面的 G16／G64 四景矩阵不重跑。
+本节保留本轮任务契约；三点采集、联合筛选及独立复查已完成，接受条件参考与离线筛选，尚无全面修法，见下方本轮摘要。后面的 G16／G64 四景矩阵不重跑。
 
 ### 三个接收点与旧参考
 
@@ -87,7 +87,7 @@ Minecraft／launcher 不重启；先用安全的非重启恢复，仍不可用�
 
 以下保留已完成的世界前缀实施任务和历史诊断，供定位来源与限制。
 
-## 本轮三点 M2 与联合筛选结果（2026-11-01，待独立复查）
+## 本轮三点 M2 与联合筛选结果（2026-11-01）
 
 [结果索引](../../../experiments/light-sampling/20261101-moving4-point-m2.json)、[双基线全表](../../../builds/light-sampling/20261101-moving4-point-m2/screening-table.csv)和[逐灯／分叉报告](../../../builds/light-sampling/20261101-moving4-point-m2/report.md)记录本轮实测。源码／绑定提交为 `1b9b62c5`、`f06dcbe3`，退出恢复提交 `c091fc40`，实际接收点与重建核对工具提交为 `dcfe59ae`、`6d7c0c3d`。生产默认未改；旧参考纹理及 3925 绑定已恢复。
 
@@ -114,6 +114,16 @@ Minecraft／launcher 不重启；先用安全的非重启恢复，仍不可用�
 [逐灯条件数组](../../../builds/light-sampling/20261101-moving4-point-m2/moments/)、[完整 PMF 数组](../../../builds/light-sampling/20261101-moving4-point-m2/screening/)、[分叉分解核验](../../../builds/light-sampling/20261101-moving4-point-m2/branch-decomposition-validation.json)与[旧参考复算](../../../builds/light-sampling/20261101-moving4-point-m2/legacy-native-validation.json)可供独立重算。使用[条件矩工具](../../../scripts/light_sampling_point_moments.py)和[筛选工具](../../../scripts/light_sampling_point_screening.py)，接收点原点／法线直接取实际 mode-3 audit；fixture 期望值只用于身份接受，未重复添加偏移。GPU 树与重建逐节点 bounds／mass／有序孩子核对；旧场景完整前缀树明确是同灯离线重建。
 
 运行时已退出 mode 3，保留冻结 `c091fc40`、moving-4 preset、G16／四叉／model 1／cube、mode 2；无存活采集任务。实际 active source UUID 为 `d4bc57f6-3bf3-4e1e-8c68-4d143e4607ce`；工具未暴露可读 pack 名，未猜测。实际设置和状态见[运行时收尾记录](../../../builds/light-sampling/20261101-moving4-point-m2/runtime-exit/runtime-final.json)。
+
+### 独立复查（2026-11-01）
+
+接受本轮真实条件参考与离线筛选结论，不接受任何候选为完整修复或默认替换。复查对象为 `a2405c170` 及成本修正 `b8dcd2dd9`。两个侧面在两层展开后仍为相机 A 的约 2.40×／3.05×，低处簇的主要概率浪费仍在；near/far 则使同灯完整前缀上的旧柱面方差增至约 1.49×。因此不能仅据三个新点改善选用 near/far，也不能据展开改善前缀 A 就宣称移动修复已通过质量验收。
+
+[独立复算](../../../builds/light-sampling/20261101-moving4-point-m2/discussion_review.py)未导入被验采集、矩统计、布局重建或筛选实现：从原始均值／样本方差／完整性数据重新归并条件矩，独立解析原生树、构造完整世界前缀并遍历完整 PMF。[结果](../../../builds/light-sampling/20261101-moving4-point-m2/discussion-review.json)的 12 个点窗、168 个候选／树／点窗组合全部吻合；PMF 最大相对差约 1.0e-15，条件矩恒等式最大相对误差为新窗口 2.97e-7、包含旧窗口 4.11e-7 以下。有限窗口未观测到贡献仍不等于严格零传输。
+
+[输入复核](../../../builds/light-sampling/20261101-moving4-point-m2/discussion_inputs.py)及[结果](../../../builds/light-sampling/20261101-moving4-point-m2/discussion-input-review.json)独立核验了 164 个原生文件的大小／哈希、实际冻结源码及有效设置、接收点和前／中／后世界输入。两个新组的完整非发光输入一致，与历史 moving-4 的十处非发光材质差异也独立复现；历史 M2 未用于新输入。退出状态的八份原件位于 [runtime-exit/raw](../../../builds/light-sampling/20261101-moving4-point-m2/runtime-exit/raw/)，已核验完整；退出状态结论来自保存的收尾记录，不代表复查时重新检查了 live runtime。
+
+复查发现原静态读取数只计非空逻辑孩子，实验端在 `b8dcd2dd9` 补正了原生空槽。[独立成本脚本](../../../builds/light-sampling/20261101-moving4-point-m2/discussion_costs.py)及[结果](../../../builds/light-sampling/20261101-moving4-point-m2/discussion-cost-review.json)确认上述物理槽位数字，并验证 42 个质量数组／表／清单哈希未变。审查者提出修正，修订后重新核验；没有改变 shader、PMF 或 M2。本轮复查未启动 GPU 采集，未测实际展开性能、全画面或连续移动，也未选择共享 cut 实现。
 
 ## 授权、状态与起点（2026-11-01）
 
