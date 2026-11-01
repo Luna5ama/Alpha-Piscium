@@ -39,6 +39,8 @@
 受限展开先作为定位／候选对照，共享 cut 的表示与成本尚未选定；若权重修正难以兼顾质量与查询成本，再重开上层表示讨论，仍保持世界稳定归属契约。
 具体证据见[世界分组诊断与修正方向](light-sampling-world-grouping-prompt.md#当前修正方向与待补证)。用户随后已授权实验 chat 补 moving-4 三点逐灯 M2、复用旧 ls1 两点筛修法并回传讨论端复查；执行范围以[当前补测提示词](light-sampling-world-grouping-prompt.md#当前任务moving-4-逐灯-m2-与五点修法筛选2026-11-01)为准，不包含完整画面／性能矩阵或默认切换。
 
+本轮[三点 M2／五点筛选](../../../experiments/light-sampling/20261101-moving4-point-m2.json)已完成并等待复查：一／两层跨 brick 展开在五点双窗均改善前缀 A，但两个侧面仍未恢复到原始相机 A；它们也未压低 y≤0 簇的无观测贡献分配。保留为研究短名单，不切默认。两层额外查询约为一层的三倍量级，只有静态计数，GPU 成本与共享 cut 表示仍未选定。
+
 后续灯光采样对比固定加入独立的 **Cosine BRDF**（余弦加权 BRDF-only）作为基础对照，沿用相同场景、direct-only 和采样预算；它不是 Cosine B 灯光树权重。
 显示名使用 Half-space A、Near/Far Mix、Half-space A + Near/Far Mix、Cosine BRDF 和 Original；原始采集 ID 与提交保持原样。
 本次临时并图复用上一轮的 Cosine BRDF、Original 和现存 ls3 数据。用户随后要求补齐缺项，新增一次 ls3 组合方案采集，补上 1 spp 和 32 帧均值图；跨批次输入可能不同，不合并为新的受控质量或性能排名。

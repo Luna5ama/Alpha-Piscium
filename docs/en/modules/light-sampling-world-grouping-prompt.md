@@ -15,7 +15,7 @@ Use `I:/code/mcshaders/Alpha-Piscium-4` (wt4), branch `2.0/light-sampling`. Hist
 
 Deliver actual conditional RGB means/M2 for the three specified receivers, a candidate table covering them and the two old ls1 points, per-light/branch attribution, and a repair recommendation. Follow the [selected main-design route](light-sampling-design.md#current-selection-and-backlog-2026-11-01): start from the latest full-world-prefix A and correct coarse cross-brick importance.
 This is a fixed-point capture and offline screening task. Necessary fixture, mode-3 diagnostic, capture/analysis tooling and generated-binding changes are authorized. Do not change production sampling defaults, implement shared cuts, reopen H-PLOC/visibility, launch a whole-scene quality/performance matrix, or promote a screened candidate directly to default.
-This section is the current executable prompt. The full-world-grouping implementation task below is complete; do not rerun its G16/G64 four-scene matrix.
+This section retains the task contract. Three-point capture and joint screening are complete, pending independent review; see the results below. Do not rerun the G16/G64 four-scene matrix.
 
 ### Three receivers and the previous reference
 
@@ -86,6 +86,34 @@ After completing capture, five-point screening, self-checks and commits, call `s
 Include implementation/diagnostic commits, absolute task/result-index paths, originals/per-light arrays, actual input consistency, the two-window candidate table, major counterexamples/support failures/nonfinite events/unverified scope, and final runtime state. Report substantive blockers too, without claiming completion. The discussion chat makes the independent review decision; do not presume acceptance or stop after a plan/static checks alone.
 
 The completed full-world-prefix implementation task and historical diagnosis follow for provenance and limitations.
+
+## Three-point M2 and joint screening results (2026-11-01, pending independent review)
+
+The [result index](../../../experiments/light-sampling/20261101-moving4-point-m2.json), [complete dual-baseline table](../../../builds/light-sampling/20261101-moving4-point-m2/screening-table.csv) and [per-light/branch report](../../../builds/light-sampling/20261101-moving4-point-m2/report.md) preserve this measurement. Source/binding commits are `1b9b62c5` and `f06dcbe3`; restoration is `c091fc40`; actual-receiver and reconstruction checks are in `dcfe59ae` and `6d7c0c3d`. Production defaults are unchanged. The legacy reference texture and 3925 binding are restored.
+
+Two groups each contain two nonoverlapping native 32-frame windows, with 8×4 batches per window: four new windows and eight receiver-window observations, including the repeated side-27. Both groups share 4243 root-reachable emitters, camera, surfaces and complete world input; all three bracketing snapshots match. Each light has 244 draws/frame and 7808/window; 3016 unused tail pixels are excluded. Zero outcomes are retained, with no missing or nonfinite RGB samples. Per-pixel second-moment identity error stays below 2.97e-7. Two historical ls1 windows supply the two old points, yielding five primary points with two windows each and two extra side-27 observations. The old scene was not recaptured.
+
+Independent nonemissive fingerprints agree: after removing the 4243 reachable emitter voxels, 480363 nonempty voxels remain, SHA `bd558540e6e1b96092e50164307587ef22fac4d3eb0cb01ceb6a8e8d02429502`. Ten material values differ from historical moving-4 while emitters match. This table uses newly measured M2 rather than the previous geometric proxy. The actual legacy sampling revision is `fa8ac641`; conditional sampling, visibility and linear-sRGB norm-squared semantics match current source. Twelve old-tree A/near-far/bounded results reproduce with maximum difference 3.47e-18.
+
+Ratios below use each scene's **complete-prefix A=1**; each cell gives window 1/window 2. Cosine B is a tree weight, not Cosine BRDF. Complete unconditional leaf probabilities and null probabilities are retained, without successful-selection or positive-contribution renormalization.
+
+| Point | A + near/far | Bounded near/far | Cosine B | One cross-brick level | Two cross-brick levels |
+|---|---:|---:|---:|---:|---:|
+| side-26 | 0.1128 / 0.1129 | 0.9277 / 0.9277 | 4.3869 / 4.3868 | 0.4428 / 0.4428 | 0.3253 / 0.3253 |
+| side-27 | 0.0832 / 0.0832 | 1.0057 / 1.0061 | 7.7749 / 7.7844 | 0.3537 / 0.3536 | 0.2810 / 0.2810 |
+| top-28 | 0.3940 / 0.3946 | 1.2754 / 1.2765 | 13.1006 / 13.0676 | 0.5316 / 0.5325 | 0.1837 / 0.1853 |
+| ls1-pillar | 1.4891 / 1.4887 | 1.2747 / 1.2749 | 0.4571 / 0.4580 | 0.5667 / 0.5669 | 0.5198 / 0.5201 |
+| ls1-wall | 0.7556 / 0.7560 | 0.8715 / 0.8710 | 0.3600 / 0.3602 | 0.5916 / 0.5919 | 0.5306 / 0.5310 |
+
+**The research shortlist is one/two-level cross-brick expansion; no complete repair was found.** Both improve prefix A at all five points in both windows. However, two-level variance at the new sides remains about 2.40×/3.05× original camera A; one-level remains about 3.27×/3.84×. At the upward point, one-level is still about 1.35× camera A, while two-level reaches about 0.466×. No tested repair satisfies both baselines across all five points. Near/far hurts the old pillar; bounded near/far hurts the pillar and upward point; Cosine B strongly hurts the new three points. Near-unit changes comparable to window differences are uncertain, not selected as gains.
+
+Actual per-light M2 narrows the geometry explanation. At both sides, the y≤0 root child receives about 76.07% probability with zero observed RGB mean/M2 share in both reference windows. This is finite-reference evidence, not proof of exactly zero transport. Side-27 one/two-level expansion still assigns about 73.59%/77.03% to this child, so neither repairs that allocation. Gains mostly arise inside the positive-height branch. A's largest split penalty occurs at bounds (0,0,320)–(127,79,384), with about 9.81% path probability. The leading penalty light is (110,76,364,material 10242), A leaf probability about 1.458%. Full paths/probability changes are retained; sqrt(M2) aggregation is only a finite-reference optimum diagnostic under fixed conditional sampling.
+
+Static work also constrains the recommendation. For the new sides, one-level reads about 46.5 additional child records/sample versus 143.5–143.7 for two levels; the upward point is about 45.0/157.8. These naive counts give no credit for early parent-bound rejection, reuse or shared cuts, and are not GPU timing. This remains a point-quality shortlist. Production implementation, full images, continuous movement and GPU cost are unvalidated; shared-cut representation is undecided and lookahead defaults remain disabled.
+
+The [conditional arrays](../../../builds/light-sampling/20261101-moving4-point-m2/moments/), [complete PMFs](../../../builds/light-sampling/20261101-moving4-point-m2/screening/), [branch identity checks](../../../builds/light-sampling/20261101-moving4-point-m2/branch-decomposition-validation.json) and [legacy recomputation](../../../builds/light-sampling/20261101-moving4-point-m2/legacy-native-validation.json) support independent recalculation. Use the [moment tool](../../../scripts/light_sampling_point_moments.py) and [screening tool](../../../scripts/light_sampling_point_screening.py). Origins/normals come directly from actual mode-3 audit; fixture expectations only accept identity and no offset is added twice. GPU trees and replays match per-node bounds/mass/ordered children; historical full-prefix trees are explicitly offline same-emitter rebuilds.
+
+Runtime has exited mode 3, retaining frozen `c091fc40`, moving-4 preset, G16/four-way/model 1/cube, sampler 2, with no live capture jobs. Actual active source UUID is `d4bc57f6-3bf3-4e1e-8c68-4d143e4607ce`; the interface does not expose a human-readable pack name, so none is guessed. See the [runtime handoff](../../../builds/light-sampling/20261101-moving4-point-m2/runtime-exit/runtime-final.json) for actual settings/state.
 
 ## Authorization, status and starting point (2026-11-01)
 

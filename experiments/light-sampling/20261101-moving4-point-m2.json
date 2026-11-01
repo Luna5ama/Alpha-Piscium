@@ -1,0 +1,1378 @@
+{
+  "schema": 1,
+  "status": "conditional_capture_and_screening_complete_pending_independent_review",
+  "task_commit": "746dad61cc569a3e719546aa4ce38c38b2eb6ad6",
+  "implementation_commits": [
+    "1b9b62c599cb373e0740f162a3748a3b65346472",
+    "f06dcbe3026c3a15cc8896dc75f4af553b414c76",
+    "c091fc402f91f457037819fd1b88b657a1646687",
+    "dcfe59aefea91758d0b6ada84b8116548d6b5886",
+    "6d7c0c3dff540c8b1378a04bc5d3e4b20690d4bc"
+  ],
+  "scope": "Conditional fixed-emitter RGB moments and offline proposal screening only; no production change, whole-image or GPU-cost acceptance.",
+  "new_native_windows": 4,
+  "reused_native_windows": 2,
+  "point_window_rows": 12,
+  "primary_points": 5,
+  "duplicate_point": "side-27",
+  "new_light_count": 4243,
+  "legacy_light_count": 3921,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "frames_per_window": 32,
+  "batches": 8,
+  "conditional_samples_per_light_per_frame": 244,
+  "complete_samples_per_light_per_window": 7808,
+  "fixture_headers": 4,
+  "unused_pixels_per_frame": 3016,
+  "inputs": {
+    "new_groups_same_cohort": true,
+    "semantic_identity": {
+      "camera_sha256": "0254883fead3f40a353ef7e3cf1584c0642a7a0c72987534dd42e6576bb1f5a9",
+      "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+      "ordered_topology_sha256": "a5a3fb77d9496d46cbac728364dfe20240290236141bbb7012f27e8c78c0bf9e",
+      "world_voxel_sha256": "9b32367944fbabac5fb28115de0c3e464bed190be6c92959fed73ee61694f0f3"
+    },
+    "nonemissive": {
+      "passed": true,
+      "groups": {
+        "sides": {
+          "sha256": "bd558540e6e1b96092e50164307587ef22fac4d3eb0cb01ceb6a8e8d02429502",
+          "removed_emitters": 4243,
+          "nonempty_remaining_voxels": 480363,
+          "nonempty_remaining_bricks": 1827,
+          "definition": "Sorted signed world-brick xyz int64 plus all4096 packed uint32 material words; root-reachable emitter words zeroed, empty bricks omitted."
+        },
+        "side-top": {
+          "sha256": "bd558540e6e1b96092e50164307587ef22fac4d3eb0cb01ceb6a8e8d02429502",
+          "removed_emitters": 4243,
+          "nonempty_remaining_voxels": 480363,
+          "nonempty_remaining_bricks": 1827,
+          "definition": "Sorted signed world-brick xyz int64 plus all4096 packed uint32 material words; root-reachable emitter words zeroed, empty bricks omitted."
+        }
+      }
+    },
+    "historical_difference": "Same emitter set; ten full-packed nonemissive world voxel values differ from historical moving4. New conditional moments and PMFs use the current stable cohort."
+  },
+  "fixtures": [
+    {
+      "id": "sides",
+      "texture": "shaders/textures/light_sampling_moving4_sides.bin",
+      "texture_sha256": "c0902008f8f4e383030ac370f0cf1c1c9eaa558b27e34a57687cd439f0f7f2b9",
+      "width": 4247,
+      "light_count": 4243,
+      "receivers": [
+        {
+          "id": "side-26",
+          "slot": 26,
+          "raw_xy": [
+            600,
+            472
+          ],
+          "origin": [
+            109.156212,
+            76.138733,
+            362.002991
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "material": 4651,
+          "rgb_bytes": [
+            121,
+            85,
+            58
+          ],
+          "origin_actual": [
+            109.15621185302734,
+            76.13873291015625,
+            362.00299072265625
+          ],
+          "normal_actual": [
+            -3.999537412369136e-08,
+            -2.98201214832261e-08,
+            0.9999999403953552
+          ]
+        },
+        {
+          "id": "side-27",
+          "slot": 27,
+          "raw_xy": [
+            840,
+            472
+          ],
+          "origin": [
+            112.391624,
+            76.430634,
+            364.002991
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "material": 4651,
+          "rgb_bytes": [
+            89,
+            61,
+            41
+          ],
+          "origin_actual": [
+            112.3916244506836,
+            76.43063354492188,
+            364.00299072265625
+          ],
+          "normal_actual": [
+            -3.999537412369136e-08,
+            -2.98201214832261e-08,
+            0.9999999403953552
+          ]
+        }
+      ],
+      "source_tree": "builds\\light-sampling\\20261101-moving4-point-m2\\pilot\\tree.bin",
+      "source_tree_sha256": "602f4e087f400c62ad12d1750659443895b58ff97deb0d3403a138ddcbcaa4fe",
+      "leaf_identity_sha256": "be02da94356a271c1ee8b13a2aaf6cad9d98fe6f2faa0fc7b7a974224c02e684",
+      "samples_per_light_per_frame": 244
+    },
+    {
+      "id": "side-top",
+      "texture": "shaders/textures/light_sampling_moving4_side-top.bin",
+      "texture_sha256": "840d5b51df297e430dc1d1e805862ae064d47472567bd42da2ac05fe6912ff60",
+      "width": 4247,
+      "light_count": 4243,
+      "receivers": [
+        {
+          "id": "side-27",
+          "slot": 27,
+          "raw_xy": [
+            840,
+            472
+          ],
+          "origin": [
+            112.391624,
+            76.430634,
+            364.002991
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "material": 4651,
+          "rgb_bytes": [
+            89,
+            61,
+            41
+          ],
+          "origin_actual": [
+            112.3916244506836,
+            76.43063354492188,
+            364.00299072265625
+          ],
+          "normal_actual": [
+            -3.999537412369136e-08,
+            -2.98201214832261e-08,
+            0.9999999403953552
+          ]
+        },
+        {
+          "id": "top-28",
+          "slot": 28,
+          "raw_xy": [
+            1080,
+            472
+          ],
+          "origin": [
+            115.779617,
+            76.003006,
+            365.398621
+          ],
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "material": 4651,
+          "rgb_bytes": [
+            57,
+            113,
+            36
+          ],
+          "origin_actual": [
+            115.77961730957031,
+            76.00300598144531,
+            365.39862060546875
+          ],
+          "normal_actual": [
+            1.6776782629790432e-08,
+            1.0,
+            -2.98201214832261e-08
+          ]
+        }
+      ],
+      "source_tree": "builds\\light-sampling\\20261101-moving4-point-m2\\pilot\\tree.bin",
+      "source_tree_sha256": "602f4e087f400c62ad12d1750659443895b58ff97deb0d3403a138ddcbcaa4fe",
+      "leaf_identity_sha256": "be02da94356a271c1ee8b13a2aaf6cad9d98fe6f2faa0fc7b7a974224c02e684",
+      "samples_per_light_per_frame": 244
+    }
+  ],
+  "moments_summary": {
+    "legacy": [
+      {
+        "point": "ls1-pillar",
+        "window": 1,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\legacy\\ls1-pillar-window1.npz",
+        "light_count": 3921,
+        "samples_per_frame": 264,
+        "complete_pixel_groups": 1035144,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 44,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 2.812001317247616e-07
+      },
+      {
+        "point": "ls1-wall",
+        "window": 1,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\legacy\\ls1-wall-window1.npz",
+        "light_count": 3921,
+        "samples_per_frame": 264,
+        "complete_pixel_groups": 1035144,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 19,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 2.911381678417819e-07
+      },
+      {
+        "point": "ls1-pillar",
+        "window": 2,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\legacy\\ls1-pillar-window2.npz",
+        "light_count": 3921,
+        "samples_per_frame": 264,
+        "complete_pixel_groups": 1035144,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 44,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 2.5969587390617283e-07
+      },
+      {
+        "point": "ls1-wall",
+        "window": 2,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\legacy\\ls1-wall-window2.npz",
+        "light_count": 3921,
+        "samples_per_frame": 264,
+        "complete_pixel_groups": 1035144,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 19,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 4.103238859297023e-07
+      }
+    ],
+    "sides": [
+      {
+        "point": "side-26",
+        "window": 1,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\sides\\side-26-window1.npz",
+        "light_count": 4243,
+        "samples_per_frame": 244,
+        "complete_pixel_groups": 1035292,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 1,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 1.7670449760520157e-07
+      },
+      {
+        "point": "side-27",
+        "window": 1,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\sides\\side-27-window1.npz",
+        "light_count": 4243,
+        "samples_per_frame": 244,
+        "complete_pixel_groups": 1035292,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 4,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 2.4305689339008796e-07
+      },
+      {
+        "point": "side-26",
+        "window": 2,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\sides\\side-26-window2.npz",
+        "light_count": 4243,
+        "samples_per_frame": 244,
+        "complete_pixel_groups": 1035292,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 1,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 1.654821969610436e-07
+      },
+      {
+        "point": "side-27",
+        "window": 2,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\sides\\side-27-window2.npz",
+        "light_count": 4243,
+        "samples_per_frame": 244,
+        "complete_pixel_groups": 1035292,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 4,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 2.2212003469401753e-07
+      }
+    ],
+    "side-top": [
+      {
+        "point": "side-27",
+        "window": 1,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\side-top\\side-27-window1.npz",
+        "light_count": 4243,
+        "samples_per_frame": 244,
+        "complete_pixel_groups": 1035292,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 4,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 2.18219037639647e-07
+      },
+      {
+        "point": "top-28",
+        "window": 1,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\side-top\\top-28-window1.npz",
+        "light_count": 4243,
+        "samples_per_frame": 244,
+        "complete_pixel_groups": 1035292,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 3,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 2.963035476310184e-07
+      },
+      {
+        "point": "side-27",
+        "window": 2,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\side-top\\side-27-window2.npz",
+        "light_count": 4243,
+        "samples_per_frame": 244,
+        "complete_pixel_groups": 1035292,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 4,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 2.1231087319836063e-07
+      },
+      {
+        "point": "top-28",
+        "window": 2,
+        "path": "builds\\light-sampling\\20261101-moving4-point-m2\\moments\\side-top\\top-28-window2.npz",
+        "light_count": 4243,
+        "samples_per_frame": 244,
+        "complete_pixel_groups": 1035292,
+        "missing_pixel_groups": 0,
+        "unavailable_lights": [],
+        "positive_m2_lights": 3,
+        "nonfinite_rgb_samples": 0,
+        "second_moment_identity_max_relative_error": 2.7512599191017673e-07
+      }
+    ]
+  },
+  "main_table": [
+    {
+      "point": "side-26",
+      "origin": [
+        109.15621185302734,
+        76.13873291015625,
+        362.00299072265625
+      ],
+      "normal": [
+        -3.999537412369136e-08,
+        -2.98201214832261e-08,
+        0.9999999403953552
+      ],
+      "albedo": [
+        0.15209126472473145,
+        0.09210251271724701,
+        0.050961095839738846
+      ],
+      "methods": {
+        "A": {
+          "relative_world_prefix_A": [
+            1.0,
+            1.0
+          ],
+          "relative_camera_A": [
+            7.384613000712484,
+            7.383146062636335
+          ],
+          "variance": [
+            0.00541365922140682,
+            0.005335215796461566
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "nearfar-A": {
+          "relative_world_prefix_A": [
+            0.1128359659044992,
+            0.11286357420480218
+          ],
+          "relative_camera_A": [
+            0.8332499407663153,
+            0.833288253505249
+          ],
+          "variance": [
+            0.0006108554673252376,
+            0.0006021515239425727
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "bounded-nearfar": {
+          "relative_world_prefix_A": [
+            0.927708817103814,
+            0.9277110667855075
+          ],
+          "relative_camera_A": [
+            6.850770591660425,
+            6.849426310001574
+          ],
+          "variance": [
+            0.005022299392494476,
+            0.00494953873806625
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "cosine-B": {
+          "relative_world_prefix_A": [
+            4.3869219918301665,
+            4.386816591750971
+          ],
+          "relative_camera_A": [
+            32.395721173980554,
+            32.38850764689393
+          ],
+          "variance": [
+            0.023749300694663758,
+            0.02340461317648947
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-1": {
+          "relative_world_prefix_A": [
+            0.44283184401688525,
+            0.4428491829363844
+          ],
+          "relative_camera_A": [
+            3.2701417924565734,
+            3.2696202013384847
+          ],
+          "variance": [
+            0.0023973406958945976,
+            0.002362695956252296
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-2": {
+          "relative_world_prefix_A": [
+            0.32527375406908177,
+            0.3252947513639495
+          ],
+          "relative_camera_A": [
+            2.402020793089096,
+            2.4016986627290096
+          ],
+          "variance": [
+            0.0017609212581976986,
+            0.0017355176959829809
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        }
+      },
+      "fixed_conditional_optimal_variance": [
+        0.00012162873763073889,
+        0.00012002864863031075
+      ],
+      "work": {
+        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "eligible_candidates": 344,
+        "whole_tree_additional_reads": [
+          888,
+          1772
+        ],
+        "expected_additional_reads_per_sample": [
+          46.45441661315583,
+          143.69680907161955
+        ],
+        "expected_additional_A_evaluations_per_sample": [
+          28.18715210439221,
+          87.88992344478241
+        ]
+      }
+    },
+    {
+      "point": "side-27",
+      "origin": [
+        112.3916244506836,
+        76.43063354492188,
+        364.00299072265625
+      ],
+      "normal": [
+        -3.999537412369136e-08,
+        -2.98201214832261e-08,
+        0.9999999403953552
+      ],
+      "albedo": [
+        0.079236701130867,
+        0.04734949395060539,
+        0.026587732136249542
+      ],
+      "methods": {
+        "A": {
+          "relative_world_prefix_A": [
+            1.0,
+            1.0
+          ],
+          "relative_camera_A": [
+            10.842752938295225,
+            10.84746640942313
+          ],
+          "variance": [
+            0.02948638083992344,
+            0.029616495005753227
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "nearfar-A": {
+          "relative_world_prefix_A": [
+            0.08324823127952774,
+            0.0831997175344991
+          ],
+          "relative_camera_A": [
+            0.9026400043139798,
+            0.9025061412289718
+          ],
+          "variance": [
+            0.002454689051758182,
+            0.002464084018840572
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "bounded-nearfar": {
+          "relative_world_prefix_A": [
+            1.00572727439688,
+            1.0060924777082985
+          ],
+          "relative_camera_A": [
+            10.904852359590418,
+            10.913554356714057
+          ],
+          "variance": [
+            0.029655257433964584,
+            0.02979693284137371
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "cosine-B": {
+          "relative_world_prefix_A": [
+            7.774861646685897,
+            7.784402533579498
+          ],
+          "relative_camera_A": [
+            84.30090396444237,
+            84.44104500043193
+          ],
+          "variance": [
+            0.22925253149189465,
+            0.23054671875852997
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-1": {
+          "relative_world_prefix_A": [
+            0.35367818093999454,
+            0.3536496481151364
+          ],
+          "relative_camera_A": [
+            3.8348451355980364,
+            3.8362026786332524
+          ],
+          "variance": [
+            0.010428689537968031,
+            0.010473863037188324
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-2": {
+          "relative_world_prefix_A": [
+            0.2810414091015485,
+            0.2810096696198391
+          ],
+          "relative_camera_A": [
+            3.0472625643184457,
+            3.0482429519242964
+          ],
+          "variance": [
+            0.008286894020556984,
+            0.008322521476864329
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        }
+      },
+      "fixed_conditional_optimal_variance": [
+        0.0003480087428570579,
+        0.0003490700452572507
+      ],
+      "work": {
+        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "eligible_candidates": 344,
+        "whole_tree_additional_reads": [
+          888,
+          1772
+        ],
+        "expected_additional_reads_per_sample": [
+          46.53673628301315,
+          143.51911163830005
+        ],
+        "expected_additional_A_evaluations_per_sample": [
+          28.25298565120289,
+          87.73310284596032
+        ]
+      }
+    },
+    {
+      "point": "top-28",
+      "origin": [
+        115.77961730957031,
+        76.00300598144531,
+        365.39862060546875
+      ],
+      "normal": [
+        1.6776782629790432e-08,
+        1.0,
+        -2.98201214832261e-08
+      ],
+      "albedo": [
+        0.07551674544811249,
+        0.16097486019134521,
+        0.035842206329107285
+      ],
+      "methods": {
+        "A": {
+          "relative_world_prefix_A": [
+            1.0,
+            1.0
+          ],
+          "relative_camera_A": [
+            2.5324235543724227,
+            2.5248586771195387
+          ],
+          "variance": [
+            0.09804851986057976,
+            0.09830707902193975
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "nearfar-A": {
+          "relative_world_prefix_A": [
+            0.3940433629746988,
+            0.39455697150830765
+          ],
+          "relative_camera_A": [
+            0.9978846938412494,
+            0.9962005931307572
+          ],
+          "variance": [
+            0.03863536850055439,
+            0.03878774337672443
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "bounded-nearfar": {
+          "relative_world_prefix_A": [
+            1.2753628657788363,
+            1.2765116439774997
+          ],
+          "relative_camera_A": [
+            3.22975896167024,
+            3.2230115007407174
+          ],
+          "variance": [
+            0.12504744127476214,
+            0.12549013105692228
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "cosine-B": {
+          "relative_world_prefix_A": [
+            13.100589417956657,
+            13.067602114207766
+          ],
+          "relative_camera_A": [
+            33.17624121819555,
+            32.993848587203104
+          ],
+          "variance": [
+            1.2844934017318244,
+            1.2846377936686897
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-1": {
+          "relative_world_prefix_A": [
+            0.5316175890131323,
+            0.532533359345947
+          ],
+          "relative_camera_A": [
+            1.3462809043355344,
+            1.3445714732002318
+          ],
+          "variance": [
+            0.05212431773458763,
+            0.05235179903904105
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-2": {
+          "relative_world_prefix_A": [
+            0.18367045404084828,
+            0.18526652247222752
+          ],
+          "relative_camera_A": [
+            0.4651313840553218,
+            0.46777178684376564
+          ],
+          "variance": [
+            0.018008616160825816,
+            0.018213010664797247
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        }
+      },
+      "fixed_conditional_optimal_variance": [
+        0.012243960580778895,
+        0.012416657620500746
+      ],
+      "work": {
+        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "eligible_candidates": 344,
+        "whole_tree_additional_reads": [
+          888,
+          1772
+        ],
+        "expected_additional_reads_per_sample": [
+          44.999586444330866,
+          157.79347213362593
+        ],
+        "expected_additional_A_evaluations_per_sample": [
+          28.373365457088948,
+          101.89671986524336
+        ]
+      }
+    },
+    {
+      "point": "ls1-pillar",
+      "origin": [
+        146.45921325683594,
+        150.15493774414062,
+        87.99700164794922
+      ],
+      "normal": [
+        -2.3153575057222042e-08,
+        -1.8557159364718245e-08,
+        -1.0
+      ],
+      "albedo": [
+        0.0822904035449028,
+        0.08227933943271637,
+        0.08227840065956116
+      ],
+      "methods": {
+        "A": {
+          "relative_world_prefix_A": [
+            1.0,
+            1.0
+          ],
+          "relative_camera_A": [
+            0.7165409483912435,
+            0.7128663600600693
+          ],
+          "variance": [
+            0.0009919898961159295,
+            0.000990509641408652
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "nearfar-A": {
+          "relative_world_prefix_A": [
+            1.4890906087597267,
+            1.4886871824658208
+          ],
+          "relative_camera_A": [
+            1.0669943970411888,
+            1.06123501303249
+          ],
+          "variance": [
+            0.0014771628382907675,
+            0.0014745590072738767
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "bounded-nearfar": {
+          "relative_world_prefix_A": [
+            1.274737105796729,
+            1.2748712711655443
+          ],
+          "relative_camera_A": [
+            0.9134013347370971,
+            0.9088128426209352
+          ],
+          "variance": [
+            0.0012645263291544177,
+            0.0012627722856443757
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "cosine-B": {
+          "relative_world_prefix_A": [
+            0.45707506217985905,
+            0.45798767237035215
+          ],
+          "relative_camera_A": [
+            0.32751299854034277,
+            0.3264840049550365
+          ],
+          "variance": [
+            0.00045341384344898037,
+            0.0004536412051291407
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-1": {
+          "relative_world_prefix_A": [
+            0.5666590206497123,
+            0.5669122456398449
+          ],
+          "relative_camera_A": [
+            0.4060343920707981,
+            0.40413266902275613
+          ],
+          "variance": [
+            0.0005621200230274625,
+            0.0005615320451388964
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-2": {
+          "relative_world_prefix_A": [
+            0.5198190135547649,
+            0.5201247934781407
+          ],
+          "relative_camera_A": [
+            0.3724716089643319,
+            0.37077946830375746
+          ],
+          "variance": [
+            0.0005156552092552761,
+            0.0005151886226757823
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        }
+      },
+      "fixed_conditional_optimal_variance": [
+        0.00014451079997191172,
+        0.00014370854230183325
+      ],
+      "work": {
+        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "eligible_candidates": 94,
+        "whole_tree_additional_reads": [
+          245,
+          478
+        ],
+        "expected_additional_reads_per_sample": [
+          42.86570301453989,
+          128.3117636847988
+        ],
+        "expected_additional_A_evaluations_per_sample": [
+          29.16005474817035,
+          85.52201263245345
+        ]
+      }
+    },
+    {
+      "point": "ls1-wall",
+      "origin": [
+        159.75596618652344,
+        151.40460205078125,
+        82.99700164794922
+      ],
+      "normal": [
+        -2.3153575057222042e-08,
+        -1.8557159364718245e-08,
+        -1.0
+      ],
+      "albedo": [
+        0.13819491863250732,
+        0.04102246090769768,
+        0.03470442444086075
+      ],
+      "methods": {
+        "A": {
+          "relative_world_prefix_A": [
+            1.0,
+            1.0
+          ],
+          "relative_camera_A": [
+            0.5460010386000603,
+            0.5460820181877705
+          ],
+          "variance": [
+            0.0023894365299990715,
+            0.0023840352105917195
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "nearfar-A": {
+          "relative_world_prefix_A": [
+            0.7555548028040744,
+            0.7560185691331368
+          ],
+          "relative_camera_A": [
+            0.4125337070502884,
+            0.41284814601965386
+          ],
+          "variance": [
+            0.0018053502462363003,
+            0.0018023748886745682
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "bounded-nearfar": {
+          "relative_world_prefix_A": [
+            0.8715287890266135,
+            0.8710461873208896
+          ],
+          "relative_camera_A": [
+            0.4758556239783838,
+            0.47566265990695417
+          ],
+          "variance": [
+            0.002082462725446044,
+            0.0020766047806246714
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "cosine-B": {
+          "relative_world_prefix_A": [
+            0.3599960153004364,
+            0.3602399714793324
+          ],
+          "relative_camera_A": [
+            0.1965581982459215,
+            0.19672057065733875
+          ],
+          "variance": [
+            0.0008601876296129674,
+            0.0008588247762692853
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-1": {
+          "relative_world_prefix_A": [
+            0.5915908392144346,
+            0.5919389936657106
+          ],
+          "relative_camera_A": [
+            0.32300921263736254,
+            0.3232472403050091
+          ],
+          "variance": [
+            0.0014135687620317771,
+            0.0014112034034212827
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        },
+        "outer-lookahead-2": {
+          "relative_world_prefix_A": [
+            0.5306051106808833,
+            0.530987888437025
+          ],
+          "relative_camera_A": [
+            0.28971094151826227,
+            0.2899629377509534
+          ],
+          "variance": [
+            0.001267847234465103,
+            0.0012658938224316156
+          ],
+          "null_probability": [
+            0.0,
+            0.0
+          ],
+          "measured_support_failures": [
+            0,
+            0
+          ]
+        }
+      },
+      "fixed_conditional_optimal_variance": [
+        0.0001235754068887292,
+        0.0001230512713750759
+      ],
+      "work": {
+        "scope": "Naive static expansion without early parent-bound rejection or reuse; not GPU timing.",
+        "eligible_candidates": 94,
+        "whole_tree_additional_reads": [
+          245,
+          478
+        ],
+        "expected_additional_reads_per_sample": [
+          42.27794178419809,
+          127.75851214146375
+        ],
+        "expected_additional_A_evaluations_per_sample": [
+          28.7353118347511,
+          85.12754919052057
+        ]
+      }
+    }
+  ],
+  "shortlist": [
+    "outer-lookahead-1",
+    "outer-lookahead-2"
+  ],
+  "full_repair_found": false,
+  "recommendation": "Retain one/two-level cross-brick expansion as consistent prefix-A improvement references; no tested method restores all five points against both prefix A and original camera A. GPU cost and full-image acceptance remain necessary; shared cut is undecided.",
+  "low_cluster": {
+    "bounds": [
+      -30,
+      -48,
+      240,
+      224,
+      0,
+      496
+    ],
+    "side_A_probability": 0.7607082508742431,
+    "observed_M2_share": 0,
+    "side27_one_level_probability": 0.7358968254396844,
+    "side27_two_level_probability": 0.7702734629097568,
+    "interpretation": "No observed contribution in this finite reference. Expansion helps other branches and does not fix this allocation."
+  },
+  "validation": {
+    "native": {
+      "passed": true,
+      "archives": [
+        {
+          "folder": "pilot",
+          "revision": "746dad61cc569a3e719546aa4ce38c38b2eb6ad6",
+          "manifest_sha256": "ce91b5848c81e4fbbaf52f7f22324831497a044f06c65302b38a294ab10750eb",
+          "files": 28,
+          "job_id": "9c291d54-d89a-452a-a111-8c00c23feb02"
+        },
+        {
+          "folder": "captures/sides",
+          "revision": "1b9b62c599cb373e0740f162a3748a3b65346472",
+          "manifest_sha256": "45c0f9df3d7939f3cb3a82d1fef8157a47ddf61270f9d2c7596d3c55807aa4d9",
+          "files": 64,
+          "job_id": "d69da033-d0fb-40a8-a261-5debf18a73ed"
+        },
+        {
+          "folder": "captures/side-top",
+          "revision": "f06dcbe3026c3a15cc8896dc75f4af553b414c76",
+          "manifest_sha256": "e4652c9b524c3afc2d722e73c4e4bb5a1d91542384d5c888b2f89b091f175af1",
+          "files": 64,
+          "job_id": "77c1d086-8b0b-4bd5-bbb8-ce79401a41c3"
+        },
+        {
+          "folder": "runtime-exit",
+          "revision": "c091fc402f91f457037819fd1b88b657a1646687",
+          "manifest_sha256": "9e5c69065e794cd1577914d2418a12fcedc52d4a35d03a47c88f9f3ec87e9f13",
+          "files": 8,
+          "job_id": "a89ecdd7-eb15-4c3b-9f7d-0b593381d69d"
+        }
+      ],
+      "files_checked": 164
+    },
+    "legacy": {
+      "passed": true,
+      "cases": 12,
+      "max_absolute_error": 3.469446951953614e-18,
+      "coordinates": "Actual mode3 receiver audit, not fixture expected float"
+    },
+    "branches": {
+      "passed": true,
+      "cases": 168,
+      "maximum_error": 1.7763568394002505e-15
+    },
+    "max_new_second_moment_identity_error": 2.963035476310184e-07,
+    "new_missing_pixel_groups": 0,
+    "new_nonfinite_rgb_samples": 0,
+    "measured_support_failures": 0,
+    "camera_rebuild": {
+      "passed": true,
+      "nodes": 7614,
+      "saved_native_folder": "builds/light-sampling/20261101-world-grouping/captures/g16/moving-4/old-a-recapture",
+      "scope": "Same emitters/masses and camera window; verifies reconstruction only. Historical nonemissive input is different and its moments were not reused."
+    }
+  },
+  "runtime": {
+    "revision": "c091fc402f91f457037819fd1b88b657a1646687",
+    "mode": 2,
+    "preset": "light-sampling-failure-moving-4",
+    "active_source_uuid": "d4bc57f6-3bf3-4e1e-8c68-4d143e4607ce",
+    "human_readable_pack_name": null,
+    "live_jobs": false,
+    "state_path": "builds/light-sampling/20261101-moving4-point-m2/runtime-exit/runtime-final.json"
+  },
+  "legacy": {
+    "fixture": "experiments/light-sampling/20261031-ls1-point-fixture.json",
+    "reference_texture_sha256": "c4c6f86c3cb050ee614846e1a94e55ee6ae7e634a5cf80917f263cddf63c1f56",
+    "sampling_revision": "fa8ac641ad26df3484a83155b71f8c217b54289d",
+    "source_evaluation_diff": "No differences in Initial, Cube, Polygon, VoxelTrace, SurfaceData or Colors source between actual legacy sampling revision and current base."
+  },
+  "artifacts": {
+    "builds/light-sampling/20261101-moving4-point-m2/report.md": "511569c35729dbbaea6280c2dc7fa642a65bc8e4bf899b4099a6d312097e612a",
+    "builds/light-sampling/20261101-moving4-point-m2/screening.json": "7bee90ba1fbb2daa1fad4b719da0855a544e6e3abdf5ad031decf5a63323efed",
+    "builds/light-sampling/20261101-moving4-point-m2/screening-table.csv": "b85981aad2b21c03693860276f851d98e59e110dab56aee1f24dc208d1b92956",
+    "builds/light-sampling/20261101-moving4-point-m2/point-cases.json": "f3b6fb43b296d72cd1713554b4453bfce15c81ce092b15dc4f83634a4adf0840",
+    "builds/light-sampling/20261101-moving4-point-m2/legacy-fixture.json": "879cf8b66c132df504511a039d967399cda233056575bedac1f286c1eaaabd71",
+    "builds/light-sampling/20261101-moving4-point-m2/legacy-reproduction.json": "3ee1eaaa746fa54778fef3d4b395df641070c938ee7a99403a017f941ba0649a",
+    "builds/light-sampling/20261101-moving4-point-m2/legacy-native-validation.json": "7ddee9cff7dccd5ddd8ddf2a7ca7726a08e72a309bd1a3e2499a613ff8453261",
+    "builds/light-sampling/20261101-moving4-point-m2/branch-decomposition-validation.json": "50b9e52aa8416ce925f3cd139b5c5fc713b7366c087c62fd84c57f9f9739f826",
+    "builds/light-sampling/20261101-moving4-point-m2/nonemissive-identity.json": "909b93f395d73df97bb903a924a4965d0daa6cb45b3cbcbedf2602b511aa214d",
+    "builds/light-sampling/20261101-moving4-point-m2/parent-native-verification.json": "9ad614d8a18d3de81e30777b392623f42b71f09ae05121adb3ac65c09f9ed3be",
+    "builds/light-sampling/20261101-moving4-point-m2/derived-manifest.json": "9c73d7dad471e73c7a5d041cf4a5141aa3179e818a9cd612572f2e3661862d75",
+    "builds/light-sampling/20261101-moving4-point-m2/runtime-exit/runtime-final.json": "e0c18188e145e945c87da5c6d6ceaaaca3e2a62c64a6a12ed5da90c1a2caaad7",
+    "builds/light-sampling/20261101-moving4-point-m2/captures/sides/capture-ready.json": "b6bc931a0c0ebc8cda777d97ecd4959719cdd5101f9ce9d19c6c1d90e884c1e2",
+    "builds/light-sampling/20261101-moving4-point-m2/captures/side-top/capture-ready.json": "3b14ad4d33f527c144039bf3ae032e073a4d0366ba533356c0cedf03a33b22b5",
+    "builds/light-sampling/20261101-moving4-point-m2/pilot/pilot-ready.json": "a143a5965f34219c6f6bae2b2ffd7e143110eee01179becb50af738f8776948d",
+    "builds/light-sampling/20261101-moving4-point-m2/pilot/voxel-difference.json": "cbe66affefd777c87caae40b41b58d285b41192578da6dba8b85c11c9182f09a",
+    "builds/light-sampling/20261101-moving4-point-m2/camera-rebuild-validation.json": "40396642106887bd6eb06685db482c1acd65216dac6d7648c5b20040200d4590"
+  },
+  "limits": [
+    "Finite conditional references, not convergence, strict confidence intervals or full-image validation.",
+    "Zero empirical M2 is retained and does not prove exact zero transport.",
+    "Candidate probabilities are offline full unconditional PMFs including null outcomes.",
+    "Old-scene prefix trees are offline checked rebuilds, not new GPU captures.",
+    "One/two-level expansion still exceeds camera-A variance at both moving side points; no full repair claim.",
+    "Static work counts exclude early bound rejection/reuse and are not GPU performance.",
+    "Shared cut, H-PLOC and visibility implementations were not changed."
+  ],
+  "production_shader_defaults_changed": false,
+  "candidate_implementation": "Offline only; no production proposal or shared cut was installed.",
+  "producer_sha256": {
+    "scripts/light_sampling_point_moments.py": "43c8a8fe44c22cdb906d676c5a7457ff41921f8a57652fc90bb605805340d2d7",
+    "scripts/light_sampling_point_screening.py": "8d054ed8a588969f19ea9758f73cc892b8aa9237cacf547cdbfaf11dc7ee8258",
+    "scripts/light_sampling_world_layout.py": "197f9dd086f89205cfc04ec6653bee247e9626193441d6be047a50d40e8dbd99",
+    "scripts/light_sampling_weight_reference.py": "bfe5ffb89ac8b07aac49df395f18b8ce00cc51206a9fac9140c8d8d9d5898870"
+  }
+}
