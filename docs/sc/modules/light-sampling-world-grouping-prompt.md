@@ -174,7 +174,7 @@ Minecraft 不重启；运行时不可用时完成独立可做部分并报告 blo
 通知附提交、结果索引与比较页的绝对路径，以及质量回退／非有限／输入变化／未验限制；真实 blocker 也回传，但不能称已完成。
 回传授权来自本页首段的用户原话与对应 turn，可通过 `read_thread` 核对，不是代理间消息自行授予权限。
 
-## 本轮执行结果（2026-11-01，等待讨论端复查）
+## 本轮执行结果（2026-11-01）
 
 实现提交 `d29c5d178`，诊断提交 `0b9c3b08`。世界前缀、分层存储、顶层收尾与单孩子压缩已实现；默认四叉 A、灯内采样、32B／48B 兼容、局部灯预算和实际 PDF 保持原契约。旧取模路径已移除。
 [结果索引](../../../experiments/light-sampling/20261101-world-grouping.json)、[比较页](../../../builds/light-sampling/20261101-world-grouping/comparison-upright.html)及[原件核验](../../../builds/light-sampling/20261101-world-grouping/parent-artifact-verification.json)保留来源和哈希。比较页须与同目录的 [comparison-upright.assets](../../../builds/light-sampling/20261101-world-grouping/comparison-upright.assets/) 一起保存。已按原始纹理行序做纵向翻转；旧版未翻转预览作为失败原件保留。
@@ -197,4 +197,19 @@ G64 第 2／3／4 景的体素池达到 16384，前后真实世界输入变化�
 
 两种 G 各四次 ABBA 的相机、灯、完整体素和分配数量在各自计时 cohort 内一致；quality 与 timing 是分开的 cohort。完整建树逐帧先求各 dispatch 总和再计算分位数：G16 原 A p50 为 0.342 ms，新 A 为 0.409／0.410 ms；G64 原 A 为 1.962／1.958 ms，新 A 为 2.329／2.085 ms。新顶部收尾分别约 0.082／0.146 ms。initial p50 在 G16 原 A 为 1.955／1.964 ms、新 A 为 2.025／2.034 ms；G64 原 A 为 4.086／4.184 ms、新 A 为 4.407／4.217 ms。sentinel 和逐 pass 完整数据见结果索引；没有整帧加速结论。
 
-本轮没有取得同输入的实际跨 pose 配对。真实灯子集的离线移动窗口重建中，新树拓扑及三个完整 PMF 不变，旧树会变；这是机制证据。cycle 是 16 次隔两帧 readback，验证 clear／singleton 但不是连续 16 个 render frame；连续移动及跨界首帧未验。当前仅保留候选与完整记录等待讨论端复查，不将其提升为已接受基线。
+本轮没有取得同输入的实际跨 pose 配对。真实灯子集的离线移动窗口重建中，新树拓扑及三个完整 PMF 不变，旧树会变；这是机制证据。cycle 是 16 次隔两帧 readback，验证 clear／singleton 但不是连续 16 个 render frame；连续移动及跨界首帧未验。候选和完整记录保留在实验分支，讨论端结论如下。
+
+## 讨论端独立复查（2026-11-01）
+
+结论：完整世界分组机制通过；不接受为替换基线。G16 moving-3／4 的质量退化及本次建树成本增加得到独立确认，G64 质量矩阵仍不完整。
+源码检查未发现偏离方案：取模及旧槽号归并已移除，权重和灯内采样公式没有改变。不能继续把本轮退化归因于取模绕回；完整世界分组与现有 A 权重组合仍有质量代价，具体灯贡献／概率失配尚未逐点归因。
+
+[独立脚本](../../../builds/light-sampling/20261101-world-grouping/discussion_review.py)未调用实验分析函数；[复算结果](../../../builds/light-sampling/20261101-world-grouping/discussion-review.json)记录：
+
+- 五份有效质量候选树及三份 production smoke 树，与独立完整 96 位世界 voxel Morton 前缀树一致；该 oracle 同时覆盖 12 位 brick 内层和 84 位上层。检查有序拓扑、唯一叶、AABB 与 mass。
+- 14 份有效质量数据的 revision／settings／receipts／32 连续帧核对通过；直接读取 raw，加入完整 alpha、finite、valid count 和 incomplete 检查后，五项共同完整像素数及方差比仍与提交结果一致。已目视检查 moving-3／4 的正向均值图。
+- 同 pose／G 的 before／quality／after 共 42 份快照，按格点位置消除原子 allocation 重排后，非空完整材料数据和相机矩阵在配对内一致。未用这个相对网格检查冒充跨 pose 世界身份验证。
+- 八份 ABBA 原始逐帧 dispatch 样本重新求和／取中位数，复现建树总成本与顶部收尾耗时。顶部单 lane 实现是后续成本定位点，本轮没有进行优化或新增 GPU 测量。
+
+本轮 G16 四景候选灯数为 8020／8019／4008／4243，已不同于上一轮取模批次；不能将两轮比值直接拼成同输入算法排名。
+本次仅提交复查记录，没有回退或修改 shader；候选继续保留，完整矩阵、连续运动／跨界首帧、收敛和非有限原因未验收。

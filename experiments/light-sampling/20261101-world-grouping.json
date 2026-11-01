@@ -1,10 +1,33 @@
 {
   "schema": 1,
-  "status": "implementation_and_mechanism_verified_quality_regressions_default_grid_partial",
+  "status": "independent_review_complete_quality_rejected_default_grid_partial",
   "quality_accepted": false,
   "performance_win_established": false,
-  "independent_discussion_review": "pending",
-  "recommendation": "Keep the candidate and evidence on the experiment branch for review; do not promote it as an overall quality or performance win.",
+  "independent_discussion_review": {
+    "date": "2026-11-01",
+    "reviewer_thread": "01a18c0e-8678-7800-8ab8-04b69f072f12",
+    "mechanism_accepted": true,
+    "quality_accepted": false,
+    "full_matrix_complete": false,
+    "scope": "Source inspection, moving3/4 original mean-image inspection and independent saved raw-data review; no new GPU capture or shader change.",
+    "script": "builds/light-sampling/20261101-world-grouping/discussion_review.py",
+    "script_sha256": "95b5d65137c9cdc19e6092e8cadd1986ffbf91527d72317f9b12f8e5068eb9b4",
+    "result": "builds/light-sampling/20261101-world-grouping/discussion-review.json",
+    "result_sha256": "59530d7448402e0d3dfaaef7959f377e1617a51e4c4b6135955e57a5246957f2",
+    "verified": [
+      "No source deviation from full-world grouping found; modulo path removed and proposal formulas unchanged.",
+      "Eight saved candidate trees match an independent full 96-bit world-voxel Morton trie including brick-local bits; ordered topology, unique leaves, bounds and mass checked.",
+      "All 14 accepted quality cases have matching source/settings/receipts and 32 consecutive-frame windows; five common-complete-pixel variance comparisons independently reproduced with explicit nonfinite/incomplete rejection.",
+      "42 before/quality/after snapshots match normalized occupied-grid material identities and camera matrices within their same-preset/grid cohorts; this is not a cross-pose identity claim.",
+      "Eight ABBA build medians independently recomputed from per-frame dispatch sums; top finish costs reproduced."
+    ],
+    "limits": [
+      "Quality remains 14/24; G64 missing cases, continuous motion and first-crossing-frame behavior remain unaccepted.",
+      "Current inputs differ from the modulo batch; historical and current quality ratios must not be ranked as one controlled comparison.",
+      "The precise contribution-probability cause of each regression and nonfinite events remains unassigned."
+    ]
+  },
+  "recommendation": "Independent review accepts the full-world grouping mechanism but rejects promotion to the accepted baseline due to confirmed G16 moving3/4 quality regressions and higher measured build cost. Preserve the candidate and originals; default-grid quality coverage remains partial.",
   "source_commits": {
     "baseline": "6d69b145ec7a1e70ed719886549242e4fd93542f",
     "plan": "fd8205e1e3bb687fb710f517258cdb0bdf53185b",

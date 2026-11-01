@@ -174,7 +174,7 @@ Then call `send_message_to_thread` with target `01a18c0e-8678-7800-8ab8-04b69f07
 Include commits, absolute result-index/viewer paths and quality regressions, nonfinite events, input changes and untested limitations. Notify genuine blockers too without calling them completion.
 Return-message authorization comes from the user's quoted instruction and identified turn, verifiable through `read_thread`, not from agent-to-agent messages granting permission.
 
-## Execution results (2026-11-01, awaiting discussion-side review)
+## Execution results (2026-11-01)
 
 Implementation is committed in `d29c5d178`, diagnostics in `0b9c3b08`. Complete world prefixes, layered storage, top finishing and unary compression are implemented. Default four-way A, emitter sampling, 32B/48B compatibility, the local light budget and actual PDFs retain their contract. The old modulo path was removed.
 The [result index](../../../experiments/light-sampling/20261101-world-grouping.json), [comparator](../../../builds/light-sampling/20261101-world-grouping/comparison-upright.html) and [original verification](../../../builds/light-sampling/20261101-world-grouping/parent-artifact-verification.json) preserve provenance and hashes. Keep [comparison-upright.assets](../../../builds/light-sampling/20261101-world-grouping/comparison-upright.assets/) beside the comparator. Native texture rows are vertically reversed for display; the unflipped preview is preserved as a failed original.
@@ -197,4 +197,19 @@ G64 poses 2/3/4 reach the 16384-brick voxel pool cap and actual world inputs cha
 
 Within each grid's four ABBA timing runs, camera, lights, complete voxels and allocation counts match. Quality and timing are separate input cohorts. Build quantiles use per-frame sums of every actual dispatch: G16 camera A p50=0.342 ms, world A=0.409/0.410 ms; G64 camera A=1.962/1.958 ms, world A=2.329/2.085 ms. New top finishing costs about 0.082/0.146 ms. Initial p50 in G16 is camera A 1.955/1.964 ms and world A 2.025/2.034 ms; G64 camera A 4.086/4.184 ms and world A 4.407/4.217 ms. The result index includes sentinels and complete per-pass data. No whole-frame speedup is established.
 
-No equal-input runtime cross-pose pair was obtained. Offline shifted-window rebuilds of actual fixed emitter subsets preserve the new topology and three complete PMFs while the old tree changes; this is mechanism evidence. Cycle has 16 readbacks spaced two frames apart: valid clear/singleton evidence, not 16 consecutive render frames. Continuous motion and boundary first frames remain untested. Preserve the candidate and complete record for discussion-side review without promoting it to the accepted baseline.
+No equal-input runtime cross-pose pair was obtained. Offline shifted-window rebuilds of actual fixed emitter subsets preserve the new topology and three complete PMFs while the old tree changes; this is mechanism evidence. Cycle has 16 readbacks spaced two frames apart: valid clear/singleton evidence, not 16 consecutive render frames. Continuous motion and boundary first frames remain untested. The candidate and complete records remain on the experiment branch; discussion-side conclusions follow.
+
+## Independent discussion-side review (2026-11-01)
+
+Decision: complete-world grouping passes mechanism review but is not accepted as the replacement baseline. G16 moving-3/4 quality regressions and higher measured build cost are independently confirmed; G64 quality coverage remains incomplete.
+Source inspection found no departure from the design: modulo and old slot-based reduction are removed, while weighting and conditional-emitter sampling formulas are unchanged. These regressions cannot still be attributed to modulo wrapping. Complete-world grouping combined with current A weights has quality costs; specific emitter-contribution/probability mismatches remain unassigned.
+
+The [independent script](../../../builds/light-sampling/20261101-world-grouping/discussion_review.py) does not call experiment analysis functions. Its [results](../../../builds/light-sampling/20261101-world-grouping/discussion-review.json) record:
+
+- Five valid quality candidate trees and three production-smoke trees match an independent full 96-bit world-voxel Morton trie, covering both the 12 brick-local bits and the 84 outer bits. Ordered topology, unique leaves, AABBs and mass are checked.
+- Revisions, settings, receipts and 32 consecutive frames pass for all 14 valid quality cases. Direct raw-data recomputation with complete alpha, finite, valid-count and incomplete checks reproduces all five common-pixel counts and variance ratios. Upright moving-3/4 mean images were visually inspected.
+- Within each pose/grid cohort, 42 before/quality/after snapshots match nonempty complete material data after normalizing atomic allocation order by grid location, plus camera matrices. This relative-grid check is not presented as cross-pose world-identity evidence.
+- Independent per-frame dispatch sums and medians reproduce all eight ABBA build totals and upper-completion costs. The single-lane upper implementation is a later profiling target; this review performs no optimization or new GPU measurements.
+
+Current G16 candidate emitter counts are 8020/8019/4008/4243, differing from the previous modulo batch. Ratios from those rounds cannot be combined into one equal-input algorithm ranking.
+This review commits records only, without reverting or editing shaders. The candidate remains preserved; full-matrix completion, continuous-motion/first-crossing frames, convergence and nonfinite causes remain unaccepted.
