@@ -90,6 +90,29 @@ def bracketed_profile_request(revision, preset, configs, warmup_frames=128, fram
                          *identity("after")])
 
 
+def bracketed_quality_request(revision, preset, values, warmup_frames=256, frames=32, batches=8):
+    """One frozen source/config, with identity snapshots around the raw quality window."""
+    buffers = {'camera': 'iris_ssbo_0', 'tree': 'iris_ssbo_12',
+               'voxel-meta': 'iris_ssbo_3', 'voxel-materials': 'iris_ssbo_4'}
+    def identity(phase):
+        return [dict(type='dump_buffer', resource=dict(logical_name=logical), artifact_name=f'{phase}_{name}')
+                for name, logical in buffers.items()]
+    def texture(logical, name):
+        return dict(type='dump_texture', resource=dict(logical_name=logical, view='current', mip_level=0, layer=0),
+                    artifact_name=name, format='bin')
+    resource = dict(logical_name='iris_custom_image.uimg_lightSampling', view='current', mip_level=0, layer=0)
+    return dict(worktree_root=str(ROOT), preset_id=preset, execution='async',
+                sources=[dict(id='frozen', kind='commit', revision=revision)],
+                configs=[dict(id='quality', values=values)], restore_state=dict(on_error=False, on_success=False),
+                actions=[dict(type='load_shader', source_id='frozen', config_id='quality'),
+                         dict(type='wait_frames', frames=warmup_frames), *identity('before'),
+                         texture(resource['logical_name'], 'single'),
+                         *[texture(f'colortex{i}', f'colortex{i}') for i in (8, 9, 10)],
+                         dict(type='dump_buffer', resource=dict(logical_name='iris_ssbo_14'), artifact_name='audit'),
+                         dict(type='accumulate_texture', resource=resource, artifact_name='quality', frames=frames,
+                              batches=batches, outputs=['mean', 'variance', 'nonfinite']), *identity('after')])
+
+
 def preserve_bracketed_profiles(job_file, destination, revision, preset, warmup_frames=128, frames=128,
                                 expected_identity=None, expected_configs=None):
     """Preserve raw evidence, then reject a drifting cohort before another batch."""

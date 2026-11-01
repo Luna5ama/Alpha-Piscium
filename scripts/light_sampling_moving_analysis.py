@@ -76,10 +76,25 @@ def camera_from_audit(folder):
                 view_inverse=view_inverse.tolist(), projection_inverse=projection_inverse.tolist())
 
 
-def world_voxel_identity(folder, grid, camera_brick):
+def world_voxel_identity(folder, grid, camera_brick, prefix='', context=None):
+    from light_sampling_cache import algorithm_identity, cached_json
+    def file_digest(path):
+        with path.open('rb') as stream:
+            return hashlib.file_digest(stream, 'sha256').hexdigest()
+    identity = dict(meta=file_digest(folder / f'{prefix}voxel-meta.bin'),
+                    materials=file_digest(folder / f'{prefix}voxel-materials.bin'),
+                    grid=grid, camera_brick=list(map(int, camera_brick)), context=context,
+                    algorithm=algorithm_identity('light_sampling_moving_analysis.py', 'light_sampling_world_layout.py',
+                                                 'light_sampling_cache.py'), numpy=np.__version__)
+    result, _ = cached_json(folder / '.analysis-cache', identity,
+                            lambda: _world_voxel_identity(folder, grid, camera_brick, prefix))
+    return result
+
+
+def _world_voxel_identity(folder, grid, camera_brick, prefix):
     """Canonical signed world blocks plus the complete packed uint material word."""
-    meta = np.fromfile(folder / 'voxel-meta.bin', '<u4')
-    material = np.memmap(folder / 'voxel-materials.bin', '<u4', mode='r')
+    meta = np.fromfile(folder / f'{prefix}voxel-meta.bin', '<u4')
+    material = np.memmap(folder / f'{prefix}voxel-materials.bin', '<u4', mode='r')
     count, slots = int(meta[0]), grid ** 3
     bricks = meta[1 + 2 * slots + 1024:1 + 2 * slots + 1024 + count]
     assert len(bricks) == count and len(np.unique(bricks)) == count
@@ -106,6 +121,24 @@ def world_voxel_identity(folder, grid, camera_brick):
                 allocated_bricks=count, nonempty_voxels=len(records),
                 world_blocks_material_sha256=digest(records[order].tobytes()),
                 bricks=sorted(brick_records, key=lambda row: row['world_brick']))
+
+
+def bracket_identity(folder, grid, camera_brick, context):
+    phases = []
+    for phase in ('before', 'after'):
+        tree = folder / f'{phase}_tree.bin'
+        header, nodes, links = load_tree(tree, 1)
+        root = native_node(nodes, links, 1)
+        leaf_list = sorted(leaves(root))
+        assert len(leaf_list) == int(header[1]) and header[2] == header[3] == 0
+        camera = np.fromfile(folder / f'{phase}_camera.bin', '<f4')
+        camera_hash = digest(np.r_[camera[16:32], camera[80:112]].tobytes())
+        voxels = world_voxel_identity(folder, grid, camera_brick, prefix=phase + '_', context=context)
+        phases.append(dict(camera_sha256=camera_hash, leaf_sha256=digest(np.asarray(leaf_list, '<f8').tobytes()),
+                           ordered_topology_sha256=ordered_signature(root),
+                           world_voxel_sha256=voxels['world_blocks_material_sha256']))
+    assert phases[0] == phases[1], f'Inputs changed inside capture: {folder}'
+    return dict(before=phases[0], after=phases[1], stable=True)
 
 
 @dataclass
@@ -156,11 +189,11 @@ def combine_world_children(children):
     return children[0] if len(children) == 1 else merged(children) if children else None
 
 
-def captured_brick_roots(folder, nodes, links, grid, camera_brick, layout, arity=4):
+def captured_brick_roots(folder, nodes, links, grid, camera_brick, layout, arity=4, prefix=''):
     if layout == 'world-prefix':
         from light_sampling_world_layout import WorldLayout
         storage = WorldLayout(grid, arity, camera_brick)
-        meta = np.fromfile(folder / 'voxel-meta.bin', '<u4')
+        meta = np.fromfile(folder / f'{prefix}voxel-meta.bin', '<u4')
         keys = meta[1 + 2 * grid ** 3 + 1024:1 + 2 * grid ** 3 + 1024 + int(meta[0])]
         origin = np.asarray(camera_brick) - grid // 2
         bricks = origin + morton_decode(keys)
@@ -316,7 +349,8 @@ def wrap_counterexample():
         while len(node.children) == 1:
             node = node.children[0]
             depth += 1
-        output.append(dict(world_slots=world, first_joint_cluster_depth=depth,
+        output.append(dict(layout='historical-periodic' if world else 'camera-relative',
+                           world_slots=world, first_joint_cluster_depth=depth,
                            cluster_extent=(node.data[4:7] - node.data[:3]).tolist()))
     return output
 
@@ -382,10 +416,16 @@ def match_receiver(query, folder, pose):
 def analyze(run):
     rows = sorted(read(run / 'cases.json'), key=lambda row: (int(row['grid']), row['preset_id'], row['method']))
     assert len({(row['grid'], row['preset_id'], row['method']) for row in rows}) == len(rows)
+    prefix_run = any(row.get('layout') == 'world-prefix' for row in rows)
     report = dict(scope='Static-pose and fixed-input diagnostics; not continuous-motion or first-frame evidence.',
-                  mathematical_checks=mathematical_checks(), wrap_counterexample=wrap_counterexample(),
-                  cases=[], pose_pairs=[], fixed_input=[], pmf_pairs=[], matched_world_receivers=[])
-    trees, roots, poses, voxel_summaries = {}, {}, {}, {}
+                  cases=[], pose_pairs=[], fixed_input=[], pmf_pairs=[], matched_world_receivers=[], brdf_input_checks=[])
+    legacy = dict(mathematical_checks=mathematical_checks(), wrap_counterexample=wrap_counterexample())
+    if prefix_run:
+        report['historical_periodic_controls'] = legacy
+        report['world_prefix_layout_validation'] = read(run / 'layout-validation.json')
+    else:
+        report.update(legacy)
+    trees, roots, poses, voxel_summaries, pmfs = {}, {}, {}, {}, {}
     (run / 'pmfs').mkdir(exist_ok=True)
     queries_by_grid, layouts = {}, {}
     for row in rows:
@@ -395,6 +435,11 @@ def analyze(run):
         folder = path.parent if path.is_file() else path
         grid = int(row['grid'])
         label = f'g{grid}/' + row['preset_id'] + '/' + row['method']
+        job = read(folder / 'job-result.json')
+        provenance = job['result']['provenance']
+        assert job['success'] and provenance['resolved_revision'] == row['revision'] and provenance['preset_id'] == row['preset_id']
+        assert not provenance['stale'] and not provenance['head_changed']
+        context = {key: provenance[key] for key in ('resolved_revision', 'config_sha256', 'source_snapshot_sha256', 'preset_sha256')}
         pose = camera_from_audit(folder)
         if grid not in queries_by_grid:
             queries_by_grid[grid] = pose['points'][::max(1, len(pose['points']) // 3)][:3]
@@ -409,7 +454,7 @@ def analyze(run):
         roots[label] = brick_roots
         replay = rebuild_grouping(brick_roots, grid, pose['camera_brick'], layout)
         assert ordered_signature(root) == ordered_signature(replay), label
-        voxel = world_voxel_identity(folder, grid, pose['camera_brick'])
+        voxel = world_voxel_identity(folder, grid, pose['camera_brick'], context=context)
         voxel_summaries[label] = voxel
         (folder / 'world-voxel-identity.json').write_text(json.dumps(voxel, indent=2) + '\n', encoding='utf-8')
         leaf_list = sorted(leaves(root))
@@ -421,11 +466,14 @@ def analyze(run):
                     ordered_topology_sha256=ordered_signature(root),
                     world_voxel_sha256=voxel['world_blocks_material_sha256'], allocated_bricks=voxel['allocated_bricks'],
                     nonempty_voxels=voxel['nonempty_voxels'], tree_audit=audit, spans_by_depth=spans(root))
+        if prefix_run:
+            item['bracketed_input'] = bracket_identity(folder, grid, pose['camera_brick'], context)
         report['cases'].append(item)
         for i, query in enumerate(queries):
             report['matched_world_receivers'].append(dict(label=label, point=i, **match_receiver(query, folder, pose)))
         for i, query in enumerate(queries):
             pmf, zero = full_pmf(root, np.asarray(query['origin']), np.asarray(query['normal']))
+            pmfs[label, i] = (pmf, zero)
             np.savez_compressed(run / 'pmfs' / (label.replace('/', '-') + f'-point{i}.npz'),
                                 leaf_keys=np.asarray(leaf_list), probabilities=np.array([pmf.get(k, 0) for k in leaf_list]),
                                 zero_result_probability=zero)
@@ -445,8 +493,10 @@ def analyze(run):
                         same_ordered_topology=ordered_signature(trees[left]) == ordered_signature(trees[right]),
                         camera_brick_delta=(np.array(poses[right]['camera_brick']) - poses[left]['camera_brick']).tolist())
             report['pose_pairs'].append(pair)
+            if prefix_run and left_preset == right_preset:
+                assert same_lamps and same_voxels, f'Cross-source input drift: {left} vs {right}'
             for i, query in enumerate(queries_by_grid[int(left_grid[1:])]):
-                comparison = compare_pmf(*(full_pmf(trees[label], np.asarray(query['origin']), np.asarray(query['normal'])) for label in (left, right)))
+                comparison = compare_pmf(*(pmfs[label, i] for label in (left, right)))
                 report['pmf_pairs'].append(dict(left=left, right=right, point=i, **comparison))
                 if same_lamps and layouts[left] == layouts[right] and layouts[left] in ('periodic', 'world-prefix'):
                     assert pair['same_ordered_topology'] and comparison['maximum_absolute_difference'] < 1e-9
@@ -456,7 +506,6 @@ def analyze(run):
         camera = np.asarray(poses[label]['camera_brick'])
         fixed = {k: n for k, n in roots[label].items() if k[1] >= camera[1] - grid // 2 + 1}
         cameras = [camera, camera + [0, 1, 0]]
-        prefix_run = any(layout == 'world-prefix' for layout in layouts.values())
         for layout in ('camera-relative', 'world-prefix' if prefix_run else 'periodic'):
             replay = [rebuild_grouping(fixed, grid, c, layout) for c in cameras]
             result = dict(source=label, evidence='Offline rebuild of a fixed subset of runtime brick subtrees; not a runtime equal-input pair.',
@@ -469,8 +518,24 @@ def analyze(run):
                 if layout in ('periodic', 'world-prefix'):
                     assert result['same_semantic_topology'] and comparison['maximum_absolute_difference'] < 1e-12
             report['fixed_input'].append(result)
+    if prefix_run:
+        for row in rows:
+            if row['method'] != 'brdf':
+                continue
+            grid = int(row['grid'])
+            reference = f"g{grid}/{row['preset_id']}/world-a"
+            folder = (run / row['path']).parent
+            job = read(folder / 'job-result.json')
+            provenance = job['result']['provenance']
+            assert job['success'] and provenance['resolved_revision'] == row['revision'] and not provenance['stale'] and not provenance['head_changed']
+            context = {key: provenance[key] for key in ('resolved_revision', 'config_sha256', 'source_snapshot_sha256', 'preset_sha256')}
+            bracket = bracket_identity(folder, grid, poses[reference]['camera_brick'], context)
+            expected = next(case['bracketed_input']['before'] for case in report['cases'] if case['label'] == reference)
+            assert all(bracket['before'][key] == expected[key] for key in ('camera_sha256', 'leaf_sha256', 'world_voxel_sha256'))
+            report['brdf_input_checks'].append(dict(grid=grid, preset=row['preset_id'], same_world_inputs=True, bracket=bracket))
     (run / 'moving-analysis.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
-    print(json.dumps(dict(cases=len(report['cases']), mathematical_cases=len(report['mathematical_checks']),
+    print(json.dumps(dict(cases=len(report['cases']),
+                          mathematical_cases=report['world_prefix_layout_validation']['cases'] if prefix_run else len(report['mathematical_checks']),
                           runtime_equal_input_pairs=sum(p['same_world_lights_and_mass'] and p['same_world_voxels'] for p in report['pose_pairs']),
                           output=str(run / 'moving-analysis.json'))))
 
