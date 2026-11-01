@@ -37,7 +37,7 @@
 保留 Half-space A、默认四叉及现有灯内采样，首先处理跨 brick 粗簇直接估权导致的概率失配；不按面朝向硬编码倍率，也不直接切换 near/far 默认。
 补 moving-4 两个侧面和一个朝上面的逐灯条件矩，是在已选路线内筛修法；复用旧 ls1 两点作为退化保护，不再把补证表述为等待选择移动修复路线。
 受限展开先作为定位／候选对照，共享 cut 的表示与成本尚未选定；若权重修正难以兼顾质量与查询成本，再重开上层表示讨论，仍保持世界稳定归属契约。
-具体证据及补测范围见[世界分组诊断与修正方向](light-sampling-world-grouping-prompt.md#当前修正方向与待补证)。本次路线选择本身不启动新的 GPU 实验。
+具体证据见[世界分组诊断与修正方向](light-sampling-world-grouping-prompt.md#当前修正方向与待补证)。用户随后已授权实验 chat 补 moving-4 三点逐灯 M2、复用旧 ls1 两点筛修法并回传讨论端复查；执行范围以[当前补测提示词](light-sampling-world-grouping-prompt.md#当前任务moving-4-逐灯-m2-与五点修法筛选2026-11-01)为准，不包含完整画面／性能矩阵或默认切换。
 
 后续灯光采样对比固定加入独立的 **Cosine BRDF**（余弦加权 BRDF-only）作为基础对照，沿用相同场景、direct-only 和采样预算；它不是 Cosine B 灯光树权重。
 显示名使用 Half-space A、Near/Far Mix、Half-space A + Near/Far Mix、Cosine BRDF 和 Original；原始采集 ID 与提交保持原样。

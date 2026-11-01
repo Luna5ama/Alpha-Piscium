@@ -2,6 +2,91 @@
 
 语言：简体中文 | [English](../../en/modules/light-sampling-world-grouping-prompt.md)
 
+## 当前任务：moving-4 逐灯 M2 与五点修法筛选（2026-11-01）
+
+### 授权、目标与工作区
+
+讨论 chat `01a18c0e-8678-7800-8ab8-04b69f072f12` 的人类用户在 turn `01a196cb-8b2c-7843-8c28-6b7a9a9036e3` 明确要求：
+
+> 那就按这个路线继续，写好提示词让实验agent补moving-4两个侧面和一个朝上面的逐灯M2，结合之前near far的两个失败点筛修法，完成后通知你复查。
+
+实验 chat `01a18648-f66e-78e0-8d01-cd906ca45429` 现在负责执行本任务；讨论 chat 负责结果独立复查。上述原始授权同时允许完成／实质阻塞回传，可用 `read_thread` 核对；不是代理消息自行授予回传权限。
+使用 `I:/code/mcshaders/Alpha-Piscium-4`（wt4）、`2.0/light-sampling`；chat 元数据中的历史 cwd 不覆盖这个路由。准备时 HEAD 为 `ed4f5d192`，工作区干净；执行前检查后续差异，不 reset 到旧提交。
+
+本轮交付三处指定接收点的真实条件 RGB 均值／M2、与旧 ls1 两点共同组成的候选筛选表、逐灯／分叉归因和后续修法建议。沿[主设计的已选路线](light-sampling-design.md#当前选择与-backlog2026-11-01)，以最新完整世界前缀 A 为研究起点，修跨 brick 粗簇估权。
+这是一轮定点补测与离线筛选，允许完成它所必需的 fixture、mode 3 诊断、采集／分析脚本和生成绑定调整。不改生产采样默认，不实现共享 cut，不重开 H-PLOC／visibility，不启动全场景质量／性能矩阵；也不把筛出的候选直接提升为默认。
+本节是当前可执行提示词；后面的完整世界分组实施任务已完成，不重新执行其 G16／G64 四景矩阵。
+
+### 三个接收点与旧参考
+
+使用 `light-sampling-failure-moving-4`、G=16、默认四叉、32B／Half-space A、现有立方体灯内采样，沿用原生 1920×1080 以复现指定像素和表面；其余有效设置从已有成功采集读取。
+定位源是[本轮方向诊断](../../../experiments/light-sampling/20261101-orientation-review.json)、[完整接收点身份](../../../builds/light-sampling/20261101-orientation-review/orientation.json)及[标注图](../../../builds/light-sampling/20261101-orientation-review/moving4-receiver-points.png)。源采集为 [moving-4/world-a-recapture](../../../builds/light-sampling/20261101-world-grouping/captures/g16/moving-4/world-a-recapture/)。
+
+| ID | 原始像素／显示像素 | 世界采样原点（已含法线偏移） | 几何法线 | material / G-buffer RGB 字节 |
+|---|---|---|---|---|
+| side-26 | (600,472) / (600,607) | (109.156212,76.138733,362.002991) | +Z | 4651 / (121,85,58) |
+| side-27 | (840,472) / (840,607) | (112.391624,76.430634,364.002991) | +Z | 4651 / (89,61,41) |
+| top-28 | (1080,472) / (1080,607) | (115.779617,76.003006,365.398621) | +Y | 4651 / (57,113,36) |
+
+必须使用实际 `ls_loadReceiver` 的原点、几何法线、材质和 albedo；不要再次添加 0.003 偏移，不把显示坐标当原始纹理坐标，不换成 shading normal。按已有诊断核对位置误差 <0.005、法线点积 >0.999，以及材质和反射率身份；不悄悄挑换表面。
+旧 ls1 参考直接复用 [3921 灯双点 fixture](../../../experiments/light-sampling/20261031-ls1-point-fixture.json)、[两份原生条件矩窗口](../../../builds/light-sampling/20261031-nearfar-iteration/candidate-runtime-evidence/ls1-point-windows/)及[复算脚本](../../../scripts/light_sampling_nearfar_reference.py)。两个原始像素为 (1400,550) 和 (120,700)，均为 -Z，分别是既有柱面／墙面失败点。
+核对其原件／fixture 身份及灯内采样、真实评价和颜色空间语义相容后复算；不要覆盖旧 [light_sampling_reference.bin](../../../shaders/textures/light_sampling_reference.bin)，它仍是旧参考分析的真实依赖。旧点保留旧场景条件矩，先在旧树上复现既有 A／near-far 结果，再以同一灯集合离线构建完整前缀树评估目标路线；条件矩本身不依赖选灯树。新旧拓扑间按世界位置／材质和核对过的 mass 映射灯，不按节点数组下标对齐；不得把两场景的逐灯数组、PMF 或 M2 混接。
+
+### 实现与采集边界
+
+复用 [LightSamplingInitial 的 mode 3](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl)、[采集及输入包围检查](../../../scripts/light_sampling_weight_capture.py)、[世界身份重建](../../../scripts/light_sampling_moving_analysis.py)和[旧条件矩参考](../../../scripts/light_sampling_nearfar_reference.py)。读取适用的 shader／scripts AGENTS；若修改 GLSL，使用 opengl-glsl 的相关约束。
+当前 mode 3 是两点、每点两个 header texel、随后灯记录的格式；[维护的纹理绑定](../../../scripts/shaders.properties)还写着旧 3925 texel。优先保持现有 shader 通路，用 (side-26, side-27) 和 (side-27, top-28) 两组覆盖三点，重复 side-27 作为跨组一致性检查。新 fixture 使用独立文件和冻结 source 绑定，保留每组的实际尺寸与源码身份，不覆盖旧 ls1 文件。若单次支持三点确实更简单，可做最小诊断适配，但不要新增产品选项、通用框架或兼容格式分支。
+fixture 只从本次稳定树的根可达灯叶生成，保存完整位置／材质／mass 身份，不能扫整个保留池把旧副本当成灯；4243 是历史灯数，不应硬编码成所有新采集的必然值。解析尺寸、灯数和每点每灯每帧样本数从实际元数据／fixture／audit 计算，不复制旧 264／3921 常数；尾部未用像素不算条件样本。
+
+先核对实际 shader pack、冻结 revision、preset、effective settings、成功 receipt、相机／接收点和完整世界灯／非发光体素身份。已有可靠双点通路可直接复用；首组结果必须确认 mode 3 receiver-valid、绑定尺寸、样本映射和条件矩身份真实有效，再接受整批。
+每组采两个不重叠的连续 32 帧窗口，每窗 8×4 帧 batches；保存 mean、variance、valid count、nonfinite、incomplete／valid batches、帧号、原始 audit、树、G-buffer、相机及前后完整世界体素快照。沿用充分预热；一组两窗及两组之间都核对语义输入。原子分配／缓冲地址变化不等于世界输入变化。
+优先复现历史 moving-4 输入。若灯或遮挡已不同但三处表面仍匹配，可自行建立新的稳定 cohort，并重算该 cohort 所有树／候选 PMF；清楚报告与历史的差异，不沿用旧 76% 或 13.44%→1.46% 数值作为新测量。输入在窗口内持续变化、目标表面不匹配或所述失配不能复现时，保留证据回传，不制造成功。
+不同组若无法取得相同语义输入，应分别计算其真实输入上的 M2／PMF，明确缺少共同 cohort，不能无说明合并为一次三点比较。可以定向重试受影响组，不扩大为新场景搜索。
+
+mode 3 中固定灯的 `lightPdf=1`，保留真实纹理、立方体条件采样、半球和 voxel visibility；RGB 输出沿用线性 sRGB，alpha 为 `dot(RGB,RGB)`。零贡献是有效样本，不能丢弃后重归一化。
+不要套用普通图像的 alpha==1 接收点掩码；此处有效性由 audit receiver-valid 和独立完整性／非有限计数判断。
+逐点逐灯报告完整／缺失／非有限样本数；各候选使用同一份有效条件矩。没有有效样本的灯不是零 M2；支持域缺口、trace exhaustion 和输入拒绝必须显式报告。
+先在每个条件样本像素的 32 帧统计上核对 `E[||Z||²] = ||E[Z]||² + 31/32 * sum(sampleVarianceRGB)`，再按接收点／灯归并；两个窗口分别推断，再报告窗间差异，不把它当严格置信区间或收敛证明。保留逐灯结果供讨论端独立复算。
+
+### 五点候选筛选
+
+每个候选保持相同灯集合／条件采样，枚举完整实际叶子概率 `q_l` 和空样本概率；不要把 `q_l` 重新归一化为“成功选到灯条件下”的分布。
+主比较在新 moving-4 的完整前缀树上进行；同输入原始相机分组 A 作为附加对照，可复用同输入原件或用已经核对过的重建方法获得，明确是 GPU 树还是离线重建。历史输入不匹配时不直接拿旧 PMF 作对照。
+旧 ls1 两点也报告同灯完整前缀树上的候选结果，并保留旧树 A／near-far 的已知失败复算；复用已有 [世界布局重建](../../../scripts/light_sampling_world_layout.py)及其 GPU 对照依据，不需要重新采集旧场景。重建未核对时标为缺口，不能把仅在旧树上的改善当作新路线已通过。
+固定以下小集合，公式沿用已审阅的 [point_diagnostics.py](../../../builds/light-sampling/20261101-orientation-review/point_diagnostics.py) 与 [nearfar_crosscheck.py](../../../builds/light-sampling/20261101-orientation-review/nearfar_crosscheck.py)；它们是研究参考，不要求原样变成产品框架：
+
+| 候选 | 用途与边界 |
+|---|---|
+| Half-space A | 每个场景自身的基准 |
+| Half-space A＋near/far（model 6） | 旧失败方法的对照，不能先验认为能修新问题 |
+| bounded-near/far | 近臂分母 `max(dmin², halfDiagonal²,0.25)`；远臂、1/2 混合及半空间不变 |
+| Cosine B（model 2） | 更紧余弦的方向反例对照 |
+| 跨 brick 一层展开 | 仅对实际 bounds 跨世界 brick 的内部候选，用下一层 A 权重和替代当前候选权重；叶子半空间判据、mass、归属不变 |
+| 跨 brick 两层展开 | 同上，最多继续两层；与已有离线定义一致 |
+
+不扫混合系数、不按朝向或这五个点硬编码修正、不把半球内 mass 等离线 oracle 当廉价生产方案。已有其它消融可引用，但本轮不扩展候选矩阵。
+对三个新点和两个旧点、各两个参考窗，计算 `sum(M2_l/q_l) - ||sum(E[Z_l])||²`，清楚标明树版本，并列出相对本场景完整前缀 A 及原始相机 A 的比例。旧树上的候选复算另列，不混作完整前缀结果；不要跨不同场景比较绝对方差大小。
+任何测到正 M2 的灯若 `q_l=0`，标记支持失败，不能删灯或省略该项后算有限方差。只统计有贡献灯的命中率不够；按 `M2_l/q_l` 排列主要惩罚灯，给出 PMF、条件矩、关键父分叉与概率变化，检查 y≤0 顶层簇的实际贡献／二阶矩份额是否支持先前几何解释。
+若使用 `sqrt(M2_l)` 聚合定位分叉失配，标明它是此有限参考下、固定条件采样的最优叶子概率诊断。区分不可约的灯内方差和树选灯失配，不能把几何代理 J 当真实 M2。
+筛选出口是有依据的短名单或“本集合没有兼顾五点的修法”。报告双窗反例、上表面保护结果、旧 ls1 两点变化及新增查询工作量；接近窗间差异的收益记为不确定。无需为完成而选赢家。
+受限展开的新增读取／计算可作静态数量说明，本轮不做 GPU 性能矩阵。定点方差改善也不等于全画面、连续移动或最终成本验收，更不能单凭 M2 决定共享 cut 的实现方式。
+
+### 产物、执行权与完成回传
+
+实验 chat 是本轮 wt4 修改和 live Minecraft 采集的单一协调者；继续沿用已有执行者／模型安排，不另开竞争操作者。讨论 chat 派发后不并行改 shader 或控制运行时。
+遵守 [AGENTS](../../../AGENTS.md) 与[文档规则](../../AGENTS.md)：PowerShell 7 无 profile，非计时编译／离线长任务低优先级，最新可用 GraalVM；global Gradle 目录故障立即报告，不改用临时 HOME。生成绑定从维护源生成，按实际诊断修改做必要 Target Iris 编译和运行验证。
+Minecraft／launcher 不重启；先用安全的非重启恢复，仍不可用则回传 blocker。Vibris 采集使用 durable job/wait，不为汇报额外 poll。收尾确认无存活采集任务，退出 mode 3 并报告实际保留的 pack／revision／preset／配置及未保存改动。
+新原件与完整日志放独立 ignored 目录，例如 `builds/light-sampling/20261101-moving4-point-m2/`，不得覆盖历史批次。保存原生数据及必要身份、manifest、派生逐灯数组和可复算脚本；本地副本／哈希核对后才按对应 manifest 清理远端文件。
+跟踪一个简洁实验索引、必要 fixture／工具修改和双语结果摘要，链接回本任务；不把大原件或逐文件哈希清单塞进文档。提交前核对双语／链接、`git diff --check` 和 `git diff --cached --check`。本轮不操作 `2.0/dev`、不 force push。
+
+完成采集及五点筛选、自检、提交后，调用 `send_message_to_thread`，host=`local`、目标=`01a18c0e-8678-7800-8ab8-04b69f072f12`，明确写：
+
+> 请现在复查 moving-4 三点逐灯 M2 与旧 near/far 两点的联合修法筛选。
+
+附实现／诊断提交、任务与结果索引的绝对路径、原件和逐灯数组入口、实际输入一致性、双窗候选表、主要反例／支持失败／非有限及未验范围、运行时最终状态。实质 blocker 也回传，不伪称完成。最后由讨论 chat 形成独立复查结论；不以本提示词预设通过，也不只交计划／静态检查后结束。
+
+以下保留已完成的世界前缀实施任务和历史诊断，供定位来源与限制。
+
 ## 授权、状态与起点（2026-11-01）
 
 用户在讨论 chat `01a18c0e-8678-7800-8ab8-04b69f072f12` 的 turn `01a1961b-a945-7762-9500-333b877eeb35` 明确要求：
@@ -289,4 +374,4 @@ moving-4 审计点 27 位于草块 +Z 侧面：原始像素 (840,472)，显示�
 受限展开是已做的离线定位对照。M2 可检验概率分配是否改善，不能单独决定逐点展开与共享上层 cut 的成本取舍；后者还需要评估共享近似、额外读取和 GPU 时间。
 共享不能让相机槽号重新决定分组／支持域。
 展开每个内部候选会增加后代节点读取与权重计算；两层在四叉树上最多涉及 16 个后代位置，本轮没有测它的 GPU 成本，也未决定重新启用逐样本前瞻。
-更紧的余弦、near/far 或额外空间摘要均不能仅凭本轮方向现象直接定案。下一批 GPU 实验尚未启动；本轮只提交记录和离线结果索引，shader 与已保留候选不变。
+更紧的余弦、near/far 或额外空间摘要均不能仅凭本轮方向现象直接定案。上述诊断提交时只包含记录和离线结果，shader 未改；用户随后授权的逐灯补测按页首当前任务执行。

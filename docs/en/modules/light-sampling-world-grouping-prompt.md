@@ -2,6 +2,91 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-world-grouping-prompt.md)
 
+## Current task: moving-4 per-light M2 and five-point repair screening (2026-11-01)
+
+### Authorization, objective and workspace
+
+The human user in discussion chat `01a18c0e-8678-7800-8ab8-04b69f072f12`, turn `01a196cb-8b2c-7843-8c28-6b7a9a9036e3`, explicitly requested:
+
+> Continue along this route. Prepare the prompt and have the experiment agent collect per-light M2 for moving-4's two sides and one upward surface, screen repairs together with the two earlier near/far failures, and notify you for review when finished.
+
+Experiment chat `01a18648-f66e-78e0-8d01-cd906ca45429` now executes this task; the discussion chat performs independent review. The original human request also authorizes completion/substantive-blocker callbacks, verifiable with `read_thread`; callback authority does not come merely from an agent message.
+Use `I:/code/mcshaders/Alpha-Piscium-4` (wt4), branch `2.0/light-sampling`. Historical cwd metadata does not override this routing. At preparation, HEAD is `ed4f5d192` and the checkout is clean; inspect subsequent changes before execution rather than resetting to an older commit.
+
+Deliver actual conditional RGB means/M2 for the three specified receivers, a candidate table covering them and the two old ls1 points, per-light/branch attribution, and a repair recommendation. Follow the [selected main-design route](light-sampling-design.md#current-selection-and-backlog-2026-11-01): start from the latest full-world-prefix A and correct coarse cross-brick importance.
+This is a fixed-point capture and offline screening task. Necessary fixture, mode-3 diagnostic, capture/analysis tooling and generated-binding changes are authorized. Do not change production sampling defaults, implement shared cuts, reopen H-PLOC/visibility, launch a whole-scene quality/performance matrix, or promote a screened candidate directly to default.
+This section is the current executable prompt. The full-world-grouping implementation task below is complete; do not rerun its G16/G64 four-scene matrix.
+
+### Three receivers and the previous reference
+
+Use `light-sampling-failure-moving-4`, G=16, default four-way branching, 32B/Half-space A and existing cube conditional sampling. Retain native 1920×1080 to reproduce the specified pixels/surfaces, and obtain other effective settings from the successful saved capture.
+Locations come from the [orientation diagnosis](../../../experiments/light-sampling/20261101-orientation-review.json), [complete receiver identities](../../../builds/light-sampling/20261101-orientation-review/orientation.json), and [annotated image](../../../builds/light-sampling/20261101-orientation-review/moving4-receiver-points.png). The source capture is [moving-4/world-a-recapture](../../../builds/light-sampling/20261101-world-grouping/captures/g16/moving-4/world-a-recapture/).
+
+| ID | Raw/display pixel | World sampling origin, already offset | Geometric normal | Material / G-buffer RGB bytes |
+|---|---|---|---|---|
+| side-26 | (600,472) / (600,607) | (109.156212,76.138733,362.002991) | +Z | 4651 / (121,85,58) |
+| side-27 | (840,472) / (840,607) | (112.391624,76.430634,364.002991) | +Z | 4651 / (89,61,41) |
+| top-28 | (1080,472) / (1080,607) | (115.779617,76.003006,365.398621) | +Y | 4651 / (57,113,36) |
+
+Use actual `ls_loadReceiver` origins, geometric normals, material and albedo. Do not add another 0.003 offset, treat display coordinates as raw texture coordinates, or substitute shading normals. Follow the existing diagnostic checks: position error <0.005, normal dot product >0.999, and matching material/reflectance identity. Do not silently substitute surfaces.
+Reuse the old ls1 [3921-light/two-point fixture](../../../experiments/light-sampling/20261031-ls1-point-fixture.json), [two native conditional-moment windows](../../../builds/light-sampling/20261031-nearfar-iteration/candidate-runtime-evidence/ls1-point-windows/), and [recomputation script](../../../scripts/light_sampling_nearfar_reference.py). Its raw pixels are (1400,550) and (120,700), both -Z, corresponding to the established pillar/wall failures.
+Verify originals/fixture identity and compatible conditional sampling, actual evaluation and color-space semantics before recomputing. Do not overwrite [light_sampling_reference.bin](../../../shaders/textures/light_sampling_reference.bin), which remains an actual dependency of the old analysis. Retain the old points' scene-specific conditional moments, first reproduce established A/near-far results on the old tree, then build a full-prefix tree offline from the same lights to evaluate the selected route. Conditional moments themselves do not depend on the selection tree. Map lights between topologies by world position/material and verified mass, not node-array indices. Never combine per-light arrays, PMFs or M2 from different scenes.
+
+### Implementation and capture boundaries
+
+Reuse [LightSamplingInitial mode 3](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl), [capture and bracketed input checks](../../../scripts/light_sampling_weight_capture.py), [world-identity reconstruction](../../../scripts/light_sampling_moving_analysis.py), and the [old conditional-moment reference](../../../scripts/light_sampling_nearfar_reference.py). Read applicable shader/scripts AGENTS; apply relevant opengl-glsl guidance if editing GLSL.
+Mode 3 currently supports two points, two header texels per point followed by light records; the [maintained texture binding](../../../scripts/shaders.properties) still specifies 3925 texels. Prefer reusing this shader path with pairs (side-26, side-27) and (side-27, top-28), repeating side-27 to check consistency between groups. Use independent new fixture files and frozen source bindings, preserving each group's actual dimensions/source identity and the old ls1 file. A minimal three-point diagnostic adaptation is allowed if simpler, without new product settings, generic frameworks or compatibility-format branches.
+Build fixtures only from root-reachable leaves of the current stable tree, preserving complete position/material/mass identity. Do not scan retained storage and count stale copies as lights. The historical count 4243 must not become a hardcoded invariant for new captures. Derive dimensions, light count and conditional samples per point/light/frame from actual metadata/fixture/audit instead of copying old constants 264/3921; unused tail pixels are not conditional samples.
+
+First verify the actual shader pack, frozen revision, preset, effective settings, successful receipts, camera/receiver and complete world emitter/nonemissive-voxel identities. Reuse the established two-point path directly, but accept the batch only after a real first-group result confirms mode-3 receiver validity, binding dimensions, sample mapping and moment identity.
+For each group collect two disjoint, consecutive 32-frame windows, each in 8×4-frame batches. Preserve mean, variance, valid count, nonfinite, incomplete/valid batches, frame numbers, raw audit, tree, G-buffer, camera and before/after complete world voxel snapshots. Retain sufficient warmup and check semantic inputs across both windows and both groups. Atomic allocation/buffer-address changes are not themselves world-input changes.
+Prefer reproducing the historical moving-4 input. If lights/occluders differ but the three surfaces still match, establish a fresh stable cohort and recompute all of its trees/candidate PMFs. Report historical differences explicitly; do not reuse the old 76% or 13.44%→1.46% as new measurements. Preserve evidence and report back if input keeps changing within windows, a target surface fails to match, or the stated mismatch cannot be reproduced.
+If the two groups cannot share semantic inputs, compute each group's M2/PMFs against its actual input and state that a common cohort is missing. Do not silently combine them into one three-point comparison. Targeted retries of the affected group are allowed, without expanding into a search for new scenes.
+
+Mode 3 fixes `lightPdf=1` for each light while retaining actual texture, cube conditional sampling, hemisphere and voxel visibility. Keep linear-sRGB RGB output and alpha=`dot(RGB,RGB)`. Zero-contribution outcomes are valid samples, not candidates for filtering and renormalization.
+Do not apply the ordinary image's alpha==1 receiver mask. Validity here comes from audit receiver-valid and separate completeness/nonfinite counters.
+Report complete/missing/nonfinite sample counts per receiver/light and use the same valid conditional moments for every candidate. A light with no valid samples does not have zero M2; report support failures, trace exhaustion and input rejection explicitly.
+First verify `E[||Z||²] = ||E[Z]||² + 31/32 * sum(sampleVarianceRGB)` on each conditional-sample pixel's 32-frame statistics, then aggregate by receiver/light. Infer each window separately and report their difference without calling it a rigorous confidence interval or convergence proof. Preserve per-light data for independent discussion-side recomputation.
+
+### Five-point candidate screening
+
+Keep the light set/conditional sampler fixed for each candidate and enumerate complete actual leaf probabilities `q_l` plus null probability. Do not renormalize `q_l` conditional on successful light selection.
+Primary comparisons use the full-prefix tree for the new moving-4 input. Include original camera grouping A under identical input as an additional control, using matching saved originals or an already-checked reconstruction method, and label GPU trees versus offline reconstructions. Historical mismatched-input PMFs are not valid controls.
+For the two old ls1 points, also report candidates on a same-light full-prefix tree while retaining the known old-tree A/near-far failure reproduction. Reuse [world-layout reconstruction](../../../scripts/light_sampling_world_layout.py) and its GPU comparison evidence; no old-scene recapture is required. Unverified reconstruction is a gap, and improvement only on the old tree does not establish success on the new route.
+Use this fixed small set, with formulas from the reviewed [point_diagnostics.py](../../../builds/light-sampling/20261101-orientation-review/point_diagnostics.py) and [nearfar_crosscheck.py](../../../builds/light-sampling/20261101-orientation-review/nearfar_crosscheck.py). These are research references, not a requirement to turn them into a product framework:
+
+| Candidate | Purpose and boundary |
+|---|---|
+| Half-space A | Baseline within each scene |
+| Half-space A + near/far, model 6 | Historical failure control, not a presumed fix for the new problem |
+| bounded-near/far | Near denominator `max(dmin²,halfDiagonal²,0.25)`; unchanged far arm, half mixture and half-space |
+| Cosine B, model 2 | Directional counterexample for a tighter cosine estimate |
+| One-level cross-brick expansion | Only for internal candidates whose actual bounds span world bricks, replace their weight with the sum of next-level A weights; unchanged leaf half-space criterion, mass and membership |
+| Two-level cross-brick expansion | Continue up to two levels under the same rule and existing offline definition |
+
+Do not scan mixture coefficients, hardcode corrections by orientation/these five points, or present offline oracles such as exact hemisphere-compatible mass as cheap production methods. Existing other ablations may be cited, but do not expand this candidate matrix.
+For the three new points and two old points, each with two reference windows, compute `sum(M2_l/q_l) - ||sum(E[Z_l])||²`, clearly label tree versions, and report ratios to each scene's full-prefix A and original camera A. List old-tree candidate recomputations separately rather than labeling them full-prefix results. Do not compare absolute variances across different scenes.
+Any light with measured positive M2 and `q_l=0` is a support failure, not a term to discard before calculating finite variance. Positive-contribution hit rate alone is insufficient. Rank major penalties by `M2_l/q_l`, report PMFs, conditional moments, relevant parent splits and probability changes, and check whether the actual contribution/second-moment share of the y≤0 root cluster supports the earlier geometric explanation.
+If aggregating `sqrt(M2_l)` to localize branch mismatch, identify it as the finite-reference optimal leaf-probability diagnostic for this fixed conditional sampler. Separate irreducible conditional variance from light-selection mismatch; geometric proxy J is not actual M2.
+The outcome is an evidence-backed shortlist or a finding that no candidate accommodates all five points. Report both-window counterexamples, upward-surface protection, changes on the old ls1 points, and added query work; gains comparable to between-window differences remain uncertain. No winner is required for completion.
+Static counts may describe expansion's added reads/computation; do not run a GPU performance matrix in this task. Better fixed-point variance does not establish full-image, continuous-motion or final-cost acceptance, nor can M2 alone choose a shared-cut implementation.
+
+### Artifacts, execution ownership and callback
+
+The experiment chat is the sole coordinator for wt4 edits and live Minecraft capture during this task. Retain existing executor/model arrangements rather than opening competing operators. After dispatch, the discussion chat does not concurrently edit shaders or control the runtime.
+Follow [AGENTS](../../../AGENTS.md) and [documentation rules](../../AGENTS.md): PowerShell 7 without profile, lowest priority for compilation/offline long tasks that are not timed benchmarks, and latest available GraalVM. Report global Gradle-directory failures without substituting a temporary home. Regenerate bindings from maintained sources and perform necessary Target Iris compilation/runtime checks for actual diagnostic changes.
+Do not restart Minecraft/the launcher. Exhaust safe non-restart recovery, then report a blocker if unusable. Use Vibris durable jobs/waits without extra polling just for status reports. Before returning control, verify no capture job remains active, leave mode 3, and report the actual retained pack/revision/preset/configuration and unsaved changes.
+Put new originals/full logs in an independent ignored directory, for example `builds/light-sampling/20261101-moving4-point-m2/`, without overwriting historical batches. Preserve native data, required identities, manifests, derived per-light arrays and reproducible analysis scripts. Delete remote artifacts only by their matching manifest after local copies/hashes are verified.
+Track a compact experiment index, necessary fixture/tool changes and bilingual result summary linked to this task. Do not place large originals or per-file hash inventories in documentation. Check language parity/links, `git diff --check` and `git diff --cached --check` before committing. Do not modify `2.0/dev` or force-push.
+
+After completing capture, five-point screening, self-checks and commits, call `send_message_to_thread`, host=`local`, target=`01a18c0e-8678-7800-8ab8-04b69f072f12`, explicitly requesting:
+
+> Please now review the moving-4 three-point per-light M2 and joint repair screening with the two old near/far points.
+
+Include implementation/diagnostic commits, absolute task/result-index paths, originals/per-light arrays, actual input consistency, the two-window candidate table, major counterexamples/support failures/nonfinite events/unverified scope, and final runtime state. Report substantive blockers too, without claiming completion. The discussion chat makes the independent review decision; do not presume acceptance or stop after a plan/static checks alone.
+
+The completed full-world-prefix implementation task and historical diagnosis follow for provenance and limitations.
+
 ## Authorization, status and starting point (2026-11-01)
 
 In discussion chat `01a18c0e-8678-7800-8ab8-04b69f072f12`, turn `01a1961b-a945-7762-9500-333b877eeb35`, the user explicitly requested:
@@ -289,4 +374,4 @@ Combining these conditional moments with candidate selection probabilities tests
 Bounded expansion is the completed offline diagnostic. M2 can test whether probability allocation improves, but cannot by itself choose the cost tradeoff between per-point expansion and a shared upper cut; sharing approximation, additional reads and GPU time also need assessment.
 Sharing must not let camera storage slots determine grouping/support again.
 Expanding each internal candidate adds descendant reads and weight evaluation; two levels in a four-way tree can involve up to 16 descendant slots. This round measures no GPU cost and does not decide to re-enable per-sample lookahead.
-Tighter cosine estimates, near/far and additional spatial summaries cannot be selected from the directional symptom alone. No new GPU batch has started. This round commits records and an offline-result index only; shaders and the preserved candidate remain unchanged.
+Tighter cosine estimates, near/far and additional spatial summaries cannot be selected from the directional symptom alone. The diagnosis above originally committed records/offline results without shader changes. The subsequently authorized per-light capture follows the current task at the top of this page.
