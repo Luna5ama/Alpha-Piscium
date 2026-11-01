@@ -146,6 +146,13 @@ def tree_variants(folder, fixture, layout, grid=16):
     bricks = captured_brick_roots(folder, nodes, links, grid, camera['camera_brick'], layout, 4)
     replay = rebuild_grouping(bricks, grid, camera['camera_brick'], layout, 4)
     assert ordered_signature(native) == ordered_signature(replay)
+    pending = [(native, replay)]
+    while pending:
+        actual, rebuilt = pending.pop()
+        assert actual.material == rebuilt.material and len(actual.children) == len(rebuilt.children)
+        np.testing.assert_array_equal(actual.data[[0, 1, 2, 4, 5, 6]], rebuilt.data[[0, 1, 2, 4, 5, 6]])
+        assert np.isclose(actual.data[3], rebuilt.data[3], rtol=2e-6, atol=1e-12)
+        pending.extend(zip(actual.children, rebuilt.children))
     prefix = rebuild_grouping(bricks, grid, camera['camera_brick'], 'world-prefix', 4)
     relative = rebuild_grouping(bricks, grid, camera['camera_brick'], 'camera-relative', 4)
     result = {'world-prefix': Tree(prefix), 'camera-relative': Tree(relative)}

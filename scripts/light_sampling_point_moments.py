@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from light_sampling_moving_analysis import leaves, native_node, ordered_signature, world_voxel_identity
+from light_sampling_moving_analysis import leaves, native_node, ordered_signature, world_voxel_identity, morton_decode, morton_encode
 from light_sampling_weight_reference import load_tree
 from light_sampling_weight_capture import bracketed_quality_request
 
@@ -149,6 +149,41 @@ def receiver_camera(folder, fixture):
     assert np.min(np.abs(position - np.rint(position))) > max(float(spread.max()), 2e-5)
     return dict(position=position.tolist(), camera_brick=(np.floor(position).astype(np.int64) >> 4).tolist(),
                 max_axis_spread=spread.tolist(), method='Two validated mode3 origins and same-frame primary depth')
+
+
+def nonemissive_identity(folder, camera_brick, grid=16):
+    """Canonical world bricks after removing exactly the root-reachable emissive voxels."""
+    header, nodes, links = load_tree(folder / 'tree.bin', 1)
+    light_list = leaves(native_node(nodes, links, 1))
+    assert len(light_list) == int(header[1]) and header[2] == 0
+    by_brick = {}
+    for light in light_list:
+        position = np.asarray(light[:3], dtype=np.int64)
+        by_brick.setdefault(tuple(position >> 4), []).append((int(morton_encode(position & 15)), int(light[3])))
+    meta = np.fromfile(folder / 'voxel-meta.bin', '<u4')
+    count, slots = int(meta[0]), grid ** 3
+    allocated = meta[1 + 2 * slots + 1024:1 + 2 * slots + 1024 + count]
+    material = np.memmap(folder / 'voxel-materials.bin', '<u4', mode='r')
+    origin = np.asarray(camera_brick) - grid // 2
+    rows, removed = [], 0
+    for allocation, key in enumerate(allocated):
+        brick = tuple(origin + morton_decode(key))
+        values = np.array(material[allocation * 4096:(allocation + 1) * 4096])
+        for local, material_id in by_brick.get(brick, []):
+            assert int(values[local]) >> 1 == material_id
+            values[local] = 0
+            removed += 1
+        nonempty = int(np.count_nonzero(values))
+        if nonempty:
+            rows.append((brick, values, nonempty))
+    assert removed == len(light_list)
+    digest = hashlib.sha256()
+    for brick, values, _ in sorted(rows, key=lambda row: row[0]):
+        digest.update(np.asarray(brick, '<i8').tobytes())
+        digest.update(values.astype('<u4', copy=False).tobytes())
+    return dict(sha256=digest.hexdigest(), removed_emitters=removed,
+                nonempty_remaining_voxels=sum(row[2] for row in rows), nonempty_remaining_bricks=len(rows),
+                definition='Sorted signed world-brick xyz int64 plus all4096 packed uint32 material words; root-reachable emitter words zeroed, empty bricks omitted.')
 
 
 def extract(folder, fixture, output, prefix='window'):
