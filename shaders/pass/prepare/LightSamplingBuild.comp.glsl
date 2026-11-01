@@ -120,7 +120,11 @@ void main() {
         memoryBarrierBuffer();
         barrier();
     }
-    if (lane == 0u) ls_nodes[uint(VOXEL_GRID_BRICKS) + brickMorton] = ls_nodes[base + 1u];
+    if (lane == 0u) {
+        // Keep outer grouping fixed in world space as the voxel window moves.
+        uint lightBrickMorton = morton3D_30bEncode(uvec3(brickOrigin >> 4) & uvec3(VOXEL_GRID_SIZE - 1));
+        ls_nodes[uint(VOXEL_GRID_BRICKS) + lightBrickMorton] = ls_nodes[base + 1u];
+    }
     #else
     #if LS_REDUCE_LEVEL % LS_TREE_BITS == 0 || (VOXEL_GRID_BRICKS >> LS_REDUCE_LEVEL) == 1
     // A 32^3 grid has 15 Morton bits: its quaternary root has two children.
