@@ -114,6 +114,9 @@ void main() {
             uint faceIdx = voxel_faceIndexFromNormal(worldNormal);
             uint index = voxel_faceTexcoordIndex(materialID, faceIdx);
             uint keyIndex = index + VOXEL_FACE_TEXCOORD_COUNT;
+            #ifdef SHADOW_PASS_ALPHA_TEST
+            atomicMax(voxel_faceTexcoords[keyIndex].y, floatBitsToUint(alphaTestRef));
+            #endif
 
             if (((allocID & 31u) == (uint(frameCounter) & 31u)) || voxel_faceTexcoords[keyIndex].x == 0u) {
                 // Store atlas texcoord range for this material+face.

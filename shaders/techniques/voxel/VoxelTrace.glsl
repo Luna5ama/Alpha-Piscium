@@ -39,7 +39,7 @@
 
 #include "/techniques/voxel/VoxelRayState.glsl"
 #include "/techniques/voxel/VoxelHit.glsl"
-#include "/techniques/voxel/BlockModels.glsl"
+#include "/techniques/voxel/VoxelAlphaTest.glsl"
 #include "/techniques/voxel/VoxelTraversal.glsl"
 
 // ---------------------------------------------------------------------------
@@ -170,49 +170,55 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 bool isFullCube = bool(materialData & 1u);
 
                 if (isFullCube) {
-                    VoxelHit result;
-                    result.hit = true;
-                    result.hitPos = fma(worldRayDir, vec3(lastT), worldRayOrigin);
-                    result.materialID = material;
-
-                    vec3 normalDir = -vec3(stepDir);
-                    result.normal = normalDir * vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2)));
-                    ray.level = 0;
-
-                    #if VOXEL_TRACE_DEBUG_COUNTERS
-                    result.debugCounters = debugCounters;
-                    #endif
-                    return result;
-                }
-
-                #ifndef VOXEL_TRACE_TRUST_MATERIAL_ID
-                bool isKnown = material < textureSize(usam_pbrLUT0, 0).x &&
-                    material < textureSize(usam_pbrLUT1, 0).x &&
-                    material < textureSize(usam_pbrLUT2, 0).y;
-                uint lookupMaterial = isKnown ? material : 0u;
-                #else
-                uint lookupMaterial = material;
-                #endif
-
-                uint blockModelMetadata = texelFetch(
-                    usam_pbrLUT2, ivec2(int(rayFaceMask), int(lookupMaterial)), 0
-                ).x;
-                if (blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
-                    vec3 blockLocalRayOrigin = worldRayOrigin - gridOriginF - vec3(blockPos);
-                    float modelT;
-                    vec3 modelNormal;
-                    if (voxel_intersectBlockModel(
-                            blockModelMetadata, blockLocalRayOrigin, worldRayDir, modelT, modelNormal)) {
+                    float cubeT = lastT;
+                    vec3 cubeNormal = -vec3(stepDir) * vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2)));
+                    if (voxel_alphaTestThreshold(material, voxel_faceIndexFromNormal(cubeNormal)) == 0.0 ||
+                        voxel_intersectAlphaTestedCube(material, posGrid - vec3(blockPos),
+                            worldRayDir, invDir, uintBitsToFloat(0x7F800000u), cubeT, cubeNormal)) {
                         VoxelHit result;
                         result.hit = true;
-                        result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);
+                        result.hitPos = fma(worldRayDir, vec3(cubeT), worldRayOrigin);
                         result.materialID = material;
-                        result.normal = modelNormal;
+                        result.normal = cubeNormal;
                         ray.level = 0;
                         #if VOXEL_TRACE_DEBUG_COUNTERS
                         result.debugCounters = debugCounters;
                         #endif
                         return result;
+                    }
+                } else {
+                    #ifndef VOXEL_TRACE_TRUST_MATERIAL_ID
+                    bool isKnown = material < textureSize(usam_pbrLUT0, 0).x &&
+                        material < textureSize(usam_pbrLUT1, 0).x &&
+                        material < textureSize(usam_pbrLUT2, 0).y;
+                    uint lookupMaterial = isKnown ? material : 0u;
+                    #else
+                    uint lookupMaterial = material;
+                    #endif
+
+                    uint blockModelMetadata = texelFetch(
+                        usam_pbrLUT2, ivec2(int(rayFaceMask), int(lookupMaterial)), 0
+                    ).x;
+                    if (blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
+                        vec3 blockLocalRayOrigin = posGrid - vec3(blockPos);
+                        vec3 blockExitT = fma(vec3(blockPos + (boundOffsetMask & 1)), invDir, tOrig);
+                        float modelMaxT = min(min(blockExitT.x, blockExitT.y), blockExitT.z);
+                        float modelT;
+                        vec3 modelNormal;
+                        if (voxel_intersectAlphaTestedBlockModel(
+                                blockModelMetadata, material, blockLocalRayOrigin,
+                                worldRayDir, invDir, lastT, modelMaxT, false, modelT, modelNormal)) {
+                            VoxelHit result;
+                            result.hit = true;
+                            result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);
+                            result.materialID = material;
+                            result.normal = modelNormal;
+                            ray.level = 0;
+                            #if VOXEL_TRACE_DEBUG_COUNTERS
+                            result.debugCounters = debugCounters;
+                            #endif
+                            return result;
+                        }
                     }
                 }
 
