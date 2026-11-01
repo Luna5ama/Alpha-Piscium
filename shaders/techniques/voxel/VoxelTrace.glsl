@@ -201,13 +201,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                     ).x;
                     if (blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
                         vec3 blockLocalRayOrigin = posGrid - vec3(blockPos);
-                        vec3 blockExitT = fma(vec3(blockPos + (boundOffsetMask & 1)), invDir, tOrig);
-                        float modelMaxT = min(min(blockExitT.x, blockExitT.y), blockExitT.z);
                         float modelT;
                         vec3 modelNormal;
                         if (voxel_intersectAlphaTestedBlockModel(
                                 blockModelMetadata, material, blockLocalRayOrigin,
-                                worldRayDir, invDir, lastT, modelMaxT, false, modelT, modelNormal)) {
+                                worldRayDir, invDir, uintBitsToFloat(0x7F800000u), false, modelT, modelNormal)) {
                             VoxelHit result;
                             result.hit = true;
                             result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);

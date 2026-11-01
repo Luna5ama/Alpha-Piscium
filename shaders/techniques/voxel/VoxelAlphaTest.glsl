@@ -55,10 +55,20 @@ bool voxel_intersectAlphaTestedCube(
     return false;
 }
 
+void voxel_blockModelInterval(vec3 rayOrigin, vec3 inverseRayDir, out float minT, inout float maxT) {
+    // Use the same local plane subtraction as the quad intersection; grid-space DDA distances round differently.
+    vec3 t0 = -rayOrigin * inverseRayDir;
+    vec3 t1 = (vec3(1.0) - rayOrigin) * inverseRayDir;
+    vec3 nearT = min(t0, t1);
+    vec3 farT = max(t0, t1);
+    minT = max(0.0, max(max(nearT.x, nearT.y), nearT.z));
+    maxT = min(maxT, min(min(farT.x, farT.y), farT.z));
+}
+
 #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
 bool voxel_intersectAlphaTestedBlockModel(
     uint modelData, uint material, vec3 rayOrigin, vec3 rayDir,
-    vec3 inverseRayDir, float minT, float maxT, bool anyHit, out float hitT, out vec3 hitNormal
+    vec3 inverseRayDir, float maxT, bool anyHit, out float hitT, out vec3 hitNormal
 ) {
     vec3 blockRayOrigin = rayOrigin;
     vec3 blockRayDir = rayDir;
@@ -69,10 +79,10 @@ bool voxel_intersectAlphaTestedBlockModel(
     _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
     rayOrigin += vec3(0.5);
     bool axisAligned = (modelData & 0x80000000u) != 0u;
-    if (axisAligned) {
-        vec3 unusedOrigin = vec3(0.0);
-        _voxel_rotateBlockModelRay(rotation, unusedOrigin, inverseRayDir);
-    }
+    vec3 unusedOrigin = vec3(0.0);
+    _voxel_rotateBlockModelRay(rotation, unusedOrigin, inverseRayDir);
+    float minT;
+    voxel_blockModelInterval(rayOrigin, inverseRayDir, minT, maxT);
     float previousT = minT;
     int previousQuad = int(quadCount);
     bool rejected = false;
@@ -124,7 +134,7 @@ bool voxel_intersectAlphaTestedBlockModel(
 #else
 bool voxel_intersectAlphaTestedBlockModel(
     uint modelData, uint material, vec3 rayOrigin, vec3 rayDir,
-    vec3 inverseRayDir, float minT, float maxT, bool anyHit, out float hitT, out vec3 hitNormal
+    vec3 inverseRayDir, float maxT, bool anyHit, out float hitT, out vec3 hitNormal
 ) {
     vec3 blockRayOrigin = rayOrigin;
     vec3 blockRayDir = rayDir;
@@ -134,11 +144,13 @@ bool voxel_intersectAlphaTestedBlockModel(
     rayOrigin -= vec3(0.5);
     _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
     rayOrigin += vec3(0.5);
+    vec3 unusedOrigin = vec3(0.0);
+    _voxel_rotateBlockModelRay(rotation, unusedOrigin, inverseRayDir);
+    float minT;
+    voxel_blockModelInterval(rayOrigin, inverseRayDir, minT, maxT);
     hitT = maxT;
     bool hit = false;
     if ((modelData & 0x80000000u) != 0u) {
-        vec3 unusedOrigin = vec3(0.0);
-        _voxel_rotateBlockModelRay(rotation, unusedOrigin, inverseRayDir);
         while (quadCount != 0u) {
             float candidateT = hitT;
             int axis = -1;

@@ -25,7 +25,6 @@ bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, float maxT, int maxS
     ivec3 blockPos = ivec3(floor(startPos));
     uint fullMorton = _voxel_packBlockPos(blockPos);
     int level = 1;
-    float lastT = EPS;
     ivec3 directionSign = floatBitsToInt(worldRayDir) >> 31;
     ivec3 boundOffsetMask = ~directionSign;
     uint rayFaceMask = uint(42 + directionSign.x + (directionSign.y << 2) + (directionSign.z << 4));
@@ -50,12 +49,10 @@ bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, float maxT, int maxS
                 if (voxel_intersectAlphaTestedCube(material, posGrid - vec3(blockPos),
                         worldRayDir, inverseRayDir, maxT, hitT, hitNormal)) return false;
             } else {
-                vec3 blockExitT = fma(vec3(blockPos + (boundOffsetMask & 1)), inverseRayDir, tOrig);
-                float modelMaxT = min(maxT, min(min(blockExitT.x, blockExitT.y), blockExitT.z));
                 uint modelData = texelFetch(usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0).x;
                 if (modelData != 0u && material != MATERIAL_ID_WATER &&
                     voxel_intersectAlphaTestedBlockModel(modelData, material,
-                        posGrid - vec3(blockPos), worldRayDir, inverseRayDir, lastT, modelMaxT, true, hitT, hitNormal)) {
+                        posGrid - vec3(blockPos), worldRayDir, inverseRayDir, maxT, true, hitT, hitNormal)) {
                     return false;
                 }
             }
@@ -69,7 +66,6 @@ bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, float maxT, int maxS
         vec3 tExit = fma(vec3(target), inverseRayDir, tOrig);
         float nextT = min(min(tExit.x, tExit.y), tExit.z);
         if (nextT >= maxT) return true;
-        lastT = nextT;
 
         ivec3 cellMax = cellMin + sizeMask.y - 1;
         ivec3 tracedBlockPos = clamp(ivec3(floor(fma(worldRayDir, vec3(nextT), posGrid))), cellMin, cellMax);
