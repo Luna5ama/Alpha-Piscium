@@ -1,0 +1,5502 @@
+{
+  "schema": 1,
+  "status": "implementation_and_targeted_experiment_complete_pending_independent_review",
+  "quality_accepted": false,
+  "recommendation": "Do not unconditionally accept periodic grouping: moving-1, moving-2 and moving-4 have higher variance; moving-3 improves. Preserve candidate for independent review.",
+  "source_commits": {
+    "baseline": "6d69b145ec7a1e70ed719886549242e4fd93542f",
+    "plan": "e683e976410359967b7df878a79420a19424f8de",
+    "candidate": "0d1629aedcdbd3c6d11328cad85a903bbd84706e"
+  },
+  "viewer": "builds/light-sampling/20261031-moving-stability/comparison.html",
+  "protocol": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "quality_and_timing_grid": 16,
+    "preset_unmodified_shader_default_grid": 64,
+    "grid64_quality_tested": false,
+    "arity": 4,
+    "node_bytes": 32,
+    "weight_model": 1,
+    "samples": [
+      "1 spp",
+      "32 consecutive-frame mean"
+    ],
+    "warmup": 256,
+    "mean_batches": 8,
+    "diffuse_direct_initial_only": true,
+    "rc": false,
+    "reuse": false,
+    "restir": false,
+    "denoising": false,
+    "taa": false,
+    "visibility_guidance": false,
+    "lookahead": false
+  },
+  "jobs": {
+    "quality_initial": 12,
+    "old_repeat": 3,
+    "quality_total": 15,
+    "accepted_cases": 12,
+    "excluded_initial_old": [
+      1,
+      2,
+      3
+    ],
+    "benchmark_abba": 4,
+    "compile_configurations": 4
+  },
+  "accepted_captures": [
+    {
+      "preset_id": "light-sampling-failure-moving-4",
+      "method": "old-a",
+      "revision": "6d69b145ec7a1e70ed719886549242e4fd93542f",
+      "path": "captures/moving-4/old-a/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "044b4320648d0c395de45b3101f05b469716895548bd99c10a50cb6b6fe4195f",
+      "preset_sha256": "8133f617323d1587d3d79c472e2849911dfc9579962526e73b6cfc41ec671551",
+      "scene_sha256": "d73d69678e2ba1d6df5ddb383cd646425dd8196fdce20bd3bb18de7228220427",
+      "config_sha256": "a9281f4ce64e91236d0bede497b1cd214445b1fc298099fb749c4b43caf24284",
+      "native_result_sha256": "227c1eff8f9b98ee76fcd70ea85ed145cd17a6142019b04bac800f0e3c1c15d0",
+      "start_frame": 752676,
+      "end_frame": 752707
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-1",
+      "method": "world-a",
+      "revision": "0d1629aedcdbd3c6d11328cad85a903bbd84706e",
+      "path": "captures/moving-1/world-a/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "1c3f63a27f8e1eb372e9c83becf8167d49a8f42898fbf971484331ea605721d0",
+      "preset_sha256": "3569c88f4694f5a0e294b6647099fcc3d2f097d97d5d9d3bcaf3c8f0b3059109",
+      "scene_sha256": "115d3dda309c39c3eacdadb87c40b8b2c599c1abbc15d0b957ffcbb2135c36f5",
+      "config_sha256": "a9281f4ce64e91236d0bede497b1cd214445b1fc298099fb749c4b43caf24284",
+      "native_result_sha256": "ba530b5abb4badf2cc226f19c813321d418bfbfe825e40617977afd1290dccfb",
+      "start_frame": 753317,
+      "end_frame": 753348
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-2",
+      "method": "world-a",
+      "revision": "0d1629aedcdbd3c6d11328cad85a903bbd84706e",
+      "path": "captures/moving-2/world-a/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "1c3f63a27f8e1eb372e9c83becf8167d49a8f42898fbf971484331ea605721d0",
+      "preset_sha256": "3096814726434fe24fb637bfe950f7eee02bf85d8a1392504521b201da97cdcf",
+      "scene_sha256": "d455226fdf37fe0d6061484a1f5af7029553c00b862eb0db299ed452c15825ee",
+      "config_sha256": "a9281f4ce64e91236d0bede497b1cd214445b1fc298099fb749c4b43caf24284",
+      "native_result_sha256": "3f251757e68d933a808bedf0722f0bf92e685a24e8c7f6140d504614ecabfe37",
+      "start_frame": 753962,
+      "end_frame": 753993
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-3",
+      "method": "world-a",
+      "revision": "0d1629aedcdbd3c6d11328cad85a903bbd84706e",
+      "path": "captures/moving-3/world-a/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "1c3f63a27f8e1eb372e9c83becf8167d49a8f42898fbf971484331ea605721d0",
+      "preset_sha256": "25d9adaab2e85b2e8daf993b301c3438562a5556d09b2f79c20077638ab3034b",
+      "scene_sha256": "0d679ccb55af40ccc3f460dcf1e055b75dc68836db4a4595f41939f9a4d53c64",
+      "config_sha256": "a9281f4ce64e91236d0bede497b1cd214445b1fc298099fb749c4b43caf24284",
+      "native_result_sha256": "1b9e4ccb8c41d7d8a0cd3853f1a209599a511198c9b3d7bfeea426492d2016c7",
+      "start_frame": 754602,
+      "end_frame": 754633
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-4",
+      "method": "world-a",
+      "revision": "0d1629aedcdbd3c6d11328cad85a903bbd84706e",
+      "path": "captures/moving-4/world-a/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "1c3f63a27f8e1eb372e9c83becf8167d49a8f42898fbf971484331ea605721d0",
+      "preset_sha256": "8133f617323d1587d3d79c472e2849911dfc9579962526e73b6cfc41ec671551",
+      "scene_sha256": "d73d69678e2ba1d6df5ddb383cd646425dd8196fdce20bd3bb18de7228220427",
+      "config_sha256": "a9281f4ce64e91236d0bede497b1cd214445b1fc298099fb749c4b43caf24284",
+      "native_result_sha256": "91157e6e47dc52bee0a7801e04fe7b310b268f832a9940b9b351dea8e1adc2a0",
+      "start_frame": 755660,
+      "end_frame": 755691
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-1",
+      "method": "brdf",
+      "revision": "0d1629aedcdbd3c6d11328cad85a903bbd84706e",
+      "path": "captures/moving-1/brdf/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "1c3f63a27f8e1eb372e9c83becf8167d49a8f42898fbf971484331ea605721d0",
+      "preset_sha256": "3569c88f4694f5a0e294b6647099fcc3d2f097d97d5d9d3bcaf3c8f0b3059109",
+      "scene_sha256": "115d3dda309c39c3eacdadb87c40b8b2c599c1abbc15d0b957ffcbb2135c36f5",
+      "config_sha256": "b9158b787465aeebe53c876a49eb59ee81ab9dcc6e7c875aab980532caf89cf8",
+      "native_result_sha256": "ff6b32f3a84f4955db7481ad5bbcd5b6231c0706cd8235637ef96aa6496e80a1",
+      "start_frame": 756314,
+      "end_frame": 756345
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-2",
+      "method": "brdf",
+      "revision": "0d1629aedcdbd3c6d11328cad85a903bbd84706e",
+      "path": "captures/moving-2/brdf/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "1c3f63a27f8e1eb372e9c83becf8167d49a8f42898fbf971484331ea605721d0",
+      "preset_sha256": "3096814726434fe24fb637bfe950f7eee02bf85d8a1392504521b201da97cdcf",
+      "scene_sha256": "d455226fdf37fe0d6061484a1f5af7029553c00b862eb0db299ed452c15825ee",
+      "config_sha256": "b9158b787465aeebe53c876a49eb59ee81ab9dcc6e7c875aab980532caf89cf8",
+      "native_result_sha256": "1344478b3c07b859b10971e1f5fb606fc9f7e364c9ac0bbb74aa2dcc5125d483",
+      "start_frame": 757043,
+      "end_frame": 757074
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-3",
+      "method": "brdf",
+      "revision": "0d1629aedcdbd3c6d11328cad85a903bbd84706e",
+      "path": "captures/moving-3/brdf/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "1c3f63a27f8e1eb372e9c83becf8167d49a8f42898fbf971484331ea605721d0",
+      "preset_sha256": "25d9adaab2e85b2e8daf993b301c3438562a5556d09b2f79c20077638ab3034b",
+      "scene_sha256": "0d679ccb55af40ccc3f460dcf1e055b75dc68836db4a4595f41939f9a4d53c64",
+      "config_sha256": "b9158b787465aeebe53c876a49eb59ee81ab9dcc6e7c875aab980532caf89cf8",
+      "native_result_sha256": "81bcaf06961c7ab8a2ba7d6370d2078ec204f2af66375b7d4fc0073b95b57ad5",
+      "start_frame": 757760,
+      "end_frame": 757791
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-4",
+      "method": "brdf",
+      "revision": "0d1629aedcdbd3c6d11328cad85a903bbd84706e",
+      "path": "captures/moving-4/brdf/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "1c3f63a27f8e1eb372e9c83becf8167d49a8f42898fbf971484331ea605721d0",
+      "preset_sha256": "8133f617323d1587d3d79c472e2849911dfc9579962526e73b6cfc41ec671551",
+      "scene_sha256": "d73d69678e2ba1d6df5ddb383cd646425dd8196fdce20bd3bb18de7228220427",
+      "config_sha256": "b9158b787465aeebe53c876a49eb59ee81ab9dcc6e7c875aab980532caf89cf8",
+      "native_result_sha256": "1142f3be14fdbec7cd47e087b18b328fb502906ecff4f85746f6b5fc3c12753c",
+      "start_frame": 758465,
+      "end_frame": 758496
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-1",
+      "method": "old-a",
+      "revision": "6d69b145ec7a1e70ed719886549242e4fd93542f",
+      "path": "captures/moving-1/old-a-repeat/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "044b4320648d0c395de45b3101f05b469716895548bd99c10a50cb6b6fe4195f",
+      "preset_sha256": "3569c88f4694f5a0e294b6647099fcc3d2f097d97d5d9d3bcaf3c8f0b3059109",
+      "scene_sha256": "115d3dda309c39c3eacdadb87c40b8b2c599c1abbc15d0b957ffcbb2135c36f5",
+      "config_sha256": "a9281f4ce64e91236d0bede497b1cd214445b1fc298099fb749c4b43caf24284",
+      "native_result_sha256": "ee0907593df73c54603a051b12b3f541d77ff7fe931382b9034f90c0fe8afa88",
+      "start_frame": 761913,
+      "end_frame": 761944
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-2",
+      "method": "old-a",
+      "revision": "6d69b145ec7a1e70ed719886549242e4fd93542f",
+      "path": "captures/moving-2/old-a-repeat/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "044b4320648d0c395de45b3101f05b469716895548bd99c10a50cb6b6fe4195f",
+      "preset_sha256": "3096814726434fe24fb637bfe950f7eee02bf85d8a1392504521b201da97cdcf",
+      "scene_sha256": "d455226fdf37fe0d6061484a1f5af7029553c00b862eb0db299ed452c15825ee",
+      "config_sha256": "a9281f4ce64e91236d0bede497b1cd214445b1fc298099fb749c4b43caf24284",
+      "native_result_sha256": "0ba3e33991ee6d481acba00aaddedd73aa51553aa593d87fefb33ffa24b135c7",
+      "start_frame": 763600,
+      "end_frame": 763631
+    },
+    {
+      "preset_id": "light-sampling-failure-moving-3",
+      "method": "old-a",
+      "revision": "6d69b145ec7a1e70ed719886549242e4fd93542f",
+      "path": "captures/moving-3/old-a-repeat/job-result.json",
+      "grid": 16,
+      "source_snapshot_sha256": "044b4320648d0c395de45b3101f05b469716895548bd99c10a50cb6b6fe4195f",
+      "preset_sha256": "25d9adaab2e85b2e8daf993b301c3438562a5556d09b2f79c20077638ab3034b",
+      "scene_sha256": "0d679ccb55af40ccc3f460dcf1e055b75dc68836db4a4595f41939f9a4d53c64",
+      "config_sha256": "a9281f4ce64e91236d0bede497b1cd214445b1fc298099fb749c4b43caf24284",
+      "native_result_sha256": "9b4ac756a9c8ef5ad88791e02281501540b4a3660143f11792d882d2eadda422",
+      "start_frame": 765567,
+      "end_frame": 765598
+    }
+  ],
+  "quality": [
+    {
+      "preset": "light-sampling-failure-moving-1",
+      "common_complete_receivers": 1972326,
+      "new_over_old_rgb_sample_variance": 3.3760106091705744,
+      "new_over_brdf_rgb_sample_variance": 0.33464366225080866,
+      "quality": "significant regression",
+      "guard_regions": {
+        "tile-1-4": {
+          "display_xywh": [
+            1440,
+            0,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 171731,
+          "variance_world_over_old": 11.219981870689033,
+          "variance_world_over_brdf": 0.5113869355359851,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.00011778466781808849,
+                0.0038836426097533143,
+                5.349135704014731e-06
+              ],
+              "mean_luminance": 0.0028030084224715257,
+              "rgb_variance_sum": 9.632420634191123e-05
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.00010542931779953767,
+                0.00390116689655631,
+                1.0625439422821298e-05
+              ],
+              "mean_luminance": 0.0028132959941075822,
+              "rgb_variance_sum": 0.0010807558488647535
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.00010912985942573512,
+                0.003867931418480397,
+                5.570500976029576e-06
+              ],
+              "mean_luminance": 0.0027899477487815603,
+              "rgb_variance_sum": 0.0021133818127989762
+            }
+          }
+        },
+        "tile-2-3": {
+          "display_xywh": [
+            960,
+            360,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 130388,
+          "variance_world_over_old": 5.966934850232539,
+          "variance_world_over_brdf": 0.743485540379212,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.006594288948098913,
+                0.04269108985893776,
+                0.002935684194240932
+              ],
+              "mean_luminance": 0.03214656969630231,
+              "rgb_variance_sum": 0.0038634138587908856
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.006431057024484608,
+                0.04273674321432091,
+                0.003029035916325418
+              ],
+              "mean_luminance": 0.032151257863446435,
+              "rgb_variance_sum": 0.02305273879489071
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.006456243484434784,
+                0.04259624121987564,
+                0.0029367194503981354
+              ],
+              "mean_luminance": 0.03204946022956463,
+              "rgb_variance_sum": 0.03100630414833992
+            }
+          }
+        },
+        "tile-2-4": {
+          "display_xywh": [
+            1440,
+            360,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 172800,
+          "variance_world_over_old": 9.57733646899004,
+          "variance_world_over_brdf": 0.4516502276173594,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.0002856456296784702,
+                0.005218320474169325,
+                3.158215826145956e-05
+              ],
+              "mean_luminance": 0.0037951512958220206,
+              "rgb_variance_sum": 0.00013086360076141186
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.0002685919091343591,
+                0.005212576605511085,
+                3.889217317395321e-05
+              ],
+              "mean_luminance": 0.0037879454430466515,
+              "rgb_variance_sum": 0.0012533247360356227
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.0002797267342553716,
+                0.005234846518881113,
+                3.246304284164429e-05
+              ],
+              "mean_luminance": 0.0038057759656996305,
+              "rgb_variance_sum": 0.002774989714158733
+            }
+          }
+        },
+        "tile-3-2": {
+          "display_xywh": [
+            480,
+            720,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 171095,
+          "variance_world_over_old": 3.198946048141283,
+          "variance_world_over_brdf": 0.30249468943647795,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.00589572675652566,
+                0.030585331044036716,
+                0.0026458910351175435
+              ],
+              "mean_luminance": 0.023319093603867896,
+              "rgb_variance_sum": 0.0025444535724357445
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.005779477029654361,
+                0.03062230953678378,
+                0.002714947458984212
+              ],
+              "mean_luminance": 0.023325811803750936,
+              "rgb_variance_sum": 0.008139569700222294
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.00578379179783988,
+                0.03058134256233215,
+                0.002644842687490261
+              ],
+              "mean_luminance": 0.023292367978837505,
+              "rgb_variance_sum": 0.0269081408185566
+            }
+          }
+        }
+      }
+    },
+    {
+      "preset": "light-sampling-failure-moving-2",
+      "common_complete_receivers": 1985705,
+      "new_over_old_rgb_sample_variance": 3.8387927568298683,
+      "new_over_brdf_rgb_sample_variance": 0.39946303842002717,
+      "quality": "significant regression",
+      "guard_regions": {
+        "tile-1-4": {
+          "display_xywh": [
+            1440,
+            0,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 172144,
+          "variance_world_over_old": 13.16504082346974,
+          "variance_world_over_brdf": 0.7295813676937991,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.00014193934537075253,
+                0.004427132287145297,
+                1.4594518640849962e-05
+              ],
+              "mean_luminance": 0.003197515040838008,
+              "rgb_variance_sum": 0.00012857363046895665
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.00012972913732052217,
+                0.004421020597351136,
+                1.546351273658403e-05
+              ],
+              "mean_luminance": 0.0031906108114394564,
+              "rgb_variance_sum": 0.0016926770939455272
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.00014197951017969423,
+                0.0044402564545362,
+                1.5488430365785928e-05
+              ],
+              "mean_luminance": 0.003206974524820903,
+              "rgb_variance_sum": 0.002320066230989514
+            }
+          }
+        },
+        "tile-2-3": {
+          "display_xywh": [
+            960,
+            360,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 136575,
+          "variance_world_over_old": 3.536696947795692,
+          "variance_world_over_brdf": 0.42088861966877733,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.012629593339437783,
+                0.047752527081048136,
+                0.004961559737202387
+              ],
+              "mean_luminance": 0.037195883525356105,
+              "rgb_variance_sum": 0.004960106740414375
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.012428141350012457,
+                0.04790631257024758,
+                0.004984359250832296
+              ],
+              "mean_luminance": 0.037264688339163805,
+              "rgb_variance_sum": 0.01754239436956436
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.012557843602600061,
+                0.047798931361583946,
+                0.004968658256809242
+              ],
+              "mean_luminance": 0.037214330385859244,
+              "rgb_variance_sum": 0.041679421941532964
+            }
+          }
+        },
+        "tile-2-4": {
+          "display_xywh": [
+            1440,
+            360,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 159831,
+          "variance_world_over_old": 13.047456197223873,
+          "variance_world_over_brdf": 1.3696431274214342,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.0013277873104425666,
+                0.015091531538980204,
+                0.00045196224705457437
+              ],
+              "mean_luminance": 0.01110838261311607,
+              "rgb_variance_sum": 0.0009751410868675596
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.0012740671475251558,
+                0.01509885900666914,
+                0.0004539770625498731
+              ],
+              "mean_luminance": 0.011102347781049716,
+              "rgb_variance_sum": 0.012723110617017764
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.0013227882767416017,
+                0.015121132399844943,
+                0.0004563026608460769
+              ],
+              "mean_luminance": 0.011128803732117453,
+              "rgb_variance_sum": 0.009289361850755237
+            }
+          }
+        },
+        "tile-3-2": {
+          "display_xywh": [
+            480,
+            720,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 160793,
+          "variance_world_over_old": 2.999730971445215,
+          "variance_world_over_brdf": 0.27313736092759056,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.00814442700113247,
+                0.04082232084238986,
+                0.0036198010770375714
+              ],
+              "mean_luminance": 0.031188978684680103,
+              "rgb_variance_sum": 0.0033430492539556064
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.008001050071392676,
+                0.04082163759797466,
+                0.0036331718731098016
+              ],
+              "mean_luminance": 0.031158973464488083,
+              "rgb_variance_sum": 0.010028248386157452
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.008123515364312809,
+                0.0407591019048477,
+                0.003632504615781418
+              ],
+              "mean_luminance": 0.031140235882059393,
+              "rgb_variance_sum": 0.03671503726952963
+            }
+          }
+        }
+      }
+    },
+    {
+      "preset": "light-sampling-failure-moving-3",
+      "common_complete_receivers": 2020782,
+      "new_over_old_rgb_sample_variance": 0.06418054381147886,
+      "new_over_brdf_rgb_sample_variance": 0.3927577128784653,
+      "quality": "improved with local regressions",
+      "guard_regions": {
+        "tile-1-4": {
+          "display_xywh": [
+            1440,
+            0,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 166085,
+          "variance_world_over_old": 0.08173216310208442,
+          "variance_world_over_brdf": 0.2482880700646675,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                4.8299748753878235e-05,
+                0.0018903226021200468,
+                -8.975260154404866e-07
+              ],
+              "mean_luminance": 0.001362162450243017,
+              "rgb_variance_sum": 0.0038635955585994905
+            },
+            "world-a": {
+              "mean_rgb": [
+                4.9066042179460365e-05,
+                0.0019073132470519272,
+                -2.597802623235833e-07
+              ],
+              "mean_luminance": 0.0013745231187239518,
+              "rgb_variance_sum": 0.0003157800223559425
+            },
+            "brdf": {
+              "mean_rgb": [
+                4.855858228836725e-05,
+                0.0019121894020582943,
+                -1.1359505889422783e-06
+              ],
+              "mean_luminance": 0.0013778393993140773,
+              "rgb_variance_sum": 0.001271829219477587
+            }
+          }
+        },
+        "tile-2-3": {
+          "display_xywh": [
+            960,
+            360,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 155442,
+          "variance_world_over_old": 0.06618603627261237,
+          "variance_world_over_brdf": 0.5901645247822617,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.00677851277068982,
+                0.025732252511897855,
+                0.0025013304975005242
+              ],
+              "mean_luminance": 0.020025414873477535,
+              "rgb_variance_sum": 0.19552100494603336
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.006751294530775767,
+                0.02557204203239243,
+                0.0025238092586753764
+              ],
+              "mean_luminance": 0.019906668707286353,
+              "rgb_variance_sum": 0.012940760325415785
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.006777337763263891,
+                0.025737452362673784,
+                0.0025199136421423136
+              ],
+              "mean_luminance": 0.02003022570321687,
+              "rgb_variance_sum": 0.021927377505773015
+            }
+          }
+        },
+        "tile-2-4": {
+          "display_xywh": [
+            1440,
+            360,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 172800,
+          "variance_world_over_old": 0.08724721503806575,
+          "variance_world_over_brdf": 0.7302596938760956,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.0002628043028722312,
+                0.005781901638396376,
+                2.6684277303738034e-05
+              ],
+              "mean_luminance": 0.004193014851393053,
+              "rgb_variance_sum": 0.026776657401415098
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.0002622820964520571,
+                0.005752860221801417,
+                3.0524941618985205e-05
+              ],
+              "mean_luminance": 0.004172410705122971,
+              "rgb_variance_sum": 0.0023361887863018777
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.00025745315724480386,
+                0.0057466728753176235,
+                2.8045649140981816e-05
+              ],
+              "mean_luminance": 0.004166779877525388,
+              "rgb_variance_sum": 0.0031991205401215297
+            }
+          }
+        },
+        "tile-3-2": {
+          "display_xywh": [
+            480,
+            720,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 154902,
+          "variance_world_over_old": 0.05119573775184847,
+          "variance_world_over_brdf": 0.31831545306419196,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.005352804006093619,
+                0.03224220525949366,
+                0.002624623850918937
+              ],
+              "mean_luminance": 0.024387129175321712,
+              "rgb_variance_sum": 0.17084760019638354
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.0053398082829876235,
+                0.032109861446104906,
+                0.0026453897282627207
+              ],
+              "mean_luminance": 0.024291213285597968,
+              "rgb_variance_sum": 0.008746668935186707
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.005372636587469261,
+                0.03233729299723685,
+                0.002640843841263994
+              ],
+              "mean_luminance": 0.024460523415459023,
+              "rgb_variance_sum": 0.027477990311148483
+            }
+          }
+        }
+      }
+    },
+    {
+      "preset": "light-sampling-failure-moving-4",
+      "common_complete_receivers": 2022176,
+      "new_over_old_rgb_sample_variance": 1.8999515605909005,
+      "new_over_brdf_rgb_sample_variance": 0.32464468026708626,
+      "quality": "significant regression",
+      "guard_regions": {
+        "tile-1-4": {
+          "display_xywh": [
+            1440,
+            0,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 171722,
+          "variance_world_over_old": 1.2514949961162536,
+          "variance_world_over_brdf": 0.1471623226622541,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                9.033883374144096e-05,
+                0.003893529420962621,
+                -9.700002031034185e-06
+              ],
+              "mean_luminance": 0.0028031579377792563,
+              "rgb_variance_sum": 0.0003407516959115498
+            },
+            "world-a": {
+              "mean_rgb": [
+                8.325175498273351e-05,
+                0.003906796206178665,
+                -7.169949541892702e-06
+              ],
+              "mean_luminance": 0.0028113222994113852,
+              "rgb_variance_sum": 0.0004264490423514319
+            },
+            "brdf": {
+              "mean_rgb": [
+                8.212581374553584e-05,
+                0.003891859438896765,
+                -6.736934681262513e-06
+              ],
+              "mean_luminance": 0.0028004314120172796,
+              "rgb_variance_sum": 0.002897814023567409
+            }
+          }
+        },
+        "tile-2-3": {
+          "display_xywh": [
+            960,
+            360,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 155980,
+          "variance_world_over_old": 1.9278903173784117,
+          "variance_world_over_brdf": 0.5413587394417284,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.005022584144431901,
+                0.02296372521721766,
+                0.0019401989259473173
+              ],
+              "mean_luminance": 0.01763154002691369,
+              "rgb_variance_sum": 0.005217353248810199
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.00496615486112341,
+                0.02300401782027359,
+                0.0019698115327177962
+              ],
+              "mean_luminance": 0.01765049846119673,
+              "rgb_variance_sum": 0.010058484810723982
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.0049556418979048306,
+                0.02299606654280775,
+                0.001968795833468436
+              ],
+              "mean_luminance": 0.01764250331808709,
+              "rgb_variance_sum": 0.018580072838755145
+            }
+          }
+        },
+        "tile-2-4": {
+          "display_xywh": [
+            1440,
+            360,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 172800,
+          "variance_world_over_old": 1.3105262813406195,
+          "variance_world_over_brdf": 0.21922034914027408,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.0001666804042561555,
+                0.003585374541271138,
+                1.0777237596025511e-05
+              ],
+              "mean_luminance": 0.0026004742424164096,
+              "rgb_variance_sum": 0.00035076596968167464
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.00015924062781517252,
+                0.0036121048197047235,
+                1.315076317363697e-05
+              ],
+              "mean_luminance": 0.0026181814096274602,
+              "rgb_variance_sum": 0.0004596880218677616
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.00015887419885768846,
+                0.0036184181842219337,
+                1.337062479651331e-05
+              ],
+              "mean_luminance": 0.0026226346991429796,
+              "rgb_variance_sum": 0.002096922223098996
+            }
+          }
+        },
+        "tile-3-2": {
+          "display_xywh": [
+            480,
+            720,
+            480,
+            360
+          ],
+          "common_complete_receiver_pixels": 149180,
+          "variance_world_over_old": 2.3232707366998477,
+          "variance_world_over_brdf": 0.3233655554238915,
+          "methods": {
+            "old-a": {
+              "mean_rgb": [
+                0.005352632504602388,
+                0.03067121301780438,
+                0.0025801754292521205
+              ],
+              "mean_luminance": 0.02326030988680416,
+              "rgb_variance_sum": 0.003618738889157225
+            },
+            "world-a": {
+              "mean_rgb": [
+                0.005279420295797783,
+                0.03070664559729886,
+                0.0026170096261426304
+              ],
+              "mean_luminance": 0.02327274578108225,
+              "rgb_variance_sum": 0.008407310164936696
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.0052665432327935495,
+                0.030622705654298893,
+                0.0026147445979459553
+              ],
+              "mean_luminance": 0.023209810735218175,
+              "rgb_variance_sum": 0.02599939920600316
+            }
+          }
+        }
+      }
+    }
+  ],
+  "mechanism": {
+    "runtime_cases": [
+      {
+        "label": "light-sampling-failure-moving-1/old-a",
+        "camera_position": [
+          113.05346853358373,
+          79.40813360628084,
+          367.8808886911455
+        ],
+        "camera_position_int": [
+          113,
+          79,
+          367
+        ],
+        "camera_brick": [
+          7,
+          4,
+          22
+        ],
+        "window_brick_origin": [
+          -1,
+          -4,
+          14
+        ],
+        "emitters": 1182,
+        "root_mass": 1016.1849365234375,
+        "leaf_identity_sha256": "92a2c2abf778b0fbf25406cc4119773af4a9f6d5b7f8070bc4726d2b275512ec",
+        "semantic_topology_sha256": "ddfc3bc17500e960a1335cafe8164844e94a1e5a63b6ad0e25bce15dbe7bfb5d",
+        "world_voxel_sha256": "33239b7f7e60f35cf06cb6db94ab3f86987217db95b552f0b83baefcee208bfb",
+        "allocated_bricks": 442,
+        "nonempty_voxels": 137713,
+        "outer_replay_matches_native": true,
+        "pdf_audit": {
+          "max_pdf_relative_error": 5.954401331997872e-07,
+          "max_cube_relative_error": 0.00013384963157969665,
+          "sample_count": 58,
+          "cube_sample_count": 58,
+          "node_bytes": 32,
+          "buffer_bytes": 8650784
+        }
+      },
+      {
+        "label": "light-sampling-failure-moving-1/world-a",
+        "camera_position": [
+          113.05346853358373,
+          79.40813360628084,
+          367.8808886911455
+        ],
+        "camera_position_int": [
+          113,
+          79,
+          367
+        ],
+        "camera_brick": [
+          7,
+          4,
+          22
+        ],
+        "window_brick_origin": [
+          -1,
+          -4,
+          14
+        ],
+        "emitters": 1182,
+        "root_mass": 1016.1849975585938,
+        "leaf_identity_sha256": "92a2c2abf778b0fbf25406cc4119773af4a9f6d5b7f8070bc4726d2b275512ec",
+        "semantic_topology_sha256": "005cca8fe25826ead24d19d355caeab6b87aca65338a72fa1ef5547c4082decf",
+        "world_voxel_sha256": "33239b7f7e60f35cf06cb6db94ab3f86987217db95b552f0b83baefcee208bfb",
+        "allocated_bricks": 442,
+        "nonempty_voxels": 137713,
+        "outer_replay_matches_native": true,
+        "pdf_audit": {
+          "max_pdf_relative_error": 5.552727301294524e-07,
+          "max_cube_relative_error": 8.699220859464951e-05,
+          "sample_count": 59,
+          "cube_sample_count": 59,
+          "node_bytes": 32,
+          "buffer_bytes": 8650784
+        }
+      },
+      {
+        "label": "light-sampling-failure-moving-2/old-a",
+        "camera_position": [
+          111.16076716137353,
+          79.40813434575546,
+          366.8720052155822
+        ],
+        "camera_position_int": [
+          111,
+          79,
+          366
+        ],
+        "camera_brick": [
+          6,
+          4,
+          22
+        ],
+        "window_brick_origin": [
+          -2,
+          -4,
+          14
+        ],
+        "emitters": 1136,
+        "root_mass": 974.9620361328125,
+        "leaf_identity_sha256": "9d29f5e3ba2eb0a3ca9bea98259d4ce805b614cf8196b3e4bc6a9dc9ce9c9817",
+        "semantic_topology_sha256": "c1c3b01e7d86a81732a585f15700637d9e4039b3546500ce6e6057c71fa35d18",
+        "world_voxel_sha256": "907d71ab1ceda56a40201b1f7c9add751f884c2c4d56773f01ee559495fe48a8",
+        "allocated_bricks": 416,
+        "nonempty_voxels": 129606,
+        "outer_replay_matches_native": true,
+        "pdf_audit": {
+          "max_pdf_relative_error": 4.5777031865146256e-07,
+          "max_cube_relative_error": 3.405658497879216e-05,
+          "sample_count": 62,
+          "cube_sample_count": 62,
+          "node_bytes": 32,
+          "buffer_bytes": 8650784
+        }
+      },
+      {
+        "label": "light-sampling-failure-moving-2/world-a",
+        "camera_position": [
+          111.16076716137353,
+          79.40813434575546,
+          366.8720052155822
+        ],
+        "camera_position_int": [
+          111,
+          79,
+          366
+        ],
+        "camera_brick": [
+          6,
+          4,
+          22
+        ],
+        "window_brick_origin": [
+          -2,
+          -4,
+          14
+        ],
+        "emitters": 1136,
+        "root_mass": 974.9620971679688,
+        "leaf_identity_sha256": "9d29f5e3ba2eb0a3ca9bea98259d4ce805b614cf8196b3e4bc6a9dc9ce9c9817",
+        "semantic_topology_sha256": "4446b23db5d8f77ed121a045f5eeeccaf63fdfae579c1ad2b30cdb1b6124f575",
+        "world_voxel_sha256": "907d71ab1ceda56a40201b1f7c9add751f884c2c4d56773f01ee559495fe48a8",
+        "allocated_bricks": 416,
+        "nonempty_voxels": 129606,
+        "outer_replay_matches_native": true,
+        "pdf_audit": {
+          "max_pdf_relative_error": 8.241811926268383e-07,
+          "max_cube_relative_error": 0.00015141407420204978,
+          "sample_count": 62,
+          "cube_sample_count": 62,
+          "node_bytes": 32,
+          "buffer_bytes": 8650784
+        }
+      },
+      {
+        "label": "light-sampling-failure-moving-3/old-a",
+        "camera_position": [
+          111.17503531519117,
+          81.27790786313423,
+          366.84521232869264
+        ],
+        "camera_position_int": [
+          111,
+          81,
+          366
+        ],
+        "camera_brick": [
+          6,
+          5,
+          22
+        ],
+        "window_brick_origin": [
+          -2,
+          -3,
+          14
+        ],
+        "emitters": 1136,
+        "root_mass": 974.9620361328125,
+        "leaf_identity_sha256": "9d29f5e3ba2eb0a3ca9bea98259d4ce805b614cf8196b3e4bc6a9dc9ce9c9817",
+        "semantic_topology_sha256": "881fb84820a50636ad9bba92ad9ab15f40ccfac673ac964d7a8703f6224d011a",
+        "world_voxel_sha256": "907d71ab1ceda56a40201b1f7c9add751f884c2c4d56773f01ee559495fe48a8",
+        "allocated_bricks": 416,
+        "nonempty_voxels": 129606,
+        "outer_replay_matches_native": true,
+        "pdf_audit": {
+          "max_pdf_relative_error": 5.617190370621472e-07,
+          "max_cube_relative_error": 0.0001013728669427838,
+          "sample_count": 62,
+          "cube_sample_count": 62,
+          "node_bytes": 32,
+          "buffer_bytes": 8650784
+        }
+      },
+      {
+        "label": "light-sampling-failure-moving-3/world-a",
+        "camera_position": [
+          111.17503531519117,
+          81.27790786313423,
+          366.84521232869264
+        ],
+        "camera_position_int": [
+          111,
+          81,
+          366
+        ],
+        "camera_brick": [
+          6,
+          5,
+          22
+        ],
+        "window_brick_origin": [
+          -2,
+          -3,
+          14
+        ],
+        "emitters": 1136,
+        "root_mass": 974.9620971679688,
+        "leaf_identity_sha256": "9d29f5e3ba2eb0a3ca9bea98259d4ce805b614cf8196b3e4bc6a9dc9ce9c9817",
+        "semantic_topology_sha256": "4446b23db5d8f77ed121a045f5eeeccaf63fdfae579c1ad2b30cdb1b6124f575",
+        "world_voxel_sha256": "907d71ab1ceda56a40201b1f7c9add751f884c2c4d56773f01ee559495fe48a8",
+        "allocated_bricks": 416,
+        "nonempty_voxels": 129606,
+        "outer_replay_matches_native": true,
+        "pdf_audit": {
+          "max_pdf_relative_error": 5.143590871004022e-07,
+          "max_cube_relative_error": 9.168168795170573e-05,
+          "sample_count": 59,
+          "cube_sample_count": 59,
+          "node_bytes": 32,
+          "buffer_bytes": 8650784
+        }
+      },
+      {
+        "label": "light-sampling-failure-moving-4/old-a",
+        "camera_position": [
+          111.88181474389985,
+          81.65537918521474,
+          368.6650679183418
+        ],
+        "camera_position_int": [
+          111,
+          81,
+          368
+        ],
+        "camera_brick": [
+          6,
+          5,
+          23
+        ],
+        "window_brick_origin": [
+          -2,
+          -3,
+          15
+        ],
+        "emitters": 1083,
+        "root_mass": 950.5068969726562,
+        "leaf_identity_sha256": "697e22069cc0c22179bb3a36a27f1343cb3daadb7bac4e7ea25e6bbd5309a7dc",
+        "semantic_topology_sha256": "85d7513550d61c4690c388ad2a62d424a68483065c924319e924b047673c1e9c",
+        "world_voxel_sha256": "8f0afb3400a76ac89b62dbe2019662e5016d2b84a564e388ad091bf2cd956545",
+        "allocated_bricks": 360,
+        "nonempty_voxels": 113231,
+        "outer_replay_matches_native": true,
+        "pdf_audit": {
+          "max_pdf_relative_error": 1.4436446774679368e-06,
+          "max_cube_relative_error": 4.3016879281543297e-05,
+          "sample_count": 61,
+          "cube_sample_count": 61,
+          "node_bytes": 32,
+          "buffer_bytes": 8650784
+        }
+      },
+      {
+        "label": "light-sampling-failure-moving-4/world-a",
+        "camera_position": [
+          111.88181474389985,
+          81.65537918521474,
+          368.6650679183418
+        ],
+        "camera_position_int": [
+          111,
+          81,
+          368
+        ],
+        "camera_brick": [
+          6,
+          5,
+          23
+        ],
+        "window_brick_origin": [
+          -2,
+          -3,
+          15
+        ],
+        "emitters": 1083,
+        "root_mass": 950.5070190429688,
+        "leaf_identity_sha256": "697e22069cc0c22179bb3a36a27f1343cb3daadb7bac4e7ea25e6bbd5309a7dc",
+        "semantic_topology_sha256": "7af190d58d91d17d7ef4d8acbab05cdedafb1c5263e1d005c149c204979c3bb4",
+        "world_voxel_sha256": "8f0afb3400a76ac89b62dbe2019662e5016d2b84a564e388ad091bf2cd956545",
+        "allocated_bricks": 360,
+        "nonempty_voxels": 113231,
+        "outer_replay_matches_native": true,
+        "pdf_audit": {
+          "max_pdf_relative_error": 1.4065826051679053e-06,
+          "max_cube_relative_error": 8.040296952738224e-05,
+          "sample_count": 60,
+          "cube_sample_count": 60,
+          "node_bytes": 32,
+          "buffer_bytes": 8650784
+        }
+      }
+    ],
+    "world_voxel_identity": "Signed world block coordinates plus complete packed material words, canonical sorted; actual grid and reconstructed camera brick.",
+    "pose_pairs": [
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-1/world-a",
+        "same_world_lights_and_mass": true,
+        "same_world_voxels": true,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-2/old-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          -1,
+          0,
+          0
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-3/old-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          -1,
+          1,
+          0
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          -1,
+          1,
+          1
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-2/world-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          -1,
+          0,
+          0
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          -1,
+          1,
+          0
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          -1,
+          1,
+          1
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-2/world-a",
+        "same_world_lights_and_mass": true,
+        "same_world_voxels": true,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-3/old-a",
+        "same_world_lights_and_mass": true,
+        "same_world_voxels": true,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/world-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "same_world_lights_and_mass": true,
+        "same_world_voxels": true,
+        "same_semantic_topology": true,
+        "camera_brick_delta": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/old-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "same_world_lights_and_mass": true,
+        "same_world_voxels": true,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "same_world_lights_and_mass": false,
+        "same_world_voxels": false,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-4/old-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "same_world_lights_and_mass": true,
+        "same_world_voxels": true,
+        "same_semantic_topology": false,
+        "camera_brick_delta": [
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "fixed_world_queries": [
+      {
+        "slot": 0,
+        "pixel": [
+          120,
+          67
+        ],
+        "origin": [
+          108.25675964355469,
+          75.05706787109375,
+          365.1141357421875
+        ],
+        "normal": [
+          0.7015172243118286,
+          -2.2598321436362312e-08,
+          0.7126524448394775
+        ],
+        "material": 10253,
+        "albedo": [
+          57,
+          113,
+          36
+        ]
+      },
+      {
+        "slot": 21,
+        "pixel": [
+          1320,
+          337
+        ],
+        "origin": [
+          116.14666748046875,
+          76.00299072265625,
+          367.7738037109375
+        ],
+        "normal": [
+          1.6776782629790432e-08,
+          1.0,
+          -2.98201214832261e-08
+        ],
+        "material": 4651,
+        "albedo": [
+          51,
+          101,
+          32
+        ]
+      },
+      {
+        "slot": 44,
+        "pixel": [
+          1080,
+          742
+        ],
+        "origin": [
+          117.47672271728516,
+          77.31474304199219,
+          363.0030212402344
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "material": 4651,
+        "albedo": [
+          150,
+          108,
+          74
+        ]
+      }
+    ],
+    "pmf_pairs": [
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-1/world-a",
+        "point": 0,
+        "total_variation": 0.2040153230880074,
+        "maximum_absolute_difference": 0.0943132857122837,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.05609460415540585,
+          0.11654540294679663
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.37679627037663743,
+            "right_probability": 0.28248298466435373
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.35336709071092376,
+            "right_probability": 0.26491820199388666
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00014971873945078166,
+            "right_probability": 0.0573317136463412
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.04644445090938698,
+            "right_probability": 0.03481925949231519
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00042377153901191695,
+            "right_probability": 0.010202140369213885
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-1/world-a",
+        "point": 1,
+        "total_variation": 0.5021687316953792,
+        "maximum_absolute_difference": 0.42627255066769293,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.7988490409274147,
+            "right_probability": 0.3725764902597218
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.07197798956170615,
+            "right_probability": 0.03356993042855521
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06285685527711615,
+            "right_probability": 0.02931590992551384
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.000999142593793479,
+            "right_probability": 0.00957678687438601
+          },
+          {
+            "world_position": [
+              103.0,
+              89.0,
+              319.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.000983524520649472,
+            "right_probability": 0.009427087563378914
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-1/world-a",
+        "point": 2,
+        "total_variation": 0.06074394155758182,
+        "maximum_absolute_difference": 0.03729662952097135,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.613121811257405,
+            "right_probability": 0.5758251817364336
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00029511359216737346,
+            "right_probability": 0.03460314701049448
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.001131129233419364,
+            "right_probability": 0.027567037372674064
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.27459967110599154,
+            "right_probability": 0.2578955806434178
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06409255439369779,
+            "right_probability": 0.060193759386924034
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-2/old-a",
+        "point": 0,
+        "total_variation": 0.10641572021528763,
+        "maximum_absolute_difference": 0.008921022573582793,
+        "support_changes": 49,
+        "zero_result_probabilities": [
+          0.05609460415540585,
+          0.1404605806648458
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.37679627037663743,
+            "right_probability": 0.3857172929502202
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.35336709071092376,
+            "right_probability": 0.36173340439508617
+          },
+          {
+            "world_position": [
+              235.0,
+              38.0,
+              311.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.002793222035439482,
+            "right_probability": 0
+          },
+          {
+            "world_position": [
+              236.0,
+              38.0,
+              311.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.002776750566154085,
+            "right_probability": 0
+          },
+          {
+            "world_position": [
+              234.0,
+              38.0,
+              310.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.002765822327463693,
+            "right_probability": 0
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-2/old-a",
+        "point": 1,
+        "total_variation": 0.003060311880244308,
+        "maximum_absolute_difference": 0.00015029459437870888,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0005850799748292459,
+            "right_probability": 0.00043478538045053705
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.000584144184991579,
+            "right_probability": 0.00043408997510751445
+          },
+          {
+            "world_position": [
+              115.0,
+              78.0,
+              320.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0005488333881750399,
+            "right_probability": 0.0004078497705399745
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              320.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0005479921606865797,
+            "right_probability": 0.00040722463649103975
+          },
+          {
+            "world_position": [
+              113.0,
+              78.0,
+              320.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.000546420991054487,
+            "right_probability": 0.0004060570669011882
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-2/old-a",
+        "point": 2,
+        "total_variation": 0.0010454818186640558,
+        "maximum_absolute_difference": 0.0010454818186640558,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00029511359216737346,
+            "right_probability": 0.0013405954108314292
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.001131129233419364,
+            "right_probability": 8.564741475530816e-05
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.046759720417318955,
+            "right_probability": 0.046759720417318955
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06409255439369779,
+            "right_probability": 0.06409255439369779
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.613121811257405,
+            "right_probability": 0.613121811257405
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-3/old-a",
+        "point": 0,
+        "total_variation": 0.8750130739099968,
+        "maximum_absolute_difference": 0.35400459170397824,
+        "support_changes": 49,
+        "zero_result_probabilities": [
+          0.05609460415540585,
+          0.9288684615782806
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.37679627037663743,
+            "right_probability": 0.02279167867265919
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.35336709071092376,
+            "right_probability": 0.02137449284443647
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.04644445090938698,
+            "right_probability": 0.002809335135394895
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.03846518921049239,
+            "right_probability": 0.002326685005911187
+          },
+          {
+            "world_position": [
+              235.0,
+              38.0,
+              311.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.002793222035439482,
+            "right_probability": 0
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-3/old-a",
+        "point": 1,
+        "total_variation": 0.9004569036470883,
+        "maximum_absolute_difference": 0.7704204226301081,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.7988490409274147,
+            "right_probability": 0.02842861829730661
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.07197798956170615,
+            "right_probability": 0.002561478685236588
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06285685527711615,
+            "right_probability": 0.0022368851366056063
+          },
+          {
+            "world_position": [
+              115.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0005850799748292459,
+            "right_probability": 0.02514693651834216
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.000584144184991579,
+            "right_probability": 0.025106715952514066
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-3/old-a",
+        "point": 2,
+        "total_variation": 0.0010454818186640558,
+        "maximum_absolute_difference": 0.0010454818186640558,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00029511359216737346,
+            "right_probability": 0.0013405954108314292
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.001131129233419364,
+            "right_probability": 8.564741475530816e-05
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.046759720417318955,
+            "right_probability": 0.046759720417318955
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06409255439369779,
+            "right_probability": 0.06409255439369779
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.613121811257405,
+            "right_probability": 0.613121811257405
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "point": 0,
+        "total_variation": 0.11426894340106886,
+        "maximum_absolute_difference": 0.032434199434137834,
+        "support_changes": 49,
+        "zero_result_probabilities": [
+          0.05609460415540585,
+          0.0875021082774637
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.37679627037663743,
+            "right_probability": 0.40923046981077527
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.35336709071092376,
+            "right_probability": 0.3837845326938893
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.04644445090938698,
+            "right_probability": 0.050442337039996316
+          },
+          {
+            "world_position": [
+              180.0,
+              63.0,
+              360.0
+            ],
+            "material": 4378,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00037643756144870516,
+            "right_probability": 0.004046795966027099
+          },
+          {
+            "world_position": [
+              177.0,
+              60.0,
+              357.0
+            ],
+            "material": 4381,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00037528586171887903,
+            "right_probability": 0.004034414911908062
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "point": 1,
+        "total_variation": 0.14179252505255185,
+        "maximum_absolute_difference": 0.11591362833616814,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.7988490409274147,
+            "right_probability": 0.6829354125912466
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.07197798956170615,
+            "right_probability": 0.061533926286929955
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06285685527711615,
+            "right_probability": 0.05373627580879334
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.000999142593793479,
+            "right_probability": 0.0038691371770864322
+          },
+          {
+            "world_position": [
+              103.0,
+              89.0,
+              319.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.000983524520649472,
+            "right_probability": 0.003808656853445638
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "point": 2,
+        "total_variation": 0.0012591564102945746,
+        "maximum_absolute_difference": 0.001259156410294675,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00029511359216737346,
+            "right_probability": 0.0015542700024620485
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.001131129233419364,
+            "right_probability": 0.0003861077135236787
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.613121811257405,
+            "right_probability": 0.6128061337093349
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.27459967110599154,
+            "right_probability": 0.2744582881878112
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06409255439369779,
+            "right_probability": 0.06405955511027797
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-2/world-a",
+        "point": 0,
+        "total_variation": 0.1526936199397405,
+        "maximum_absolute_difference": 0.0512286594857993,
+        "support_changes": 49,
+        "zero_result_probabilities": [
+          0.11654540294679663,
+          0.14412225677611845
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.28248298466435373,
+            "right_probability": 0.33371164415015303
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.26491820199388666,
+            "right_probability": 0.3129614651223209
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.03481925949231519,
+            "right_probability": 0.0411337778347171
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.02883723196887752,
+            "right_probability": 0.03406690177997057
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0573317136463412,
+            "right_probability": 0.06253591890316808
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-2/world-a",
+        "point": 1,
+        "total_variation": 0.0,
+        "maximum_absolute_difference": 0.0,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              95.0,
+              88.0,
+              307.0
+            ],
+            "material": 5325,
+            "mass": 0.2349238246679306,
+            "left_probability": 0.00046954934574918144,
+            "right_probability": 0.00046954934574918144
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.00957678687438601,
+            "right_probability": 0.00957678687438601
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              319.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0036497896130305322,
+            "right_probability": 0.0036497896130305322
+          },
+          {
+            "world_position": [
+              105.0,
+              90.0,
+              309.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.007008746776523662,
+            "right_probability": 0.007008746776523662
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              322.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0001059161441986806,
+            "right_probability": 0.0001059161441986806
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-2/world-a",
+        "point": 2,
+        "total_variation": 0.006987385557260362,
+        "maximum_absolute_difference": 0.006987385557260379,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.03460314701049448,
+            "right_probability": 0.027615761453234102
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.5758251817364336,
+            "right_probability": 0.5785259081729476
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.027567037372674064,
+            "right_probability": 0.03015582791130475
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.2578955806434178,
+            "right_probability": 0.25910515854065985
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.060193759386924034,
+            "right_probability": 0.06047607923406791
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "point": 0,
+        "total_variation": 0.1526936199397405,
+        "maximum_absolute_difference": 0.0512286594857993,
+        "support_changes": 49,
+        "zero_result_probabilities": [
+          0.11654540294679663,
+          0.14412225677611845
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.28248298466435373,
+            "right_probability": 0.33371164415015303
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.26491820199388666,
+            "right_probability": 0.3129614651223209
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.03481925949231519,
+            "right_probability": 0.0411337778347171
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.02883723196887752,
+            "right_probability": 0.03406690177997057
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0573317136463412,
+            "right_probability": 0.06253591890316808
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "point": 1,
+        "total_variation": 0.0,
+        "maximum_absolute_difference": 0.0,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              95.0,
+              88.0,
+              307.0
+            ],
+            "material": 5325,
+            "mass": 0.2349238246679306,
+            "left_probability": 0.00046954934574918144,
+            "right_probability": 0.00046954934574918144
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.00957678687438601,
+            "right_probability": 0.00957678687438601
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              319.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0036497896130305322,
+            "right_probability": 0.0036497896130305322
+          },
+          {
+            "world_position": [
+              105.0,
+              90.0,
+              309.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.007008746776523662,
+            "right_probability": 0.007008746776523662
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              322.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0001059161441986806,
+            "right_probability": 0.0001059161441986806
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "point": 2,
+        "total_variation": 0.006987385557260362,
+        "maximum_absolute_difference": 0.006987385557260379,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.03460314701049448,
+            "right_probability": 0.027615761453234102
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.5758251817364336,
+            "right_probability": 0.5785259081729476
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.027567037372674064,
+            "right_probability": 0.03015582791130475
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.2578955806434178,
+            "right_probability": 0.25910515854065985
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.060193759386924034,
+            "right_probability": 0.06047607923406791
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 0,
+        "total_variation": 0.1766866718478416,
+        "maximum_absolute_difference": 0.0616572700155808,
+        "support_changes": 49,
+        "zero_result_probabilities": [
+          0.11654540294679663,
+          0.14862612983820145
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.28248298466435373,
+            "right_probability": 0.34414025467993453
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.26491820199388666,
+            "right_probability": 0.3227416249932842
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0573317136463412,
+            "right_probability": 0.03323982462897627
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.03481925949231519,
+            "right_probability": 0.042419223386817195
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.02883723196887752,
+            "right_probability": 0.03513150487922527
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 1,
+        "total_variation": 0.0,
+        "maximum_absolute_difference": 0.0,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              95.0,
+              88.0,
+              307.0
+            ],
+            "material": 5325,
+            "mass": 0.2349238246679306,
+            "left_probability": 0.00046954934574918144,
+            "right_probability": 0.00046954934574918144
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.00957678687438601,
+            "right_probability": 0.00957678687438601
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              319.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0036497896130305322,
+            "right_probability": 0.0036497896130305322
+          },
+          {
+            "world_position": [
+              105.0,
+              90.0,
+              309.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.007008746776523662,
+            "right_probability": 0.007008746776523662
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              322.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0001059161441986806,
+            "right_probability": 0.0001059161441986806
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-1/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 2,
+        "total_variation": 0.017276671912059637,
+        "maximum_absolute_difference": 0.0106667297596586,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.027567037372674064,
+            "right_probability": 0.016900307613015465
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.5758251817364336,
+            "right_probability": 0.5864330154583964
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.03460314701049448,
+            "right_probability": 0.027993204858093354
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.2578955806434178,
+            "right_probability": 0.26264652506867675
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.060193759386924034,
+            "right_probability": 0.06130264696414117
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-2/world-a",
+        "point": 0,
+        "total_variation": 0.11249686788258385,
+        "maximum_absolute_difference": 0.062400574226549044,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.1404605806648458,
+          0.14412225677611845
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00013534467661903486,
+            "right_probability": 0.06253591890316808
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.3857172929502202,
+            "right_probability": 0.33371164415015303
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.36173340439508617,
+            "right_probability": 0.3129614651223209
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0005053783821061157,
+            "right_probability": 0.011748938351967386
+          },
+          {
+            "world_position": [
+              180.0,
+              63.0,
+              360.0
+            ],
+            "material": 4378,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00036595302343377095,
+            "right_probability": 0.008507604726030127
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-2/world-a",
+        "point": 1,
+        "total_variation": 0.5008574495546392,
+        "maximum_absolute_difference": 0.42627255066769293,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.7988490409274147,
+            "right_probability": 0.3725764902597218
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.07197798956170615,
+            "right_probability": 0.03356993042855521
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06285685527711615,
+            "right_probability": 0.02931590992551384
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.0010607942169818744,
+            "right_probability": 0.00957678687438601
+          },
+          {
+            "world_position": [
+              103.0,
+              89.0,
+              319.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.0010442124379900894,
+            "right_probability": 0.009427087563378914
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-2/world-a",
+        "point": 2,
+        "total_variation": 0.05634534653895214,
+        "maximum_absolute_difference": 0.03459590308445737,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.613121811257405,
+            "right_probability": 0.5785259081729476
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 8.564741475530816e-05,
+            "right_probability": 0.03015582791130475
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0013405954108314292,
+            "right_probability": 0.027615761453234102
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.27459967110599154,
+            "right_probability": 0.25910515854065985
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06409255439369779,
+            "right_probability": 0.06047607923406791
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-3/old-a",
+        "point": 0,
+        "total_variation": 0.7891140166003645,
+        "maximum_absolute_difference": 0.36292561427756104,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.1404605806648458,
+          0.9288684615782806
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.3857172929502202,
+            "right_probability": 0.02279167867265919
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.36173340439508617,
+            "right_probability": 0.02137449284443647
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.047544068998934805,
+            "right_probability": 0.002809335135394895
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.03937589042550425,
+            "right_probability": 0.002326685005911187
+          },
+          {
+            "world_position": [
+              214.0,
+              51.0,
+              327.0
+            ],
+            "material": 4378,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0023525134827553484,
+            "right_probability": 0.0015728857643512405
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-3/old-a",
+        "point": 1,
+        "total_variation": 0.9004569036470883,
+        "maximum_absolute_difference": 0.7704204226301081,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.7988490409274147,
+            "right_probability": 0.02842861829730661
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.07197798956170615,
+            "right_probability": 0.002561478685236588
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06285685527711615,
+            "right_probability": 0.0022368851366056063
+          },
+          {
+            "world_position": [
+              115.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.00043478538045053705,
+            "right_probability": 0.02514693651834216
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.00043408997510751445,
+            "right_probability": 0.025106715952514066
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-3/old-a",
+        "point": 2,
+        "total_variation": 0.0,
+        "maximum_absolute_difference": 0.0,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.046759720417318955,
+            "right_probability": 0.046759720417318955
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06409255439369779,
+            "right_probability": 0.06409255439369779
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.613121811257405,
+            "right_probability": 0.613121811257405
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0013405954108314292,
+            "right_probability": 0.0013405954108314292
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 8.564741475530816e-05,
+            "right_probability": 8.564741475530816e-05
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "point": 0,
+        "total_variation": 0.06352555254362995,
+        "maximum_absolute_difference": 0.02351317686055504,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.1404605806648458,
+          0.0875021082774637
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.3857172929502202,
+            "right_probability": 0.40923046981077527
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.36173340439508617,
+            "right_probability": 0.3837845326938893
+          },
+          {
+            "world_position": [
+              180.0,
+              63.0,
+              360.0
+            ],
+            "material": 4378,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.00036595302343377095,
+            "right_probability": 0.004046795966027099
+          },
+          {
+            "world_position": [
+              177.0,
+              60.0,
+              357.0
+            ],
+            "material": 4381,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.000364833400841924,
+            "right_probability": 0.004034414911908062
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.047544068998934805,
+            "right_probability": 0.050442337039996316
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "point": 1,
+        "total_variation": 0.1391122967099003,
+        "maximum_absolute_difference": 0.11591362833616814,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.7988490409274147,
+            "right_probability": 0.6829354125912466
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.07197798956170615,
+            "right_probability": 0.061533926286929955
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06285685527711615,
+            "right_probability": 0.05373627580879334
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.0010607942169818744,
+            "right_probability": 0.0038691371770864322
+          },
+          {
+            "world_position": [
+              103.0,
+              89.0,
+              319.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.0010442124379900894,
+            "right_probability": 0.003808656853445638
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "point": 2,
+        "total_variation": 0.0005141348903988894,
+        "maximum_absolute_difference": 0.000315677548070048,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.613121811257405,
+            "right_probability": 0.6128061337093349
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 8.564741475530816e-05,
+            "right_probability": 0.0003861077135236787
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0013405954108314292,
+            "right_probability": 0.0015542700024620485
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.27459967110599154,
+            "right_probability": 0.2744582881878112
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06409255439369779,
+            "right_probability": 0.06405955511027797
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/world-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "point": 0,
+        "total_variation": 0.0,
+        "maximum_absolute_difference": 0.0,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.14412225677611845,
+          0.14412225677611845
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.33371164415015303,
+            "right_probability": 0.33371164415015303
+          },
+          {
+            "world_position": [
+              211.0,
+              43.0,
+              319.0
+            ],
+            "material": 5325,
+            "mass": 0.2349238246679306,
+            "left_probability": 0.0014097769930254246,
+            "right_probability": 0.0014097769930254246
+          },
+          {
+            "world_position": [
+              220.0,
+              29.0,
+              322.0
+            ],
+            "material": 4377,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0018889944025655976,
+            "right_probability": 0.0018889944025655976
+          },
+          {
+            "world_position": [
+              204.0,
+              60.0,
+              359.0
+            ],
+            "material": 5325,
+            "mass": 0.2349238246679306,
+            "left_probability": 0.0025774983599891003,
+            "right_probability": 0.0025774983599891003
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.06253591890316808,
+            "right_probability": 0.06253591890316808
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/world-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "point": 1,
+        "total_variation": 0.0,
+        "maximum_absolute_difference": 0.0,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              95.0,
+              88.0,
+              307.0
+            ],
+            "material": 5325,
+            "mass": 0.2349238246679306,
+            "left_probability": 0.00046954934574918144,
+            "right_probability": 0.00046954934574918144
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.00957678687438601,
+            "right_probability": 0.00957678687438601
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              319.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0036497896130305322,
+            "right_probability": 0.0036497896130305322
+          },
+          {
+            "world_position": [
+              105.0,
+              90.0,
+              309.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.007008746776523662,
+            "right_probability": 0.007008746776523662
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              322.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0001059161441986806,
+            "right_probability": 0.0001059161441986806
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/world-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "point": 2,
+        "total_variation": 0.0,
+        "maximum_absolute_difference": 0.0,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.044121264687785725,
+            "right_probability": 0.044121264687785725
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06047607923406791,
+            "right_probability": 0.06047607923406791
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.5785259081729476,
+            "right_probability": 0.5785259081729476
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.027615761453234102,
+            "right_probability": 0.027615761453234102
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.03015582791130475,
+            "right_probability": 0.03015582791130475
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 0,
+        "total_variation": 0.02929609427419173,
+        "maximum_absolute_difference": 0.02929609427419181,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.14412225677611845,
+          0.14862612983820145
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.06253591890316808,
+            "right_probability": 0.03323982462897627
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.33371164415015303,
+            "right_probability": 0.34414025467993453
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.3129614651223209,
+            "right_probability": 0.3227416249932842
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.0411337778347171,
+            "right_probability": 0.042419223386817195
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.03406690177997057,
+            "right_probability": 0.03513150487922527
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 1,
+        "total_variation": 0.0,
+        "maximum_absolute_difference": 0.0,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              95.0,
+              88.0,
+              307.0
+            ],
+            "material": 5325,
+            "mass": 0.2349238246679306,
+            "left_probability": 0.00046954934574918144,
+            "right_probability": 0.00046954934574918144
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.00957678687438601,
+            "right_probability": 0.00957678687438601
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              319.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0036497896130305322,
+            "right_probability": 0.0036497896130305322
+          },
+          {
+            "world_position": [
+              105.0,
+              90.0,
+              309.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.007008746776523662,
+            "right_probability": 0.007008746776523662
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              322.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0001059161441986806,
+            "right_probability": 0.0001059161441986806
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-2/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 2,
+        "total_variation": 0.013255520298289213,
+        "maximum_absolute_difference": 0.013255520298289285,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.03015582791130475,
+            "right_probability": 0.016900307613015465
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.5785259081729476,
+            "right_probability": 0.5864330154583964
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.25910515854065985,
+            "right_probability": 0.26264652506867675
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06047607923406791,
+            "right_probability": 0.06130264696414117
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.044121264687785725,
+            "right_probability": 0.0447243000376766
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/old-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "point": 0,
+        "total_variation": 0.7847462048021623,
+        "maximum_absolute_difference": 0.31091996547749384,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.9288684615782806,
+          0.14412225677611845
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.02279167867265919,
+            "right_probability": 0.33371164415015303
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.02137449284443647,
+            "right_probability": 0.3129614651223209
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 7.997391965400214e-06,
+            "right_probability": 0.06253591890316808
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.002809335135394895,
+            "right_probability": 0.0411337778347171
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.002326685005911187,
+            "right_probability": 0.03406690177997057
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/old-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "point": 1,
+        "total_variation": 0.6760769097662587,
+        "maximum_absolute_difference": 0.3441478719624152,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.02842861829730661,
+            "right_probability": 0.3725764902597218
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.002561478685236588,
+            "right_probability": 0.03356993042855521
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.0022368851366056063,
+            "right_probability": 0.02931590992551384
+          },
+          {
+            "world_position": [
+              115.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.02514693651834216,
+            "right_probability": 0.000144122535146848
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.025106715952514066,
+            "right_probability": 0.00014389202238009578
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/old-a",
+        "right": "light-sampling-failure-moving-3/world-a",
+        "point": 2,
+        "total_variation": 0.05634534653895214,
+        "maximum_absolute_difference": 0.03459590308445737,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.613121811257405,
+            "right_probability": 0.5785259081729476
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 8.564741475530816e-05,
+            "right_probability": 0.03015582791130475
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0013405954108314292,
+            "right_probability": 0.027615761453234102
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.27459967110599154,
+            "right_probability": 0.25910515854065985
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06409255439369779,
+            "right_probability": 0.06047607923406791
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "point": 0,
+        "total_variation": 0.8501493406976823,
+        "maximum_absolute_difference": 0.3864387911381161,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.9288684615782806,
+          0.0875021082774637
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.02279167867265919,
+            "right_probability": 0.40923046981077527
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.02137449284443647,
+            "right_probability": 0.3837845326938893
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.002809335135394895,
+            "right_probability": 0.050442337039996316
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.002326685005911187,
+            "right_probability": 0.041776229462769564
+          },
+          {
+            "world_position": [
+              180.0,
+              63.0,
+              360.0
+            ],
+            "material": 4378,
+            "mass": 0.5036237239837646,
+            "left_probability": 2.162382623707528e-05,
+            "right_probability": 0.004046795966027099
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "point": 1,
+        "total_variation": 0.7649786325678211,
+        "maximum_absolute_difference": 0.65450679429394,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.02842861829730661,
+            "right_probability": 0.6829354125912466
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.002561478685236588,
+            "right_probability": 0.061533926286929955
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.0022368851366056063,
+            "right_probability": 0.05373627580879334
+          },
+          {
+            "world_position": [
+              115.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.02514693651834216,
+            "right_probability": 0.0003497653134630476
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              321.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.025106715952514066,
+            "right_probability": 0.0003492058910934773
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/old-a",
+        "right": "light-sampling-failure-moving-4/old-a",
+        "point": 2,
+        "total_variation": 0.0005141348903988894,
+        "maximum_absolute_difference": 0.000315677548070048,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.613121811257405,
+            "right_probability": 0.6128061337093349
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 8.564741475530816e-05,
+            "right_probability": 0.0003861077135236787
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0013405954108314292,
+            "right_probability": 0.0015542700024620485
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.27459967110599154,
+            "right_probability": 0.2744582881878112
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06409255439369779,
+            "right_probability": 0.06405955511027797
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 0,
+        "total_variation": 0.02929609427419173,
+        "maximum_absolute_difference": 0.02929609427419181,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.14412225677611845,
+          0.14862612983820145
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.06253591890316808,
+            "right_probability": 0.03323982462897627
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.33371164415015303,
+            "right_probability": 0.34414025467993453
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.3129614651223209,
+            "right_probability": 0.3227416249932842
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.0411337778347171,
+            "right_probability": 0.042419223386817195
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.03406690177997057,
+            "right_probability": 0.03513150487922527
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 1,
+        "total_variation": 0.0,
+        "maximum_absolute_difference": 0.0,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              95.0,
+              88.0,
+              307.0
+            ],
+            "material": 5325,
+            "mass": 0.2349238246679306,
+            "left_probability": 0.00046954934574918144,
+            "right_probability": 0.00046954934574918144
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.00957678687438601,
+            "right_probability": 0.00957678687438601
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              319.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0036497896130305322,
+            "right_probability": 0.0036497896130305322
+          },
+          {
+            "world_position": [
+              105.0,
+              90.0,
+              309.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.007008746776523662,
+            "right_probability": 0.007008746776523662
+          },
+          {
+            "world_position": [
+              114.0,
+              78.0,
+              322.0
+            ],
+            "material": 5063,
+            "mass": 1.0,
+            "left_probability": 0.0001059161441986806,
+            "right_probability": 0.0001059161441986806
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-3/world-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 2,
+        "total_variation": 0.013255520298289213,
+        "maximum_absolute_difference": 0.013255520298289285,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.03015582791130475,
+            "right_probability": 0.016900307613015465
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.5785259081729476,
+            "right_probability": 0.5864330154583964
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.25910515854065985,
+            "right_probability": 0.26264652506867675
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06047607923406791,
+            "right_probability": 0.06130264696414117
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.044121264687785725,
+            "right_probability": 0.0447243000376766
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-4/old-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 0,
+        "total_variation": 0.1408009610681692,
+        "maximum_absolute_difference": 0.06509021513084073,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0875021082774637,
+          0.14862612983820145
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.40923046981077527,
+            "right_probability": 0.34414025467993453
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.3837845326938893,
+            "right_probability": 0.3227416249932842
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0007442731029995949,
+            "right_probability": 0.03323982462897627
+          },
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0023773959434794443,
+            "right_probability": 0.01211609695838374
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.050442337039996316,
+            "right_probability": 0.042419223386817195
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-4/old-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 1,
+        "total_variation": 0.3646081686188756,
+        "maximum_absolute_difference": 0.3103589223315248,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.6829354125912466,
+            "right_probability": 0.3725764902597218
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.061533926286929955,
+            "right_probability": 0.03356993042855521
+          },
+          {
+            "world_position": [
+              110.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.05373627580879334,
+            "right_probability": 0.02931590992551384
+          },
+          {
+            "world_position": [
+              104.0,
+              90.0,
+              317.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.0038691371770864322,
+            "right_probability": 0.00957678687438601
+          },
+          {
+            "world_position": [
+              103.0,
+              89.0,
+              319.0
+            ],
+            "material": 4308,
+            "mass": 1.0,
+            "left_probability": 0.003808656853445638,
+            "right_probability": 0.009427087563378914
+          }
+        ]
+      },
+      {
+        "left": "light-sampling-failure-moving-4/old-a",
+        "right": "light-sampling-failure-moving-4/world-a",
+        "point": 2,
+        "total_variation": 0.04295313475512329,
+        "maximum_absolute_difference": 0.026438934855631306,
+        "support_changes": 0,
+        "zero_result_probabilities": [
+          0.0,
+          0.0
+        ],
+        "largest_light_changes": [
+          {
+            "world_position": [
+              172.0,
+              59.0,
+              376.0
+            ],
+            "material": 4384,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0015542700024620485,
+            "right_probability": 0.027993204858093354
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              364.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.6128061337093349,
+            "right_probability": 0.5864330154583964
+          },
+          {
+            "world_position": [
+              219.0,
+              39.0,
+              385.0
+            ],
+            "material": 4392,
+            "mass": 0.5036237239837646,
+            "left_probability": 0.0003861077135236787,
+            "right_probability": 0.016900307613015465
+          },
+          {
+            "world_position": [
+              115.0,
+              76.0,
+              366.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.2744582881878112,
+            "right_probability": 0.26264652506867675
+          },
+          {
+            "world_position": [
+              110.0,
+              75.0,
+              367.0
+            ],
+            "material": 10242,
+            "mass": 1.0,
+            "left_probability": 0.06405955511027797,
+            "right_probability": 0.06130264696414117
+          }
+        ]
+      }
+    ],
+    "fixed_input_offline": [
+      {
+        "source": "light-sampling-failure-moving-1/old-a",
+        "evidence": "Offline rebuild of a fixed subset of runtime brick subtrees; not a runtime equal-input pair.",
+        "world_slots": false,
+        "bricks": 113,
+        "emitters": 1182,
+        "excluded_bricks": 0,
+        "camera_bricks": [
+          [
+            7,
+            4,
+            22
+          ],
+          [
+            7,
+            5,
+            22
+          ]
+        ],
+        "same_semantic_topology": false,
+        "queries": [
+          {
+            "total_variation": 0.7702672086162763,
+            "maximum_absolute_difference": 0.35288481974002023,
+            "support_changes": 0,
+            "zero_result_probabilities": [
+              0.05609460415540585,
+              0.7571074679031145
+            ],
+            "largest_light_changes": [
+              {
+                "world_position": [
+                  110.0,
+                  76.0,
+                  364.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.37679627037663743,
+                "right_probability": 0.023911450636617187
+              },
+              {
+                "world_position": [
+                  110.0,
+                  75.0,
+                  367.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.35336709071092376,
+                "right_probability": 0.022424637424604342
+              },
+              {
+                "world_position": [
+                  115.0,
+                  76.0,
+                  366.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.04644445090938698,
+                "right_probability": 9.15553167490641e-05
+              },
+              {
+                "world_position": [
+                  115.0,
+                  76.0,
+                  364.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.03846518921049239,
+                "right_probability": 7.582590628211167e-05
+              },
+              {
+                "world_position": [
+                  235.0,
+                  38.0,
+                  311.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.002793222035439482,
+                "right_probability": 0.004256528137244897
+              }
+            ]
+          },
+          {
+            "total_variation": 0.9017478850115744,
+            "maximum_absolute_difference": 0.7975407537071102,
+            "support_changes": 0,
+            "zero_result_probabilities": [
+              0.0,
+              0.0
+            ],
+            "largest_light_changes": [
+              {
+                "world_position": [
+                  115.0,
+                  76.0,
+                  366.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.7988490409274147,
+                "right_probability": 0.0013082872203045125
+              },
+              {
+                "world_position": [
+                  110.0,
+                  78.0,
+                  320.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.00016899544515981736,
+                "right_probability": 0.3060782933626633
+              },
+              {
+                "world_position": [
+                  115.0,
+                  76.0,
+                  364.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.07197798956170615,
+                "right_probability": 0.00011787944788350576
+              },
+              {
+                "world_position": [
+                  110.0,
+                  76.0,
+                  364.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.06285685527711615,
+                "right_probability": 0.030509834086474626
+              },
+              {
+                "world_position": [
+                  111.0,
+                  78.0,
+                  319.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.00026021915096176496,
+                "right_probability": 0.029755018804063216
+              }
+            ]
+          },
+          {
+            "total_variation": 0.8330028782836197,
+            "maximum_absolute_difference": 0.5751326235628955,
+            "support_changes": 0,
+            "zero_result_probabilities": [
+              0.0,
+              0.0
+            ],
+            "largest_light_changes": [
+              {
+                "world_position": [
+                  115.0,
+                  76.0,
+                  364.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.613121811257405,
+                "right_probability": 0.03798918769450941
+              },
+              {
+                "world_position": [
+                  110.0,
+                  75.0,
+                  367.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.06409255439369779,
+                "right_probability": 0.5447506015382891
+              },
+              {
+                "world_position": [
+                  110.0,
+                  76.0,
+                  364.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.046759720417318955,
+                "right_probability": 0.3974312783452022
+              },
+              {
+                "world_position": [
+                  115.0,
+                  76.0,
+                  366.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.27459967110599154,
+                "right_probability": 0.017014267401615088
+              },
+              {
+                "world_position": [
+                  219.0,
+                  39.0,
+                  385.0
+                ],
+                "material": 4392,
+                "mass": 0.5036237239837646,
+                "left_probability": 0.001131129233419364,
+                "right_probability": 0.0028044024445645324
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "source": "light-sampling-failure-moving-1/old-a",
+        "evidence": "Offline rebuild of a fixed subset of runtime brick subtrees; not a runtime equal-input pair.",
+        "world_slots": true,
+        "bricks": 113,
+        "emitters": 1182,
+        "excluded_bricks": 0,
+        "camera_bricks": [
+          [
+            7,
+            4,
+            22
+          ],
+          [
+            7,
+            5,
+            22
+          ]
+        ],
+        "same_semantic_topology": true,
+        "queries": [
+          {
+            "total_variation": 0.0,
+            "maximum_absolute_difference": 0.0,
+            "support_changes": 0,
+            "zero_result_probabilities": [
+              0.11654540294679663,
+              0.11654540294679663
+            ],
+            "largest_light_changes": [
+              {
+                "world_position": [
+                  235.0,
+                  38.0,
+                  309.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.0037997784416695943,
+                "right_probability": 0.0037997784416695943
+              },
+              {
+                "world_position": [
+                  239.0,
+                  38.0,
+                  306.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.0035322465322311218,
+                "right_probability": 0.0035322465322311218
+              },
+              {
+                "world_position": [
+                  235.0,
+                  38.0,
+                  303.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.0031499105228068197,
+                "right_probability": 0.0031499105228068197
+              },
+              {
+                "world_position": [
+                  234.0,
+                  38.0,
+                  304.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.003449937080394026,
+                "right_probability": 0.003449937080394026
+              },
+              {
+                "world_position": [
+                  236.0,
+                  38.0,
+                  311.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.003944812889225566,
+                "right_probability": 0.003944812889225566
+              }
+            ]
+          },
+          {
+            "total_variation": 0.0,
+            "maximum_absolute_difference": 0.0,
+            "support_changes": 0,
+            "zero_result_probabilities": [
+              0.0,
+              0.0
+            ],
+            "largest_light_changes": [
+              {
+                "world_position": [
+                  95.0,
+                  88.0,
+                  307.0
+                ],
+                "material": 5325,
+                "mass": 0.2349238246679306,
+                "left_probability": 0.00046954934574918144,
+                "right_probability": 0.00046954934574918144
+              },
+              {
+                "world_position": [
+                  104.0,
+                  90.0,
+                  317.0
+                ],
+                "material": 4308,
+                "mass": 1.0,
+                "left_probability": 0.00957678687438601,
+                "right_probability": 0.00957678687438601
+              },
+              {
+                "world_position": [
+                  114.0,
+                  78.0,
+                  319.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.0036497896130305322,
+                "right_probability": 0.0036497896130305322
+              },
+              {
+                "world_position": [
+                  105.0,
+                  90.0,
+                  309.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.007008746776523662,
+                "right_probability": 0.007008746776523662
+              },
+              {
+                "world_position": [
+                  114.0,
+                  78.0,
+                  322.0
+                ],
+                "material": 5063,
+                "mass": 1.0,
+                "left_probability": 0.0001059161441986806,
+                "right_probability": 0.0001059161441986806
+              }
+            ]
+          },
+          {
+            "total_variation": 0.0,
+            "maximum_absolute_difference": 0.0,
+            "support_changes": 0,
+            "zero_result_probabilities": [
+              0.0,
+              0.0
+            ],
+            "largest_light_changes": [
+              {
+                "world_position": [
+                  110.0,
+                  76.0,
+                  364.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.043915293850056,
+                "right_probability": 0.043915293850056
+              },
+              {
+                "world_position": [
+                  110.0,
+                  75.0,
+                  367.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.060193759386924034,
+                "right_probability": 0.060193759386924034
+              },
+              {
+                "world_position": [
+                  115.0,
+                  76.0,
+                  364.0
+                ],
+                "material": 10242,
+                "mass": 1.0,
+                "left_probability": 0.5758251817364336,
+                "right_probability": 0.5758251817364336
+              },
+              {
+                "world_position": [
+                  172.0,
+                  59.0,
+                  376.0
+                ],
+                "material": 4384,
+                "mass": 0.5036237239837646,
+                "left_probability": 0.03460314701049448,
+                "right_probability": 0.03460314701049448
+              },
+              {
+                "world_position": [
+                  219.0,
+                  39.0,
+                  385.0
+                ],
+                "material": 4392,
+                "mass": 0.5036237239837646,
+                "left_probability": 0.027567037372674064,
+                "right_probability": 0.027567037372674064
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "mathematical_cases": 45,
+    "matched_world_receiver_count": 24,
+    "complete_matched_world_receiver_count": 24,
+    "wrap_counterexample": [
+      {
+        "world_slots": false,
+        "first_joint_cluster_depth": 1,
+        "cluster_extent": [
+          241.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "world_slots": true,
+        "first_joint_cluster_depth": 5,
+        "cluster_extent": [
+          241.0,
+          1.0,
+          1.0
+        ]
+      }
+    ]
+  },
+  "compile": {
+    "file": "compile-smoke.json",
+    "success": true,
+    "configurations": [
+      "grid16-four-model1",
+      "grid32-binary-model4",
+      "grid64-eight-model5",
+      "ordinary-experiment-off"
+    ],
+    "receipt_status": "all OK"
+  },
+  "timing": {
+    "order": [
+      "old",
+      "world",
+      "world",
+      "old"
+    ],
+    "warmup": 128,
+    "measured_frames": 128,
+    "preset": "light-sampling-failure-moving-4",
+    "cases": [
+      {
+        "method": "old",
+        "build_programs": [
+          "prepare6_compute",
+          "prepare7_compute",
+          "prepare8_compute",
+          "prepare9_compute",
+          "prepare10_compute",
+          "prepare11_compute",
+          "prepare12_compute",
+          "prepare13_compute",
+          "prepare14_compute",
+          "prepare15_compute",
+          "prepare16_compute",
+          "prepare17_compute",
+          "prepare18_compute",
+          "prepare19_compute"
+        ],
+        "build": {
+          "mean_ms": 0.17809599999999998,
+          "p50_ms": 0.141312,
+          "p95_ms": 0.4557823999999997
+        },
+        "initial": {
+          "mean_ms": 2.2517760000000004,
+          "p50_ms": 2.00192,
+          "p95_ms": 2.9992447999999996
+        },
+        "prepare_total": {
+          "mean_ms": 0.741184,
+          "p50_ms": 0.62976,
+          "p95_ms": 1.2597759999999993
+        },
+        "sky_lut": {
+          "mean_ms": 0.14245599999999997,
+          "p50_ms": 0.142336,
+          "p95_ms": 0.14336
+        }
+      },
+      {
+        "method": "world",
+        "build_programs": [
+          "prepare6_compute",
+          "prepare7_compute",
+          "prepare8_compute",
+          "prepare9_compute",
+          "prepare10_compute",
+          "prepare11_compute",
+          "prepare12_compute",
+          "prepare13_compute",
+          "prepare14_compute",
+          "prepare15_compute",
+          "prepare16_compute",
+          "prepare17_compute",
+          "prepare18_compute",
+          "prepare19_compute"
+        ],
+        "build": {
+          "mean_ms": 0.160056,
+          "p50_ms": 0.141312,
+          "p95_ms": 0.3607552
+        },
+        "initial": {
+          "mean_ms": 2.0980879999999997,
+          "p50_ms": 1.983488,
+          "p95_ms": 2.717183999999999
+        },
+        "prepare_total": {
+          "mean_ms": 0.666456,
+          "p50_ms": 0.59904,
+          "p95_ms": 1.038592
+        },
+        "sky_lut": {
+          "mean_ms": 0.142256,
+          "p50_ms": 0.142336,
+          "p95_ms": 0.14336
+        }
+      },
+      {
+        "method": "world",
+        "build_programs": [
+          "prepare6_compute",
+          "prepare7_compute",
+          "prepare8_compute",
+          "prepare9_compute",
+          "prepare10_compute",
+          "prepare11_compute",
+          "prepare12_compute",
+          "prepare13_compute",
+          "prepare14_compute",
+          "prepare15_compute",
+          "prepare16_compute",
+          "prepare17_compute",
+          "prepare18_compute",
+          "prepare19_compute"
+        ],
+        "build": {
+          "mean_ms": 0.177368,
+          "p50_ms": 0.141312,
+          "p95_ms": 0.44456959999999923
+        },
+        "initial": {
+          "mean_ms": 2.133088,
+          "p50_ms": 1.985536,
+          "p95_ms": 2.6646015999999997
+        },
+        "prepare_total": {
+          "mean_ms": 0.6631199999999999,
+          "p50_ms": 0.584704,
+          "p95_ms": 1.0490367999999999
+        },
+        "sky_lut": {
+          "mean_ms": 0.14500799999999997,
+          "p50_ms": 0.142336,
+          "p95_ms": 0.144384
+        }
+      },
+      {
+        "method": "old",
+        "build_programs": [
+          "prepare6_compute",
+          "prepare7_compute",
+          "prepare8_compute",
+          "prepare9_compute",
+          "prepare10_compute",
+          "prepare11_compute",
+          "prepare12_compute",
+          "prepare13_compute",
+          "prepare14_compute",
+          "prepare15_compute",
+          "prepare16_compute",
+          "prepare17_compute",
+          "prepare18_compute",
+          "prepare19_compute"
+        ],
+        "build": {
+          "mean_ms": 0.169432,
+          "p50_ms": 0.139264,
+          "p95_ms": 0.3720192
+        },
+        "initial": {
+          "mean_ms": 2.12948,
+          "p50_ms": 2.000384,
+          "p95_ms": 2.6610176
+        },
+        "prepare_total": {
+          "mean_ms": 0.6504639999999999,
+          "p50_ms": 0.579072,
+          "p95_ms": 1.0266624
+        },
+        "sky_lut": {
+          "mean_ms": 0.14970399999999998,
+          "p50_ms": 0.142336,
+          "p95_ms": 0.150528
+        }
+      }
+    ],
+    "conclusion": "No credible speedup claim; overlapping build medians and drifting mean tails."
+  },
+  "nonfinite": "Moving 1 World A has two nonfinite and incomplete pixels, excluded from common mask. See comparison-results.json. Raw data unchanged; nan_to_num used only for display.",
+  "limitations": [
+    "Static poses are not continuous motion or a first-crossing-frame capture.",
+    "32-frame means do not establish convergence or bias.",
+    "Screen guard ROIs are not proven world-space seam clusters.",
+    "Initial old captures for poses 1-3 had input drift and were excluded; repeat captures matched old/world inputs.",
+    "Timing is a single ABBA round; tail drift prevents a reliable speedup claim.",
+    "Quality/timing use controlled grid16, not default-grid64 quality evidence.",
+    "Guard screen regions are not isolated proofs that wrapping alone caused the variance regressions.",
+    "Pose 1->2 and 3->4 genuinely change emitter and voxel inputs (1182->1136 and 1136->1083 lights); equal-input stability does not cover those crossings."
+  ],
+  "worker": {
+    "session_id": "session-60136-21",
+    "task_id": "task-60136-22",
+    "model": "gpt-6.1-terra",
+    "effort": "medium",
+    "service_tier": "priority",
+    "verified": "Parent Pyxis effective_config.native"
+  },
+  "artifacts_sha256": {
+    "worker-result.json": "64108d712795c7e58d72c2e842bf888004a4dc717f0bb0c4037472531caffc8a",
+    "cases.json": "7a4c2491f8aaf94b78c3262a2b8c80587e185d3aac3f1cc22156ed357d7cd011",
+    "hashes.json": "e8b62951281212414eb59229e659006daa2917435e339aabadb50b06f47b3e8e",
+    "moving-analysis.json": "cfe7cabd62aacba76aebccaa729347960d14c8911adc5e5368aad61e567306f1",
+    "moving-analysis-initial-cohort.json": "0b2b990ce79d75005e6763010a8c274b6585a5d62675578d22a0cae77d9d4f4f",
+    "analysis.json": "599223a38d09f1203176a3ef0b553250f1005038d5b78557d347101af17212ac",
+    "comparison.html": "f4b034a3ab44dfd6b67ce8b5fcccdb604e29cd36a33fef1aa1aeb92e7ce49b75",
+    "comparison-report.md": "ad00caa5396db7b06bdaf763c384605915a48017b8afc9cd3dafe3c345ed4c55",
+    "browser-qa.json": "6a974b7075ba36d45290237d1f7cf07a4f602fdd726b0a2636e7b440e96f9113",
+    "browser-qa.png": "06b2a4459539f065a43ffdad8bde304b58c2c7aaab112545a95b3fd1aeb797b5",
+    "compile-smoke.json": "6b7d59e82f1735a899c2348f9c79dc7465e79e7845e10d40ce69d1f2bd0ea06b",
+    "timing-summary.json": "949fd40b3f5e9aaf1acae07fc402b435e4794ac0502d013fed1f06acd52ad0d3"
+  },
+  "complete_pmf_artifacts_sha256": {
+    "pmfs/light-sampling-failure-moving-1-old-a-point0.npz": "e540ea3af215097908b34548f3d968125c0e241f32dffc59fd3c962f5e092f8f",
+    "pmfs/light-sampling-failure-moving-1-old-a-point1.npz": "34109eddc9dc6a0a6b609a440c9fcf6e68d34d27884a2bf3cedf81168719985d",
+    "pmfs/light-sampling-failure-moving-1-old-a-point2.npz": "e8e8e9f9c10d4a93f0def9b55b50adc4ed0a00c39643c2954ea9435325985b6c",
+    "pmfs/light-sampling-failure-moving-1-world-a-point0.npz": "ea60492ba6dae64e083b9249ba2815c93333bd21f1e070520e6653f779b15a36",
+    "pmfs/light-sampling-failure-moving-1-world-a-point1.npz": "a83c243775273d1caf724f5723d8ee07b0943297943c01f15a81b64931747e67",
+    "pmfs/light-sampling-failure-moving-1-world-a-point2.npz": "f4cfa13706b7f5fe8f6c2587b45ca0083fc70d8ea1bfb8073afceec49d80433d",
+    "pmfs/light-sampling-failure-moving-2-old-a-point0.npz": "cacaddb62c5016701c64c8d6c760ab0a37f9b5b906c87acf79140f06d82aecb0",
+    "pmfs/light-sampling-failure-moving-2-old-a-point1.npz": "e7744bc4df7d0984297653c3573e06189af7d5d9f41de374d0df0786d8dd5fc2",
+    "pmfs/light-sampling-failure-moving-2-old-a-point2.npz": "22a03054653c7e03f01c3f77a12c4eb28a0561c47973b01ffee223b8183e294a",
+    "pmfs/light-sampling-failure-moving-2-world-a-point0.npz": "52d92f2b309aeb6914d6f1b256b3cf00d5e491e73b0a2cd41b5627a2cd7df388",
+    "pmfs/light-sampling-failure-moving-2-world-a-point1.npz": "6d8e96510efb977b0cfb8cd5e25601c2a7b4cc9a4f2044b9e51b59dde27ff646",
+    "pmfs/light-sampling-failure-moving-2-world-a-point2.npz": "3872c6258af77856501d84c65fc6b190a9d42debba75906198556a8dcd2d2ee4",
+    "pmfs/light-sampling-failure-moving-3-old-a-point0.npz": "c76b8d769e357940877eb33a98d112dd420032c64ceb966ec548ca91d74c9961",
+    "pmfs/light-sampling-failure-moving-3-old-a-point1.npz": "a0da1d434106e60a3630f59ebd361588f911dd114398b379aeb06622c54eaee1",
+    "pmfs/light-sampling-failure-moving-3-old-a-point2.npz": "22a03054653c7e03f01c3f77a12c4eb28a0561c47973b01ffee223b8183e294a",
+    "pmfs/light-sampling-failure-moving-3-world-a-point0.npz": "52d92f2b309aeb6914d6f1b256b3cf00d5e491e73b0a2cd41b5627a2cd7df388",
+    "pmfs/light-sampling-failure-moving-3-world-a-point1.npz": "6d8e96510efb977b0cfb8cd5e25601c2a7b4cc9a4f2044b9e51b59dde27ff646",
+    "pmfs/light-sampling-failure-moving-3-world-a-point2.npz": "3872c6258af77856501d84c65fc6b190a9d42debba75906198556a8dcd2d2ee4",
+    "pmfs/light-sampling-failure-moving-4-old-a-point0.npz": "91aa7f56b16044b9a0235ac8d9dc098015b971e550a7c2193dc05b4943c25832",
+    "pmfs/light-sampling-failure-moving-4-old-a-point1.npz": "f7d4af3e64586c1c5d76771822dcdc017df4b5d6aa5defddac71d7b9a689b420",
+    "pmfs/light-sampling-failure-moving-4-old-a-point2.npz": "ffce0dcf33c1b144ffd9980bf3b22471a2f4736bab629cbde0056381a80c186c",
+    "pmfs/light-sampling-failure-moving-4-world-a-point0.npz": "1e65b6958c706db9ac013ec60eb3114eca94124148d92918c3a6053cb7f892e2",
+    "pmfs/light-sampling-failure-moving-4-world-a-point1.npz": "3d502b4157a568d6563c354c7abeb372846b444a517289851672a4d5716ccc42",
+    "pmfs/light-sampling-failure-moving-4-world-a-point2.npz": "d946691b0911213c378df1afd77dcd2700d287d2ba83ed643d066faaadde2d9b"
+  }
+}

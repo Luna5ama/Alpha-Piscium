@@ -2,6 +2,25 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-moving-stability-prompt.md)
 
+## Results (2026-10-31, pending independent review)
+
+The minimal candidate is committed as `0d1629ae`, with frozen old source `6d69b145`. The [result index](../../../experiments/light-sampling/20261031-moving-stability.json) and [24-image viewer](../../../builds/light-sampling/20261031-moving-stability/comparison.html) preserve old A, new A and Cosine BRDF for all four presets, with 1 spp and 32 consecutive-frame means.
+Quality and timing retain the existing controlled G=16 baseline. The shader default G=64, which the presets do not override, receives compilation coverage only; this is not G=64 quality validation.
+The first three old-A captures with drifting inputs are preserved and excluded. After targeted recapture, each pose has matching old/new emitters and complete world-voxel inputs. Poses 2→3 also share actual emitters and occluders across the y-brick crossing: old semantic topology changes, with full-PMF TV distances about 0.789/0.900 at two fixed world points; new topology matches and all three points have zero TV.
+Poses 1→2 and 3→4 have actual window emitter and voxel-input changes (1182→1136 and 1136→1083 emitters). Those fall outside the equal-input invariance guarantee, so this does not establish that every positional discontinuity is removed.
+The [world-space diagnostic](../../../scripts/light_sampling_moving_analysis.py) restores voxel positions using actual G and reconstructed camera coordinates, rather than comparing raw slots or memory hashes across cameras. Three receivers match by world position, normal, material and albedo; all 24 checks have 32 complete samples.
+
+| Preset suffix | New/old whole-image RGB sample variance | Quality assessment |
+|---------------|----------------------------------------|--------------------|
+| 1 | 3.376 | Significant regression |
+| 2 | 3.839 | Significant regression |
+| 3 | 0.0642 | Large improvement with local regressions |
+| 4 | 1.900 | Significant regression |
+
+Forty-five offline checks cover three G values, binary/four/eight-way branching, negative coordinates, empty/single-light cases and complete PMFs across boundaries. Eight real trees pass bounds, mass, sampled-PDF and conditional-emitter-PDF audits. Target Iris compilation covers default four-way, binary/eight-way 48B configurations on grids 32/64, and experiment-off.
+The wrapping counterexample moves a 241-block-wide joint cluster from depth 1 to depth 5; stability does not establish quality acceptance. Representative ABBA timing records all 14 build kernels, initial, shared prepare and sky LUT; median build time is about 0.139–0.141 ms, without a credible speedup conclusion. Rare nonfinite RGB events are reported separately and excluded through a common complete-pixel mask.
+The mechanism is validated with significant quality tradeoffs, so periodic grouping is not recommended for unconditional acceptance. Continuous motion and the first crossing frame remain untested. The 32-frame variance is not converged error or proof about brightness bias. Preserve the candidate and originals for discussion-side review without expanding the redesign.
+
 ## Authorization, starting point and delivery
 
 In discussion chat `01a18c0e-8678-7800-8ab8-04b69f072f12`, turn `01a1947c-4f4f-7f21-bca6-465fe2a724af`, the user explicitly requested:

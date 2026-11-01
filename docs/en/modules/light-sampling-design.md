@@ -88,7 +88,9 @@ Current brick boundaries align to world 16-block cells, but outer light-tree gro
 The candidate only publishes light-tree brick roots into world-brick-coordinate modulo-G Morton slots, preserving the voxel window, brick-local subtrees, A weights, 32B nodes and actual PDFs.
 Grouping should remain stable for the same emitter set; periodic wrapping can enlarge cluster AABBs and still requires quality checks. Input-set changes are outside that invariance guarantee.
 The [motion stability prompt](light-sampling-moving-stability-prompt.md) records the derivation, counterexample, four preset identities, implementation scope and return notification.
-The design is ready; implementation and runtime validation remain with the experiment chat. This does not establish a repaired discontinuity or reopen H-PLOC.
+The candidate is implemented in `0d1629ae` and targeted experiments are complete, pending independent discussion-side review. In the real equal-input pose 2→3 pair, the old topology and two fixed-world-point PMFs change substantially; the new topology matches and all three diagnostic full PMFs have zero difference.
+Quality has not passed overall: new/old common-complete-pixel RGB variance ratios are 3.376, 3.839, 0.0642 and 1.900 across the four presets. Retain the candidate for review without recommending unconditional acceptance. Static poses do not validate continuous motion or the first crossing frame.
+See the [motion stability results](../../../experiments/light-sampling/20261031-moving-stability.json) and [viewer](../../../builds/light-sampling/20261031-moving-stability/comparison.html) for originals, wrapping counterexamples, PDF audits, compilation and representative costs. This does not reopen H-PLOC or expand into another algorithm experiment.
 
 ## Architecture reassessment (2026-10-30)
 
