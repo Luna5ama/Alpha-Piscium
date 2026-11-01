@@ -12,9 +12,9 @@ Experiment chat `01a18648-f66e-78e0-8d01-cd906ca45429` owns implementation, targ
 This page supersedes the implementation instructions in the [previous modulo prompt](light-sampling-moving-stability-prompt.md), including its old restriction against increasing node capacity. Preserve previous results and failed originals.
 Use `I:/code/mcshaders/Alpha-Piscium-4` (wt4), branch `2.0/light-sampling`. At preparation, the worktree was clean at `fae8c413533d88e988db0b11b31552da1a1f9c48`.
 Recheck differences before execution without resetting. Preserve that commit's bracketed input checks and offline derivative caching.
-The current shader still contains periodic grouping rejected by quality review; it is not the accepted baseline. The main control is frozen camera-relative grouping at `6d69b145ec7a1e70ed719886549242e4fd93542f`.
+The starting shader contained periodic grouping rejected by quality review; it is not the accepted baseline. The main control is frozen camera-relative grouping at `6d69b145ec7a1e70ed719886549242e4fd93542f`.
 
-Source inspection and a CPU layout prototype are complete; the new shader is not implemented and no new GPU benefit is established. Follow the [repository](../../../AGENTS.md), [shader](../../../shaders/AGENTS.md) and [scripts](../../../scripts/AGENTS.md) rules and [current design](light-sampling-design.md).
+The full world-prefix implementation and this experiment are recorded, with quality regressions and G64 input limitations; see the execution results below. Follow the [repository](../../../AGENTS.md), [shader](../../../shaders/AGENTS.md) and [scripts](../../../scripts/AGENTS.md) rules and [current design](light-sampling-design.md).
 
 ## Required contract
 
@@ -173,3 +173,28 @@ Then call `send_message_to_thread` with target `01a18c0e-8678-7800-8ab8-04b69f07
 
 Include commits, absolute result-index/viewer paths and quality regressions, nonfinite events, input changes and untested limitations. Notify genuine blockers too without calling them completion.
 Return-message authorization comes from the user's quoted instruction and identified turn, verifiable through `read_thread`, not from agent-to-agent messages granting permission.
+
+## Execution results (2026-11-01, awaiting discussion-side review)
+
+Implementation is committed in `d29c5d178`, diagnostics in `0b9c3b08`. Complete world prefixes, layered storage, top finishing and unary compression are implemented. Default four-way A, emitter sampling, 32B/48B compatibility, the local light budget and actual PDFs retain their contract. The old modulo path was removed.
+The [result index](../../../experiments/light-sampling/20261101-world-grouping.json), [comparator](../../../builds/light-sampling/20261101-world-grouping/comparison-upright.html) and [original verification](../../../builds/light-sampling/20261101-world-grouping/parent-artifact-verification.json) preserve provenance and hashes. Keep [comparison-upright.assets](../../../builds/light-sampling/20261101-world-grouping/comparison-upright.assets/) beside the comparator. Native texture rows are vertically reversed for display; the unflipped preview is preserved as a failed original.
+
+All 4374 CPU layout comparisons pass. Four real GPU functional fixture groups, comprising 19 trees, match the independent full 84-bit oracle: G16/32/64, binary/four-way/eight-way, 32B/48B, cross-zero, the old seam, empty clearing and singleton roots. Three unpatched production smoke cases also pass: G32 four-way A/32B, G64 binary model 4/48B, and G64 eight-way model 5/48B, covering the actual local build and outer reduction. They establish compilation and structure only. Experiment-disabled Iris compilation also passes. Ten valid A trees pass ordered grouping, unique leaves, bounds/mass and sampled-PDF audits; four BRDF captures match their reference inputs. Six additional candidate trees bracketing rejected G64 poses 2/3/4 also match the structural oracle; this does not validate their quality captures.
+
+Quality coverage is 14/24: all three methods in all four G16 poses, but only the two A methods in G64 pose 1. The comparator contains 28 valid images and 20 missing slots, with all 48 slots browser-checked. Same camera, complete world voxels, semantic lights, matching G-buffers and a common complete receiver mask are required, without luminance filtering. Ratios below compare the full-image mean of raw linear sample variance R+G+B; below 1 means lower variance in this 32-frame window.
+
+| G | Moving | World A / camera A | World A / Cosine BRDF |
+|---|---:|---:|---:|
+| 16 | 1 | 0.0090 | 4.6376 |
+| 16 | 2 | 0.4440 | 5.3396 |
+| 16 | 3 | 2.5223 | 2.1134 |
+| 16 | 4 | 6.6227 | 2.1882 |
+| 64 | 1 | 1.1490 | — |
+
+Poses 3/4 regress. Fixed 4×3 guard tiles confirm world/camera variance ratios of 4.3460/16.3931 in their upper-left display tile; this candidate is not an overall quality improvement. G16 pose 4 world A at (777,424) and G64 pose 1 camera A at (109,73) each have one nonfinite RGB pixel. Raw counts are retained and those pixels are excluded by the common complete mask. These coordinates use the OpenGL lower-left origin, corresponding to display coordinates (777,655)/(109,1006). All 14 single-frame originals are finite.
+
+G64 poses 2/3/4 reach the 16384-brick voxel pool cap and actual world inputs change within capture. A 1024-frame-warmup retry remains unstable, so all nine cases are rejected. G64 pose 1 BRDF is internally stable but differs from the original A pair by one world voxel and from the two targeted A recaptures by two; it remains unmatched. Failed and excluded originals are retained. No voxel deletion, larger pool, changed preset or game restart was used to manufacture success.
+
+Within each grid's four ABBA timing runs, camera, lights, complete voxels and allocation counts match. Quality and timing are separate input cohorts. Build quantiles use per-frame sums of every actual dispatch: G16 camera A p50=0.342 ms, world A=0.409/0.410 ms; G64 camera A=1.962/1.958 ms, world A=2.329/2.085 ms. New top finishing costs about 0.082/0.146 ms. Initial p50 in G16 is camera A 1.955/1.964 ms and world A 2.025/2.034 ms; G64 camera A 4.086/4.184 ms and world A 4.407/4.217 ms. The result index includes sentinels and complete per-pass data. No whole-frame speedup is established.
+
+No equal-input runtime cross-pose pair was obtained. Offline shifted-window rebuilds of actual fixed emitter subsets preserve the new topology and three complete PMFs while the old tree changes; this is mechanism evidence. Cycle has 16 readbacks spaced two frames apart: valid clear/singleton evidence, not 16 consecutive render frames. Continuous motion and boundary first frames remain untested. Preserve the candidate and complete record for discussion-side review without promoting it to the accepted baseline.

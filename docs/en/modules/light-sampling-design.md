@@ -84,7 +84,7 @@ controls, add cuts/MIS/visibility guiding/H-PLOC, or relabel the old fixed-point
 ## Motion stability candidate (2026-10-31)
 
 The user supplied four `light-sampling-failure-moving-*` presets and authorized the experiment chat to implement a minimal repair, validate it and proactively request review from the discussion chat.
-Current brick boundaries align to world 16-block cells, but outer light-tree grouping uses Morton indices relative to the camera window and can change after a brick crossing.
+At that round's starting point, brick boundaries aligned to world 16-block cells, but outer light-tree grouping used Morton indices relative to the camera window and could change after a brick crossing.
 The candidate only publishes light-tree brick roots into world-brick-coordinate modulo-G Morton slots, preserving the voxel window, brick-local subtrees, A weights, 32B nodes and actual PDFs.
 Grouping should remain stable for the same emitter set; periodic wrapping can enlarge cluster AABBs and still requires quality checks. Input-set changes are outside that invariance guarantee.
 The [motion stability prompt](light-sampling-moving-stability-prompt.md) records the derivation, counterexample, four preset identities, implementation scope and return notification.
@@ -98,7 +98,7 @@ The user authorized replacing periodic modulo grouping, rerunning all four movin
 Complete world-brick prefixes define every parent cluster. Each layer stores only cells intersecting the current window; addresses subtract that layer's origin without changing parent-child identities.
 Each parent owns consecutive child slots. At most eight upper records continue merging along full world prefixes with unary-chain collapse, retaining current 32B nodes, default four-way A and emitter sampling.
 Capacity may vary with G/arity. World-coordinate keys and array indices are separate, without adding general sorting, a hash framework or a construction-mode option.
-The layout prototype passes 4374 CPU comparisons, but the new shader and GPU quality remain unverified. Retesting covers historical G16 and actual-default G64 separately against original camera-relative A and independent Cosine BRDF.
+World prefixes are implemented in `d29c5d178`; 4374 CPU layouts and four GPU functional fixture groups pass, but quality does not pass overall. G16 world/camera A full-image RGB variance ratios are0.0090/0.4440/2.5223/6.6227. G64 pose1 A ratio is1.1490 with unmatched BRDF; poses2/3/4 are blocked by real input drift at the full voxel pool. Eight ABBA runs record complete build and initial costs without establishing a speedup. Quality coverage is14/24 with28 valid images and explicit missing slots, awaiting discussion-side review. The [round result](../../../experiments/light-sampling/20261101-world-grouping.json) preserves provenance and limits.
 The [world-grouping design and prompt](light-sampling-world-grouping-prompt.md) governs implementation, capacity, raw evidence, branch checks and return notification. Preserve previous modulo results as failure evidence.
 
 ## Architecture reassessment (2026-10-30)
