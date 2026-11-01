@@ -121,18 +121,22 @@ class Tree:
 
     def work(self, q, crosses):
         reads = np.zeros((len(self.nodes), 2), dtype=int)
+        evaluations = np.zeros_like(reads)
         for i, children in enumerate(self.children):
             for child in children:
                 if len(self.children[child]) and crosses[child]:
                     reads[i, 0] += len(self.children[child])
                     reads[i, 1] += len(self.children[child])
+                    evaluations[i] += len(self.children[child]) - 1
                     for grandchild in self.children[child]:
                         if len(self.children[grandchild]) and crosses[grandchild]:
                             reads[i, 1] += len(self.children[grandchild])
-        return dict(scope='Static child-record reads implied by the offline definition, no GPU timing or reuse credit.',
+                            evaluations[i, 1] += len(self.children[grandchild]) - 1
+        return dict(scope='Naive static expansion without early parent-bound rejection or reuse; not GPU timing.',
                     eligible_candidates=int(sum(crosses[i] and len(self.children[i]) > 0 for i in range(1, len(self.nodes)))),
                     whole_tree_additional_reads=reads.sum(axis=0).tolist(),
-                    expected_additional_reads_per_sample=[float(q[:, 4 + k] @ reads[:, k]) for k in range(2)])
+                    expected_additional_reads_per_sample=[float(q[:, 4 + k] @ reads[:, k]) for k in range(2)],
+                    expected_additional_A_evaluations_per_sample=[float(q[:, 4 + k] @ evaluations[:, k]) for k in range(2)])
 
 
 def tree_variants(folder, fixture, layout, grid=16):
@@ -233,13 +237,15 @@ def analyze(run):
         else:
             identity = leaf_identity(folder / 'tree.bin', 1)
             assert hashlib.sha256(repr(identity).encode()).hexdigest() == fixture['leaf_mass_sha256']
-        for receiver in fixture['receivers']:
-            origin = np.asarray(receiver.get('origin_actual', receiver.get('origin')), float)
-            normal = np.asarray(receiver['normal'], float)
+        audit = np.fromfile(folder / 'audit.bin', '<f4')[:32].reshape(2, 4, 4).astype(float)
+        for point_index, receiver in enumerate(fixture['receivers']):
+            origin = audit[point_index, 0, :3]
+            normal = audit[point_index, 1, :3]
             for window in (1, 2):
                 name = f"{receiver['id']}-window{window}"
                 moments = np.load(resolve(dataset['moments']) / f'{name}.npz')
-                row = dict(dataset=dataset['id'], point=receiver['id'], window=window, camera=camera, trees={})
+                row = dict(dataset=dataset['id'], point=receiver['id'], window=window, camera=camera,
+                           origin=origin.tolist(), normal=normal.tolist(), albedo=audit[point_index, 2, :3].tolist(), trees={})
                 for variant, tree in trees.items():
                     row['trees'][variant] = score(tree, records, moments, origin, normal, output / f"{dataset['id']}-{name}-{variant}.npz")
                 def base(variant):
@@ -255,7 +261,7 @@ def analyze(run):
                         method['relative_camera_A'] = value / old_a if value is not None and old_a not in (None, 0) else None
                 results.append(row)
     (run / 'screening.json').write_text(json.dumps(results, indent=2, allow_nan=False) + '\n', encoding='utf-8')
-    return dict(points=sorted({row['point'] for row in results}), conditional_windows=len(results), output=str(run / 'screening.json'))
+    return dict(points=sorted({row['point'] for row in results}), point_window_rows=len(results), output=str(run / 'screening.json'))
 
 
 if __name__ == '__main__':
