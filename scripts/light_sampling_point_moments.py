@@ -164,6 +164,17 @@ def extract(folder, fixture, output, prefix='window'):
         assert int(audit[point, 0, 3]) == receiver.get('material', receiver.get('material_id'))
         assert audit[point, 3, :2].tolist() == receiver['raw_xy']
         assert int(audit[point, 3, 2]) == light_count and audit[point, 3, 3] == 3
+    for path in (folder / 'audit_between.bin', folder / 'audit_after.bin', folder / 'audit-after.bin'):
+        if not path.exists():
+            continue
+        later = np.fromfile(path, '<f4')[:32].reshape(2, 4, 4).astype(float)
+        assert np.all(later[:, 2, 3] == 1)
+        assert np.all(later[:, 0, 3] == audit[:, 0, 3])
+        assert np.allclose(later[:, 0, :3], audit[:, 0, :3], rtol=0, atol=.005)
+        assert np.all(np.sum(later[:, 1, :3] * audit[:, 1, :3], axis=1) > .999)
+        assert np.array_equal(later[:, 1, 3], audit[:, 1, 3])
+        assert np.allclose(later[:, 2, :3], audit[:, 2, :3], rtol=1e-6, atol=1e-7)
+        assert np.array_equal(later[:, 3], audit[:, 3])
     previous_end = -1
     output.mkdir(parents=True, exist_ok=True)
     for window in (1, 2):
