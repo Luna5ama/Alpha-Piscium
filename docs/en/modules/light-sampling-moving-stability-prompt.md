@@ -2,7 +2,7 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-moving-stability-prompt.md)
 
-## Results (2026-10-31, pending independent review)
+## Experiment submission (2026-10-31)
 
 The minimal candidate is committed as `0d1629ae`, with frozen old source `6d69b145`. The [result index](../../../experiments/light-sampling/20261031-moving-stability.json) and [24-image viewer](../../../builds/light-sampling/20261031-moving-stability/comparison.html) preserve old A, new A and Cosine BRDF for all four presets, with 1 spp and 32 consecutive-frame means.
 Quality and timing retain the existing controlled G=16 baseline. The shader default G=64, which the presets do not override, receives compilation coverage only; this is not G=64 quality validation.
@@ -19,7 +19,20 @@ The [world-space diagnostic](../../../scripts/light_sampling_moving_analysis.py)
 
 Forty-five offline checks cover three G values, binary/four/eight-way branching, negative coordinates, empty/single-light cases and complete PMFs across boundaries. Eight real trees pass bounds, mass, sampled-PDF and conditional-emitter-PDF audits. Target Iris compilation covers default four-way, binary/eight-way 48B configurations on grids 32/64, and experiment-off.
 The wrapping counterexample moves a 241-block-wide joint cluster from depth 1 to depth 5; stability does not establish quality acceptance. Representative ABBA timing records all 14 build kernels, initial, shared prepare and sky LUT; median build time is about 0.139–0.141 ms, without a credible speedup conclusion. Rare nonfinite RGB events are reported separately and excluded through a common complete-pixel mask.
-The mechanism is validated with significant quality tradeoffs, so periodic grouping is not recommended for unconditional acceptance. Continuous motion and the first crossing frame remain untested. The 32-frame variance is not converged error or proof about brightness bias. Preserve the candidate and originals for discussion-side review without expanding the redesign.
+The experiment submission validates the mechanism with significant quality tradeoffs and does not recommend unconditional acceptance of periodic grouping. Continuous motion and the first crossing frame remain untested. The 32-frame variance is not converged error or proof about brightness bias. The candidate and originals are preserved; discussion-side review follows.
+
+## Independent review (2026-10-31)
+
+Decision: equal-input stability passes, but the periodic-grouping candidate fails quality acceptance and is not promoted to the accepted baseline. The source implements the proposed minimal design faithfully; the quality cost belongs to that design rather than an experiment-agent deviation.
+The discussion chat inspected the six-line shader diff and original moving-2/3 mean images, then read saved raw data with an [independent script](../../../builds/light-sampling/20261031-moving-stability/parent_review.py), without calling the experiment analysis functions or capturing new GPU samples.
+The [independent results](../../../builds/light-sampling/20261031-moving-stability/parent-review.json) reconstruct the camera, world-voxel identities, semantic topology and full light-selection PMFs, and recompute all four variance ratios using the common complete-pixel mask across all three methods. All agree with the submission.
+
+Poses 2→3 contain the same 129606 nonempty world voxels. At the first fixed receiver, old A's null-sample probability jumps from 0.14046 to 0.92887; new A remains at 0.14412 on both sides.
+Here a null sample means traversal enters a branch whose later children all have zero weight, before any actual visibility test. It explains how regrouping wastes many samples, without proving brightness bias.
+The three old-A PMF TV distances are 0.78911, 0.90046 and 0; all new-A distances are 0. Stability holds, but the noise penalties in moving-1/2/4 still reject the candidate.
+
+Review covers only the existing G=16 static poses and 32-frame windows. G=64 quality, the first continuous-motion crossing frame, convergence and the cause of nonfinite samples remain unaccepted.
+This review changes records only, without reverting or editing shaders. The candidate remains on the experiment branch, and original failed captures and the viewer are preserved. A later design must preserve both world-space stability and actual spatial locality; stable periodic slots alone are insufficient for acceptance.
 
 ## Authorization, starting point and delivery
 

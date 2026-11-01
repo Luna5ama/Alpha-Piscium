@@ -1,8 +1,36 @@
 {
   "schema": 1,
-  "status": "implementation_and_targeted_experiment_complete_pending_independent_review",
+  "status": "independent_review_complete_quality_rejected",
   "quality_accepted": false,
-  "recommendation": "Do not unconditionally accept periodic grouping: moving-1, moving-2 and moving-4 have higher variance; moving-3 improves. Preserve candidate for independent review.",
+  "recommendation": "Do not promote periodic grouping to the accepted baseline: independent review confirms stability but rejects quality due to higher variance in moving-1, moving-2 and moving-4. Candidate and originals remain on the experiment branch; this review does not edit or revert shaders.",
+  "independent_review": {
+    "date": "2026-10-31",
+    "reviewer_thread": "01a18c0e-8678-7800-8ab8-04b69f072f12",
+    "mechanism_accepted": true,
+    "quality_accepted": false,
+    "scope": "Source inspection, original moving-2/3 mean-image inspection and independent saved raw-data recomputation; no new GPU captures.",
+    "result": "builds/light-sampling/20261031-moving-stability/parent-review.json",
+    "result_sha256": "82a65453dbf89511234b322cf8aa2ea6906f31fa948c7b684253d2a4c7ae6560",
+    "script": "builds/light-sampling/20261031-moving-stability/parent_review.py",
+    "script_sha256": "31dc0f6a154df70d4da66a4423bd321acf982c09c5924bd562d0eb60bfce6bf3",
+    "verified": [
+      "Source follows the minimal proposed design; no implementation deviation found.",
+      "Accepted capture receipts, revisions, G=16 settings and 32 consecutive frames.",
+      "Camera reconstruction and matching old/new world-voxel identities within each pose.",
+      "All four variance ratios and complete-pixel counts match independent recomputation.",
+      "Pose 2/3 world-voxel identities match; semantic topology and three complete PMFs are invariant only for the candidate."
+    ],
+    "pose23_first_receiver_null_probability": {
+      "old_a": [0.1404605806648458, 0.9288684615782806],
+      "world_a": [0.14412225677611845, 0.14412225677611845],
+      "meaning": "Light traversal terminates with all child weights zero before actual visibility testing; selection waste, not proof of bias."
+    },
+    "limits": [
+      "Quality covers G=16 static poses and short 32-frame windows, not G=64 or continuous motion.",
+      "No convergence, brightness-bias or nonfinite-sample root-cause acceptance.",
+      "Candidate remains in the experiment branch; this review edits records only."
+    ]
+  },
   "source_commits": {
     "baseline": "6d69b145ec7a1e70ed719886549242e4fd93542f",
     "plan": "e683e976410359967b7df878a79420a19424f8de",
