@@ -2,6 +2,8 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-moving-stability-prompt.md)
 
+This page preserves the 2026-10-31 modulo candidate and review. Its implementation task is superseded by the 2026-11-01 [complete world-coordinate grouping design](light-sampling-world-grouping-prompt.md); do not continue implementing its periodic keys or fixed-capacity restriction.
+
 ## Experiment submission (2026-10-31)
 
 The minimal candidate is committed as `0d1629ae`, with frozen old source `6d69b145`. The [result index](../../../experiments/light-sampling/20261031-moving-stability.json) and [24-image viewer](../../../builds/light-sampling/20261031-moving-stability/comparison.html) preserve old A, new A and Cosine BRDF for all four presets, with 1 spp and 32 consecutive-frame means.

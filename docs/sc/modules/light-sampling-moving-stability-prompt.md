@@ -2,6 +2,8 @@
 
 语言：简体中文 | [English](../../en/modules/light-sampling-moving-stability-prompt.md)
 
+本页保留 2026-10-31 取模候选及复查记录；其实施任务已被 2026-11-01 的[完整世界坐标分组方案](light-sampling-world-grouping-prompt.md)取代。后续不得继续按本页的周期键或固定容量限制实施。
+
 ## 实验提交结果（2026-10-31）
 
 最小候选已提交 `0d1629ae`；旧源码固定为 `6d69b145`。[结果索引](../../../experiments/light-sampling/20261031-moving-stability.json)和[24 图对比页](../../../builds/light-sampling/20261031-moving-stability/comparison.html)保留四个 preset 的旧 A、新 A、Cosine BRDF，以及 1 spp／32 连续帧均值。

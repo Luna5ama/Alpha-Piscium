@@ -92,6 +92,15 @@ The candidate is implemented in `0d1629ae`, with targeted experiments and indepe
 New/old common-complete-pixel RGB variance ratios are 3.376, 3.839, 0.0642 and 1.900 across the four presets, independently reproduced from raw data. At the first fixed point, the old tree's null-sample probability rises from 14.05% to 92.89% across the boundary; the new tree stays at 14.41%. This is selection waste, not proof of bias. The candidate remains on the experiment branch without promotion to the accepted baseline, and this review does not edit shaders. G=16 static poses do not validate G=64 quality or the first continuous-motion crossing frame.
 See the [motion stability results](../../../experiments/light-sampling/20261031-moving-stability.json) and [viewer](../../../builds/light-sampling/20261031-moving-stability/comparison.html) for originals, wrapping counterexamples, PDF audits, compilation and representative costs. This does not reopen H-PLOC or expand into another algorithm experiment.
 
+## Complete world-coordinate grouping implementation (2026-11-01)
+
+The user authorized replacing periodic modulo grouping, rerunning all four moving presets and having the experiment chat notify the discussion chat for review on completion.
+Complete world-brick prefixes define every parent cluster. Each layer stores only cells intersecting the current window; addresses subtract that layer's origin without changing parent-child identities.
+Each parent owns consecutive child slots. At most eight upper records continue merging along full world prefixes with unary-chain collapse, retaining current 32B nodes, default four-way A and emitter sampling.
+Capacity may vary with G/arity. World-coordinate keys and array indices are separate, without adding general sorting, a hash framework or a construction-mode option.
+The layout prototype passes 4374 CPU comparisons, but the new shader and GPU quality remain unverified. Retesting covers historical G16 and actual-default G64 separately against original camera-relative A and independent Cosine BRDF.
+The [world-grouping design and prompt](light-sampling-world-grouping-prompt.md) governs implementation, capacity, raw evidence, branch checks and return notification. Preserve previous modulo results as failure evidence.
+
 ## Architecture reassessment (2026-10-30)
 
 The [architecture reassessment](light-sampling-reassessment.md) revisits whether per-query light-tree traversal
