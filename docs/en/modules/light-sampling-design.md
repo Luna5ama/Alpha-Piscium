@@ -64,6 +64,32 @@ That round's PDF/quality acceptance requires corrected captures; its timing capt
 That review did not change the defaults at the time. Validly addressed old 720p captures separately exposed aggregate
 distortion and near-field back-hemisphere weighting problems.
 
+## Follow-up repair discussion (2026-11-01)
+
+Recommend a **budgeted adaptive cut** as the next candidate, retaining complete world prefixes as the stable index. It is neither implemented nor a default: first establish whether a small candidate set preserves quality, then choose a shared representation. Previous one/two-level expansion remains a control, without assuming that more fixed levels are the right repair.
+
+The new [offline diagnostic](../../../builds/light-sampling/20261101-moving4-point-m2/discussion_flat_proposals.py) and [results](../../../builds/light-sampling/20261101-moving4-point-m2/discussion-flat-proposals.json) reuse the reviewed conditional RGB M2. Emitters, conditional sampling and actual evaluation stay fixed; each emitter's A weight is normalized once over the complete list. A second control uses mass times the unoccluded cosine integral of a uniformly emitting unit cube. Both are O(N) diagnostic constructions, not per-pixel runtime proposals. The table reports variance inferred from actual conditional moments relative to each scene's **original camera A=1**, spanning both windows; side-27 includes four windows across its two groups.
+
+| Receiver | Flat per-light A | Flat cube geometry |
+|---|---:|---:|
+| moving-4 side-26 | 0.317 | 0.329 |
+| moving-4 side-27 | 0.197–0.200 | 0.235–0.237 |
+| moving-4 top-28 | 0.328–0.331 | 0.329–0.331 |
+| ls1 pillar | 0.274 | 0.275–0.276 |
+| ls1 wall | 0.138 | 0.145 |
+
+Neither control assigns zero probability to any positive-M2 emitter in the twelve point-window observations. Cube geometry omits texture/visibility, uses exact axis normals within 1e-5 of the audited normals, and is checked against the existing face integral; its variance evaluation still uses M2 with actual textures/visibility. The same per-light A beating camera A at all five points establishes substantial room to repair coarse aggregation. It does not establish full-image acceptance or that a small cut can attain these results.
+
+At side-26/27, the low cluster's probability drops from tree A's 76.07% to flat per-light A's 14.43%/8.40%; cube geometry assigns 17.01%/14.45%. This distinguishes the coarse-cluster excess from the remaining unoccluded geometric allocation. The cluster still contains 1570/1545 lights with positive geometric integrals but no observed positive M2. Texture and visibility effects have not been separated, so the whole cluster cannot simply be assigned zero probability. Existing unoccluded repair potential can be pursued before reopening visibility guiding.
+
+For a fixed receiver, if every cluster weight equals the sum of its descendant per-light weights, conditional probabilities along the tree telescope to the flat per-light distribution. Re-estimating from aggregate mass and a large AABB does not preserve this property. Radius/cosine saturation in current prefix A and zero-near-distance monopolization in the old near/far path have different triggers; their shared issue is loss of internal contribution distribution. The same per-light A improving all five points supports investigating this layer jointly without orientation-specific patches.
+
+The proposed query first constructs a complete, disjoint cut, refining clusters with large geometric spans, mixed near/far content or receiver-hemisphere crossings. It then normalizes across cut nodes, selects one cluster and uses existing conditional sampling to choose one emitter; the actual PDF multiplies cluster and within-cluster selection probabilities. Refining only nodes with high current A weights, or stopping solely because one-level weights barely change, can miss underestimated nearby lights. Refinement priorities remain to be designed. Offline budgets of 16/32/64 entries can probe the five retained M2 points while counting construction visits and query work, without new GPU capture. These budgets are candidates, and finite M2 is not a runtime oracle.
+
+This borrows the error-driven refinement structure of [Lightcuts](https://www.graphics.cornell.edu/~bjw/lightcuts.pdf); its approximate-illumination error bound is not a variance guarantee for this single-light sampler. If a small cut approaches the flat control, shared cut **structure** can amortize construction while receivers evaluate weights using their own positions/normals. Prefer considering fixed world-space partitions for this movement-stability objective: a fixed world point's cut/PMF should not jump solely because the camera moves. Screen-tile sharing requires separate checks of partition changes. Sharing amortizes cost but cannot repair an overly coarse cut.
+
+This round reuses saved originals for diagnosis and updates discussion records only. No shader, defaults or conditional-emitter sampling changed, and no new implementation/GPU experiment was delegated. The cut remains a recommendation; entry budget, refinement rule and sharing scope are undecided.
+
 ## Weight experiment status (2026-10-31)
 
 The latest [targeted iteration](../../../experiments/light-sampling/20261031-nearfar-iteration.json) compares A, original near/far and A + near/far in ls1/2/4/5,
