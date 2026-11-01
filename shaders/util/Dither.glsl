@@ -33,7 +33,7 @@ float dither_u8(float x, float noiseV) {
     return result;
 }
 
-const int DITHER_FP16_MAX_BITS = 0x477FE000;
+const uint DITHER_FP16_MAX_BITS = 0x477FE000u;
 
 float dither_fp16(float x, float noiseV) {
     if (isnan(x) || x == 0.0) {
@@ -41,10 +41,16 @@ float dither_fp16(float x, float noiseV) {
     }
     uint bits = floatBitsToUint(x);
     uint signBit = bits & 0x80000000u;
-    int magnitudeBits = min(int(bits & 0x7fffffffu), DITHER_FP16_MAX_BITS);
-    int delta = int(float(0x7fffu) * (noiseV - 0.5));
-    magnitudeBits = clamp(magnitudeBits + delta, 0, DITHER_FP16_MAX_BITS);
-    return uintBitsToFloat(signBit | uint(magnitudeBits));
+    uint magnitudeBits = min(bits & 0x7FFFFFFFu, DITHER_FP16_MAX_BITS);
+    if (magnitudeBits < 0x38800000u) {
+        // FP16 subnormals have a fixed 2^-24 spacing.
+        float scaled = abs(x) * 16777216.0;
+        float rounded = floor(scaled) + float(fract(scaled) > noiseV);
+        return uintBitsToFloat(signBit | floatBitsToUint(rounded * exp2(-24.0)));
+    }
+    uint roundingOffset = 8191u - min(uint(noiseV * 8192.0), 8191u);
+    uint roundedBits = (magnitudeBits + roundingOffset) & 0xFFFFE000u;
+    return uintBitsToFloat(signBit | roundedBits);
 }
 
 vec2 dither_fp16(vec2 x, float noiseV) {

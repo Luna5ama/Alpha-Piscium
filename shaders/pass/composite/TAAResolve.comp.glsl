@@ -322,8 +322,9 @@ void main() {
         vec3 finalColor = mix(prevColor, currColor, finalCurrWeight);
         vec4 outputData = vec4(finalColor, newFrameAccum);
 
-        float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 0u), frameCounter);
-        outputData = dither_fp16(outputData, ditherNoise);
+        // A repeating 64-frame dither cycle biases long histories.
+        float ditherNoise = fract(rand_stbnVec1(rand_newStbnPos(texelPos, 0u), 0u) + rand_r2Seq1(frameCounter));
+        outputData.rgb = dither_fp16(outputData.rgb, ditherNoise);
         transient_taaOutput_store(texelPos, outputData);
     }
 }
