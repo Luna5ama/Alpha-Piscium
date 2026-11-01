@@ -213,3 +213,66 @@ The [independent script](../../../builds/light-sampling/20261101-world-grouping/
 
 Current G16 candidate emitter counts are 8020/8019/4008/4243, differing from the previous modulo batch. Ratios from those rounds cannot be combined into one equal-input algorithm ranking.
 This review commits records only, without reverting or editing shaders. The candidate remains preserved; full-matrix completion, continuous-motion/first-crossing frames, convergence and nonfinite causes remain unaccepted.
+
+## Orientation regressions and their relation to near/far (2026-11-01)
+
+The user observed stronger regressions on the central grass-block sides than on upward surfaces. This follow-up analyzes saved G16 originals offline, without shader changes or new GPU captures.
+The [index](../../../experiments/light-sampling/20261101-orientation-review.json), [normal statistics](../../../builds/light-sampling/20261101-orientation-review/orientation.json),
+[point proposal diagnostics](../../../builds/light-sampling/20261101-orientation-review/point-diagnostics.json), and [annotated receivers](../../../builds/light-sampling/20261101-orientation-review/moving4-receiver-points.png) preserve reviewable evidence.
+
+### Measured orientation differences
+
+Classification uses the sampler's actual world geometric normal, not the normal-map shading normal or screen-left direction.
+Each batch retains its original common complete mask: full packed G-buffer equality for this batch, geometry-normal/material equality for the modulo batch; both check albedo, depth, 32-frame completeness and finite values.
+All eight G16 cohort pixel counts and full-image ratios reproduce. These world-A/camera-A RGB sample-variance ratios aggregate every matching pixel in each direction; individual surfaces can differ.
+
+| Moving | +Y upward | +X | -X | +Z | -Z |
+|---|---:|---:|---:|---:|---:|
+| 3 | 1.013 | 4.402 | 3.252 | 3.801 | 7.128 |
+| 4 | 2.271 | 17.000 | 4.141 | 10.286 | 3.443 |
+
+The stronger vertical-surface regression is supported; moving-4 upward surfaces still regress. Several directions improve in moving-1/2, so no fixed orientation is universally broken.
+In the modulo batch, +Z ratios are 1.115/1.114/1.087/1.080, and -X ratios are 12.698/14.293/0.081/1.414. Its directional behavior differs, but different emitter sets prevent an equal-input ranking of the two world-grouping algorithms.
+
+### A specific branch on the central side
+
+Moving-4 audit point 27 lies on a grass block's +Z side: raw pixel (840,472), display pixel (840,607), world origin approximately (112.392,76.431,364.003).
+Both A trees have zero null-selection probability there. One new root child has actual bounds (-30,-48,240)–(224,0,496), mass about 2719.54, and receives **76.071%** probability.
+Every light in it is at y≤0. At the same origin, changing only the normal to +Y makes half-space exclusion reject the whole child; each of ±X/±Z gives it the same 76.071%.
+This is a [same-origin normal counterfactual](../../../builds/light-sampling/20261101-orientation-review/normal-counterfactual.json), not additional GPU surface evidence.
+Both coarse root children saturate their spherical cosine bounds to 1 for all four horizontal normals; current weights therefore fail to express the importance of a few nearby lights. Actual terrain visibility of the lower lights is a separate issue; their true contribution is not assumed to be zero.
+
+The complete PMF of nearby light (110,76,364) falls from 0.134381 in the original tree to 0.014579; two other major geometric candidates are also reduced by about 9.22 times.
+For unchanged conditional sampling and true contribution, each such light's `M2_l/q_l` term rises by the same factor. Their actual per-light M2 has not been captured, so geometric importance does not establish their exact measured contribution shares.
+The 351 nearby common complete pixels with matching material/normal have a variance ratio of about 10.24, used only to confirm the local symptom. Full PMFs match the existing reference traversal; actual GPU audit normals versus exact axis normals differ by less than 4e-6 relatively.
+
+### Scope of a joint discussion with near/far
+
+Both fit the broader problem of coarse-cluster importance disagreeing with actual light contributions, with branch probabilities multiplying into low probabilities for important lights.
+This batch uses A and has no near-arm zero-distance rule. The old ls1 near/far failures include receiver-containing AABBs monopolizing the near arm; see the [earlier per-light attribution](light-sampling-reassessment.md#probability-attribution-and-one-offline-correction).
+Both old pillar/wall points actually have normal -Z. Even the same orientation can require different corrections, ruling out an orientation-specific multiplier as a general fix.
+
+The offline geometric diagnostic uses normalized `g_l ∝ mass_l * H_l`, where H is the exact cosine integral of the unit emitter cube inside the receiver hemisphere, and `J=sum(g_l²/q_l)`, with ideal value 1.
+This proxy excludes texture and visibility and is not actual image variance. Vectorized integrals match the existing face-integral reference. Old ls1 checks instead retain the two disjoint conditional RGB M2 windows with actual texture and visibility.
+
+| Offline weight/diagnostic | Current side 27 J | Old ls1 pillar true-M2 predicted variance / A | Old ls1 wall true-M2 predicted variance / A |
+|---|---:|---:|---:|
+| A | 22.712 | 1 | 1 |
+| A + near/far | 2.431 | 1.806–1.810 | 1.297 |
+| Previously discussed bounded-near/far | 23.306 | 1.425–1.428 | 1.095 |
+| Existing Cosine B | 148.968 | 19.148–19.378 | 0.301–0.302 |
+| Sum A weights after one level of cross-brick expansion | 8.356 | 0.836–0.837 | 1.0675 |
+| Sum A weights after two levels of cross-brick expansion | 6.775 | 0.665–0.666 | 0.9745 |
+
+Cross-brick status comes from actual node bounds spanning multiple world bricks. Membership, mass, half-space support and conditional-emitter sampling are unchanged. Expansion is an offline query comparison, with no runtime lookahead enabled.
+The other two current +Z side proxies also improve, but camera-tree/other-receiver counterexamples remain: further expansion is not universally beneficial, and one-level expansion still regresses the old wall.
+Scaling coarse mass by a projected hemisphere fraction, or replacing it with exact hemisphere-compatible leaf mass before applying A, both worsen the current point's proxy. More aggressive exclusion is not a general repair.
+The [old per-light cross-check](../../../builds/light-sampling/20261101-orientation-review/nearfar-crosscheck.json) preserves both windows. Nothing here justifies restoring near/far as default or treating proxy improvements as scene-wide acceptance.
+
+### Current repair direction and missing evidence
+
+Retain stable world membership and Half-space A. Target receiver-dependent importance at coarse cross-brick nodes, reducing how often one large AABB directly determines a high-level probability.
+First obtain actual per-light M2 for current sides 27/26 and upward point 28, then check candidates alongside the two existing ls1 failures, rather than tuning constants by orientation.
+Bounded expansion supplies a concrete diagnostic. If actual M2 supports it, compare the implementation costs of refining a few coarse clusters or sharing an upper cut. Sharing changes reuse, without allowing camera storage slots to determine grouping/support again.
+Expanding each internal candidate adds descendant reads and weight evaluation; two levels in a four-way tree can involve up to 16 descendant slots. This round measures no GPU cost and does not decide to re-enable per-sample lookahead.
+Tighter cosine estimates, near/far and additional spatial summaries cannot be selected from the directional symptom alone. No new GPU batch has started. This round commits records and an offline-result index only; shaders and the preserved candidate remain unchanged.
