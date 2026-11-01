@@ -81,6 +81,15 @@ Observed input drift was handled with matching-cohort recaptures, without diagno
 unrepaired; statistics apply to common complete pixels. This run does not retroactively validate old 1080p arity/lookahead
 controls, add cuts/MIS/visibility guiding/H-PLOC, or relabel the old fixed-point reference for these scenes.
 
+## Motion stability candidate (2026-10-31)
+
+The user supplied four `light-sampling-failure-moving-*` presets and authorized the experiment chat to implement a minimal repair, validate it and proactively request review from the discussion chat.
+Current brick boundaries align to world 16-block cells, but outer light-tree grouping uses Morton indices relative to the camera window and can change after a brick crossing.
+The candidate only publishes light-tree brick roots into world-brick-coordinate modulo-G Morton slots, preserving the voxel window, brick-local subtrees, A weights, 32B nodes and actual PDFs.
+Grouping should remain stable for the same emitter set; periodic wrapping can enlarge cluster AABBs and still requires quality checks. Input-set changes are outside that invariance guarantee.
+The [motion stability prompt](light-sampling-moving-stability-prompt.md) records the derivation, counterexample, four preset identities, implementation scope and return notification.
+The design is ready; implementation and runtime validation remain with the experiment chat. This does not establish a repaired discontinuity or reopen H-PLOC.
+
 ## Architecture reassessment (2026-10-30)
 
 The [architecture reassessment](light-sampling-reassessment.md) revisits whether per-query light-tree traversal
