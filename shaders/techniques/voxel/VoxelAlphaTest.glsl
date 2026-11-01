@@ -10,14 +10,17 @@ float voxel_alphaTestThreshold(uint material, uint face) {
     return uintBitsToFloat(voxel_faceTexcoords[index].y);
 }
 
-bool voxel_alphaTest(uint material, vec3 hitPos, vec3 normal) {
-    uint face = voxel_faceIndexFromNormal(normal);
+bool voxel_alphaTestFace(uint material, vec3 hitPos, uint face) {
     uint index = voxel_faceTexcoordIndex(material, face);
     float threshold = voxel_alphaTestThreshold(material, face);
     if (threshold == 0.0) return true;
     vec4 tc = unpackUnorm4x16(voxel_faceTexcoords[index]);
     vec2 atlasUV = mix(tc.xw, tc.zy, voxel_faceLocalUV(face, hitPos));
     return textureLod(usam_blockAtlasColor, atlasUV, 0.0).a >= threshold;
+}
+
+bool voxel_alphaTest(uint material, vec3 hitPos, vec3 normal) {
+    return voxel_alphaTestFace(material, hitPos, voxel_faceIndexFromNormal(normal));
 }
 
 bool voxel_intersectAlphaTestedCube(
@@ -156,11 +159,11 @@ bool voxel_intersectAlphaTestedBlockModel(
             int axis = -1;
             _voxel_intersectBlockModelAxisAlignedQuad(rayOrigin, rayDir, inverseRayDir, texelCoord, candidateT, axis);
             if (axis >= 0 && candidateT >= minT) {
-                vec3 normal = -sign(rayDir) * vec3(equal(ivec3(axis), ivec3(0, 1, 2)));
-                normal = _voxel_unrotateBlockModelVector(rotation, normal);
-                if (voxel_alphaTest(material, fma(blockRayDir, vec3(candidateT), blockRayOrigin), normal)) {
+                uint worldAxis = (rotation >> (uint(axis) * 3u)) & 3u;
+                uint face = worldAxis * 2u + uint(blockRayDir[worldAxis] > 0.0);
+                if (voxel_alphaTestFace(material, fma(blockRayDir, vec3(candidateT), blockRayOrigin), face)) {
                     hitT = candidateT;
-                    hitNormal = normal;
+                    hitNormal = -sign(blockRayDir) * vec3(equal(uvec3(worldAxis), uvec3(0, 1, 2)));
                     hit = true;
                     if (anyHit) return true;
                 }
