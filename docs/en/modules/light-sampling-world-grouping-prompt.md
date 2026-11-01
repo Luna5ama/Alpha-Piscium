@@ -217,6 +217,15 @@ This review commits records only, without reverting or editing shaders. The cand
 ## Orientation regressions and their relation to near/far (2026-11-01)
 
 The user observed stronger regressions on the central grass-block sides than on upward surfaces. This follow-up analyzes saved G16 originals offline, without shader changes or new GPU captures.
+This section distinguishes three versions. Bricks themselves are world-aligned in all three; cross-brick parent membership changes.
+
+| Name | Implementation commit | Cross-brick grouping |
+|---|---|---|
+| Camera grouping A, original control | `6d69b145` | Reduces Morton positions in the camera-relative window; moving the window can change parent membership. |
+| World modulo A, previous round | `0d1629ae` | Reduces world brick coordinates modulo G; periodic seams can group physically distant lights. |
+| Full-prefix A, latest World Prefix A | `d29c5d178` | Reduces complete world-coordinate prefixes without discarding high bits; the window only controls coverage and storage addressing. |
+
+Below, this batch's world-A/camera-A ratios pair the latest full-prefix implementation with the original camera grouping. They do not directly compare full-prefix grouping against the previous modulo implementation.
 The [index](../../../experiments/light-sampling/20261101-orientation-review.json), [normal statistics](../../../builds/light-sampling/20261101-orientation-review/orientation.json),
 [point proposal diagnostics](../../../builds/light-sampling/20261101-orientation-review/point-diagnostics.json), and [annotated receivers](../../../builds/light-sampling/20261101-orientation-review/moving4-receiver-points.png) preserve reviewable evidence.
 
@@ -271,8 +280,12 @@ The [old per-light cross-check](../../../builds/light-sampling/20261101-orientat
 
 ### Current repair direction and missing evidence
 
-Retain stable world membership and Half-space A. Target receiver-dependent importance at coarse cross-brick nodes, reducing how often one large AABB directly determines a high-level probability.
-First obtain actual per-light M2 for current sides 27/26 and upward point 28, then check candidates alongside the two existing ls1 failures, rather than tuning constants by orientation.
-Bounded expansion supplies a concrete diagnostic. If actual M2 supports it, compare the implementation costs of refining a few coarse clusters or sharing an upper cut. Sharing changes reuse, without allowing camera storage slots to determine grouping/support again.
+Retain the stability contract that world coordinates determine parent membership while the camera window controls coverage/storage, along with Half-space A. Use the latest full-prefix implementation as the current research starting point without accepting its quality or locking in this prefix tree as the final structure.
+Target receiver-dependent importance at coarse cross-brick nodes, reducing how often one large AABB directly determines a high-level probability.
+Measured orientation regressions, complete-PMF changes and the directional effect of half-space exclusion are established. The 76.071% figure is branch selection probability, not proof that all those samples are wasted.
+The proposed additional capture covers moving-4 sides 27/26 and upward point 28. Hold each receiver fixed, force each light through existing conditional-emitter sampling and actual texture/visibility evaluation, and record contribution means and squared means M2. Existing ls1 references can be reused.
+Combining these conditional moments with candidate selection probabilities tests actual fixed-point variance after weight changes or cluster refinement. This supports choosing a repair, rather than re-establishing the observed regression, and does not require rerunning the complete scene/performance matrix.
+Bounded expansion is the completed offline diagnostic. M2 can test whether probability allocation improves, but cannot by itself choose the cost tradeoff between per-point expansion and a shared upper cut; sharing approximation, additional reads and GPU time also need assessment.
+Sharing must not let camera storage slots determine grouping/support again.
 Expanding each internal candidate adds descendant reads and weight evaluation; two levels in a four-way tree can involve up to 16 descendant slots. This round measures no GPU cost and does not decide to re-enable per-sample lookahead.
 Tighter cosine estimates, near/far and additional spatial summaries cannot be selected from the directional symptom alone. No new GPU batch has started. This round commits records and an offline-result index only; shaders and the preserved candidate remain unchanged.
