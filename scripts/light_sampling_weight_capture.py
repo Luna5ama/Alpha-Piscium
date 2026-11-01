@@ -165,16 +165,17 @@ def preserve_bracketed_profiles(job_file, destination, revision, preset, warmup_
             for phase in ("before", "after"):
                 tree = folder / f"{phase}_tree.bin"
                 leaves = leaf_identity(tree, model)
-                voxels = voxel_identity(folder, prefix=f"{phase}_")[1]
+                voxels = voxel_identity(folder, prefix=f"{phase}_", grid_size=int(settings["SETTING_VOXEL_GRID_SIZE"]))[1]
                 camera = np.fromfile(folder / f"{phase}_camera.bin", "<f4")
                 assert len(camera) >= 112
                 # GlobalData layout in the frozen light-sampling sources: previous view inverse,
                 # unjittered camera projection and its inverse. Frame/time/history fields are excluded.
                 camera_identity = hashlib.sha256(np.concatenate((camera[16:32], camera[80:112])).tobytes()).hexdigest()
                 phases.append(dict(camera_sha256=camera_identity, leaf_sha256=hashlib.sha256(repr(leaves).encode()).hexdigest(),
-                                   topology_sha256=topology_identity(tree, model), voxels=voxels))
+                                   topology_sha256=topology_identity(tree, model, ordered=True), voxels=voxels))
             return phases
-        identity = dict(files=copied, model=model, numpy=np.__version__,
+        identity = dict(files=copied, model=model, grid=int(settings["SETTING_VOXEL_GRID_SIZE"]),
+                        revision=revision, config_sha256=provenance["config_sha256"], numpy=np.__version__,
                         algorithm=algorithm_identity("light_sampling_weight_analysis.py",
                                                      "light_sampling_weight_reference.py",
                                                      "light_sampling_geometry.py", "light_sampling_weight_capture.py"))

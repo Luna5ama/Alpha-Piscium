@@ -35,7 +35,7 @@ def leaf_identity(path, model):
     return sorted(leaves)
 
 
-def topology_identity(path, model):
+def topology_identity(path, model, ordered=False):
     _, nodes, links = load_tree(path, model)
     def visit(i):
         if nodes[i, 3] == 0:
@@ -45,14 +45,15 @@ def topology_identity(path, model):
             return hashlib.sha256(b'L' + np.asarray(nodes[i, :3], dtype='<f4').tobytes()
                                   + (link & 0x7fffffff).to_bytes(4, 'little')).digest()
         base, count = link & 0x0fffffff, ((link >> 28) & 7) + 1
-        return hashlib.sha256(b'N' + b''.join(sorted(filter(None, (visit(j) for j in range(base, base+count)))))).digest()
+        children = list(filter(None, (visit(j) for j in range(base, base+count))))
+        return hashlib.sha256(b'N' + b''.join(children if ordered else sorted(children))).digest()
     return visit(1).hex()
 
 
-def voxel_identity(directory, prefix='', suffix=''):
+def voxel_identity(directory, prefix='', suffix='', grid_size=16):
     meta = np.fromfile(directory / f'{prefix}voxel-meta{suffix}.bin', '<u4')
     material = np.memmap(directory / f'{prefix}voxel-materials{suffix}.bin', dtype='<u4', mode='r')
-    count = int(meta[0]); grid = 4096
+    count = int(meta[0]); grid = grid_size ** 3
     bricks = meta[1 + 2 * grid + 1024:1 + 2 * grid + 1024 + count]
     assert len(bricks) == count and len(np.unique(bricks)) == count
     assert count * 4096 <= len(material)

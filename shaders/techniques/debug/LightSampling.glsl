@@ -15,6 +15,7 @@
 #else
 #define LS_TREE_BITS 3
 #endif
+#include "LightSamplingLayout.glsl"
 
 const uint LS_INVALID = 0xffffffffu;
 layout(std430, binding = 14) buffer LightSamplingAudit {
@@ -23,7 +24,6 @@ layout(std430, binding = 14) buffer LightSamplingAudit {
 };
 
 const uint LS_LOCAL_NODE_CAPACITY = 262144u;
-const uint LS_OUTER_NODE_COUNT = uint(VOXEL_GRID_BRICKS) * 2u;
 const uint LS_LEAF_BIT = 0x80000000u;
 struct LightSamplingNode {
     vec4 boundsMinMass;

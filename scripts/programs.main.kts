@@ -213,10 +213,28 @@ programs {
         for (level in 1..18) {
             pass("/pass/prepare/LightSamplingBuild.comp.glsl") {
                 constDefine("LS_BUILD_STAGE", 2)
-                constDefine("LS_REDUCE_LEVEL", level)
-                constDefine("LS_REDUCE_GROUPS", maxOf(1, 262144 shr (level + 8)))
-                cond("SETTING_DEBUG_LIGHT_SAMPLING > 0 && SETTING_VOXEL_GRID_SIZE * SETTING_VOXEL_GRID_SIZE * SETTING_VOXEL_GRID_SIZE >= ${1 shl level}")
+                constDefine("LS_WORLD_LEVEL", level)
+                val enabled = mutableListOf<String>()
+                for (grid in listOf(16, 32, 64)) for (arity in listOf(2, 4, 8)) {
+                    val bits = Integer.numberOfTrailingZeros(arity)
+                    val gridBits = Integer.numberOfTrailingZeros(grid)
+                    var capacity = 1
+                    for (axis in 0..2) {
+                        val shift = (level * bits + 2 - axis) / 3
+                        val stride = 1 shl shift
+                        capacity *= (grid + stride - 2) / stride + 1
+                    }
+                    constDefine("LS_GROUPS_${grid}_${arity}", (capacity + 255) / 256)
+                    if (level <= (3 * gridBits + bits - 1) / bits) {
+                        enabled.add("(SETTING_VOXEL_GRID_SIZE == $grid && SETTING_DEBUG_LIGHT_ARITY == $arity)")
+                    }
+                }
+                cond("SETTING_DEBUG_LIGHT_SAMPLING > 0 && (${enabled.joinToString(" || ")})")
             }
+        }
+        pass("/pass/prepare/LightSamplingBuild.comp.glsl") {
+            constDefine("LS_BUILD_STAGE", 3)
+            cond("SETTING_DEBUG_LIGHT_SAMPLING > 0")
         }
     }
 
