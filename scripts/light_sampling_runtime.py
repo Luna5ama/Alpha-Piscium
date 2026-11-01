@@ -6,7 +6,8 @@ import shutil
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, __version__ as pillow_version
+from light_sampling_cache import algorithm_identity
 from light_sampling_experiment import Visibility, sh_basis, sphere_directions
 
 LUMA = np.array([0.2126, 0.7152, 0.0722])
@@ -78,10 +79,26 @@ def preserve(job_path, destination):
 def render(values, path, exposure):
     # The linear average is already complete. This common display transform is
     # applied only to the previews, never to the measured data.
+    path = Path(path)
+    cache = path.with_suffix(path.suffix + ".cache.json")
+    identity = dict(input_sha256=hashlib.sha256(np.ascontiguousarray(values).tobytes()).hexdigest(),
+                    shape=list(values.shape), dtype=values.dtype.str, exposure=exposure,
+                    algorithm=algorithm_identity("light_sampling_runtime.py"),
+                    numpy=np.__version__, pillow=pillow_version)
+    if path.exists() and cache.exists():
+        try:
+            saved = json.loads(cache.read_text(encoding="utf-8"))
+            if saved["identity"] == identity and saved["output_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest():
+                return "reused"
+        except (ValueError, KeyError, TypeError):
+            pass
     linear = np.maximum(values[::-1, :, :3], 0).astype(np.float64) * 2**exposure
     mapped = linear / (1 + linear)
     encoded = np.where(mapped <= 0.0031308, mapped * 12.92, 1.055 * mapped**(1/2.4) - 0.055)
     Image.fromarray(np.rint(encoded * 255).astype(np.uint8)).save(path)
+    cache.write_text(json.dumps(dict(identity=identity, output_sha256=hashlib.sha256(path.read_bytes()).hexdigest()),
+                                sort_keys=True), encoding="utf-8")
+    return "encoded"
 
 
 def training_stats(path):

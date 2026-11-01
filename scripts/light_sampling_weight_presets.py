@@ -94,9 +94,8 @@ def main():
                 roi_stats[name][label] = {'display_xywh': [rx, ry, rw, rh], 'raw_xywh': [rx, bottom, rw, rh], 'pixels': int(m.sum()), 'rgb_mean': np.mean(a, axis=0).tolist(), 'rgb_sample_variance_mean': np.mean(v, axis=0).tolist(), 'zero_rgb_fraction': float(np.mean(np.all(a == 0, axis=1)))}
             for label, filename in [('single', 'single.bin'), ('32mean', 'mean32.mean.bin')]:
                 output = q / (label + '.png')
-                if not output.exists():
-                    values = image(q / filename)
-                    render(np.nan_to_num(values, nan=0, posinf=0, neginf=0), output, 4)
+                values = image(q / filename)
+                render(np.nan_to_num(values, nan=0, posinf=0, neginf=0), output, 4)
                 manifest['images'].append({'path': str(output), 'dimensions': {'Scene': scene, 'Sampler': name, 'Accumulation': label}, 'sha256': hashlib.sha256(output.read_bytes()).hexdigest()})
         for name in NAMES:
             for label in roi_stats[name]:
