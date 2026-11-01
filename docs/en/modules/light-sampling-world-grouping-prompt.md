@@ -280,6 +280,7 @@ The [old per-light cross-check](../../../builds/light-sampling/20261101-orientat
 
 ### Current repair direction and missing evidence
 
+The selected route is to continue correcting coarse-cluster importance on the latest complete-world-prefix A implementation; see the [main design decision](light-sampling-design.md#current-selection-and-backlog-2026-11-01). Modulo grouping is no longer an active repair route. Additional per-light conditional moments select a correction within this route.
 Retain the stability contract that world coordinates determine parent membership while the camera window controls coverage/storage, along with Half-space A. Use the latest full-prefix implementation as the current research starting point without accepting its quality or locking in this prefix tree as the final structure.
 Target receiver-dependent importance at coarse cross-brick nodes, reducing how often one large AABB directly determines a high-level probability.
 Measured orientation regressions, complete-PMF changes and the directional effect of half-space exclusion are established. The 76.071% figure is branch selection probability, not proof that all those samples are wasted.

@@ -22,17 +22,25 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 [LightSamplingBuild](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl), and
 [option registration](../../../scripts/options.main.kts).
 
-## Current selection and backlog (2026-10-31)
+## Current selection and backlog (2026-11-01)
 
 | Item | Confirmed choice |
 |------|------------------|
 | Conditional emitter sampling | Retain projected-solid-angle cube sampling without repeating its adoption comparison |
 | Node weights | Half-space A (32B) is implemented as default; near/far and A + near/far remain explicit experiments with unresolved local regressions |
-| Spatial grouping | Retain Morton spatial grouping; Gilbert was rejected and its experimental implementation removed |
+| Spatial grouping | Select the latest complete world prefixes as the starting point for further motion-stability repair; current quality remains unaccepted, as detailed below. Gilbert was rejected and its implementation removed |
 | Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
 | Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
 | Visibility guidance | Exclude from the current runtime baseline; defer further discussion at the user's request |
 | H-PLOC | On hold at the user's request; retain the global cross-brick scope if reopened |
+
+Continue motion repair with **complete-world-prefix A (World Prefix A, `d29c5d178`) plus importance correction for coarse cross-brick clusters**.
+Complete world coordinates determine parents. For the same emitter set, moving the camera window changes coverage/addresses without changing parent membership or introducing modulo seams.
+Stop iterating on world modulo A as the repair route; retain original camera grouping A only as a quality/cost control. This selection does not accept the current prefix candidate's quality or continuous-motion behavior.
+Retain Half-space A, default four-way branching and existing conditional-emitter sampling. First address probability mismatch from directly weighting coarse cross-brick clusters, without orientation-specific multipliers or a default switch to near/far.
+Additional conditional moments for moving-4's two sides and one upward receiver select a repair within this chosen route. Reuse the two old ls1 points as regression guards; further evidence is not a prerequisite for choosing the motion-repair route itself.
+Bounded expansion remains a diagnostic/candidate comparison; shared-cut representation and cost are undecided. If weight correction cannot reconcile quality and query cost, reopen the upper representation while retaining stable world membership.
+See [world-grouping diagnosis and repair direction](light-sampling-world-grouping-prompt.md#current-repair-direction-and-missing-evidence) for evidence and capture scope. This route selection does not itself start a new GPU experiment.
 
 Future light-sampling comparisons always include independent **Cosine BRDF** (cosine-weighted BRDF-only) as a basic control under the same scene, direct-only settings and sample budget. This is distinct from the Cosine B tree weight.
 Display names are Half-space A, Near/Far Mix, Half-space A + Near/Far Mix, Cosine BRDF and Original; original capture IDs and revisions stay unchanged.
