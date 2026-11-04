@@ -8,10 +8,10 @@
 // Material data is still read via allocID (sparse pool).
 //
 // Dispatch: one workgroup per four slots, capped by the grid capacity.
-// Threads per workgroup: 256 (64 per brick × 4 bricks, one thread per sub-region).
+// Each workgroup uses 64 lanes per brick for four bricks.
 //
 // This pass owns L2 for every brick and writes L1 only for non-empty sub-regions.
-// Stale L1 slots are unreachable because traversal tests the corresponding L2 bit first.
+// An empty L2 bit leaves its backing L1 slot unspecified.
 // Upper levels (L3–L5) are always written unconditionally by the propagator passes,
 // so they are self-clearing when all children below them are zero.
 //
@@ -19,12 +19,12 @@
 // All 64 blocks are contiguous in voxel_materials[], so we read 4 at a time as uvec4.
 // Base index (allocID*4096 + subRegion*64) is always divisible by 4.
 //
-// Root mask accumulation uses parallel reduction (subgroupOr) instead of atomicOr.
-// subgroupElect() thread per subgroup → 2 atomicOrs per brick into rootMaskLo/Hi.
+// Lanes cooperate on adjacent material quads. A subgroup ballot packs the final L2 bits.
 
-#extension GL_KHR_shader_subgroup_arithmetic : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
 #extension GL_KHR_shader_subgroup_basic : enable
 
+#extension GL_KHR_shader_subgroup_shuffle : enable
 #define VOXEL_BRICK_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_MATERIAL_VEC4 a
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
@@ -63,9 +63,15 @@ shared uint rootMaskLo[4];
 shared uint rootMaskHi[4];
 shared uint adjacentBrickAllocIDs[24];
 shared uvec2 brickOpaqueMasks[256];
+shared uvec2 occupiedMasks[256];
 
 bool voxel_isGIOpaqueMaterial(uint materialData) {
     return materialData >= 4u;
+}
+
+uint voxel_materialNibble(bvec4 occupied) {
+    uvec4 bits = uvec4(occupied) << uvec4(0u, 1u, 2u, 3u);
+    return bits.x | bits.y | bits.z | bits.w;
 }
 
 uint voxel_loadMaterialData(uint allocID, uint blockMorton) {
@@ -146,9 +152,9 @@ void main() {
     uint allocationCount = voxel_brickAllocCounter;
     if (groupBase >= allocationCount) return;
 
-    uint localID    = gl_LocalInvocationID.x;
-    uint groupBrick = localID >> 6u;        // 0..3 – which of the 4 bricks in this workgroup
-    uint subRegion  = localID & 63u;        // 0..63 – sub-region index within the brick
+    uint localID = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uint groupBrick = localID >> 6u;
+    uint subRegion = localID & 63u;
     uint allocID = groupBase + groupBrick;
     uint brickMorton = 0u;
     if (allocID < allocationCount) {
@@ -161,11 +167,6 @@ void main() {
         rootMaskLo[groupBrick] = 0u;
         rootMaskHi[groupBrick] = 0u;
     }
-    uint leafLow  = 0u;
-    uint leafHigh = 0u;
-    uint opaqueLow = 0u;
-    uint opaqueHigh = 0u;
-
     #ifdef SETTING_RC_ENABLE
     if (localID < 24u) {
         uint adjacentGroupBrick = localID / 6u;
@@ -187,32 +188,42 @@ void main() {
     #endif
 
     if (allocID != VOXEL_UNALLOCATED) {
-        // Within this sub-region, blockMorton = subRegion * 64 + blockInSr.
-        // All 64 entries are contiguous, so read 4-at-a-time as uvec4.
-        uint baseIdx = allocID * 1024u + subRegion * 16u;
-
-        for (uint i = 0u; i < 16u; i++) {
-            uvec4 mats = voxel_materials_v4[baseIdx + i];
-            uvec4 bits4 = uvec4(notEqual(mats, uvec4(0u))) << uvec4(0u, 1u, 2u, 3u);
-            uint bits = bits4.x + bits4.y + bits4.z + bits4.w;
-            uvec4 opaqueBits4 = uvec4(greaterThanEqual(mats, uvec4(4u))) << uvec4(0u, 1u, 2u, 3u);
-            uint opaqueBits = opaqueBits4.x + opaqueBits4.y + opaqueBits4.z + opaqueBits4.w;
-            if (i < 8u) {
-                leafLow |= bits << (i * 4u);
-                opaqueLow |= opaqueBits << (i * 4u);
-            } else {
-                leafHigh |= bits << ((i - 8u) * 4u);
-                opaqueHigh |= opaqueBits << ((i - 8u) * 4u);
+        // Each lane supplies distinct nibbles of the same leaf mask.
+        uint lanes = min(gl_SubgroupSize, 4u);
+        uint lane = subRegion & (lanes - 1u);
+        for (uint tile = 0u; tile < lanes; ++tile) {
+            uint leaf = tile * (64u / lanes) + subRegion / lanes;
+            uint baseIndex = allocID * 1024u + leaf * 16u;
+            uvec4 masks = uvec4(0u);
+            for (uint i = lane; i < 8u; i += lanes) {
+                uvec4 a = voxel_materials_v4[baseIndex + i];
+                uvec4 b = voxel_materials_v4[baseIndex + i + 8u];
+                uvec4 nibble = uvec4(voxel_materialNibble(notEqual(a, uvec4(0u))),
+                    voxel_materialNibble(notEqual(b, uvec4(0u))), 0u, 0u);
+                #ifdef SETTING_RC_ENABLE
+                nibble.z = voxel_materialNibble(greaterThanEqual(a, uvec4(4u)));
+                nibble.w = voxel_materialNibble(greaterThanEqual(b, uvec4(4u)));
+                #endif
+                masks |= nibble << (i * 4u);
+            }
+            for (uint shift = 1u; shift < lanes; shift *= 2u) {
+                masks |= subgroupShuffle(masks, gl_SubgroupInvocationID ^ shift);
+            }
+            if (lane == 0u) {
+                occupiedMasks[groupBrick * 64u + leaf] = masks.xy;
+                #ifdef SETTING_RC_ENABLE
+                brickOpaqueMasks[groupBrick * 64u + leaf] = masks.zw;
+                #endif
             }
         }
     }
-
-    #ifdef SETTING_RC_ENABLE
-    brickOpaqueMasks[localID] = uvec2(opaqueLow, opaqueHigh);
-    #endif
     barrier();
-
     if (allocID != VOXEL_UNALLOCATED) {
+        uvec2 leafMask = occupiedMasks[localID];
+        #ifdef SETTING_RC_ENABLE
+        uint opaqueLow = brickOpaqueMasks[localID].x;
+        uint opaqueHigh = brickOpaqueMasks[localID].y;
+        #endif
         #ifdef SETTING_RC_ENABLE
         if ((opaqueLow | opaqueHigh) != 0u) {
             ivec3 cameraBrick = cameraPositionInt >> 4;
@@ -268,27 +279,17 @@ void main() {
         }
         #endif
 
-        // Parallel reduction: compute bit(s) this thread contributes to the root mask
-        bool subRegionNonEmpty = (leafLow | leafHigh) != 0u;
-        uint bitLo = 0u, bitHi = 0u;
-        if (subRegionNonEmpty) {
-            uint leafIdx = uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion;
-            voxel_tree[leafIdx] = uvec2(leafLow, leafHigh);
-            if (subRegion < 32u) {
-                bitLo = 1u << subRegion;
-            } else {
-                bitHi = 1u << (subRegion - 32u);
-            }
+        bool nonEmpty = (leafMask.x | leafMask.y) != 0u;
+        if (nonEmpty) {
+            uint leafIndex = uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion;
+            voxel_tree[leafIndex] = leafMask;
         }
 
-        // Reduce within subgroup using subgroupOr
-        uint reducedLo = subgroupOr(bitLo);
-        uint reducedHi = subgroupOr(bitHi);
-
-        // One thread per subgroup writes result to temporary shared storage
-        if (subgroupElect()) {
-            atomicOr(rootMaskLo[groupBrick], reducedLo);
-            atomicOr(rootMaskHi[groupBrick], reducedHi);
+        uvec4 votes = subgroupBallot(nonEmpty);
+        if ((subRegion & (min(gl_SubgroupSize, 32u) - 1u)) == 0u) {
+            uint bits = votes[gl_SubgroupInvocationID >> 5u] << (subRegion & 31u);
+            if (subRegion < 32u) atomicOr(rootMaskLo[groupBrick], bits);
+            else atomicOr(rootMaskHi[groupBrick], bits);
         }
     }
 
