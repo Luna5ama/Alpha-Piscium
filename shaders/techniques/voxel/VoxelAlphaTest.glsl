@@ -106,7 +106,7 @@ bool voxel_intersectAlphaTestedBlockModel(
     _voxel_rotateBlockModelRay(rotation, unusedOrigin, inverseRayDir);
     float minT;
     voxel_blockModelInterval(rayOrigin, inverseRayDir, minT, maxT);
-    if (axisAligned && voxel_missesBlockModelBounds(material, blockRayDir, rayOrigin, inverseRayDir, minT, maxT)) {
+    if (voxel_missesBlockModelBounds(material, blockRayDir, rayOrigin, inverseRayDir, minT, maxT)) {
         return false;
     }
     float previousT = minT;
@@ -174,10 +174,10 @@ bool voxel_intersectAlphaTestedBlockModel(
     _voxel_rotateBlockModelRay(rotation, unusedOrigin, inverseRayDir);
     float minT;
     voxel_blockModelInterval(rayOrigin, inverseRayDir, minT, maxT);
+    if (voxel_missesBlockModelBounds(material, blockRayDir, rayOrigin, inverseRayDir, minT, maxT)) return false;
     hitT = maxT;
     bool hit = false;
     if ((modelData & 0x80000000u) != 0u) {
-        if (voxel_missesBlockModelBounds(material, blockRayDir, rayOrigin, inverseRayDir, minT, maxT)) return false;
         while (quadCount != 0u) {
             float candidateT = hitT;
             int axis = -1;

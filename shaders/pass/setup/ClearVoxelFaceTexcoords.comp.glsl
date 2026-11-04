@@ -14,7 +14,8 @@ void main() {
     uint octant = index & 7u;
     uint faceMask = 42u - (octant & 1u) - ((octant & 2u) << 1u) - ((octant & 4u) << 2u);
     uint model = texelFetch(usam_pbrLUT2, ivec2(faceMask, material), 0).x;
-    if ((model & 0x80000000u) == 0u) return;
+    if (model == 0u) return;
+    bool axisAligned = (model & 0x80000000u) != 0u;
 
     ivec2 quad = ivec2(bitfieldExtract(model, 9, 14) * 2u, bitfieldExtract(model, 23, 2));
     uint count = bitfieldExtract(model, 25, 6);
@@ -22,9 +23,21 @@ void main() {
     vec3 boundsMax = vec3(0.0);
     for (uint i = 0u; i < count; ++i) {
         vec4 centerAxis = texelFetch(usam_blockModelQuads, quad, 0);
-        vec2 halfSize = texelFetch(usam_blockModelQuads, quad + ivec2(1, 0), 0).zw;
-        vec3 extent = centerAxis.w < 253.5 / 255.0 ? vec3(0.0, halfSize) :
-            (centerAxis.w < 254.5 / 255.0 ? vec3(halfSize.x, 0.0, halfSize.y) : vec3(halfSize, 0.0));
+        vec4 normalYZHalfSize = texelFetch(usam_blockModelQuads, quad + ivec2(1, 0), 0);
+        vec2 halfSize = normalYZHalfSize.zw;
+        vec3 extent;
+        if (axisAligned) {
+            extent = centerAxis.w < 253.5 / 255.0 ? vec3(0.0, halfSize) :
+                (centerAxis.w < 254.5 / 255.0 ? vec3(halfSize.x, 0.0, halfSize.y) : vec3(halfSize, 0.0));
+        } else {
+            vec3 normal = vec3(centerAxis.w, normalYZHalfSize.xy) * (255.0 / 126.0) - 1.0;
+            vec3 axis = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+            vec3 u = cross(axis, normal);
+            vec3 v = cross(normal, u);
+            // The quad test projects onto orthogonal, unnormalized axes.
+            extent = abs(u) * ((halfSize.x + 1e-6) / dot(u, u)) +
+                abs(v) * ((halfSize.y + 1e-6) / dot(v, v));
+        }
         boundsMin = min(boundsMin, centerAxis.xyz - extent);
         boundsMax = max(boundsMax, centerAxis.xyz + extent);
         quad.x += 2;
