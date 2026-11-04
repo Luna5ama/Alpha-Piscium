@@ -233,10 +233,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
             }
 
             #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
-            // Let lanes march independently to the next occupied leaf, then intersect
-            // their materials together. A rejected leaf still consumes one ordinary step.
+            // Regroup lanes after at most eight tree visits so early arrivals can intersect
+            // their materials without waiting for the longest march in the subgroup.
             atLeaf = false;
-            while (true) {
+            bool exhausted = false;
+            for (int phaseStep = 0; phaseStep < 8; ++phaseStep) {
                 if (advance) {
             #elif !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
             if (isHit) {
@@ -303,7 +304,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 level = newLevel;
             #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
                 }
-                if (steps >= maxSteps) break;
+                if (steps >= maxSteps) {
+                    exhausted = true;
+                    break;
+                }
                 ++steps;
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 debugCounters.x++;
@@ -323,7 +327,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                     #endif
                 }
             }
-            if (!atLeaf) break;
+            if (exhausted || level == 0) break;
             #elif !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
             }
             #endif
