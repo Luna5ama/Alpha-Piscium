@@ -233,11 +233,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
             }
 
             #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
-            // Regroup lanes after at most eight tree visits so early arrivals can intersect
+            // Periodically regroup lanes so early arrivals can intersect
             // their materials without waiting for the longest march in the subgroup.
             atLeaf = false;
             bool exhausted = false;
-            for (int phaseStep = 0; phaseStep < 8; ++phaseStep) {
+            for (int phaseStep = 0; phaseStep < 16; ++phaseStep) {
                 if (advance) {
             #elif !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
             if (isHit) {
