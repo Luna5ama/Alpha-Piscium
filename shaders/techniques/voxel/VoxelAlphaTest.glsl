@@ -86,6 +86,23 @@ bool voxel_intersectAlphaTestedBlockModel(
     _voxel_rotateBlockModelRay(rotation, unusedOrigin, inverseRayDir);
     float minT;
     voxel_blockModelInterval(rayOrigin, inverseRayDir, minT, maxT);
+    if (axisAligned) {
+        uvec3 negative = uvec3(lessThan(blockRayDir, vec3(0.0)));
+        uint octant = negative.x | (negative.y << 1u) | (negative.z << 2u);
+        uint bounds = voxel_modelBounds[material * 8u + octant];
+        // Cover rounding in local-space projection for rays that originate far from this block.
+        vec3 magnitude = abs(rayOrigin);
+        float slack = 1e-5 + 2e-6 * max(max(magnitude.x, magnitude.y), magnitude.z);
+        vec3 lo = vec3((uvec3(bounds) >> uvec3(0, 5, 10)) & 31u) * (1.0 / 31.0) - slack;
+        vec3 hi = vec3((uvec3(bounds) >> uvec3(15, 20, 25)) & 31u) * (1.0 / 31.0) + slack;
+        vec3 nearPlane = (lo - rayOrigin) * inverseRayDir;
+        vec3 farPlane = (hi - rayOrigin) * inverseRayDir;
+        vec3 nearT = min(nearPlane, farPlane);
+        vec3 farT = max(nearPlane, farPlane);
+        float entryT = max(max(nearT.x, nearT.y), nearT.z);
+        float exitT = min(min(farT.x, farT.y), farT.z);
+        if (max(minT, entryT) > min(maxT, exitT)) return false;
+    }
     float previousT = minT;
     int previousQuad = int(quadCount);
     bool rejected = false;

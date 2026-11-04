@@ -21,7 +21,9 @@
 
 layout(std430, binding = 9) VOXEL_FACE_TEXCOORD_MODIFIER VoxelFaceTexcoordData {
     // First half: packed UV bounds. Second half: sprite selection key, floatBitsToUint(alphaTestRef).
-    uvec2 voxel_faceTexcoords[]; // VOXEL_FACE_TEXCOORD_COUNT * 2 entries
+    uvec2 voxel_faceTexcoords[VOXEL_FACE_TEXCOORD_COUNT * 2];
+    // Six 5-bit local bounds per direction octant for axis-aligned block models.
+    uint voxel_modelBounds[VOXEL_FACE_TEXCOORD_MATERIALS * 8];
 };
 
 // Flat index into voxel_faceTexcoords[].
