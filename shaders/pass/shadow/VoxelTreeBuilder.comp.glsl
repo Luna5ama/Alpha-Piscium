@@ -166,6 +166,7 @@ void main() {
     uint opaqueLow = 0u;
     uint opaqueHigh = 0u;
 
+    #ifdef SETTING_RC_ENABLE
     if (localID < 24u) {
         uint adjacentGroupBrick = localID / 6u;
         uint faceId = localID - adjacentGroupBrick * 6u;
@@ -183,6 +184,7 @@ void main() {
         }
         adjacentBrickAllocIDs[localID] = adjacentAllocID;
     }
+    #endif
 
     if (allocID != VOXEL_UNALLOCATED) {
         // Within this sub-region, blockMorton = subRegion * 64 + blockInSr.
@@ -205,10 +207,13 @@ void main() {
         }
     }
 
+    #ifdef SETTING_RC_ENABLE
     brickOpaqueMasks[localID] = uvec2(opaqueLow, opaqueHigh);
+    #endif
     barrier();
 
     if (allocID != VOXEL_UNALLOCATED) {
+        #ifdef SETTING_RC_ENABLE
         if ((opaqueLow | opaqueHigh) != 0u) {
             ivec3 cameraBrick = cameraPositionInt >> 4;
             ivec3 gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
@@ -261,6 +266,7 @@ void main() {
                 }
             }
         }
+        #endif
 
         // Parallel reduction: compute bit(s) this thread contributes to the root mask
         bool subRegionNonEmpty = (leafLow | leafHigh) != 0u;

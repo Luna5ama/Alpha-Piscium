@@ -168,7 +168,7 @@ bool restir_initialSample_screenHitQuery(
         + gi_hitDirectLighting(hitMaterial, hitWorldPos, V, queryWorldNormal, queryWorldGeomNormal);
 
     // Frozen-Li reference mode drops the RC bounce so the hit radiance does not converge over time.
-    #if SETTING_GI_USE_REFERENCE != 2
+    #if defined(SETTING_RC_ENABLE) && SETTING_GI_USE_REFERENCE != 2
     RCLookupResult rcLookup = rc_lookupDiffuseGI(V, queryWorldPos, queryWorldNormal, queryWorldGeomNormal);
     if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
         candidate.radiance += rcLookup.radiance;
@@ -217,7 +217,7 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     vec3 V = normalize(rayOriginWorld - hit.hitPos);
     candidate.radiance = surface.material.emissive
         + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal);
-    #if SETTING_GI_USE_REFERENCE != 2
+    #if defined(SETTING_RC_ENABLE) && SETTING_GI_USE_REFERENCE != 2
     RCLookupResult rcLookup = rc_lookupDiffuseGI(V, hit.hitPos, hit.normal, hit.normal);
     if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
         candidate.radiance += rcLookup.radiance;
