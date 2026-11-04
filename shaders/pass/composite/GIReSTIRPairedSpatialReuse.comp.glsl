@@ -195,6 +195,22 @@ ivec2 restir_reuseUnwrapLocal(ivec2 localAnchor, ivec2 localPos) {
     return localAnchor + localD;
 }
 
+// The source direction and view frame stay fixed while the seven neighbors supply different materials.
+// Components follow resampleMaterial_evalBRDF: N.L, N.V, N.H, L.H.
+vec4 ratioFrameCosines(vec3 geomNormal, vec3 normal, vec3 lightDir, vec3 viewDir) {
+    vec3 N = resampleMaterial_resolveNormal(geomNormal, normal, viewDir);
+    float nDotL = dot(N, lightDir);
+    float nDotV = dot(N, viewDir);
+    vec3 h = lightDir + viewDir;
+    float h2 = dot(h, h);
+    if (nDotL > 0.0 && nDotV > 0.0 && dot(geomNormal, lightDir) > 0.0 &&
+        dot(geomNormal, viewDir) > 0.0 && h2 > 1e-12) {
+        h *= inversesqrt(h2);
+        return vec4(nDotL, nDotV, saturate(dot(N, h)), saturate(dot(lightDir, h)));
+    }
+    return vec4(0.0);
+}
+
 void processGroupCandidate(
     uint shuffleMask,
     uint randSeed,
@@ -210,7 +226,7 @@ void processGroupCandidate(
     float sourceJacobianScaleMe,
     float sourceRadianceMagnitudeMe,
     vec4 sampleValueMe,
-    vec4 canonYMe,
+    vec4 frameCosMe,
     float canonMMe,
     float canonAvgWYMe,
     vec3 primaryViewPosMe,
@@ -264,13 +280,9 @@ void processGroupCandidate(
 
             // BRDF-ratio resolve: my sample's own-frame specular contribution under the other material,
             // weighted by how well it transfers to the other pixel (never boosted).
-            float ownFrameSpecular = evalTargetBRDF(
-                geomNormalMe,
-                normalMe,
-                canonYMe.xyz,
-                normalize(-primaryViewPosMe),
-                materialOther
-            ).specular;
+            float ownFrameSpecular = frameCosMe.x > 0.0 ? resampleMaterial_evalBRDF(
+                materialOther, frameCosMe.x, frameCosMe.y, frameCosMe.z, frameCosMe.w
+            ).specular : 0.0;
             if (otherSpecularTowardMe > 0.0 && ownFrameSpecular > 0.0) {
                 float transferWeight = min(otherSpecularTowardMe / ownFrameSpecular, 1.0);
                 // Capping by my own target BRDF bounds pairs whose materials differ.
@@ -336,6 +348,7 @@ void main() {
     vec3 normalMe = vec3(0.0);
     vec3 hitNormalMe = vec3(0.0);
     vec4 sampleValueMe = vec4(0.0);
+    vec4 frameCosMe = vec4(0.0);
     vec4 canonYMe = vec4(0.0, 0.0, 0.0, -1.0);
     float canonMMe = 0.0;
     float canonAvgWYMe = 0.0;
@@ -389,19 +402,18 @@ void main() {
         uvec4 repMe = transient_restir_reservoirTemporal_fetch(texelMe);
         ReSTIRReservoir reservoirMe = restir_reservoir_unpack(repMe);
         canonYMe = reservoirMe.Y;
+        if (canonYMe.w > 0.0) {
+            frameCosMe = ratioFrameCosines(geomNormalMe, normalMe, canonYMe.xyz, normalize(-primaryViewPosMe));
+        }
         canonMMe = reservoirMe.m;
         canonAvgWYMe = reservoirMe.avgWY;
         #if PASS_INDEX == 0
         // Replace the temporal splat-next scratch with pairwise state.
         metaMe.accumM = canonMMe;
         if (canonYMe.w > 0.0) {
-            float centerSpecular = evalTargetBRDF(
-                geomNormalMe,
-                normalMe,
-                canonYMe.xyz,
-                normalize(-primaryViewPosMe),
-                materialMe
-            ).specular;
+            float centerSpecular = frameCosMe.x > 0.0 ? resampleMaterial_evalBRDF(
+                materialMe, frameCosMe.x, frameCosMe.y, frameCosMe.z, frameCosMe.w
+            ).specular : 0.0;
             ratioMe = vec4(sampleValueMe.rgb * canonAvgWYMe * centerSpecular, 1.0);
         }
         #endif
@@ -425,13 +437,13 @@ void main() {
         sourceJacobianScaleMe = canonYMe.w * canonYMe.w / cosPhiMe;
     }
 
-    processGroupCandidate(1u, 3337u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(2u, 3338u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(3u, 3339u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(4u, 3340u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(5u, 3341u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(6u, 3342u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
-    processGroupCandidate(7u, 3343u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(1u, 3337u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, frameCosMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(2u, 3338u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, frameCosMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(3u, 3339u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, frameCosMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(4u, 3340u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, frameCosMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(5u, 3341u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, frameCosMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(6u, 3342u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, frameCosMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
+    processGroupCandidate(7u, 3343u, metaMe, selectedReconnectionJacobian, selectedTransactionUpdated, texelMe, geomNormalMe, normalMe, hitNormalMe, sourceGeometryValidMe, hitViewPosMe, sourceJacobianScaleMe, sourceRadianceMagnitudeMe, sampleValueMe, frameCosMe, canonMMe, canonAvgWYMe, primaryViewPosMe, materialMe, reusableMe, ratioMe);
 
     if (bool(validMe)) {
         transient_restir_pairwiseMISMetadata_store(texelMe, pairwiseMISMetadata_pack(metaMe));
