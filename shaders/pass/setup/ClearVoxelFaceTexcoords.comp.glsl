@@ -6,6 +6,28 @@
 layout(local_size_x = 256) in;
 const ivec3 workGroups = ivec3(768, 1, 1);
 
+struct ModelBounds {
+    vec3 lo;
+    vec3 hi;
+};
+
+ModelBounds mergeBounds(ModelBounds a, ModelBounds b) {
+    return ModelBounds(min(a.lo, b.lo), max(a.hi, b.hi));
+}
+
+float halfSurfaceArea(ModelBounds bounds) {
+    vec3 size = max(bounds.hi - bounds.lo, vec3(0.0));
+    return dot(size, size.yzx);
+}
+
+uint packBounds(ModelBounds bounds) {
+    // Round outwards, including the tolerance used by the quad intersection.
+    uvec3 lo = uvec3(clamp(floor((bounds.lo - 1e-5) * 31.0), 0.0, 31.0));
+    uvec3 hi = uvec3(clamp(ceil((bounds.hi + 1e-5) * 31.0), 0.0, 31.0));
+    return lo.x | (lo.y << 5u) | (lo.z << 10u) |
+        (hi.x << 15u) | (hi.y << 20u) | (hi.z << 25u);
+}
+
 void main() {
     uint index = gl_GlobalInvocationID.x;
     voxel_faceTexcoords[index] = uvec2(0);
@@ -19,8 +41,10 @@ void main() {
 
     ivec2 quad = ivec2(bitfieldExtract(model, 9, 14) * 2u, bitfieldExtract(model, 23, 2));
     uint count = bitfieldExtract(model, 25, 6);
-    vec3 boundsMin = vec3(1.0);
-    vec3 boundsMax = vec3(0.0);
+    ModelBounds first = ModelBounds(vec3(1.0), vec3(0.0));
+    ModelBounds second = first;
+    ModelBounds third = first;
+    ModelBounds fourth = first;
     for (uint i = 0u; i < count; ++i) {
         vec4 centerAxis = texelFetch(usam_blockModelQuads, quad, 0);
         vec4 normalYZHalfSize = texelFetch(usam_blockModelQuads, quad + ivec2(1, 0), 0);
@@ -38,14 +62,43 @@ void main() {
             extent = abs(u) * ((halfSize.x + 1e-6) / dot(u, u)) +
                 abs(v) * ((halfSize.y + 1e-6) / dot(v, v));
         }
-        boundsMin = min(boundsMin, centerAxis.xyz - extent);
-        boundsMax = max(boundsMax, centerAxis.xyz + extent);
+        ModelBounds quadBounds = ModelBounds(centerAxis.xyz - extent, centerAxis.xyz + extent);
+        if (i < (count >> 2u)) {
+            first = mergeBounds(first, quadBounds);
+        } else if (i < (count >> 1u)) {
+            second = mergeBounds(second, quadBounds);
+        } else if (i < ((count * 3u) >> 2u)) {
+            third = mergeBounds(third, quadBounds);
+        } else {
+            fourth = mergeBounds(fourth, quadBounds);
+        }
         quad.x += 2;
     }
 
-    // Round outwards, including the tolerance used by the quad intersection.
-    uvec3 lo = uvec3(clamp(floor((boundsMin - 1e-5) * 31.0), 0.0, 31.0));
-    uvec3 hi = uvec3(clamp(ceil((boundsMax + 1e-5) * 31.0), 0.0, 31.0));
-    voxel_modelBounds[index] = lo.x | (lo.y << 5u) | (lo.z << 10u) |
-        (hi.x << 15u) | (hi.y << 20u) | (hi.z << 25u);
+    ModelBounds leftHalf = mergeBounds(first, second);
+    ModelBounds rightHalf = mergeBounds(third, fourth);
+    ModelBounds whole = mergeBounds(leftHalf, rightHalf);
+    uvec2 packedBounds = uvec2(packBounds(whole), 0u);
+    if (count >= 6u) {
+        // A split adds a second box test. Keep it only when the area-weighted quad count falls enough.
+        float bestCost = 0.78 * halfSurfaceArea(whole) * float(count);
+        for (uint split = 1u; split <= 3u; ++split) {
+            ModelBounds left = leftHalf;
+            ModelBounds right = rightHalf;
+            if (split == 1u) {
+                left = first;
+                right = mergeBounds(second, rightHalf);
+            } else if (split == 3u) {
+                left = mergeBounds(leftHalf, third);
+                right = fourth;
+            }
+            uint leftCount = (count * split) >> 2u;
+            float cost = halfSurfaceArea(left) * float(leftCount) + halfSurfaceArea(right) * float(count - leftCount);
+            if (cost < bestCost) {
+                bestCost = cost;
+                packedBounds = uvec2(packBounds(left) | (split << 30u), packBounds(right));
+            }
+        }
+    }
+    voxel_modelBounds[index] = packedBounds;
 }

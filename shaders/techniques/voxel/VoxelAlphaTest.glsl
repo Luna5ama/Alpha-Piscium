@@ -68,12 +68,7 @@ void voxel_blockModelInterval(vec3 rayOrigin, vec3 inverseRayDir, out float minT
     maxT = min(maxT, min(min(farT.x, farT.y), farT.z));
 }
 
-bool voxel_missesBlockModelBounds(
-    uint material, vec3 blockRayDir, vec3 rayOrigin, vec3 inverseRayDir, float minT, float maxT
-) {
-    uvec3 negative = uvec3(lessThan(blockRayDir, vec3(0.0)));
-    uint octant = negative.x | (negative.y << 1u) | (negative.z << 2u);
-    uint bounds = voxel_modelBounds[material * 8u + octant];
+bool voxel_missesModelBox(uint bounds, vec3 rayOrigin, vec3 inverseRayDir, float minT, float maxT) {
     // Cover rounding in local-space projection for rays that originate far from this block.
     vec3 magnitude = abs(rayOrigin);
     float slack = 1e-5 + 2e-6 * max(max(magnitude.x, magnitude.y), magnitude.z);
@@ -86,6 +81,26 @@ bool voxel_missesBlockModelBounds(
     float entryT = max(max(nearT.x, nearT.y), nearT.z);
     float exitT = min(min(farT.x, farT.y), farT.z);
     return max(minT, entryT) > min(maxT, exitT);
+}
+
+bool voxel_clipModelQuadRange(uint material, vec3 blockRayDir, vec3 rayOrigin, vec3 inverseRayDir,
+    float minT, float maxT, inout ivec2 firstQuad, inout uint quadCount
+) {
+    uvec3 negative = uvec3(lessThan(blockRayDir, vec3(0.0)));
+    uint octant = negative.x | (negative.y << 1u) | (negative.z << 2u);
+    uvec2 boxes = voxel_modelBounds[material * 8u + octant];
+    bool skipLeft = voxel_missesModelBox(boxes.x, rayOrigin, inverseRayDir, minT, maxT);
+    uint split = boxes.x >> 30u;
+    if (split == 0u) return !skipLeft;
+    uint leftCount = (quadCount * split) >> 2u;
+    bool skipRight = voxel_missesModelBox(boxes.y, rayOrigin, inverseRayDir, minT, maxT);
+    if (skipLeft) {
+        firstQuad.x += int(leftCount) * 2;
+        quadCount -= leftCount;
+    } else if (skipRight) {
+        quadCount = leftCount;
+    }
+    return !(skipLeft && skipRight);
 }
 
 #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
@@ -106,7 +121,7 @@ bool voxel_intersectAlphaTestedBlockModel(
     _voxel_rotateBlockModelRay(rotation, unusedOrigin, inverseRayDir);
     float minT;
     voxel_blockModelInterval(rayOrigin, inverseRayDir, minT, maxT);
-    if (voxel_missesBlockModelBounds(material, blockRayDir, rayOrigin, inverseRayDir, minT, maxT)) {
+    if (!voxel_clipModelQuadRange(material, blockRayDir, rayOrigin, inverseRayDir, minT, maxT, firstQuad, quadCount)) {
         return false;
     }
     float previousT = minT;
@@ -174,7 +189,7 @@ bool voxel_intersectAlphaTestedBlockModel(
     _voxel_rotateBlockModelRay(rotation, unusedOrigin, inverseRayDir);
     float minT;
     voxel_blockModelInterval(rayOrigin, inverseRayDir, minT, maxT);
-    if (voxel_missesBlockModelBounds(material, blockRayDir, rayOrigin, inverseRayDir, minT, maxT)) return false;
+    if (!voxel_clipModelQuadRange(material, blockRayDir, rayOrigin, inverseRayDir, minT, maxT, texelCoord, quadCount)) return false;
     hitT = maxT;
     bool hit = false;
     if ((modelData & 0x80000000u) != 0u) {
