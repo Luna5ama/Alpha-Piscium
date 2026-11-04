@@ -140,6 +140,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
         int steps = 0;
         bool advance = false;
         bool atLeaf = false;
+        bool nextXChildEmpty = false;
         while (level != 0) {
             if (atLeaf) {
         #else
@@ -258,6 +259,22 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 ivec3 target = cellMin + (sizeMask.y & boundOffsetMask);
 
                 vec3 tExit = fma(vec3(target), invDir, tOrig);
+                #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
+                // A lone X crossing stays in this node when its forward Morton sibling is empty.
+                // Charge the skipped child and keep its exit planes for the normal DDA update.
+                if (nextXChildEmpty && steps < maxSteps && tExit.x < min(tExit.y, tExit.z)) {
+                    int delta = stepDir.x * sizeMask.y;
+                    cellMin.x += delta;
+                    target.x += delta;
+                    tExit.x = fma(float(target.x), invDir.x, tOrig.x);
+                    ++steps;
+                    #if VOXEL_TRACE_DEBUG_COUNTERS
+                    ++debugCounters.x;
+                    if (level == 1) ++debugCounters.w;
+                    else ++debugCounters.z;
+                    #endif
+                }
+                #endif
                 lastT = min(min(tExit.x, tExit.y), tExit.z);
 
                 // Reuse lastT to identify exit axis (saves 3 MIN vs step+min)
@@ -315,6 +332,8 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 uint prefix = fullMorton >> (6u * uint(level - 1));
                 uint word = voxel_treeScalar[_voxel_levelOffsets[level] + (prefix >> 5u)];
                 bool occupied = (word & (1u << (prefix & 31u))) != 0u;
+                nextXChildEmpty = ((prefix ^ uint(directionSign.x)) & 1u) == 0u &&
+                    (word & (1u << ((prefix ^ 1u) & 31u))) == 0u;
                 advance = !occupied || level == 1;
                 if (occupied) {
                     if (level == 1) {
