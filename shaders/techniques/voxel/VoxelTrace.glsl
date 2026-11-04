@@ -136,7 +136,13 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
         // Derive blockPos from the authoritative fullMorton (avoids clamp/bias ambiguity)
         ivec3 blockPos = ivec3(morton3D_30bDecode(fullMorton));
 
-        // ---- Main hierarchical traversal loop ----
+        #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
+        int steps = 0;
+        bool advance = false;
+        bool atLeaf = false;
+        while (level != 0) {
+            if (atLeaf) {
+        #else
         for (int i = 0; i < maxSteps; i++) {
             #if VOXEL_TRACE_DEBUG_COUNTERS
             debugCounters.x++;
@@ -151,7 +157,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
             uint maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (mortonPrefix >> 5u)];
             bool isHit = (maskPart & childBit) != 0u;
 
-            #if defined(RESTIR_INITIAL_CANDIDATE_WRITE) || defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
+            #ifdef INCLUDE_techniques_gi_PairwiseMISMetadata_glsl
             if (isHit && level != 1) {
                 level--;
                 #if VOXEL_TRACE_DEBUG_COUNTERS
@@ -164,6 +170,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
             #else
             if (isHit && level == 1) {
             #endif
+        #endif
                 uint allocID = voxel_brickAllocID[fullMorton >> 12u];
                 uint materialData = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
                 uint material = voxel_decodeMaterialID(materialData);
@@ -220,10 +227,18 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                     }
                 }
 
+                #ifndef RESTIR_INITIAL_CANDIDATE_WRITE
                 isHit = false;
+                #endif
             }
 
-            #if !defined(RESTIR_INITIAL_CANDIDATE_WRITE) && !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
+            #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
+            // Let lanes march independently to the next occupied leaf, then intersect
+            // their materials together. A rejected leaf still consumes one ordinary step.
+            atLeaf = false;
+            while (true) {
+                if (advance) {
+            #elif !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
             if (isHit) {
                 level--;
                 #if VOXEL_TRACE_DEBUG_COUNTERS
@@ -286,7 +301,30 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 uint mortonDiff = oldFullMorton ^ fullMorton;
                 int newLevel = ((findMSB(mortonDiff) * 43) >> 8) + 1;
                 level = newLevel;
-            #if !defined(RESTIR_INITIAL_CANDIDATE_WRITE) && !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
+            #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
+                }
+                if (steps >= maxSteps) break;
+                ++steps;
+                #if VOXEL_TRACE_DEBUG_COUNTERS
+                debugCounters.x++;
+                #endif
+                uint prefix = fullMorton >> (6u * uint(level - 1));
+                uint word = voxel_treeScalar[_voxel_levelOffsets[level] + (prefix >> 5u)];
+                bool occupied = (word & (1u << (prefix & 31u))) != 0u;
+                advance = !occupied || level == 1;
+                if (occupied) {
+                    if (level == 1) {
+                        atLeaf = true;
+                        break;
+                    }
+                    --level;
+                    #if VOXEL_TRACE_DEBUG_COUNTERS
+                    debugCounters.y++;
+                    #endif
+                }
+            }
+            if (!atLeaf) break;
+            #elif !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
             }
             #endif
         }
