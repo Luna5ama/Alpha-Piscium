@@ -39,7 +39,7 @@ void main() {
     if (model == 0u) return;
     bool axisAligned = (model & 0x80000000u) != 0u;
 
-    ivec2 quad = ivec2(bitfieldExtract(model, 9, 14) * 2u, bitfieldExtract(model, 23, 2));
+    ivec2 quad = ivec2(bitfieldExtract(model, 9, 11) * 2u, bitfieldExtract(model, 20, 5));
     uint count = bitfieldExtract(model, 25, 6);
     ModelBounds first = ModelBounds(vec3(1.0), vec3(0.0));
     ModelBounds second = first;

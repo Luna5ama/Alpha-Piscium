@@ -112,7 +112,7 @@ bool voxel_intersectAlphaTestedBlockModel(
     vec3 blockRayDir = rayDir;
     uint rotation = modelData & 0x1FFu;
     uint quadCount = (modelData >> 25u) & 0x3Fu;
-    ivec2 firstQuad = ivec2(int(bitfieldExtract(modelData, 9, 14) << 1u), int(bitfieldExtract(modelData, 23, 2)));
+    ivec2 firstQuad = ivec2(int(bitfieldExtract(modelData, 9, 11) << 1u), int(bitfieldExtract(modelData, 20, 5)));
     rayOrigin -= vec3(0.5);
     _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
     rayOrigin += vec3(0.5);
@@ -181,7 +181,7 @@ bool voxel_intersectAlphaTestedBlockModel(
     vec3 blockRayDir = rayDir;
     uint rotation = modelData & 0x1FFu;
     uint quadCount = (modelData >> 25u) & 0x3Fu;
-    ivec2 texelCoord = ivec2(int(bitfieldExtract(modelData, 9, 14) << 1u), int(bitfieldExtract(modelData, 23, 2)));
+    ivec2 texelCoord = ivec2(int(bitfieldExtract(modelData, 9, 11) << 1u), int(bitfieldExtract(modelData, 20, 5)));
     rayOrigin -= vec3(0.5);
     _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
     rayOrigin += vec3(0.5);
