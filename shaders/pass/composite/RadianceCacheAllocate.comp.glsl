@@ -3,6 +3,13 @@
 #extension GL_KHR_shader_subgroup_vote : enable
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
+#ifdef MC_GL_VENDOR_NVIDIA
+#define RC_SUBGROUP_BROADCAST_LAST(value) subgroupBroadcast(value, gl_SubgroupSize - 1)
+#else
+#extension GL_KHR_shader_subgroup_shuffle : enable
+#define RC_SUBGROUP_BROADCAST_LAST(value) subgroupShuffle(value, gl_SubgroupSize - 1)
+#endif
+
 #define RC_DATA_MODIFIER restrict buffer
 
 layout(local_size_x = 256) in;
@@ -78,7 +85,7 @@ void rc_allocateEntry(uint listIndex) {
             }
         }
 
-        reservoirBaseIndex = subgroupBroadcast(reservoirBaseIndex, gl_SubgroupSize - 1) + classSizePrefix;
+        reservoirBaseIndex = RC_SUBGROUP_BROADCAST_LAST(reservoirBaseIndex) + classSizePrefix;
         bool overflow = activeFlag && reservoirBaseIndex + classSize > poolSize;
         if (subgroupAny(overflow)) {
             uvec4 overflowMask = subgroupBallot(overflow);
@@ -98,7 +105,7 @@ void rc_allocateEntry(uint listIndex) {
                 updateEntryIndicesBaseIndex = atomicAdd(rc_entryCounter, totalFaceCount);
             }
         }
-        updateEntryIndicesBaseIndex = subgroupBroadcast(updateEntryIndicesBaseIndex, gl_SubgroupSize - 1) + validFaceCountPrefix;
+        updateEntryIndicesBaseIndex = RC_SUBGROUP_BROADCAST_LAST(updateEntryIndicesBaseIndex) + validFaceCountPrefix;
 
         if (activeFlag) {
             if (overflow) {
