@@ -231,7 +231,15 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 #ifndef RESTIR_INITIAL_CANDIDATE_WRITE
                 isHit = false;
                 #endif
+        #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
             }
+        #else
+            #ifdef INCLUDE_techniques_gi_PairwiseMISMetadata_glsl
+                }
+            #else
+                }
+            #endif
+        #endif
 
             #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
             // Periodically regroup lanes so early arrivals can intersect
@@ -241,12 +249,16 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
             for (int phaseStep = 0; phaseStep < 16; ++phaseStep) {
                 if (advance) {
             #elif !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
-            if (isHit) {
-                level--;
-                #if VOXEL_TRACE_DEBUG_COUNTERS
-                debugCounters.y++;
-                #endif
-            } else {
+                {
+                    if (isHit) {
+                        level--;
+                        #if VOXEL_TRACE_DEBUG_COUNTERS
+                        debugCounters.y++;
+                        #endif
+                    } else {
+            #else
+                {
+                {
             #endif
                 // ---- Empty child — skip to exit of child cell ----
                 #if VOXEL_TRACE_DEBUG_COUNTERS
@@ -347,10 +359,12 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 }
             }
             if (exhausted || level == 0) break;
-            #elif !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
-            }
-            #endif
         }
+        #else
+            }
+            }
+        }
+        #endif
 
         // Write back state for resumption if still active (not done)
         ray.level = level;
