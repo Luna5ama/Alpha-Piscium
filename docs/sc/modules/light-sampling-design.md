@@ -220,6 +220,8 @@ side-a 复现 K1 的严重退化。关键近灯所在节点 153 的 K1 球形余
 
 [调查记录](../../../experiments/light-sampling/20261108-historical-comparison.json)保存主图来源、输入身份、十二点窗结果、旧灯分量反事实及复算方法。当前不能把跨日期图的差额全部归给分组，也不能由灯数直接分摊全图退化。若继续要求整图归因，下一项应固定同一 ls1／ls5 体素与灯输入，仅比较原始相机／世界前缀两种分组的 model 6，同时单独追查体素输入变化。本轮未改 shader、未启动 GPU、未切默认；原件清理保持暂停。
 
+用户随后补充，渲染距离可能从 16／24 增至当前 32 chunks，并授权继续处理。此回忆为灯集合增长提供了合理原因候选，尚未核实旧配置。本轮执行转为[同输入分组对照](light-sampling-grouping-control-prompt.md)：固定实机实际渲染距离，ls1／ls5 各比较原始相机 model 6、World Prefix model 6 与 Cosine BRDF；沿用 1 spp／32 帧。先隔离分组的整图影响，不扩展为多距离矩阵。实验 chat 负责源码与共享运行时、完成后回传本 chat 复查；不切默认。
+
 ## 权重实验状态（2026-10-31）
 
 最新[定向迭代结果](../../../experiments/light-sampling/20261031-nearfar-iteration.json) 比较 ls1／2／4／5 的 A、原近远与 A＋近远，

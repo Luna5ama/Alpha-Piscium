@@ -228,6 +228,8 @@ The source comparison spans old `78823b540` and current capture `e9132607`. Mode
 
 The [investigation record](../../../experiments/light-sampling/20261108-historical-comparison.json) retains image provenance, input identities, twelve point-window results, the old-light-component counterfactual and reproduction steps. Neither grouping alone nor emitter count alone apportions the whole-image historical gap. If whole-image attribution is pursued, freeze one ls1/ls5 voxel and emitter input and compare model 6 with only original camera-relative versus world-prefix grouping changed; investigate voxel-input drift separately. This round changed no shader, ran no GPU work and switched no default. Raw cleanup remains paused.
 
+The user subsequently recalled increasing render distance from 16/24 to the current 32 chunks and authorized proceeding. This supplies a plausible emitter-growth explanation, without verifying old settings. Execution now moves to the [same-input grouping control](light-sampling-grouping-control-prompt.md): fix the actual live render distance and compare original camera model 6, World Prefix model 6 and Cosine BRDF in ls1/ls5, retaining 1-spp/32-frame outputs. Isolate whole-image grouping effects before considering a distance matrix. The experiment chat owns source/runtime operations and returns results to this chat for independent review; no default is switched.
+
 ## Weight experiment status (2026-10-31)
 
 The latest [targeted iteration](../../../experiments/light-sampling/20261031-nearfar-iteration.json) compares A, original near/far and A + near/far in ls1/2/4/5,
