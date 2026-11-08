@@ -19,8 +19,8 @@
       "Ward K2",
       "Ward K4"
     ],
-    "case_count": 30,
-    "image_count": 60,
+    "case_count": 36,
+    "image_count": 72,
     "display": {
       "exposure_ev": 4,
       "tone_map": "Reinhard",
@@ -45,7 +45,7 @@
     "max_gpu_pdf_relative_error": 6.348065708650097e-07,
     "nonfinite_components_in_delivered_single_and_mean_images": 0,
     "sample_completeness_exception": "One receiver pixel in scene 1 Ward K4 had 31 finite RGB samples. It is excluded from the shared variance mask; the delivered mean pixel is finite.",
-    "offline_viewer_validation": "60 unique combinations and linked assets. Every AVIF decodes pixel-identically to its displayed PNG source. Interactive browser preview was unavailable."
+    "original_viewer_validation": "The original 60 AVIF assets decode pixel-identically to their displayed PNG sources. Their hashes are unchanged in the expanded viewer."
   },
   "quality": {
     "metric": "Mean across common complete receiver pixels of the sum of linear RGB sample variances from 32 frames. A finite-window comparison of noise.",
@@ -201,12 +201,67 @@
     ],
     "greenfield_tick_resumed": true
   },
+  "moving_4": {
+    "preset": "light-sampling-failure-moving-4",
+    "scene_sha256": "d73d69678e2ba1d6df5ddb383cd646425dd8196fdce20bd3bb18de7228220427",
+    "prefix_a_source": "8990f69c154a42ec0a05ad7596a10fb22a882a4c",
+    "candidate_source": "fdd330fc70e0e428fb4ee10c50a26d5cc21697ca",
+    "candidate_ref": "experiment/light-sampling-moving4-iris",
+    "atlas_sha256": "896e63d5296f54c53032a633e5fe00cc97865c48b8fba3fa15279ec3989b2467",
+    "atlas_slot": 1,
+    "cohort": {
+      "camera_sha256": "0254883fead3f40a353ef7e3cf1584c0642a7a0c72987534dd42e6576bb1f5a9",
+      "world_voxel_sha256": "9b32367944fbabac5fb28115de0c3e464bed190be6c92959fed73ee61694f0f3",
+      "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+      "ordered_topology_sha256": "a5a3fb77d9496d46cbac728364dfe20240290236141bbb7012f27e8c78c0bf9e",
+      "matches_prior_point_screening": true
+    },
+    "jobs_in_result_order": [
+      "57f60bd4-61ba-4e9a-ab76-947a5cd234ae",
+      "84a3b3e5-137e-413f-91ab-6dbc9358eed6",
+      "37ca1cb7-62df-4c65-a892-c46d248746ac",
+      "2af103c6-e4d7-404f-8952-15f264c7448d",
+      "9dbb0878-2c8c-434f-9e75-5359b6f6b718",
+      "a7f94ca0-1104-4f01-b7e9-7c1d4a7fd07d"
+    ],
+    "gpu_pdf_samples": 48,
+    "max_gpu_pdf_relative_error": 6.32172133085973e-7,
+    "complete_receiver_pixels": 2022175,
+    "sample_completeness_exception": "One other receiver pixel had 31 valid Prefix A RGB samples and was excluded from the common mask. All three marked pixels had 32 valid RGB samples in every method.",
+    "mean_sum_rgb_sample_variance_in_result_order": [
+      0.006004525907175995,
+      0.013428145740254556,
+      0.005350560756340413,
+      0.8439039449787681,
+      0.003477047844104705,
+      0.014149629233264387
+    ],
+    "marked_pixels_display_xy": {
+      "side-26": [600, 607],
+      "side-27": [840, 607],
+      "top-28": [1080, 607]
+    },
+    "raw_y": 472,
+    "marked_pixel_observations": {
+      "side-26": "All six methods were zero in both the single frame and 32-frame mean at the center pixel.",
+      "side-27": "The 32-frame mean at the center pixel was zero for BRDF-only and Ward K1, and nonzero for the other four methods.",
+      "top-28": "The 32-frame mean at the center pixel was zero for Ward K4 and nonzero for the other five methods."
+    },
+    "interpretation": "The statistics and images describe the captured windows. A 32-frame window can miss the rare events identified by the prior point screening.",
+    "viewer_validation": "All 72 combinations loaded in Chrome via Playwright. All 12 added AVIF assets match their displayed PNG pixels, with five bottom-origin row checks per image. Marker centering, zoom, pan, toggle and hiding on the original scenes passed.",
+    "runtime_restoration": {
+      "job": "5d2299cb-0078-4e3a-8202-b26e5f0a6605",
+      "revision": "8990f69c154a42ec0a05ad7596a10fb22a882a4c",
+      "status": "RECEIPT_STATUS_OK",
+      "scope": "Restored the verified stage 2 pilot source, configuration and preset. The revision before the pilot was unavailable."
+    }
+  },
   "retained": {
     "viewer": "builds/light-sampling/20261108-cluster-iris/comparison.html",
-    "viewer_sha256": "181dd39ad262f794fafe9ce5bd0e6683a197a6720fcb95eb83f649343f1f7599",
+    "viewer_sha256": "f886c8ea9b8da5f27070dda44b288a41e0244174ad0903caaabed45f515c51c7",
     "assets": "builds/light-sampling/20261108-cluster-iris/comparison.assets",
-    "asset_count": 60,
+    "asset_count": 72,
     "use": "Offline image comparison. Keep the HTML and sibling assets together until this comparison is superseded or no longer needed.",
-    "source_lifetime": "Keep the local experiment branch while the Iris prototype and atlas are the only source references for this comparison."
+    "source_lifetime": "Keep both local experiment branches while they are the only references for the Iris prototype and scene-specific atlases."
   }
 }
