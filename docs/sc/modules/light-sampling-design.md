@@ -166,6 +166,10 @@ side-a 复现 K1 的严重退化。关键近灯所在节点 153 的 K1 球形余
 
 六景离线 atlas 为 16,824,960 字节，新增 8,778,240 字节的分量 AABB；K1 复用节点 bounds。K2／K4 每个参与的分量增加两次 RGBA32F 读取，三个面内点按路径概率加权约为 38–64／76–126 次每样本，分别约 0.61–1.02／1.22–2.02 kB 的纹理请求。前瞻继续读取跨 brick 候选的直接孩子。静态请求数与离线烘焙不包含 GPU 建树或计时结果。
 
+六景 Iris 对比包含 11 种方法的 1 spp 和 32 帧均值，共 132 图。复用四景的 48 图，第 2、4 景因体素变化各重采全部 11 种方法。第 2 景另因灯键变化重烘焙槽 2，第 4 景原生灯树和 atlas 寻址仍匹配。旧 72 图仍可从历史页查看。[当前对比页](../../../builds/light-sampling/20261108-cluster-iris/comparison.html) · [历史页](../../../builds/light-sampling/20261108-cluster-iris/comparison-original-72.html)
+
+在各景共同完整接收像素上，Near/Far 降低了 30 个开关配对中的 29 个 32 帧窗口方差。第 3 景 Ward K4 为自身关闭版本的 1.063 倍，仍为固定 Prefix A 的 0.292 倍。开启 Near/Far 的五种树方法在六景中均低于固定 Prefix A。moving-4 的 side-a 区域里，Ward K1 的零直接光像素从 79/81 降至 0/81，顶面区域的 Ward K4 从 11/81 降至 0/81。整图及区域数据描述这批 32 帧的观察。逐灯方差和完整采集来源见[实验索引](../../../experiments/light-sampling/20261108-nearfar-combination.json)。
+
 ## 权重实验状态（2026-10-31）
 
 最新[定向迭代结果](../../../experiments/light-sampling/20261031-nearfar-iteration.json) 比较 ls1／2／4／5 的 A、原近远与 A＋近远，

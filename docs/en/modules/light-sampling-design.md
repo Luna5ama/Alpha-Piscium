@@ -174,6 +174,10 @@ At the top interior, the critical light is the same one as at the old top-28, af
 
 The six-scene offline atlas occupies 16,824,960 bytes, including 8,778,240 new bytes for component AABBs. K1 reuses the node bounds. K2 and K4 add two RGBA32F reads per active component. Weighted by path probability at the three interior points, these account for about 38–64 and 76–126 fetches per sample, or 0.61–1.02 and 1.22–2.02 kB of requested texture bytes. Lookahead continues reading the direct children of cross-brick candidates. Static requests and offline baking exclude GPU build and timing results.
 
+The six-scene Iris comparison covers 11 methods at 1 spp and a 32-frame mean, for 132 images. It reuses 48 images from four scenes. Scenes 2 and 4 recapture all 11 methods after voxel changes. Scene 2 also rebakes atlas slot 2 after emitter-key changes. Scene 4 retains matching native light-tree and atlas addresses. The original 72 images remain available in the archived comparison. [Current comparison](../../../builds/light-sampling/20261108-cluster-iris/comparison.html) · [Original comparison](../../../builds/light-sampling/20261108-cluster-iris/comparison-original-72.html)
+
+On the common complete receiver pixels in each scene, Near/Far lowers 32-frame window variance in 29 of 30 pairs. Scene 3 Ward K4 is at 1.063 times its own off variant and 0.292 times fixed Prefix A. All five Near/Far tree variants fall below fixed Prefix A across the six scenes. In moving-4, Ward K1 reduces zero-direct-light pixels from 79/81 to 0/81 at side-a, and Ward K4 reduces them from 11/81 to 0/81 at the top. The whole-image and region statistics describe the captured windows. The [experiment index](../../../experiments/light-sampling/20261108-nearfar-combination.json) records the per-light variance and capture provenance.
+
 ## Weight experiment status (2026-10-31)
 
 The latest [targeted iteration](../../../experiments/light-sampling/20261031-nearfar-iteration.json) compares A, original near/far and A + near/far in ls1/2/4/5,

@@ -257,7 +257,8 @@
     }
   },
   "retained": {
-    "viewer": "builds/light-sampling/20261108-cluster-iris/comparison.html",
+    "viewer": "builds/light-sampling/20261108-cluster-iris/comparison-original-72.html",
+    "follow_up_index": "experiments/light-sampling/20261108-nearfar-combination.json",
     "viewer_sha256": "f886c8ea9b8da5f27070dda44b288a41e0244174ad0903caaabed45f515c51c7",
     "assets": "builds/light-sampling/20261108-cluster-iris/comparison.assets",
     "asset_count": 72,
