@@ -1,0 +1,212 @@
+{
+  "schema": 1,
+  "status": "completed_live_Iris_comparison",
+  "capture": {
+    "resolution": [
+      1920,
+      1080
+    ],
+    "frames": [
+      "1 spp",
+      "32-frame linear mean, 8 batches of 4"
+    ],
+    "scope": "Initial diffuse direct light. Cosine BRDF-only and four-way G16 world-prefix tree; cube sampling for NEE, voxel visibility, RC and reuse disabled.",
+    "methods_in_result_order": [
+      "Cosine BRDF-only",
+      "Prefix A",
+      "One-level Lookahead",
+      "Ward K1",
+      "Ward K2",
+      "Ward K4"
+    ],
+    "case_count": 30,
+    "image_count": 60,
+    "display": {
+      "exposure_ev": 4,
+      "tone_map": "Reinhard",
+      "transfer": "sRGB",
+      "orientation": "raw[1079-display_y, x]"
+    }
+  },
+  "sources": {
+    "pilot_prefix_A_for_scenes_1_3_5": "45d1211d11270bece29672091f2e21c7daf156b2",
+    "first_experiment": "cd7e3b334a6f75442ddb913f40423cb19600f2de",
+    "rebaked_ward_for_scenes_2_4": "a4188825b1da038a2dd6dbac99eb1e8be8c36995",
+    "retained_branch": "experiment/light-sampling-cluster-iris",
+    "atlas_sha256": "f2458c009ddb1ac8f255ccc51c3eb820a6098446381eba65600b7ba7f8dfce04",
+    "summary_method": "Ward K1/2/4 fitted offline from native scene trees. Iris uses the stored summaries to select emitters, propagate PDFs, sample cubes and trace visibility. Only cross-brick internal weights change.",
+    "rebake_entry": "scripts/light_sampling_cluster_atlas.py on the experiment branch"
+  },
+  "matching": {
+    "validation": "Each accepted scene matches camera, full voxel input, root-reachable light keys and masses, and ordered topology across methods. Physical atlas addresses and selected-light PDFs verified in candidate captures.",
+    "scenes_2_4": "Pre-freeze mismatches were rejected. Greenfield tick was held across jobs, both scene controls were recaptured, and the atlas was rebuilt against their accepted inputs.",
+    "gpu_pdf_cases": 20,
+    "gpu_pdf_samples": 240,
+    "max_gpu_pdf_relative_error": 6.348065708650097e-07,
+    "nonfinite_components_in_delivered_single_and_mean_images": 0,
+    "sample_completeness_exception": "One receiver pixel in scene 1 Ward K4 had 31 finite RGB samples. It is excluded from the shared variance mask; the delivered mean pixel is finite.",
+    "offline_viewer_validation": "60 unique combinations and linked assets. Every AVIF decodes pixel-identically to its displayed PNG source. Interactive browser preview was unavailable."
+  },
+  "quality": {
+    "metric": "Mean across common complete receiver pixels of the sum of linear RGB sample variances from 32 frames. A finite-window comparison of noise.",
+    "scenes": {
+      "light-sampling-1": {
+        "emitter_count": 10235,
+        "cohort": {
+          "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+          "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+          "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+          "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+        },
+        "shared_receiver_pixels": 2022474,
+        "shared_complete_receiver_pixels": 2022473,
+        "sum_linear_RGB_sample_variance": [
+          0.039393465250683185,
+          0.1968992567670457,
+          0.057496657893694306,
+          0.142560359398104,
+          0.050467183291108914,
+          0.025731050174832897
+        ],
+        "variance_ratio_to_prefix_A": [
+          0.2000691414355624,
+          1.0,
+          0.29201053796622206,
+          0.7240269046153341,
+          0.2563096688110781,
+          0.13068129660476915
+        ]
+      },
+      "light-sampling-2": {
+        "emitter_count": 13567,
+        "cohort": {
+          "camera_sha256": "89070ca78f013e1ebe6d59bf6e2147fa53768551b527cb514badc9aa0cb58d91",
+          "leaf_sha256": "2ad06de5af1d0eb4e66467524b9d295f2b80a27c0abe1eeb6882a51088b64951",
+          "ordered_topology_sha256": "a2f290e9e176d3c08067978b5d2c6c7bd2065fdac20e09fade70375de2271b7e",
+          "world_voxel_sha256": "4d71016821fa1ebfd757423556074f2885b33530c9f7a4c1cc59bd5294e4f64e"
+        },
+        "shared_receiver_pixels": 1981376,
+        "shared_complete_receiver_pixels": 1981376,
+        "sum_linear_RGB_sample_variance": [
+          0.3076807035941688,
+          1.906373450924901,
+          0.7323425171271188,
+          0.7843703965310032,
+          0.5026077971714598,
+          0.3017432897127953
+        ],
+        "variance_ratio_to_prefix_A": [
+          0.16139581856057303,
+          1.0,
+          0.3841548028125411,
+          0.41144634916650563,
+          0.26364603269501746,
+          0.15828131133823792
+        ]
+      },
+      "light-sampling-3": {
+        "emitter_count": 3805,
+        "cohort": {
+          "camera_sha256": "224a529340b568bf98c907a58ec0b0f602224fc412f7797ab8da2d3f89ff8201",
+          "leaf_sha256": "2e76af232c35c2f8da0c6acfb5903fa5c14d510bbe6abab70ea7bfa0d746749d",
+          "ordered_topology_sha256": "ed11c381a14d63f98043015964065b93ebba8c144e351708dfb8ba118016bf14",
+          "world_voxel_sha256": "f604dc9ed4982b61215762253cec1b73b88150d2f2dc8a0b98502d8c01f62f2a"
+        },
+        "shared_receiver_pixels": 1980274,
+        "shared_complete_receiver_pixels": 1980272,
+        "sum_linear_RGB_sample_variance": [
+          0.05638993517181726,
+          0.11694145027014587,
+          0.058134770296519415,
+          0.0885612533440414,
+          0.04696625057310803,
+          0.0321195521610718
+        ],
+        "variance_ratio_to_prefix_A": [
+          0.48220656611963636,
+          1.0,
+          0.49712715347913483,
+          0.7573127675384261,
+          0.4016219267386502,
+          0.27466353535784427
+        ]
+      },
+      "light-sampling-4": {
+        "emitter_count": 21120,
+        "cohort": {
+          "camera_sha256": "503a790f51cc9f6dd6543fd96efca014b8669f36ef953670b333972364a76eed",
+          "leaf_sha256": "dfbb54f90d4508c8f185f1457eec7222ab25de0e392e0e3f5e165058860e42f7",
+          "ordered_topology_sha256": "f5724b14da8f5c634c3e8af7f4b4a95c44370825b4ed50e3129d52dda7866fcb",
+          "world_voxel_sha256": "5aa5372ee267f3af145b2567c870f01511703b0235545a894d3e98f7d0ef4fb0"
+        },
+        "shared_receiver_pixels": 2060628,
+        "shared_complete_receiver_pixels": 2060628,
+        "sum_linear_RGB_sample_variance": [
+          0.021356735797126332,
+          0.11837638682650624,
+          0.030082291899495326,
+          0.02969719621121075,
+          0.013504220169373818,
+          0.01045229729080576
+        ],
+        "variance_ratio_to_prefix_A": [
+          0.18041381705987533,
+          1.0,
+          0.25412409270088865,
+          0.25087094654050635,
+          0.11407866493818361,
+          0.08829714752254404
+        ]
+      },
+      "light-sampling-5": {
+        "emitter_count": 2172,
+        "cohort": {
+          "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+          "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+          "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+          "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+        },
+        "shared_receiver_pixels": 2066956,
+        "shared_complete_receiver_pixels": 2066956,
+        "sum_linear_RGB_sample_variance": [
+          0.07684401630185708,
+          0.09305445022955038,
+          0.05449923227810309,
+          0.2314163611079711,
+          0.2958000360537515,
+          0.020003940020883133
+        ],
+        "variance_ratio_to_prefix_A": [
+          0.8257962527562652,
+          1.0,
+          0.5856703483139414,
+          2.48689192765208,
+          3.17878441411518,
+          0.2149702671020744
+        ]
+      }
+    }
+  },
+  "runtime_final": {
+    "job": "17dd40af-bfdc-4c05-aedf-70c6a409a626",
+    "success": true,
+    "revision": "587acbcc11a6ff93f2fba5b169ba96ceda67d674",
+    "preset": "light-sampling-failure-moving-4",
+    "scene_sha256": "d73d69678e2ba1d6df5ddb383cd646425dd8196fdce20bd3bb18de7228220427",
+    "mode": "2",
+    "model": "1",
+    "receipts": [
+      "RECEIPT_STATUS_OK",
+      "RECEIPT_STATUS_OK"
+    ],
+    "greenfield_tick_resumed": true
+  },
+  "retained": {
+    "viewer": "builds/light-sampling/20261108-cluster-iris/comparison.html",
+    "viewer_sha256": "181dd39ad262f794fafe9ce5bd0e6683a197a6720fcb95eb83f649343f1f7599",
+    "assets": "builds/light-sampling/20261108-cluster-iris/comparison.assets",
+    "asset_count": 60,
+    "use": "Offline image comparison. Keep the HTML and sibling assets together until this comparison is superseded or no longer needed.",
+    "source_lifetime": "Keep the local experiment branch while the Iris prototype and atlas are the only source references for this comparison."
+  }
+}
