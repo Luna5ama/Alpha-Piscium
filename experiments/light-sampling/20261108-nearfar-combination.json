@@ -1,6 +1,14 @@
 {
   "schema": 1,
   "status": "completed_live_iris_paired_comparison",
+  "raw_cleanup": {
+    "root": "builds/light-sampling/20261108-nearfar-combination",
+    "status": "blocked_by_policy",
+    "action": "Automatic approval rejected recursive removal before execution. All six paths were verified still present.",
+    "retained_paths": ["cases", "m2/captures", "rejected", "publish/candidate", "publish/cache", "publish/verified-four"],
+    "logical_bytes": 42850467514,
+    "scope": "Temporary raw captures, rejected cohorts and superseded viewer staging. The final 132-image viewer, historical 72-image viewer and shared assets, tracked compact reference, and experiment source refs are preserved separately."
+  },
   "scope": "Initial diffuse direct light, native 1920脳1080, 1 spp and 32 linear frames in 8 batches of 4.",
   "models": {
     "Prefix A": {
