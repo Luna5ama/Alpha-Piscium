@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "complete_pending_independent_review",
+  "status": "independently_reviewed_no_fixed_summary_accepted",
   "task": "docs/sc/modules/light-sampling-cluster-summary-prompt.md",
   "task_commit": "587acbcc11a6ff93f2fba5b169ba96ceda67d674",
   "baseline_history": "experiments/light-sampling/20261101-moving4-point-m2.json",
@@ -8858,5 +8858,63 @@
     "light_sampling_point_moments.py": "43c8a8fe44c22cdb906d676c5a7457ff41921f8a57652fc90bb605805340d2d7",
     "light_sampling_point_screening.py": "20d6d41ffb27290435c1f71ac31e47f106dcfa822c44eec5bf73288b9b610de4"
   },
-  "decision": "No fixed summary passes all five points. K1 collapses near lights on both sides; K2 is promising on sides and ls1 but worsens top-28 vs prefix A and fails to beat camera A on moving4; K4 improves ls1 most while badly worsening top-28. Retain K2 as a diagnostic, no shader implementation/default change. GPU timing not triggered by this static screening."
+  "decision": "No fixed summary passes all five points. K1 collapses near lights on both sides; K2 is promising on sides and ls1 but worsens top-28 vs prefix A and fails to beat camera A on moving4; K4 improves ls1 most while badly worsening top-28. Retain K2 as a diagnostic, no shader implementation/default change. GPU timing not triggered by this static screening.",
+  "independent_review": {
+    "date": "2026-11-08",
+    "reviewer_thread": "01a18c0e-8678-7800-8ab8-04b69f072f12",
+    "candidate_commit": "5d9e9c3553f2daaa160a618da2211bc34f404025",
+    "evidence_accepted": true,
+    "fixed_summary_repair_accepted": false,
+    "reference_sha256": "7d003de47afd0d986bb35c8447219133a37899f96359290cc34ffb1220c67794",
+    "script": {
+      "path": "builds/light-sampling/20261108-cluster-summaries/review/recheck.py",
+      "sha256": "750f6754f3ae9786b7a5cd5e35996d56e519f182e828d15663bc37874603933a"
+    },
+    "report": {
+      "path": "builds/light-sampling/20261108-cluster-summaries/review/independent-review.json",
+      "sha256": "d18b4c8b4da4d7db9dc52be6b9635e2f9606b1db256a71c89b01cdf377021843"
+    },
+    "checks": {
+      "native_file_sha_and_size": 192,
+      "independently_extracted_point_windows": 12,
+      "native_tree_key_mass_and_slot_mapping": true,
+      "receiver_gbuffer_and_audit_identity": true,
+      "independent_scalar_Ward_fits": 9,
+      "complete_tree_pmfs": 72,
+      "variance_results_including_flat_control": 84,
+      "positive_M2_support_failures": 0,
+      "query_cost_cases_mean_and_maximum": 60,
+      "maximum_path_and_allocation_checks": 147,
+      "max_raw_moment_identity_relative_error": 4.2479697703666884e-7
+    },
+    "component_attribution": [
+      {
+        "point": "side-27",
+        "node": 153,
+        "light": [110, 76, 364, 10242],
+        "K1_members": 17,
+        "K1_height_plus_radius": -3.8791838979197806,
+        "K1_cosine": 0.001,
+        "K2_members": 4,
+        "K2_cosine": 1.0
+      },
+      {
+        "point": "top-28",
+        "node": 70,
+        "light": [115, 76, 364, 10242],
+        "K4_members": 76,
+        "K4_center_height": 29.378863845527878,
+        "K4_height_plus_radius": -8.903192348130844,
+        "K4_cosine": 0.001,
+        "K2_height_plus_radius": 18.303771690268476,
+        "K2_cosine": 0.3753382761105509
+      }
+    ],
+    "interpretation": "Original AABB half-space checks pass for these clusters. Moment conservation does not make variance balls enclose important nearby members. Their component cosine reaches its floor, severely reducing actual light probability. This limits the tested Ward-plus-ball models, not all moment or multiple-center proposals.",
+    "cost_limit": "Peak scratch uses all 269764 native slots, not only 7490/7490/18119 reachable nodes. It is the proposed direct-index layout's allocation, not a summary memory lower bound. No measured GPU timings.",
+    "cohort_limit": "ls1 uses 10235 current lights, with the old 3921 as a strict subset. Same receiver identities and same-input current controls do not directly reproduce the historical near/far cohort.",
+    "runtime_touched": false,
+    "candidate_gpu_timing": false,
+    "full_image_or_continuous_motion_acceptance": false
+  }
 }
