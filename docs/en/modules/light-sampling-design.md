@@ -108,7 +108,29 @@ For the multiple-center candidate, each component would retain its own emission 
 
 Compression must preserve total mass and count each emitter's mass once. Component selection and merge order should depend on fixed world input, so camera addressing or atomic allocation order cannot change a summary for the same emitter set. Minimizing flux-weighted spatial error alone can still absorb a small group important to nearby receivers, so fitting quality needs full-PMF evaluation against the retained true M2. A component center behind a surface may represent lights in front, so zero-weight decisions require conservative support bounds. Summaries estimate actual tree-branch importance, and the final PDF multiplies the actual normalized branch probabilities.
 
-The user subsequently authorized comparing one-level lookahead, single-center moments and fixed two/four-component summaries using the five conditional M2 references, including costs and starting Vibris measurements if needed. The [cluster-summary experiment prompt](light-sampling-cluster-summary-prompt.md) specifies authorization, merging rules, a common ball kernel, cross-brick scope, cost accounting and completion callbacks. These are first-round candidate definitions; this round has no quality or cost conclusion yet. Handoff preparation found old builds artifacts unreadable. The prompt requires recovery and validation first; any necessary recapture must preserve the same five receivers, record a new cohort separately and regenerate same-input controls.
+The five-point, two-window screening in the [cluster-summary experiment prompt](light-sampling-cluster-summary-prompt.md) is complete, pending independent review. The old per-light arrays could not be recovered, so all three groups were recaptured at their original receiver pixels. Moving-4's 4,243 lights and full voxel hash match the historical input. The current ls1 tree has 10,235 lights, of which the old 3,921 are a strict subset. The first ls1 capture failed the old fixture's light-count guard; after rebinding all lights, all controls were regenerated for the new cohort. The repeated side-27 groups bring the total to 12 point-windows. The [result index](../../../experiments/light-sampling/20261108-cluster-summaries.json) records originals, per-window ratios, attribution and costs. The [recoverable reference pack](../../../experiments/light-sampling/20261108-cluster-summaries-reference.npz) holds both trees, physical slot counts, world light keys, per-light means/M2, receivers and provenance.
+
+The table shows RGB variance relative to same-cohort world-prefix A, window 1/2. Flat per-light A diagnoses the effect of cluster approximation.
+
+| Point | One-level lookahead | K1 | K2 | K4 | Camera A | Flat per-light A |
+|---|---:|---:|---:|---:|---:|---:|
+| side-26 | 0.4428 / 0.4429 | 102.94 / 102.93 | 0.1549 / 0.1550 | 0.2596 / 0.2597 | 0.1354 / 0.1355 | 0.0429 / 0.0430 |
+| side-27 | 0.3537 / 0.3537 | 83.37 / 83.37 | 0.1190 / 0.1191 | 0.2362 / 0.2363 | 0.0923 / 0.0923 | 0.0183 / 0.0184 |
+| top-28 | 0.5304 / 0.5307 | 3.216 / 3.215 | 1.5476 / 1.5473 | 10.125 / 10.120 | 0.3934 / 0.3937 | 0.1274 / 0.1279 |
+| ls1 pillar | 0.6062 / 0.6056 | 0.8523 / 0.8515 | 0.5341 / 0.5338 | 0.2446 / 0.2445 | 0.9756 / 0.9796 | 0.1689 / 0.1681 |
+| ls1 wall | 0.4328 / 0.4325 | 0.7041 / 0.7036 | 0.4305 / 0.4306 | 0.1983 / 0.1983 | 1.7702 / 1.7686 | 0.0903 / 0.0900 |
+
+Fixed Ward compression preserves moments but can lose nearby lights. At side-27 the critical light accounts for 53.7% of its ancestor's per-light A sum, yet K1 gives that cluster about 0.00478% of the sum; the light falls from 3.99% probability with one-level lookahead to 0.0178%. K2 raises it to 10.82% and reduces probability on the low root child with no observed M2 from about 76.07% to 55.87%/56.11% on the two sides, but still loses to camera A there. K4 is strongest at ls1 but drops top-28's main penalty light from 34.58% with lookahead to 3.34%. Quality does not improve monotonically with component count. All 84 variance results across 12 point-windows have no positive-M2 support failure. Float32 summaries differ from the high-precision reference by at most 2.46×10⁻⁵ in full-PMF total variation; the observed regressions do not come from that precision difference.
+
+| Method | Physical node slots/sample, mean range / max path | Summary kernels/sample, mean range / max path | Extra persistent / peak allocation |
+|---|---:|---:|---:|
+| Prefix A | 31.86–39.31 / 52 | 0 | 0 |
+| One-level lookahead | 91.45–105.73 / 132 | 0 | 0 |
+| K1 | 36.75–39.73 / 52 | 9.07–16.40 / 21 | 0.12 / 10.41 MiB |
+| K2 | 36.13–38.34 / 52 | 18.62–31.95 / 42 | 0.32 / 20.90 MiB |
+| K4 | 38.06–38.95 / 52 | 36.23–66.38 / 83 | 0.61 / 39.72 MiB |
+
+Slot checks include empty slots. The index separately counts selected-node rereads, hemisphere checks, component headers, normalization and requested bytes. Additional space models directly indexed 16/44/84 B persistent records, a full-tree worklist and build scratch. K2 evaluates 32,857/72,578 candidate component pairs per build at moving-4/ls1, including work within bricks. These are static costs of a separate summary build; integration into the tree build would need measurement. No fixed summary can replace one-level lookahead across the five points; keep K2 as a diagnostic. The top-28 counterexample and added build work warrant stopping at static comparison. No candidate GPU timing or default change was made. Reproduce with the [summary screening script](../../../scripts/light_sampling_cluster_summaries.py) and the [capture and archive validation script](../../../scripts/light_sampling_cluster_capture.py).
 
 ## Weight experiment status (2026-10-31)
 
