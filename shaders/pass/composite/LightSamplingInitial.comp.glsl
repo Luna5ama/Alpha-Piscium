@@ -40,6 +40,7 @@ vec3 ls_evaluate(vec3 origin, vec3 normal, vec3 albedo, inout uint rng, uint aud
     if (ls_nodes[1].boundsMinMass.w == 0.0) return vec3(0.0);
     float lightPdf;
     LightSamplingNode emitter = ls_select(origin, normal, rng, auditSlot, lightPdf);
+    if (isnan(lightPdf)) return vec3(lightPdf);
     if (lightPdf == 0.0) return vec3(0.0);
     #endif
     float conditionalPdf;

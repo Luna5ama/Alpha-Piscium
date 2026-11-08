@@ -169,7 +169,7 @@ float ls_geometricWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     return node.boundsMinMass.w / node.meanVariance.w * ls_sgCosine(k, c);
     #else
     float height = dot(normal, delta);
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 1 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 2
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 1 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 2 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 7
     if (ls_behindReceiver(delta, halfSize, normal)) return 0.0;
     #endif
     #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 2
@@ -183,9 +183,84 @@ float ls_geometricWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     #endif
 }
 
+#if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 7
+bool ls_crossesBrick(LightSamplingNode node) {
+    return any(notEqual(ivec3(node.boundsMinMass.xyz) >> 4, ivec3(node.boundsMaxLink.xyz - 1.0) >> 4));
+}
+
+#if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 8
+uniform sampler2D usam_lsClusterAtlas;
+const int LS_CLUSTER_SCENE_ROW = (SETTING_DEBUG_LIGHT_CLUSTER_SCENE - 1) * 11;
+
+float ls_clusterComponent(vec4 centerVariance, float mass, vec3 origin, vec3 normal) {
+    vec3 delta = centerVariance.xyz - origin;
+    float distance2 = dot(delta, delta);
+    float radius2 = 2.0 * centerVariance.w;
+    float cosine = clamp((dot(normal, delta) + sqrt(radius2)) * inversesqrt(max(distance2, 0.25)), 0.001, 1.0);
+    return mass * cosine / max(distance2, max(radius2, 0.25));
+}
+#endif
+
+float ls_experimentWeight(LightSamplingNode node, uint nodeIndex, vec3 origin, vec3 normal) {
+    uint link = floatBitsToUint(node.boundsMaxLink.w);
+    if (node.boundsMinMass.w == 0.0 || (link & LS_LEAF_BIT) != 0u || !ls_crossesBrick(node)) {
+        return ls_geometricWeight(node, origin, normal);
+    }
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 7
+    float sumWeight = 0.0;
+    uint base = ls_childBase(link);
+    for (uint i = 0u; i < ls_childCount(link); ++i) {
+        sumWeight += ls_geometricWeight(ls_nodes[base + i], origin, normal);
+    }
+    return sumWeight;
+    #else
+    if (nodeIndex >= 7620u) return uintBitsToFloat(0x7fc00000u);
+    ivec2 slot = ivec2(int(nodeIndex), LS_CLUSTER_SCENE_ROW);
+    vec4 lowMass = texelFetch(usam_lsClusterAtlas, slot, 0);
+    vec3 high = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, 1), 0).xyz;
+    if (any(notEqual(lowMass.xyz, node.boundsMinMass.xyz)) || any(notEqual(high, node.boundsMaxLink.xyz)) ||
+        abs(lowMass.w - node.boundsMinMass.w) > 0.000002 * node.boundsMinMass.w) {
+        return uintBitsToFloat(0x7fc00000u);
+    }
+    vec3 halfSize = (node.boundsMaxLink.xyz - node.boundsMinMass.xyz) * 0.5;
+    if (ls_behindReceiver(node.boundsMinMass.xyz + halfSize - origin, halfSize, normal)) return 0.0;
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 8
+    vec4 centerVariance = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, 2), 0);
+    return ls_clusterComponent(centerVariance, node.boundsMinMass.w, origin, normal);
+    #else
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 9
+    const int count = 2;
+    const int first = 3;
+    const int massRow = 9;
+    #else
+    const int count = 4;
+    const int first = 5;
+    const int massRow = 10;
+    #endif
+    vec4 masses = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, massRow), 0);
+    float sumWeight = 0.0;
+    for (int j = 0; j < count; ++j) {
+        if (masses[j] > 0.0) {
+            vec4 centerVariance = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, first + j), 0);
+            sumWeight += ls_clusterComponent(centerVariance, masses[j], origin, normal);
+        }
+    }
+    return sumWeight;
+    #endif
+    #endif
+}
+#endif
+
 LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint auditSlot, out float pdf) {
     LightSamplingNode node = ls_nodes[1];
     pdf = 1.0;
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 8
+    if (LS_TREE_ARITY != 4 || VOXEL_GRID_SIZE != 16 ||
+        float(ls_emitterCount) != texelFetch(usam_lsClusterAtlas, ivec2(0, LS_CLUSTER_SCENE_ROW + 1), 0).w) {
+        pdf = uintBitsToFloat(0x7fc00000u);
+        return ls_emptyNode();
+    }
+    #endif
     while ((floatBitsToUint(node.boundsMaxLink.w) & LS_LEAF_BIT) == 0u && node.boundsMinMass.w > 0.0) {
         uint link = floatBitsToUint(node.boundsMaxLink.w);
         uint child = ls_childBase(link);
@@ -204,7 +279,15 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
         float total = 0.0;
         for (uint i = 0u; i < count; ++i) {
             LightSamplingNode candidate = ls_nodes[child + i];
+            #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 7
+            float weight = ls_experimentWeight(candidate, child + i, origin, normal);
+            if (isnan(weight)) {
+                pdf = weight;
+                return ls_emptyNode();
+            }
+            #else
             float weight = ls_geometricWeight(candidate, origin, normal);
+            #endif
             #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
             vec3 halfSize = (candidate.boundsMaxLink.xyz - candidate.boundsMinMass.xyz) * 0.5;
             vec3 delta = candidate.boundsMinMass.xyz + halfSize - origin;

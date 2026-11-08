@@ -4366,7 +4366,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 lang { name = "Light Sampling PDF Audit" }
                 lang(Locale.SIMPLIFIED_CHINESE) { name = "灯光采样PDF审计" }
             }
-            slider("SETTING_DEBUG_LIGHT_WEIGHT_MODEL", 1, listOf(0, 1, 2, 3, 4, 5, 6)) {
+            slider("SETTING_DEBUG_LIGHT_WEIGHT_MODEL", 1, 0..10) {
                 lang {
                     name = "Light Tree Weight Model"
                     0 value "Original"
@@ -4376,6 +4376,10 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     4 value "Moment sphere"
                     5 value "Diffuse SG"
                     6 value "Half-space A + near/far mixture"
+                    7 value "One-level outer lookahead"
+                    8 value "Frozen Ward K1"
+                    9 value "Frozen Ward K2"
+                    10 value "Frozen Ward K4"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "灯光树权重模型"
@@ -4386,6 +4390,20 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     4 value "空间矩球形"
                     5 value "漫反射 SG"
                     6 value "半空间 A + 近远混合"
+                    7 value "外层一层前瞻"
+                    8 value "冻结 Ward K1"
+                    9 value "冻结 Ward K2"
+                    10 value "冻结 Ward K4"
+                }
+            }
+            slider("SETTING_DEBUG_LIGHT_CLUSTER_SCENE", 1, 1..5) {
+                lang {
+                    name = "Frozen Light Summary Scene"
+                    comment = "Match the light-sampling preset number when using a frozen Ward model."
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "冻结灯簇摘要场景"
+                    comment = "使用冻结 Ward 模型时，选择与 light-sampling preset 相同的编号。"
                 }
             }
             toggle("SETTING_DEBUG_LIGHT_CUBE", true) {
@@ -4395,14 +4413,14 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
             slider("SETTING_DEBUG_LIGHT_ARITY", 4, listOf(2, 4, 8)) {
                 lang {
                     name = "Light Tree Branching"
-                    comment = "Morton light-tree branching factor. All choices use direct child weights without geometric lookahead."
+                    comment = "Morton light-tree branching factor. Frozen Ward summaries use the four-way layout."
                     2 value "Binary"
                     4 value "Four-way"
                     8 value "Eight-way"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "灯光树分叉数"
-                    comment = "Morton灯光树的分叉数。各选项均直接使用子节点权重，不做几何前瞻。"
+                    comment = "Morton灯光树的分叉数。冻结 Ward 摘要使用四叉布局。"
                     2 value "二叉"
                     4 value "四叉"
                     8 value "八叉"
