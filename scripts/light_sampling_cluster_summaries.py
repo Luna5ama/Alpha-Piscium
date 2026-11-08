@@ -102,7 +102,7 @@ def pack_reference(destination):
     return groups
 
 
-def fit(tree, k, dtype=np.float64, permute=False):
+def fit(tree, k, dtype=np.float64, permute=False, include_bounds=False):
     """Columns: mass, mean xyz, variance trace. Rank orders full minimum leaf keys."""
     n = len(tree.nodes)
     values = np.zeros((n, k, 5), dtype=dtype)
@@ -117,6 +117,10 @@ def fit(tree, k, dtype=np.float64, permute=False):
     for rank, i in enumerate(sorted(range(len(tree.keys)), key=tree.keys.__getitem__)):
         ranks[tree.leaves[i], 0] = rank
     counts[tree.leaves] = 1
+    if include_bounds:
+        bounds = np.zeros((n, k, 2, 3), dtype=dtype)
+        bounds[tree.leaves, 0, 0] = tree.nodes[tree.leaves, :3]
+        bounds[tree.leaves, 0, 1] = tree.nodes[tree.leaves, 4:7]
     order = sorted(range(n), key=lambda i: (tree.depth[i], i if not permute else -i), reverse=True)
     triangles = [np.triu_indices(i, 1) for i in range(4 * k + 1)]
     for i in order:
@@ -130,6 +134,8 @@ def fit(tree, k, dtype=np.float64, permute=False):
         sort = sort[r[sort] >= 0]
         rank = r[sort]
         v = values[children].reshape(-1, 5)[sort]
+        if include_bounds:
+            support = bounds[children].reshape(-1, 2, 3)[sort]
         inputs[i] = len(v)
         while len(v) > k:
             a, b = triangles[len(v)]
@@ -147,14 +153,23 @@ def fit(tree, k, dtype=np.float64, permute=False):
             v[left, 4] = ((1 - fraction) * v[left, 4] + fraction * v[right, 4] +
                           (1 - fraction) * fraction * delta2[choice])
             v = np.delete(v, right, axis=0)
+            if include_bounds:
+                support[left, 0] = np.minimum(support[left, 0], support[right, 0])
+                support[left, 1] = np.maximum(support[left, 1], support[right, 1])
+                support = np.delete(support, right, axis=0)
             rank = np.delete(rank, right)
             pairs[i] += len(a)
             merges[i] += 1
         counts[i] = len(v)
         values[i, :len(v)] = v
         ranks[i, :len(v)] = rank
+        if include_bounds:
+            bounds[i, :len(v)] = support
     assert np.isfinite(values).all() and (values[:, :, [0, 4]] >= 0).all()
-    return values, ranks, counts, dict(pairs=pairs, merges=merges, inputs=inputs)
+    stats = dict(pairs=pairs, merges=merges, inputs=inputs)
+    if include_bounds:
+        stats['bounds'] = bounds
+    return values, ranks, counts, stats
 
 
 def verify_moments(tree, values, dtype):

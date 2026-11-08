@@ -183,52 +183,91 @@ float ls_geometricWeight(LightSamplingNode node, vec3 origin, vec3 normal) {
     #endif
 }
 
+#if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 11
+#define LS_NEAR_FAR
+
+// Scores are summed over representatives before normalization over siblings.
+vec3 ls_distanceScores(float amplitude, vec3 delta, vec3 halfSize) {
+    if (amplitude == 0.0) return vec3(0.0);
+    vec3 nearest = max(abs(delta) - halfSize, 0.0);
+    vec3 farthest = abs(delta) + halfSize;
+    float near2 = dot(nearest, nearest);
+    return vec3(near2 > 0.0 ? amplitude / near2 : 0.0,
+        amplitude / dot(farthest, farthest), near2 == 0.0 ? amplitude : 0.0);
+}
+
+vec3 ls_nativeScores(LightSamplingNode node, vec3 origin, vec3 normal) {
+    vec3 halfSize = (node.boundsMaxLink.xyz - node.boundsMinMass.xyz) * 0.5;
+    vec3 delta = node.boundsMinMass.xyz + halfSize - origin;
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL != 3
+    if (ls_behindReceiver(delta, halfSize, normal)) return vec3(0.0);
+    #endif
+    float cosine = clamp((dot(normal, delta) + length(halfSize)) *
+        inversesqrt(max(dot(delta, delta), 0.25)), 0.001, 1.0);
+    return ls_distanceScores(node.boundsMinMass.w * cosine, delta, halfSize);
+}
+#endif
+
 #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 7
 bool ls_crossesBrick(LightSamplingNode node) {
     return any(notEqual(ivec3(node.boundsMinMass.xyz) >> 4, ivec3(node.boundsMaxLink.xyz - 1.0) >> 4));
 }
 
-#if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 8
+#if SETTING_DEBUG_LIGHT_WEIGHT_MODEL != 7 && SETTING_DEBUG_LIGHT_WEIGHT_MODEL != 11
+#define LS_WARD
 uniform sampler2D usam_lsClusterAtlas;
-const int LS_CLUSTER_SCENE_ROW = (SETTING_DEBUG_LIGHT_CLUSTER_SCENE - 1) * 11;
+const int LS_CLUSTER_SCENE_ROW = (SETTING_DEBUG_LIGHT_CLUSTER_SCENE - 1) * 23;
 
-float ls_clusterComponent(vec4 centerVariance, float mass, vec3 origin, vec3 normal) {
+vec3 ls_clusterScores(vec4 centerVariance, float mass, vec3 origin, vec3 normal, vec3 lo, vec3 hi) {
     vec3 delta = centerVariance.xyz - origin;
     float distance2 = dot(delta, delta);
     float radius2 = 2.0 * centerVariance.w;
     float cosine = clamp((dot(normal, delta) + sqrt(radius2)) * inversesqrt(max(distance2, 0.25)), 0.001, 1.0);
-    return mass * cosine / max(distance2, max(radius2, 0.25));
+    #ifdef LS_NEAR_FAR
+    vec3 halfSize = (hi - lo) * 0.5;
+    return ls_distanceScores(mass * cosine, lo + halfSize - origin, halfSize);
+    #else
+    return vec3(mass * cosine / max(distance2, max(radius2, 0.25)), 0.0, 0.0);
+    #endif
 }
 #endif
 
-float ls_experimentWeight(LightSamplingNode node, uint nodeIndex, vec3 origin, vec3 normal) {
+vec3 ls_experimentScores(LightSamplingNode node, uint nodeIndex, vec3 origin, vec3 normal) {
     uint link = floatBitsToUint(node.boundsMaxLink.w);
     if (node.boundsMinMass.w == 0.0 || (link & LS_LEAF_BIT) != 0u || !ls_crossesBrick(node)) {
-        return ls_geometricWeight(node, origin, normal);
+        #ifdef LS_NEAR_FAR
+        return ls_nativeScores(node, origin, normal);
+        #else
+        return vec3(ls_geometricWeight(node, origin, normal), 0.0, 0.0);
+        #endif
     }
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 7
-    float sumWeight = 0.0;
+    #ifndef LS_WARD
+    vec3 scores = vec3(0.0);
     uint base = ls_childBase(link);
     for (uint i = 0u; i < ls_childCount(link); ++i) {
-        sumWeight += ls_geometricWeight(ls_nodes[base + i], origin, normal);
+        #ifdef LS_NEAR_FAR
+        scores += ls_nativeScores(ls_nodes[base + i], origin, normal);
+        #else
+        scores.x += ls_geometricWeight(ls_nodes[base + i], origin, normal);
+        #endif
     }
-    return sumWeight;
+    return scores;
     #else
-    if (nodeIndex >= 7620u) return uintBitsToFloat(0x7fc00000u);
+    if (nodeIndex >= 7620u) return vec3(uintBitsToFloat(0x7fc00000u));
     ivec2 slot = ivec2(int(nodeIndex), LS_CLUSTER_SCENE_ROW);
     vec4 lowMass = texelFetch(usam_lsClusterAtlas, slot, 0);
     vec3 high = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, 1), 0).xyz;
     if (any(notEqual(lowMass.xyz, node.boundsMinMass.xyz)) || any(notEqual(high, node.boundsMaxLink.xyz)) ||
         abs(lowMass.w - node.boundsMinMass.w) > 0.000002 * node.boundsMinMass.w) {
-        return uintBitsToFloat(0x7fc00000u);
+        return vec3(uintBitsToFloat(0x7fc00000u));
     }
     vec3 halfSize = (node.boundsMaxLink.xyz - node.boundsMinMass.xyz) * 0.5;
-    if (ls_behindReceiver(node.boundsMinMass.xyz + halfSize - origin, halfSize, normal)) return 0.0;
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 8
+    if (ls_behindReceiver(node.boundsMinMass.xyz + halfSize - origin, halfSize, normal)) return vec3(0.0);
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 8 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 12
     vec4 centerVariance = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, 2), 0);
-    return ls_clusterComponent(centerVariance, node.boundsMinMass.w, origin, normal);
+    return ls_clusterScores(centerVariance, node.boundsMinMass.w, origin, normal, lowMass.xyz, high);
     #else
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 9
+    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 9 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 13
     const int count = 2;
     const int first = 3;
     const int massRow = 9;
@@ -238,14 +277,21 @@ float ls_experimentWeight(LightSamplingNode node, uint nodeIndex, vec3 origin, v
     const int massRow = 10;
     #endif
     vec4 masses = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, massRow), 0);
-    float sumWeight = 0.0;
+    vec3 scores = vec3(0.0);
     for (int j = 0; j < count; ++j) {
         if (masses[j] > 0.0) {
             vec4 centerVariance = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, first + j), 0);
-            sumWeight += ls_clusterComponent(centerVariance, masses[j], origin, normal);
+            #ifdef LS_NEAR_FAR
+            int boundRow = 11 + 2 * (first + j - 3);
+            vec3 lo = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, boundRow), 0).xyz;
+            vec3 hi = texelFetch(usam_lsClusterAtlas, slot + ivec2(0, boundRow + 1), 0).xyz;
+            #else
+            vec3 lo = vec3(0.0), hi = vec3(0.0);
+            #endif
+            scores += ls_clusterScores(centerVariance, masses[j], origin, normal, lo, hi);
         }
     }
-    return sumWeight;
+    return scores;
     #endif
     #endif
 }
@@ -254,7 +300,7 @@ float ls_experimentWeight(LightSamplingNode node, uint nodeIndex, vec3 origin, v
 LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint auditSlot, out float pdf) {
     LightSamplingNode node = ls_nodes[1];
     pdf = 1.0;
-    #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 8
+    #ifdef LS_WARD
     if (LS_TREE_ARITY != 4 || VOXEL_GRID_SIZE != 16 ||
         float(ls_emitterCount) != texelFetch(usam_lsClusterAtlas, ivec2(0, LS_CLUSTER_SCENE_ROW + 1), 0).w) {
         pdf = uintBitsToFloat(0x7fc00000u);
@@ -269,7 +315,7 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
         #if LS_TREE_ARITY == 8
         vec4 weightsHigh = vec4(0.0);
         #endif
-        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
+        #ifdef LS_NEAR_FAR
         vec4 nearLow = vec4(0.0), zeroLow = vec4(0.0);
         #if LS_TREE_ARITY == 8
         vec4 nearHigh = vec4(0.0), zeroHigh = vec4(0.0);
@@ -280,28 +326,16 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
         for (uint i = 0u; i < count; ++i) {
             LightSamplingNode candidate = ls_nodes[child + i];
             #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 7
-            float weight = ls_experimentWeight(candidate, child + i, origin, normal);
-            if (isnan(weight)) {
-                pdf = weight;
+            vec3 scores = ls_experimentScores(candidate, child + i, origin, normal);
+            if (isnan(scores.x)) {
+                pdf = scores.x;
                 return ls_emptyNode();
             }
-            #else
-            float weight = ls_geometricWeight(candidate, origin, normal);
+            #elif defined(LS_NEAR_FAR)
+            vec3 scores = ls_nativeScores(candidate, origin, normal);
             #endif
-            #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
-            vec3 halfSize = (candidate.boundsMaxLink.xyz - candidate.boundsMinMass.xyz) * 0.5;
-            vec3 delta = candidate.boundsMinMass.xyz + halfSize - origin;
-            float cosine = clamp((dot(normal, delta) + length(halfSize)) * inversesqrt(max(dot(delta, delta), 0.25)), 0.001, 1.0);
-            float amplitude = candidate.boundsMinMass.w * cosine;
-            #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
-            if (ls_behindReceiver(delta, halfSize, normal)) amplitude = 0.0;
-            #endif
-            vec3 nearest = max(abs(delta) - halfSize, 0.0);
-            vec3 farthest = abs(delta) + halfSize;
-            float nearD2 = dot(nearest, nearest);
-            float nearWeight = nearD2 > 0.0 ? amplitude / nearD2 : 0.0;
-            float zeroWeight = nearD2 == 0.0 ? amplitude : 0.0;
-            weight = amplitude > 0.0 ? amplitude / dot(farthest, farthest) : 0.0;
+            #ifdef LS_NEAR_FAR
+            float nearWeight = scores.x, weight = scores.y, zeroWeight = scores.z;
             nearTotal += nearWeight;
             zeroTotal += zeroWeight;
             #if LS_TREE_ARITY == 8
@@ -309,6 +343,10 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
             else
             #endif
             { nearLow[i] = nearWeight; zeroLow[i] = zeroWeight; }
+            #elif SETTING_DEBUG_LIGHT_WEIGHT_MODEL >= 7
+            float weight = scores.x;
+            #else
+            float weight = ls_geometricWeight(candidate, origin, normal);
             #endif
             #if LS_TREE_ARITY == 8
             if (i >= 4u) weightsHigh[i - 4u] = weight;
@@ -318,7 +356,7 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
             total += weight;
         }
         if (total == 0.0) { pdf = 0.0; return ls_emptyNode(); }
-        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 3 || SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
+        #ifdef LS_NEAR_FAR
         weightsLow = 0.5 * (weightsLow / total + (zeroTotal > 0.0 ? zeroLow / zeroTotal : nearLow / nearTotal));
         #if LS_TREE_ARITY == 8
         weightsHigh = 0.5 * (weightsHigh / total + (zeroTotal > 0.0 ? zeroHigh / zeroTotal : nearHigh / nearTotal));

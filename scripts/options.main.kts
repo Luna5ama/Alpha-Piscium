@@ -4366,7 +4366,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 lang { name = "Light Sampling PDF Audit" }
                 lang(Locale.SIMPLIFIED_CHINESE) { name = "灯光采样PDF审计" }
             }
-            slider("SETTING_DEBUG_LIGHT_WEIGHT_MODEL", 1, 0..10) {
+            slider("SETTING_DEBUG_LIGHT_WEIGHT_MODEL", 1, 0..14) {
                 lang {
                     name = "Light Tree Weight Model"
                     0 value "Original"
@@ -4380,6 +4380,10 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     8 value "Frozen Ward K1"
                     9 value "Frozen Ward K2"
                     10 value "Frozen Ward K4"
+                    11 value "One-level lookahead + near/far"
+                    12 value "Frozen Ward K1 + near/far"
+                    13 value "Frozen Ward K2 + near/far"
+                    14 value "Frozen Ward K4 + near/far"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "灯光树权重模型"
@@ -4394,16 +4398,20 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     8 value "冻结 Ward K1"
                     9 value "冻结 Ward K2"
                     10 value "冻结 Ward K4"
+                    11 value "一层前瞻 + 近远混合"
+                    12 value "冻结 Ward K1 + 近远混合"
+                    13 value "冻结 Ward K2 + 近远混合"
+                    14 value "冻结 Ward K4 + 近远混合"
                 }
             }
-            slider("SETTING_DEBUG_LIGHT_CLUSTER_SCENE", 1, 1..5) {
+            slider("SETTING_DEBUG_LIGHT_CLUSTER_SCENE", 1, 1..6) {
                 lang {
                     name = "Frozen Light Summary Scene"
-                    comment = "Match the light-sampling preset number when using a frozen Ward model."
+                    comment = "Match the light-sampling preset number when using a frozen Ward model. Use 6 for moving-4."
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "冻结灯簇摘要场景"
-                    comment = "使用冻结 Ward 模型时，选择与 light-sampling preset 相同的编号。"
+                    comment = "使用冻结 Ward 模型时，选择与 light-sampling preset 相同的编号。moving-4 使用 6。"
                 }
             }
             toggle("SETTING_DEBUG_LIGHT_CUBE", true) {
