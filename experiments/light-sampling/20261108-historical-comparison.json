@@ -1,0 +1,786 @@
+{
+  "schema": 1,
+  "status": "Historical input drift verified; same-input point attribution complete; full-frame historical causality not established.",
+  "scope": "Read-only source and saved-buffer investigation requested after comparison with the 2026-10-31 Discord images. No new GPU run or shader/default change.",
+  "captures": [
+    {
+      "scene": 1,
+      "old_capture": {
+        "dimensions": {
+          "Scene": "ls1",
+          "Method": "Half-space A + Near/Far Mix",
+          "Sample": "1 spp"
+        },
+        "source_png": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261031-nearfar-iteration\\images\\ls1-candidate6-1-spp.png",
+        "sha256": "9c97518ac88020f111721f9e3c26a572bc5d0cf8b525f918f399416cc2cd57cf",
+        "batch": "targeted-nearfar",
+        "capture_directory": "builds/light-sampling/20261031-nearfar-iteration/candidate-runtime-evidence/ls1-candidate6-quality",
+        "revision": "78823b540d1164190cd86566f783707ee63c2c8f",
+        "source_snapshot_sha256": "f1d8455bd7f520879340102d6d87ab460f69ebfa93705a1350dbf81535c7a4d8",
+        "preset_id": "light-sampling-1",
+        "preset_sha256": "d8eac2ed16f4268e6597ae5897f58dac236efb76b5b53afdc140ad86c02ed32a",
+        "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+        "sampling": "2",
+        "weight_model": "6",
+        "emitters_in_native_header": 3921,
+        "frames": 32,
+        "start_frame": 529618,
+        "end_frame": 529649,
+        "native_result_sha256": "875da03c4f3f00abdff604d17b3813c57015485a84e387ceec3965c0dfadbf18"
+      },
+      "current_revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+      "current_tree_header": [
+        20470,
+        10235,
+        0,
+        0,
+        2021492,
+        332444,
+        2022474,
+        0
+      ],
+      "current_tree_sha256": "ebb9610328983f37fe5492b00e0c5652d2fcde8138eca7b99cacec8a11256d6c",
+      "current_identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+        "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+      },
+      "current_config_sha256": "27d71798d4d291bbd87cf573ac03d89108504b994886aa99610cdad1198fb715",
+      "preset_hash_matches": true,
+      "scene_hash_matches": true,
+      "old_image_avif_sha256": "4b4a80334b0806ec6f7c414a7e0c66aaabd5bc1ef9a45966470a4c7fc9233cdc",
+      "downloaded_image": "builds/light-sampling/20261108-historical-comparison/discord-ls1.webp",
+      "downloaded_image_sha256": "1e15dc33d888b6267e5e5ce717375e2c6ab9f2d47cb75359777ce8776b052b31",
+      "downloaded_image_scope": "Discord filename matches the tracked old AVIF hash; downloaded PNG/WebP viewed at 1920x1080. Old AVIF payload absent, so exact pixel equality with that payload is not re-proved."
+    },
+    {
+      "scene": 5,
+      "old_capture": {
+        "dimensions": {
+          "Scene": "ls5",
+          "Method": "Half-space A + Near/Far Mix",
+          "Sample": "1 spp"
+        },
+        "source_png": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261031-nearfar-iteration\\images\\ls5-candidate6-1-spp.png",
+        "sha256": "42d323cc259cd00ad183f23c2944f63299102dad96797c6d71081d042d0b4f7c",
+        "batch": "targeted-nearfar",
+        "capture_directory": "builds/light-sampling/20261031-nearfar-iteration/candidate-runtime-evidence/ls5-candidate6-quality",
+        "revision": "78823b540d1164190cd86566f783707ee63c2c8f",
+        "source_snapshot_sha256": "f1d8455bd7f520879340102d6d87ab460f69ebfa93705a1350dbf81535c7a4d8",
+        "preset_id": "light-sampling-5",
+        "preset_sha256": "21ab84808d11e8bc016f2ee3536864ff46aee9ce405ca4d89e30ae279112757e",
+        "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+        "sampling": "2",
+        "weight_model": "6",
+        "emitters_in_native_header": 877,
+        "frames": 32,
+        "start_frame": 537864,
+        "end_frame": 537895,
+        "native_result_sha256": "6eab163593d1557d5486c5473e5966995611068485e1d3a49c8a122bc001f273"
+      },
+      "current_revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+      "current_tree_header": [
+        4344,
+        2172,
+        0,
+        0,
+        2066794,
+        98799,
+        2066956,
+        0
+      ],
+      "current_tree_sha256": "c1343c1d0d6b3fb7d1c6df26a7e67130f202020b7eea86efcf782d3f57a68d07",
+      "current_identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      },
+      "current_config_sha256": "6c719ca39cebfc3efd5a7d115b75becee751c411ce6098efbf6613d69dbeee6e",
+      "preset_hash_matches": true,
+      "scene_hash_matches": true,
+      "old_image_avif_sha256": "03f0864180dd28a6c45f2b0428a1eb21e69bef5506e4af9894d908d847ab7579",
+      "downloaded_image": "builds/light-sampling/20261108-historical-comparison/discord-ls5.png",
+      "downloaded_image_sha256": "ee6c9f7739dac31270413aade71961b5172174e67142da6f41ee9dd21e3f4e3e",
+      "downloaded_image_scope": "Discord filename matches the tracked old AVIF hash; downloaded PNG/WebP viewed at 1920x1080. Old AVIF payload absent, so exact pixel equality with that payload is not re-proved."
+    }
+  ],
+  "source_audit": {
+    "old_revision": "78823b540d1164190cd86566f783707ee63c2c8f",
+    "current_capture_revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+    "conclusion": "Model 6 native near/far formula and half-space exclusion preserved by score-function refactor. Brick-local emitter detection/counting, leaf mass and cube evaluation unchanged. Outer grouping/layout changed; new model >=7 paths do not execute for model 6. Mode-3 fixture and M2 changes do not affect mode 2.",
+    "unchanged_paths": [
+      "shaders/techniques/debug/LightSamplingCube.glsl",
+      "shaders/techniques/debug/LightSamplingPolygon.glsl",
+      "shaders/techniques/voxel"
+    ],
+    "scope_limit": "Source inspection plus earlier current-input GPU PDF checks, not an end-to-end execution of the old source against current inputs. Upstream runtime voxel availability is not fixed by a matching preset/scene hash."
+  },
+  "same_input_points": {
+    "scope": "Same current light set, same measured conditional RGB M2, alternate outer tree grouping only; finite M2, not full-frame rendering.",
+    "reference": "experiments/light-sampling/20261108-cluster-summaries-reference.npz",
+    "reference_sha256": "7d003de47afd0d986bb35c8447219133a37899f96359290cc34ffb1220c67794",
+    "points": [
+      {
+        "group": "ls1",
+        "point": "ls1-pillar",
+        "window": 1,
+        "origin": [
+          146.45921325683594,
+          150.15493774414062,
+          87.99700164794922
+        ],
+        "normal": [
+          -2.3153575057222042e-08,
+          -1.8557159364718245e-08,
+          -1.0
+        ],
+        "lights": 10235,
+        "positive_m2_lights": 188,
+        "total_mean_rgb": [
+          0.007539392696473761,
+          0.00499029435548618,
+          0.003975731019349202
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.010282867233950343,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.5841446918866752,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.0032980692987209055,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.2915966345075111,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 0.32073440448903806
+      },
+      {
+        "group": "ls1",
+        "point": "ls1-wall",
+        "window": 1,
+        "origin": [
+          159.75596618652344,
+          151.40460205078125,
+          82.99700164794922
+        ],
+        "normal": [
+          -2.3153575057222042e-08,
+          -1.8557159364718245e-08,
+          -1.0
+        ],
+        "lights": 10235,
+        "positive_m2_lights": 296,
+        "total_mean_rgb": [
+          0.017245410556548442,
+          0.0030956210032302904,
+          0.0019243540521104768
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.030945522938390965,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.06750972331874557,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.0052038458590681225,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.24157906781031446,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 0.16816150980639077
+      },
+      {
+        "group": "ls1",
+        "point": "ls1-pillar",
+        "window": 2,
+        "origin": [
+          146.45921325683594,
+          150.15493774414062,
+          87.99700164794922
+        ],
+        "normal": [
+          -2.3153575057222042e-08,
+          -1.8557159364718245e-08,
+          -1.0
+        ],
+        "lights": 10235,
+        "positive_m2_lights": 189,
+        "total_mean_rgb": [
+          0.007506178147749966,
+          0.0049413694200842705,
+          0.003921333466702595
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.010267411688514031,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.5841318226246967,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.00329074755146977,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.29156573633523636,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 0.3205041008680961
+      },
+      {
+        "group": "ls1",
+        "point": "ls1-wall",
+        "window": 2,
+        "origin": [
+          159.75596618652344,
+          151.40460205078125,
+          82.99700164794922
+        ],
+        "normal": [
+          -2.3153575057222042e-08,
+          -1.8557159364718245e-08,
+          -1.0
+        ],
+        "lights": 10235,
+        "positive_m2_lights": 298,
+        "total_mean_rgb": [
+          0.01715979039777841,
+          0.0030712865352617524,
+          0.0019067369801541736
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.030851623786804564,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.0675353874401798,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.0051965495383336354,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.2416637255426407,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 0.16843682440326635
+      },
+      {
+        "group": "sides",
+        "point": "side-26",
+        "window": 1,
+        "origin": [
+          109.15621185302734,
+          76.13873291015625,
+          362.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "lights": 4243,
+        "positive_m2_lights": 1,
+        "total_mean_rgb": [
+          0.002574599243398105,
+          0.001615797106833419,
+          0.0006045329990184491
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.0003356589347029548,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.3695322842523534,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.0005933192212514499,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.2116122355127846,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 1.7676252883794512
+      },
+      {
+        "group": "sides",
+        "point": "side-27",
+        "window": 1,
+        "origin": [
+          112.3916244506836,
+          76.43063354492188,
+          364.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "lights": 4243,
+        "positive_m2_lights": 4,
+        "total_mean_rgb": [
+          0.01927418263173914,
+          0.011610625483969714,
+          0.004479784909533203
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.0010643221141951422,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.5699828685277233,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.0024151050759559888,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.30823550253136994,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 2.269148638128534
+      },
+      {
+        "group": "sides",
+        "point": "side-26",
+        "window": 2,
+        "origin": [
+          109.15621185302734,
+          76.13873291015625,
+          362.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "lights": 4243,
+        "positive_m2_lights": 1,
+        "total_mean_rgb": [
+          0.002460750254329946,
+          0.001535244968807569,
+          0.0005740865445215872
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.00032442204462803547,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.3695322842523534,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.0005730525524460456,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.2116122355127846,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 1.7663798189271518
+      },
+      {
+        "group": "sides",
+        "point": "side-27",
+        "window": 2,
+        "origin": [
+          112.3916244506836,
+          76.43063354492188,
+          364.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "lights": 4243,
+        "positive_m2_lights": 4,
+        "total_mean_rgb": [
+          0.019122880078626982,
+          0.011537300609577004,
+          0.004449950805703011
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.0010507411287473496,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.5699828685277233,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.002383390459817856,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.30823550253136994,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 2.268294629962031
+      },
+      {
+        "group": "side-top",
+        "point": "side-27",
+        "window": 1,
+        "origin": [
+          112.3916244506836,
+          76.43063354492188,
+          364.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "lights": 4243,
+        "positive_m2_lights": 4,
+        "total_mean_rgb": [
+          0.01954868695790284,
+          0.011685933282009143,
+          0.0045537320349735705
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.0010828827086294805,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.5699828685277233,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.0024605337665443558,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.30823550253136994,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 2.2722070884837193
+      },
+      {
+        "group": "side-top",
+        "point": "top-28",
+        "window": 1,
+        "origin": [
+          115.77961730957031,
+          76.00300598144531,
+          365.39862060546875
+        ],
+        "normal": [
+          1.6776782629790432e-08,
+          1.0,
+          -2.98201214832261e-08
+        ],
+        "lights": 4243,
+        "positive_m2_lights": 3,
+        "total_mean_rgb": [
+          0.02875886796507865,
+          0.21477815807001668,
+          0.016038140978536352
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.026043811348167856,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.8167184343866032,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.03729657722963353,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.7079705486909255,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 1.4320706263393086
+      },
+      {
+        "group": "side-top",
+        "point": "side-27",
+        "window": 2,
+        "origin": [
+          112.3916244506836,
+          76.43063354492188,
+          364.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "lights": 4243,
+        "positive_m2_lights": 4,
+        "total_mean_rgb": [
+          0.01966631197495592,
+          0.011745123625408522,
+          0.004576252287465575
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.0010866737227087932,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.5699828685277233,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.0024728133355991417,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.30823550253136994,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 2.275580318106032
+      },
+      {
+        "group": "side-top",
+        "point": "top-28",
+        "window": 2,
+        "origin": [
+          115.77961730957031,
+          76.00300598144531,
+          365.39862060546875
+        ],
+        "normal": [
+          1.6776782629790432e-08,
+          1.0,
+          -2.98201214832261e-08
+        ],
+        "lights": 4243,
+        "positive_m2_lights": 3,
+        "total_mean_rgb": [
+          0.029057133945183312,
+          0.21532750646686316,
+          0.016117553190769452
+        ],
+        "methods": {
+          "camera-relative-6": {
+            "variance": 0.02622552063999413,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.8167184343866032,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          },
+          "world-prefix-6": {
+            "variance": 0.03754553256786347,
+            "null_probability": 0.0,
+            "measured_positive_probability": 0.7079705486909255,
+            "measured_support_failures": 0,
+            "max_score_oracle_error": 0.0
+          }
+        },
+        "world_over_camera_model6": 1.4316410752435638
+      }
+    ]
+  },
+  "ls1_subset_counterfactual": {
+    "scope": "Old ls1 fixture light keys and masses / topology validated, reconstructed on current inputs. Current conditional moments retain current real geometry and visibility; this is not a historical render.",
+    "old_fixture_topology_sha256": "e1f3321bb154f27c559b268edb868c6095d730f8fd2b412247ace7daa19be8f9",
+    "old_fixture_leaf_mass_sha256": "7e360e543208fe2d8fa3c63b759943e87d6877331d24d3c197f8e478e97bc87f",
+    "old_lights": 3921,
+    "additional_lights": 6314,
+    "old_bounds": [
+      [
+        16.0,
+        97.0,
+        65.0
+      ],
+      [
+        227.0,
+        225.0,
+        208.0
+      ]
+    ],
+    "full_bounds": [
+      [
+        16.0,
+        69.0,
+        -48.0
+      ],
+      [
+        240.0,
+        270.0,
+        208.0
+      ]
+    ],
+    "additional_flux_fraction": 0.6470956745500164,
+    "points": [
+      {
+        "point": "ls1-pillar",
+        "window": 1,
+        "old_mean_rgb": [
+          0.0071290926072904125,
+          0.004595452158716899,
+          0.003637014741897743
+        ],
+        "additional_mean_rgb": [
+          0.0004103000891833474,
+          0.00039484219676928046,
+          0.0003387162774514604
+        ],
+        "additional_rgb_sum_fraction": 0.06930200486059922,
+        "methods": {
+          "camera-relative": {
+            "additional_light_probability": 0.2467670885795194,
+            "null_probability": 0.0,
+            "old_only_variance": 0.0024850985030275548,
+            "full_tree_old_component_variance": 0.009833505345499734,
+            "old_component_variance_ratio": 3.9569881570166077
+          },
+          "world-prefix": {
+            "additional_light_probability": 0.5190353923146296,
+            "null_probability": 0.0,
+            "old_only_variance": 0.0014596261953562946,
+            "full_tree_old_component_variance": 0.003188144497437881,
+            "old_component_variance_ratio": 2.1842198417517817
+          }
+        }
+      },
+      {
+        "point": "ls1-wall",
+        "window": 1,
+        "old_mean_rgb": [
+          0.015788507830226686,
+          0.0028273087064500674,
+          0.001770389800319904
+        ],
+        "additional_mean_rgb": [
+          0.0014569027263217737,
+          0.0002683122967802238,
+          0.00015396425179057266
+        ],
+        "additional_rgb_sum_fraction": 0.0843991344973217,
+        "methods": {
+          "camera-relative": {
+            "additional_light_probability": 0.2434291461830891,
+            "null_probability": 0.0,
+            "old_only_variance": 0.005663723984038481,
+            "full_tree_old_component_variance": 0.029286604375110478,
+            "old_component_variance_ratio": 5.170909538961653
+          },
+          "world-prefix": {
+            "additional_light_probability": 0.5566114915123169,
+            "null_probability": 0.0,
+            "old_only_variance": 0.001799936966135853,
+            "full_tree_old_component_variance": 0.00477604555740766,
+            "old_component_variance_ratio": 2.653451563729472
+          }
+        }
+      },
+      {
+        "point": "ls1-pillar",
+        "window": 2,
+        "old_mean_rgb": [
+          0.0070977028629523225,
+          0.0045499550698865476,
+          0.0035864656741868392
+        ],
+        "additional_mean_rgb": [
+          0.0004084752847976438,
+          0.00039141435019772653,
+          0.00033486779251575753
+        ],
+        "additional_rgb_sum_fraction": 0.0693240683414397,
+        "methods": {
+          "camera-relative": {
+            "additional_light_probability": 0.2467670885795194,
+            "null_probability": 0.0,
+            "old_only_variance": 0.0024712070399782395,
+            "full_tree_old_component_variance": 0.009821536072538752,
+            "old_component_variance_ratio": 3.9743881891115187
+          },
+          "world-prefix": {
+            "additional_light_probability": 0.5190353923146296,
+            "null_probability": 0.0,
+            "old_only_variance": 0.0014573549310852138,
+            "full_tree_old_component_variance": 0.003180968253521189,
+            "old_component_variance_ratio": 2.1826997567109427
+          }
+        }
+      },
+      {
+        "point": "ls1-wall",
+        "window": 2,
+        "old_mean_rgb": [
+          0.01571409875462332,
+          0.0028052090445922027,
+          0.0017544835594358163
+        ],
+        "additional_mean_rgb": [
+          0.0014456916431550887,
+          0.00026607749066954957,
+          0.00015225342071835675
+        ],
+        "additional_rgb_sum_fraction": 0.08420084123265763,
+        "methods": {
+          "camera-relative": {
+            "additional_light_probability": 0.2434291461830891,
+            "null_probability": 0.0,
+            "old_only_variance": 0.005649071931295143,
+            "full_tree_old_component_variance": 0.029203744081388285,
+            "old_component_variance_ratio": 5.169653429194846
+          },
+          "world-prefix": {
+            "additional_light_probability": 0.5566114915123169,
+            "null_probability": 0.0,
+            "old_only_variance": 0.0017985082551794903,
+            "full_tree_old_component_variance": 0.004770709603595172,
+            "old_component_variance_ratio": 2.65259255266474
+          }
+        }
+      }
+    ]
+  },
+  "reproduction": {
+    "inputs": [
+      "experiments/light-sampling/20261108-cluster-summaries-reference.npz",
+      "experiments/light-sampling/20261031-ls1-point-fixture.json",
+      "shaders/textures/light_sampling_reference.bin"
+    ],
+    "steps": [
+      "Read stored camera-relative and world-prefix compact trees. Independently compute model-6 sibling probabilities and full path PMFs for each audited receiver.",
+      "Score sum_l M2_l / q_l - dot(sum_l mean_l, sum_l mean_l), including zero outcomes. Cross-check independent scores with tracked light_sampling_weight_reference.probabilities and assert total leaf plus null probability is one.",
+      "For ls1, map old fixture keys into current leaves, rebuild compressed Morton brick-local trees and both outer layouts. Match old fixture leaf/mass and unordered topology hashes.",
+      "Keep current measured per-light moments and geometry fixed. To isolate probability dilution on the old-light component, zero the contribution of additional lights but retain them in the full-tree proposal; compare with the old-only proposal. This is a counterfactual component estimator, not a historical image."
+    ],
+    "local_scripts": [
+      {
+        "path": "builds/light-sampling/20261108-historical-comparison/analyze.py",
+        "sha256": "f0424215119c60988b46d1affb1b55c46db392f616c21d8c210f43d8f3390319"
+      },
+      {
+        "path": "builds/light-sampling/20261108-historical-comparison/subset.py",
+        "sha256": "ea451b537862a41950c399deaaa6533088808afaa7e1d425e32c4fb2ae6c6397"
+      }
+    ]
+  },
+  "limitations": [
+    "The old primary raw tree, voxel and 32-frame arrays are absent. Counts are tied to primary image captures by archived result/image hashes, not recovered primary raw bytes.",
+    "The old ls1 fixture records model-1 primary keys/masses/topology. Reconstructing it does not independently prove the old model-6 primary leaf set; only its count is directly linked here. No old ls5 full leaf fixture is retained.",
+    "Finite per-light M2 supports fixed-point variance estimates, not full-image acceptance or proof that zero-observed lights are invisible. Point selection includes historical near-edge moving points.",
+    "Camera and world grouping are compared at the same current light input. The 0.321/0.168 ls1 ratios cannot be extended to every pixel; moving-point model-6 ratios are worse for world prefix.",
+    "Why historical/current voxel input populations differ remains unassigned; neither a streaming cause nor an emitter-collection implementation bug is proved.",
+    "Downloaded 1-spp image appearance alone cannot establish variance, brightness bias or a controlled historical ranking."
+  ],
+  "next_discriminating_evidence": "If full-frame attribution is needed, use one frozen ls1/ls5 voxel/light input and identical model-6 settings to compare original camera-relative versus World Prefix grouping. Diagnose upstream voxel identity separately; do not infer it from preset name or roll back world stability based on mixed-input images.",
+  "retention": "Current experiment cleanup remains paused. Keep the small historical-comparison local images and analysis scripts while the historical-input issue remains active; tracked numerical evidence and compact reference suffice for point recomputation."
+}

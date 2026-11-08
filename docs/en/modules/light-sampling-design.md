@@ -199,6 +199,35 @@ Near/Far does alleviate the K1 side-face and K4 top-face counterexamples, but th
 
 The review checked the 132-image matrix and original 72 image hashes. It sampled all eleven moving-4 methods and three scene-2 methods at 32 frames: AVIF/PNG pixels match, and sampled rows match the display transform and `raw[1079-display_y]` orientation. Local frames were inspected directly. The available browser connection exposed only an empty MCP Apps backend, so interaction acceptance reuses the experiment side's Chrome evidence. No new GPU work or shader edit occurred. The roughly 540 kB [compact per-light reference](../../../experiments/light-sampling/20261108-nearfar-combination-reference.npz) retains model IDs, world light keys, compact tree/child indices, native addresses, actual atlas columns, three origins/normals/PMFs and eight conditional-moment sets. Point variances remain reproducible after large raw captures are cleaned. The [experiment index](../../../experiments/light-sampling/20261108-nearfar-combination.json) records hashes, provenance and review scope.
 
+### Historical October 31 images versus current results (2026-11-08)
+
+The supplied Discord filenames identify the old ls5 and ls1 Half-space A + Near/Far 1-spp primary images. Both downloaded 1920×1080 images were inspected alongside the current model-6 view. The old AVIF payloads are absent, so matching filenames to tracked AVIF hashes does not re-establish pixel identity. Cross-checking the [old primary-image provenance](../../../experiments/light-sampling/20261031-temporary-baselines.json) against accepted job-result hashes establishes different actual emitter inputs:
+
+| Scene | Old primary native-header emitters | Current raw-header emitters |
+|---|---:|---:|
+| ls1 | 3,921 | 10,235 |
+| ls5 | 877 | 2,172 |
+
+Preset and scene hashes still match in both scenes. They do not establish identical actual voxels, emitters or occlusion. Old counts belong to the primary-image captures, independently of conditional fixtures. The population change remains unexplained; counts alone cannot attribute it to chunk loading, view distance or emitter-extraction code.
+
+Using the [compact per-light reference](../../../experiments/light-sampling/20261108-cluster-summaries-reference.npz), hold current lights, receivers and measured conditional RGB M2 fixed and change only original camera-relative versus complete world-prefix grouping. Independently recompute full-path model-6 PMFs. All twelve point-windows retain unit total probability and no positive-M2 support failures. Every row below enables Half-space A + Near/Far and reports world-prefix / original-camera estimated single-sample variance.
+
+| Receiver | Two-window variance ratio |
+|---|---:|
+| ls1 pillar | 0.3205–0.3207 |
+| ls1 wall | 0.1682–0.1684 |
+| moving-4 historical side-26 | 1.766–1.768 |
+| moving-4 historical side-27 (four windows across two groups) | 2.268–2.276 |
+| moving-4 historical top-28 | 1.4316–1.4321 |
+
+Grouping still has local regressions, but these two ls1 points do not support attributing their degradation to the switch to world prefix. These are fixed-point results under finite conditional M2. Historical moving points retain their near-edge limitations and do not represent whole images or the new face-interior points.
+
+Mapping the retained old ls1 fixture's 3,921 keys into the current 10,235 lights matches every old key and mass; the reconstructed camera-relative tree also matches the old fixture's unordered topology hash. The additional 6,314 lights account for about 64.71% of current total flux. At the pillar/wall, they contribute only about 6.93% / 8.42–8.44% of the summed RGB components, yet receive 51.90% / 55.66% of current prefix model-6 selection probability. Hold current true evaluation fixed and estimate only the old-light illumination component: including the additional lights in the proposal raises that component's prefix-estimator variance by about 2.18 / 2.65 times. This isolates how additional candidates change probability allocation. It is not a historical render and does not classify unobserved finite-window contributions as strictly invisible. The old fixture comes from the model-1 primary capture; its key hash does not independently establish the full key set of the old model-6 primary image.
+
+The source comparison spans old `78823b540` and current capture `e9132607`. Model-6 half-space, near/far mixing and normalization formulas are preserved. Brick-local emitter identification, counting, mass, in-light cube sampling and true voxel evaluation are unchanged. Outer grouping and layout change; new model ≥7 summary paths do not execute for model 6. Together with the earlier PDF audit, this investigation finds no additional weight/PDF implementation regression, without claiming that every runtime regression is excluded.
+
+The [investigation record](../../../experiments/light-sampling/20261108-historical-comparison.json) retains image provenance, input identities, twelve point-window results, the old-light-component counterfactual and reproduction steps. Neither grouping alone nor emitter count alone apportions the whole-image historical gap. If whole-image attribution is pursued, freeze one ls1/ls5 voxel and emitter input and compare model 6 with only original camera-relative versus world-prefix grouping changed; investigate voxel-input drift separately. This round changed no shader, ran no GPU work and switched no default. Raw cleanup remains paused.
+
 ## Weight experiment status (2026-10-31)
 
 The latest [targeted iteration](../../../experiments/light-sampling/20261031-nearfar-iteration.json) compares A, original near/far and A + near/far in ls1/2/4/5,
