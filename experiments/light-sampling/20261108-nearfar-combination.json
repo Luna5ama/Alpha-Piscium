@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "status": "completed_live_iris_paired_comparison",
-  "scope": "Initial diffuse direct light, native 1920×1080, 1 spp and 32 linear frames in 8 batches of 4.",
+  "scope": "Initial diffuse direct light, native 1920脳1080, 1 spp and 32 linear frames in 8 batches of 4.",
   "models": {
     "Prefix A": {
       "off": 1,
@@ -5242,5 +5242,192 @@
     "path": "builds/light-sampling/20261108-cluster-iris/comparison.html",
     "sha256": "88312e89b80b09bfe9ccbda108fd7e546738360f50b9c05d922a3067ed2ab023",
     "image_count": 132
+  },
+  "independent_review": {
+    "reviewed_result_commit": "9a40fc98f95b44a71bdc0c5be9245f5137575e82",
+    "status": "accepted_quality_evidence_with_stated_limits",
+    "cohort_cases": 66,
+    "fresh_cases": 42,
+    "gpu_pdf": {
+      "fresh_tree_cases": 40,
+      "valid_records": 2503,
+      "maximum_relative_error": 1.145009592957307e-06
+    },
+    "conditional_reference": {
+      "receiver_windows": 8,
+      "complete_samples_per_light_per_window": 7808,
+      "maximum_absolute_pmf_difference": 8.363019388113457e-09,
+      "recomputed_from_raw": true
+    },
+    "finite_32_frame_statistics_independently_recomputed": true,
+    "nearfar_on_variance_over_prefix_nearfar": {
+      "light-sampling-1": {
+        "Prefix A + Near/Far": 1.0,
+        "One-level Lookahead + Near/Far": 0.5789043001834997,
+        "Ward K1 + Near/Far": 0.9582196432138294,
+        "Ward K2 + Near/Far": 0.7138162425579226,
+        "Ward K4 + Near/Far": 0.6073428959424703
+      },
+      "light-sampling-2": {
+        "Prefix A + Near/Far": 1.0,
+        "One-level Lookahead + Near/Far": 0.7996020748131526,
+        "Ward K1 + Near/Far": 0.9410212821536417,
+        "Ward K2 + Near/Far": 0.7426605168665363,
+        "Ward K4 + Near/Far": 0.7293389134146213
+      },
+      "light-sampling-3": {
+        "Prefix A + Near/Far": 1.0,
+        "One-level Lookahead + Near/Far": 0.7923022622688644,
+        "Ward K1 + Near/Far": 0.9768918500741208,
+        "Ward K2 + Near/Far": 0.9425020767870088,
+        "Ward K4 + Near/Far": 0.7732479516663439
+      },
+      "light-sampling-4": {
+        "Prefix A + Near/Far": 1.0,
+        "One-level Lookahead + Near/Far": 0.8557512748765987,
+        "Ward K1 + Near/Far": 0.9989501846387283,
+        "Ward K2 + Near/Far": 0.8310927972562712,
+        "Ward K4 + Near/Far": 0.7835688604342488
+      },
+      "light-sampling-5": {
+        "Prefix A + Near/Far": 1.0,
+        "One-level Lookahead + Near/Far": 0.9024576161459789,
+        "Ward K1 + Near/Far": 0.8929911391156653,
+        "Ward K2 + Near/Far": 0.9222042286204049,
+        "Ward K4 + Near/Far": 0.6849912081919016
+      },
+      "light-sampling-failure-moving-4": {
+        "Prefix A + Near/Far": 1.0,
+        "One-level Lookahead + Near/Far": 0.8598728503691464,
+        "Ward K1 + Near/Far": 1.371039358596525,
+        "Ward K2 + Near/Far": 0.9587035926781357,
+        "Ward K4 + Near/Far": 1.14793775900232
+      }
+    },
+    "visual": {
+      "matrix": 132,
+      "preserved_original_assets": 72,
+      "checked_images": [
+        [
+          "light-sampling-failure-moving-4",
+          "Cosine BRDF-only",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "Prefix A",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "One-level Lookahead",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "Ward K1",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "Ward K2",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "Ward K4",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "Prefix A + Near/Far",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "One-level Lookahead + Near/Far",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "Ward K1 + Near/Far",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "Ward K2 + Near/Far",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-failure-moving-4",
+          "Ward K4 + Near/Far",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-2",
+          "Cosine BRDF-only",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-2",
+          "Prefix A",
+          "32-frame mean"
+        ],
+        [
+          "light-sampling-2",
+          "Ward K4 + Near/Far",
+          "32-frame mean"
+        ]
+      ],
+      "geometry": [
+        {
+          "name": "side-a",
+          "all_121_plane_error": 2.6203416041425953e-06,
+          "block_grid_margin_11x11": 0.05100274092015411,
+          "block_grid_margin_9x9": 0.07379455594764295,
+          "center_grid_margin": 0.16616812322547503
+        },
+        {
+          "name": "side-b",
+          "all_121_plane_error": 2.371356472963271e-06,
+          "block_grid_margin_11x11": 0.01981504895030639,
+          "block_grid_margin_9x9": 0.04827434769207173,
+          "center_grid_margin": 0.16069325459385198
+        },
+        {
+          "name": "top",
+          "all_121_plane_error": 3.722337879707993e-06,
+          "block_grid_margin_11x11": 0.08533972362045006,
+          "block_grid_margin_9x9": 0.10855287021121285,
+          "center_grid_margin": 0.20048631905132197
+        }
+      ],
+      "browser": "Current browser connection exposes only an empty MCP-apps backend; fresh interaction unavailable. Reused producer Chrome interaction evidence; directly inspected local PNGs."
+    },
+    "compact_reference": {
+      "path": "experiments/light-sampling/20261108-nearfar-combination-reference.npz",
+      "bytes": 540026,
+      "sha256": "461580964b16260af4d79f468c4f5820ac5c9a449811429a88db2121801c9988",
+      "tree_root_compact_index": 0,
+      "absent_child_index": -1,
+      "tree_nodes": "Native float32 node words in BFS order; use tree_children for compact topology. Native link bits are retained only for provenance/leaf material.",
+      "atlas_rows": "23 rows at atlas_native_columns in moving-4, unchanged between source revisions e9132607 and cb2319b0.",
+      "conditional_moments": "Rows correspond to moment_labels; each emitter has mean RGB and squared-RGB-norm M2. Keys align with keys; PMFs correspond to point_ids and models.",
+      "variance_formula": "sum(M2_light / PMF_light) - dot(sum(mean_RGB_light), sum(mean_RGB_light)); zero-M2/zero-PMF terms contribute zero."
+    },
+    "limits": [
+      "Finite 32-frame whole-image statistics and finite per-light conditional estimates.",
+      "No fresh GPU execution, timing, dynamic construction, continuous-motion or default acceptance by this review.",
+      "Previous local ls1 Near/Far failures are not declared repaired.",
+      "Browser interaction reused from producer; independent raw/pixel checks and direct local image inspection performed."
+    ],
+    "temporary_retention": {
+      "path": "builds/light-sampling/20261108-nearfar-combination/review",
+      "bytes": 74690,
+      "owner": "discussion chat 01a18c0e-8678-7800-8ab8-04b69f072f12",
+      "purpose": "Independent review scripts and duplicate reports; compact conclusions and reference are already tracked.",
+      "cleanup_status": "Automatic approval rejected the command containing recursive directory removal with reason blocked by policy; no removal executed.",
+      "release_condition": "Delete only after the current restriction is resolved; do not delegate this rejected removal or bypass it via another tool."
+    }
   }
 }

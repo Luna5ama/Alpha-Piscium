@@ -178,6 +178,27 @@ The six-scene Iris comparison covers 11 methods at 1 spp and a 32-frame mean, fo
 
 On the common complete receiver pixels in each scene, Near/Far lowers 32-frame window variance in 29 of 30 pairs. Scene 3 Ward K4 is at 1.063 times its own off variant and 0.292 times fixed Prefix A. All five Near/Far tree variants fall below fixed Prefix A across the six scenes. In moving-4, Ward K1 reduces zero-direct-light pixels from 79/81 to 0/81 at side-a, and Ward K4 reduces them from 11/81 to 0/81 at the top. The whole-image and region statistics describe the captured windows. The [experiment index](../../../experiments/light-sampling/20261108-nearfar-combination.json) records the per-light variance and capture provenance.
 
+### Independent Near/Far combination review (2026-11-08)
+
+Review of result commit `9a40fc98f` accepts the six-scene quality comparison and the three interior-point diagnoses within their stated scope. Independent reconstruction from raw buffers matched the camera, emitter keys/masses, ordered tree and world voxels of all 66 cases to their scene's cohort before and after capture. Scene 2 has nine added and eight removed keys; scene 4 has unchanged keys. Both use newly captured controls for all eleven methods without mixing historical inputs.
+
+An independent scalar implementation checked 2,503 valid GPU selection records across 40 new tree configurations. Maximum full-path PDF relative difference was 1.146×10⁻⁶. All eight receiver/window references across three new points and two fixtures were recomputed from raw conditional captures: 7,808 complete samples per light per window, and maximum absolute full-PMF difference from the report of 8.37×10⁻⁹. All 121 pixels in each 11×11 geometry neighborhood have consistent normals/materials and plane error below 3.73×10⁻⁶ blocks. M2 remains a finite conditional-sampling estimate, not an analytic ground truth.
+
+Independent common-complete-pixel 32-frame statistics also match the report. To assess the extra benefit of the more complex methods, the following whole-image window-variance ratios use **Prefix A + Near/Far** as their denominator. Every column has Near/Far enabled; the agreed experimental baseline remains Prefix A.
+
+| Scene | One-level lookahead | Ward K1 | Ward K2 | Ward K4 |
+|---|---:|---:|---:|---:|
+| ls1 | 0.579 | 0.958 | 0.714 | 0.607 |
+| ls2 | 0.800 | 0.941 | 0.743 | 0.729 |
+| ls3 | 0.792 | 0.977 | 0.943 | 0.773 |
+| ls4 | 0.856 | 0.999 | 0.831 | 0.784 |
+| ls5 | 0.903 | 0.893 | 0.922 | 0.685 |
+| moving-4 | 0.860 | 1.371 | 0.959 | 1.148 |
+
+Near/Far does alleviate the K1 side-face and K4 top-face counterexamples, but this does not accept the summary model. At side-a, K1 node 153 receives the entire near half, raising its branch probability from 0.254% to 50.175% while its ball cosine remains at the floor. With Near/Far, K4's top-point per-light variance estimate remains about 1.61 times Prefix with Near/Far. K4 slightly beats K2 at side-b, so surface orientation alone does not determine a consistent K ranking. Subsequent discussion should prioritize retaining one-level lookahead with Near/Far and keep K4 as a candidate. No default change or equal-time performance gain is accepted, nor are the earlier local Near/Far regressions in ls1 and other scenes established as fully repaired.
+
+The review checked the 132-image matrix and original 72 image hashes. It sampled all eleven moving-4 methods and three scene-2 methods at 32 frames: AVIF/PNG pixels match, and sampled rows match the display transform and `raw[1079-display_y]` orientation. Local frames were inspected directly. The available browser connection exposed only an empty MCP Apps backend, so interaction acceptance reuses the experiment side's Chrome evidence. No new GPU work or shader edit occurred. The roughly 540 kB [compact per-light reference](../../../experiments/light-sampling/20261108-nearfar-combination-reference.npz) retains model IDs, world light keys, compact tree/child indices, native addresses, actual atlas columns, three origins/normals/PMFs and eight conditional-moment sets. Point variances remain reproducible after large raw captures are cleaned. The [experiment index](../../../experiments/light-sampling/20261108-nearfar-combination.json) records hashes, provenance and review scope.
+
 ## Weight experiment status (2026-10-31)
 
 The latest [targeted iteration](../../../experiments/light-sampling/20261031-nearfar-iteration.json) compares A, original near/far and A + near/far in ls1/2/4/5,
