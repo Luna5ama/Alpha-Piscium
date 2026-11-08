@@ -156,6 +156,24 @@ The user selected the complete paired matrix: World Prefix + Half-space A remain
 
 The first combination accumulates each method's representatives' unnormalized near/far/zero-near scores, normalizes over current siblings and retains the original half-and-half mixture. Lookahead representatives are direct children. Ward representatives are existing components, with added actual member AABBs for distance bounds, retaining existing ball cosines and whole-cluster half-space tests. Near/Far off preserves current candidates; native Prefix on must reproduce model 6. Appending the old Near/Far branch after a new scalar weight would overwrite the correction, and variance balls cannot substitute for support bounds. Existing cosine underestimation and zero-near monopolization may remain; improvement from combining them is an experimental hypothesis. This discussion changes neither shaders nor defaults.
 
+### Near/Far per-light experiment on face interiors (2026-11-08)
+
+Using the same projection, voxels and 4,243-light tree in moving-4, Prefix A geometry fixed two side-face regions and one upward-facing 9×9 region. The new receivers are at the region centers, with the old three points retained for comparison. Two live conditional captures each contain two independent 32-frame windows, with 7,808 samples per receiver, emitter and window. Both captures include side-b. The calculation aligns M2 by world light key and uses each proposal's complete PMF to estimate single-sample RGB variance. All ten proposals retained support for every emitter with positive measured M2 in every window.
+
+Values are first-window variance ratios to the fixed Prefix A baseline, shown as Near/Far off → on.
+
+| Interior point | Prefix A | One-level lookahead | Ward K1 | Ward K2 | Ward K4 |
+|---|---:|---:|---:|---:|---:|
+| side-a | 1 → 0.090 | 0.392 → 0.068 | 93.07 → 0.126 | 0.130 → 0.057 | 0.244 → 0.088 |
+| side-b | 1 → 0.097 | 0.332 → 0.083 | 1.026 → 0.093 | 0.195 → 0.086 | 0.145 → 0.080 |
+| top | 1 → 0.429 | 0.567 → 0.430 | 3.074 → 0.529 | 1.529 → 0.655 | 9.688 → 0.692 |
+
+Side-a reproduces the severe K1 regression. The ball cosine for node 153, which contains the critical nearby emitter, reaches the 0.001 floor. K1 gives the branch 0.254%, while one-level lookahead's direct children retain 97.5%. With K1 and Near/Far the receiver falls inside the actual AABB, giving that node the entire near half and raising its branch share to 50.2%. This alleviates the variance at this point and shows how strongly zero-near can still steer the distribution.
+
+At the top interior, the critical light is the same one as at the old top-28, affected by K4 grouping at node 70. Its K4 component has height plus radius of −8.903, compared with 18.304 for the corresponding K2 component. K4 selects the light with 3.69% probability, compared with 19.22% for K2. Near/Far raises these to 35.42% and 36.67%, respectively. With Near/Far, native Prefix and lookahead remain close at the top, while K2 and K4 have about 1.53 and 1.61 times the variance of Prefix. K4 has a small advantage over K2 at side-b. The rankings hold in both windows.
+
+The six-scene offline atlas occupies 16,824,960 bytes, including 8,778,240 new bytes for component AABBs. K1 reuses the node bounds. K2 and K4 add two RGBA32F reads per active component. Weighted by path probability at the three interior points, these account for about 38–64 and 76–126 fetches per sample, or 0.61–1.02 and 1.22–2.02 kB of requested texture bytes. Lookahead continues reading the direct children of cross-brick candidates. Static requests and offline baking exclude GPU build and timing results.
+
 ## Weight experiment status (2026-10-31)
 
 The latest [targeted iteration](../../../experiments/light-sampling/20261031-nearfar-iteration.json) compares A, original near/far and A + near/far in ls1/2/4/5,
