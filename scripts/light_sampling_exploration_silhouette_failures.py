@@ -10,11 +10,11 @@ from light_sampling_geometry import cube_integral
 from light_sampling_point_moments import read, sha
 
 
-def main(folder, output, rejected_restore=False, far_plane=False):
+def decode(folder, rejected_restore=False, far_plane=False, artifact="audit"):
     capture = read(folder/('diagnostic-only.json' if rejected_restore else 'accepted.json'))
     if rejected_restore:
         assert capture['status']=='rejected_transaction_restore_failure'
-    path = folder/'audit.bin'
+    path = folder/f"{artifact}.bin"
     data = np.fromfile(path,'<u4')
     counts = data[1024:1040].astype(int)
     expected = (11,12,13,14) if far_plane else (11,12)
@@ -56,7 +56,22 @@ def main(folder, output, rejected_restore=False, far_plane=False):
                   projected_solid_angle_min_median_max=np.quantile(h,[0,.5,1]).tolist() if h else None,
                   relative_miss_min_median_max=np.quantile(gaps,[0,.5,1]).tolist() if gaps else None,
                   scope='Real failing GPU draws only; double slab check distinguishes a rounded boundary from a ray outside the cube.')
-    output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n',encoding='utf8')
+    return report
+
+
+def series(folder, far_plane):
+    files = sorted(folder.glob("audit-*.bin"))
+    stems = ["audit",*(f.stem for f in files)]
+    assert len(stems)>1
+    frames = [read(folder/f"{stem}.json")["frame_id"] for stem in stems]
+    assert all(a<b for a,b in zip(frames,frames[1:]))
+    decoded = [decode(folder,False,far_plane,stem) for stem in stems]
+    reasons = Counter()
+    for report in decoded:
+        reasons.update(report["reasons"])
+    return dict(job=decoded[0]["job"],source=decoded[0]["source"],frames=frames,reasons=dict(reasons),
+                failures=sum(r["failure_count"] for r in decoded),frames_and_witnesses=decoded,
+                scope="Distinct recorded native debug frames at the same scene and camera. Not a timing test.")
 
 
 if __name__=='__main__':
@@ -65,5 +80,11 @@ if __name__=='__main__':
     p.add_argument('output',type=Path)
     p.add_argument('--rejected-restore',action='store_true')
     p.add_argument('--far-plane',action='store_true')
+    p.add_argument('--series',action='store_true')
     args = p.parse_args()
-    main(args.folder,args.output,args.rejected_restore,args.far_plane)
+    if args.series:
+        assert not args.rejected_restore
+        result = series(args.folder,args.far_plane)
+    else:
+        result = decode(args.folder,args.rejected_restore,args.far_plane)
+    args.output.write_text(json.dumps(result,indent=2,allow_nan=False)+"\n",encoding="utf8")
