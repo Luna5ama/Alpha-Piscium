@@ -49,11 +49,10 @@
     "historical_local_originals_untouched": true
   },
   "next": [
-    "For finalists only, verify 64x64 pooled noise with more disjoint windows if the original pair contradicts pixel-tail ranking.",
-    "Complete remaining live controls with one scoped readiness recovery on terrain failures.",
-    "Measure optimized lookahead in ls1 under ordered Camera baseline; run in-place and parallel coarse build on moving-4.",
-    "Validate actual camera motion across x=112 with a continuous framebuffer and diagnostic traversal evidence.",
-    "Extend narrow, measurable candidates to 720p fixtures and G32 stress; record per-scene hard negatives."
+    "Fast lookahead did not pass the cap after reversed order; test the two smaller proposal-equivalent variants and the silhouette separately.",
+    "Run exact GPU shape/slot verification for coarse parallel and coarse anchor; benchmark final-pass cost.",
+    "Gate the cube silhouette on audited directions/PDF and absence of new numeric/miss failures before timing or combining.",
+    "Broaden matched shortlist coverage, test 720p and G32, and extend low-frequency windows for conflicting finalists."
   ],
   "results": [
     {
@@ -3873,6 +3872,320 @@
         "prefix": 1.0676769272390871,
         "cosine-brdf": 0.49717566441337163
       }
+    },
+    {
+      "id": "ls1-optimized-lookahead-first-pair",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-spatial-noise-surfaces-camera-paired-lookfast-lookahead-fast.json",
+        "sha256": "cc38d8206e75a3e6695d54f0c4ea6ced3f2958c771352590de7d2621e1dee2f2"
+      },
+      "matched_pixels": 2022428,
+      "p50_raygen": 1.275456550008481,
+      "mean_raygen": 1.2734260278189609,
+      "tail_vt_ratios": [
+        {
+          "whole": 0.9112831005173339,
+          "red-pillar": 0.5655182074284878,
+          "central-ceiling": 1.6239502790562947,
+          "red-pillar connected plane": 0.2563420197887942,
+          "central-ceiling connected plane": 1.2411473810600677
+        },
+        {
+          "whole": 0.9141427729624662,
+          "red-pillar": 0.3904208242896794,
+          "central-ceiling": 1.5431109848478217,
+          "red-pillar connected plane": 0.24054701443401122,
+          "central-ceiling connected plane": 1.2166922495939465
+        }
+      ],
+      "emitter_uv_bracket_matched": false
+    },
+    {
+      "id": "ls1-lookahead-fast-vs-camera-abba",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-1/lookahead-fast-vs-camera-abba/accepted.json",
+        "sha256": "0d9b9eddc704fbf9a8c31d98184730122b6c373ccfd4c94e1ca3b7fe9d9f4e55"
+      },
+      "same_inputs": true,
+      "pairs": [
+        1.284624081401922,
+        1.1856613756613756
+      ],
+      "median_ratio": 1.2335064225198142,
+      "mean_ratio": 1.2324446084569294,
+      "cap_state": "borderline: one paired block above 1.25"
+    },
+    {
+      "id": "ls1-lookahead-fast-vs-original-abba",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-1/lookahead-fast-vs-original-abba/accepted.json",
+        "sha256": "ce264feaa59c358596538658d6398c778dfcf1decc4ddccedc1bf05713f51969"
+      },
+      "same_inputs": true,
+      "pairs": [
+        0.9147058823529411,
+        0.9569018342252543
+      ],
+      "median_ratio": 0.9356579240958235,
+      "mean_ratio": 0.9201735195224959,
+      "cap_state": "attribution only; model11 vs model11"
+    },
+    {
+      "id": "ls1-optimized-lookahead-audit",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls1-lookahead-fast-pdf.json",
+        "sha256": "1115195ea3c9db2f2fca74233624a57955830e904091096e73ea04df29fbc1c0"
+      }
+    },
+    {
+      "id": "moving4-actual-boundary",
+      "receipt": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/motion/light-sampling-failure-moving-4/boundary-structural/accepted.json",
+        "sha256": "a6846bd38c84e3a28cfaf596a0881f6d7c16ea75d46202620b8adee4ec1e0037"
+      },
+      "trace": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-boundary-structural-trace.json",
+        "sha256": "c6d0e553d9fbc41ebbca6ae83d6e162fdeb553cd1f8a6f0f62ca4d955dcf44ca"
+      },
+      "independent": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-motion-trace-review.json",
+        "sha256": "62b159cf5ad2514bdf2be36dbcc0e7e5f0637f948fca42e225b9e5fb6981c864"
+      },
+      "crossings": {
+        "camera": [
+          8,
+          24
+        ],
+        "prefix": [
+          8,
+          24
+        ],
+        "coarse": [
+          8,
+          24
+        ]
+      },
+      "cross_brick_matched_fingerprint_cohorts": {
+        "camera": [
+          {
+            "leaf_fingerprint": [
+              2839536397,
+              3349109122,
+              4042
+            ],
+            "frames": 2,
+            "bricks": [
+              [
+                6,
+                5,
+                23
+              ],
+              [
+                7,
+                5,
+                23
+              ]
+            ],
+            "shapes": [
+              [
+                2943095831,
+                7263
+              ],
+              [
+                4164506339,
+                7267
+              ]
+            ],
+            "cross_brick_input_match": true,
+            "same_ordered_topology": false
+          }
+        ],
+        "prefix": [
+          {
+            "leaf_fingerprint": [
+              2839536397,
+              3349109122,
+              4042
+            ],
+            "frames": 2,
+            "bricks": [
+              [
+                6,
+                5,
+                23
+              ],
+              [
+                7,
+                5,
+                23
+              ]
+            ],
+            "shapes": [
+              [
+                305982843,
+                7132
+              ]
+            ],
+            "cross_brick_input_match": true,
+            "same_ordered_topology": true
+          }
+        ],
+        "coarse": [
+          {
+            "leaf_fingerprint": [
+              2839536397,
+              3349109122,
+              4042
+            ],
+            "frames": 2,
+            "bricks": [
+              [
+                6,
+                5,
+                23
+              ],
+              [
+                7,
+                5,
+                23
+              ]
+            ],
+            "shapes": [
+              [
+                2033735192,
+                7119
+              ]
+            ],
+            "cross_brick_input_match": true,
+            "same_ordered_topology": true
+          }
+        ]
+      },
+      "scope": "28 equal recorded poses; 26 shader frames per method have aligned GPU diagnostics. Fingerprints cover leaf key/mass and ordered topology, not exact raw tree bytes. Different real emitter cohorts are separate."
+    },
+    {
+      "id": "boundary-viewer",
+      "page": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/boundary-viewer/comparison.html",
+        "sha256": "50ccd2986b5739b0d9cbd21955bf33771009f8193e3b3abb3981379d7df841f9"
+      },
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/boundary-viewer/evidence.json",
+        "sha256": "3ed2ef5b03acd8b48e7e6ed032212594593ff3f7748f4d96d0729bf8c4692ae6"
+      },
+      "verified_lossless_images": 84,
+      "agent": "Pyxis GPT-6.1 Terra medium, priority; Windows Idle; browser GPU disabled"
+    },
+    {
+      "id": "anchor-exposure-silhouette-offline",
+      "evidence": [
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/coarse-anchor-offline.json",
+          "sha256": "8129e1efad5ea570caa740159da0cef022b56d8bc39ad03a1c1ac5954937f960"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/global-exposed-split-ls1-atlas.json",
+          "sha256": "a4b05022e4d0133efc6fe620bddd0c19fba07fca316e4c1c33b588451c2bce00"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cube-silhouette-geometry.json",
+          "sha256": "2007eafcc22110a9cde10b3cea41803aee53578dccf92bead9227e9e9eae9b67"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cube-silhouette-polygon.json",
+          "sha256": "0f3bdfc7be6e169f5b2e1fec1e915d8453fc93d54056654da7cacbce3599731d"
+        }
+      ],
+      "scope": "Runtime candidate preparation and independent CPU geometry only."
+    },
+    {
+      "id": "control-flatroom-light-sampling-2-720p-camera-prefix-cosine-brdf",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/flatroom-light-sampling-2-720p-camera-prefix-cosine-brdf.json",
+        "sha256": "ec5421871785431930a7607eeafee58b2b6201b7eaf134a01fc0f58115c3a7c5"
+      },
+      "matched_pixels": 921600,
+      "p50_raygen": {
+        "camera": 1.0,
+        "prefix": 1.2712878254750175,
+        "cosine-brdf": 0.270935960591133
+      },
+      "mean_raygen": {
+        "camera": 1.0,
+        "prefix": 1.1390479320928704,
+        "cosine-brdf": 0.3228564702328866
+      }
+    },
+    {
+      "id": "control-light-sampling-failure-moving-1-camera-prefix-cosine-brdf",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-1-camera-prefix-cosine-brdf.json",
+        "sha256": "74d1912f9ef8dab36a94ed3278572877a642f813e30861976aedc84d5d8ea85b"
+      },
+      "matched_pixels": 1972326,
+      "p50_raygen": {
+        "camera": 1.0,
+        "prefix": 1.052575535738054,
+        "cosine-brdf": 0.4546785571675762
+      },
+      "mean_raygen": {
+        "camera": 1.0,
+        "prefix": 1.029949945533018,
+        "cosine-brdf": 0.4765220714394057
+      }
+    },
+    {
+      "id": "control-light-sampling-failure-moving-2-camera-prefix-cosine-brdf",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-2-camera-prefix-cosine-brdf.json",
+        "sha256": "da61d09ef480e9f35ad9a8e34dd9904641ff88e74447932b694c142a066b034f"
+      },
+      "matched_pixels": 1985705,
+      "p50_raygen": {
+        "camera": 1.0,
+        "prefix": 1.059942911512845,
+        "cosine-brdf": 0.43169770286801684
+      },
+      "mean_raygen": {
+        "camera": 1.0,
+        "prefix": 1.0424973033646916,
+        "cosine-brdf": 0.47358131946313486
+      }
+    },
+    {
+      "id": "control-light-sampling-1-surfaces-camera-paired-outer-prefix-paired-coarse-prefix-arity8-cosine-brdf",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-surfaces-camera-paired-outer-prefix-paired-coarse-prefix-arity8-cosine-brdf.json",
+        "sha256": "17836d49d1fd3a3cf62148bdd206a6122ef89bee54d0fafcc3f9f3d585cb4899"
+      },
+      "matched_pixels": 2017602,
+      "p50_raygen": {
+        "camera-paired-outer": 1.0,
+        "prefix-paired-coarse": 1.170115815454718,
+        "prefix-arity8": 1.353268780456933,
+        "cosine-brdf": 0.5606607176760965
+      },
+      "mean_raygen": {
+        "camera-paired-outer": 1.0,
+        "prefix-paired-coarse": 1.1840191496865833,
+        "prefix-arity8": 1.3664000753482854,
+        "cosine-brdf": 0.5962343892780994
+      }
+    },
+    {
+      "id": "ls1-lookahead-fast-vs-camera-baab",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-1/lookahead-fast-vs-camera-baab/accepted.json",
+        "sha256": "efbcba54f5bb9b1d5be0df8419c23123a10850175e8fa0dd1a33b2c5e8e81748"
+      },
+      "pairs": [
+        1.3788495667606222,
+        1.246661981728742
+      ],
+      "median_ratio": 1.3139124200015933,
+      "mean_ratio": 1.3533810050446728,
+      "same_inputs": true,
+      "cap_state": "failed"
     }
   ],
   "frozen_candidate_refs": {
@@ -4012,6 +4325,34 @@
     "motion-coarse": {
       "ref": "experiment/light-sampling-eight-hour-motion-coarse",
       "source": "6aa8e10380c0e615115fc1dc1e2938a25a0d2fdc"
+    },
+    "dynamic-coarse-anchor": {
+      "ref": "experiment/light-sampling-eight-hour-dynamic-coarse-anchor",
+      "source": "15df1311d5c1fe2e87d47f64bf724e853f84fb42"
+    },
+    "lookahead-fast-empty": {
+      "ref": "experiment/light-sampling-eight-hour-lookahead-fast-empty",
+      "source": "3010862423b4fd90c4f5dbfbfc8269af98e727c4"
+    },
+    "lookahead-fast-cull": {
+      "ref": "experiment/light-sampling-eight-hour-lookahead-fast-cull",
+      "source": "b9ea9a60592feb3d3962f17ff12e45e785fd8fee"
+    },
+    "global-exposed-split-ls1": {
+      "ref": "experiment/light-sampling-eight-hour-global-exposed-split-ls1",
+      "source": "ad235ce0588fac370f98662364506c6500e320a5"
+    },
+    "cube-silhouette": {
+      "ref": "experiment/light-sampling-eight-hour-cube-silhouette",
+      "source": "29b23483759ad92376fdd1c06c6b4d9482dce943"
+    },
+    "cube-silhouette-audited": {
+      "ref": "experiment/light-sampling-eight-hour-cube-silhouette-audited",
+      "source": "47c1c1a3fec71840148dab63e36959425a4974a8"
+    },
+    "cube-silhouette-lookahead": {
+      "ref": "experiment/light-sampling-eight-hour-cube-silhouette-lookahead",
+      "source": "cf5f65f0a007c94e33715866300025119b501625"
     }
   },
   "runtime_scene_recovery": {
@@ -4041,6 +4382,33 @@
     "moving2-camera-chunks": {
       "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/moving2-camera-chunks/result.json",
       "sha256": "5e02f3df7a955dcc77afca677107d9bbb4d992e285111daa1c05d9322c8114ca"
+    },
+    "ls2-scoped-readiness": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/ls2-scoped-readiness/result.json",
+      "sha256": "3f925d827a4023b5cae2d522321d2133f888a7f345f4e07671a0506ac0c906e1"
+    },
+    "moving1-scoped-readiness": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/moving1-scoped-readiness/result.json",
+      "sha256": "47524590c76b5d994241cc8096a03afc4b41b705ed8c3e643843dcaadcf5363e"
+    },
+    "moving2-scoped-readiness": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/moving2-scoped-readiness/result.json",
+      "sha256": "0c006d4eb934f5d2eba28350c53e1a3ab1871abf102beaacdca79b4567ff021e"
+    },
+    "coarse-parallel-moving4-chunks": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/coarse-parallel-moving4-chunks/result.json",
+      "sha256": "f0a2d1f75b535c8781d3eae49472bb82503f8c201d9a6fc4d0073fa7274d9361"
+    },
+    "ls2_control_inputs": {
+      "camera": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-2/camera/accepted.json",
+        "sha256": "92c64a758caebcbc52a09d9843642f13141bd69029b82c5bbc3d1c990e8b2841"
+      },
+      "old_prefix": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-2/prefix/accepted.json",
+        "sha256": "c63867633b796627b32dadbc9a06f748c4f32e87fa1c687bc481982557264f36"
+      },
+      "state": "Both native captures accepted; different world voxel hashes, require a fresh matched pair."
     }
   }
 }

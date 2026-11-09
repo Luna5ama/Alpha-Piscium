@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
-from light_sampling_exploration_coarse_upper import cell_roots, coarse_tree
+from light_sampling_exploration_coarse_upper import anchored_tree, cell_roots, coarse_tree
 from light_sampling_clustering_repair import build_primitives
 from light_sampling_moving_analysis import leaves, native_node, ordered_signature, read
 from light_sampling_point_moments import sha
@@ -83,15 +83,15 @@ def first_difference(a, b, size, path=()):
     raise AssertionError('Different signature with identical child splits')
 
 
-def main(prefix, candidate, output):
+def main(prefix, candidate, output, rule):
     controls = {n:read(p/'accepted.json') for n,p in (('prefix',prefix),('live',candidate))}
     baseline, live = controls.values()
     for k in ('camera_sha256','leaf_sha256','world_voxel_sha256','grid'):
         assert baseline['identity'][k] == live['identity'][k], k
     assert live['identity']['grid']==16
     cell = (64,64,64)
-    report = {'scope':'Exact retained subtree records and leaf list. Independent offline float64 SAH topology is reported separately.',
-              'scene':live['scene'], 'sources':{n:p['source'] for n,p in controls.items()}, 'phases':{}}
+    report = {'scope':'Exact leaf list and retained subtree bounds, mass, material and nonempty child order; physical links and empty slots may differ.',
+              'rule':rule,'scene':live['scene'], 'sources':{n:p['source'] for n,p in controls.items()}, 'phases':{}}
     for phase in ('before','after'):
         paths = {n:p/f'{phase}_tree.bin' for n,p in (('prefix',prefix),('live',candidate))}
         def root(path):
@@ -104,7 +104,7 @@ def main(prefix, candidate, output):
         _, prefix_tree, baseline_rows = root(paths['prefix'])
         header, candidate_tree, rows = root(paths['live'])
         assert rows == baseline_rows
-        expected, count = coarse_tree(prefix_tree,cell)
+        expected, count = anchored_tree(prefix_tree) if rule=='anchor' else coarse_tree(prefix_tree,cell)
         assert int(header[7])==count, (header[7],count,'live coarse path did not run')
         observed = cell_roots(candidate_tree,cell)
         control = cell_roots(prefix_tree,cell)
@@ -114,7 +114,7 @@ def main(prefix, candidate, output):
         nodes, error = envelopes(candidate_tree)
         expected_sha, observed_sha = ordered_signature(expected), ordered_signature(candidate_tree)
         replays = {}
-        for variant in (None,'left','right'):
+        for variant in ((None,'left','right') if rule=='sah' else ()):
             replay = build_primitives(np.asarray(list(control)),list(control.values()),True,
                       partition=lambda *args: float32_split(*args,fuse=variant))
             replays[variant or 'unfused'] = ordered_signature(replay)
@@ -123,7 +123,7 @@ def main(prefix, candidate, output):
             expected_ordered_topology_sha256=expected_sha, observed_ordered_topology_sha256=observed_sha,
             same_topology_as_offline=expected_sha==observed_sha,
             float32_topology_sha256=replays, matching_float32_replays=[m for m,h in replays.items() if h==observed_sha],
-            first_float64_difference=first_difference(expected,candidate_tree,cell),
+            first_reference_difference=first_difference(expected,candidate_tree,cell),
             tree_sha256={n:sha(p) for n,p in paths.items()})
     output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n',encoding='utf8')
 
@@ -133,5 +133,6 @@ if __name__=='__main__':
     parser.add_argument('prefix',type=Path)
     parser.add_argument('candidate',type=Path)
     parser.add_argument('output',type=Path)
+    parser.add_argument('--rule',choices=('anchor','sah'),default='sah')
     a = parser.parse_args()
-    main(a.prefix,a.candidate,a.output)
+    main(a.prefix,a.candidate,a.output,a.rule)

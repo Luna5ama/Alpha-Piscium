@@ -8,13 +8,14 @@ import numpy as np
 from light_sampling_clustering_repair import scores
 from light_sampling_exploration_endpoints import endpoints
 from light_sampling_exploration_outer_mix import outer_mix
+from light_sampling_geometry import cube_integral
 from light_sampling_moving_analysis import native_node
 from light_sampling_point_moments import read, sha
 from light_sampling_point_screening import Tree
 from light_sampling_weight_reference import cube_pdf, load_tree
 
 
-def main(folder, output, proposal):
+def main(folder, output, proposal, silhouette=False):
     receipt = read(folder/'accepted.json')
     assert receipt['settings']['SETTING_DEBUG_LIGHT_AUDIT']=='true'
     model = int(receipt['settings']['SETTING_DEBUG_LIGHT_WEIGHT_MODEL'])
@@ -25,6 +26,7 @@ def main(folder, output, proposal):
     indices = dict(zip(tree.keys,tree.leaves,strict=True))
     data = np.fromfile(folder/'audit.bin','<f4',count=1024).reshape(64,4,4)
     leaves, cubes, nulls = [], [], 0
+    silhouette_errors, fallback_errors = [], []
     for row in data:
         status = row[3,3]
         if status==0.:
@@ -46,13 +48,33 @@ def main(folder, output, proposal):
         assert p>0.
         leaves.append(abs(float(row[1,3])/p-1.))
         if row[2,3]>0.:
-            c = cube_pdf(row[3,:3],origin,normal,row[2,:3])
-            cubes.append(abs(float(row[2,3])/c-1.))
+            direction = row[2,:3].astype(float)
+            low = row[3,:3].astype(float)
+            if silhouette and status==2.:
+                c = (direction@normal)/cube_integral(low,origin,normal)
+                with np.errstate(divide='ignore'):
+                    t0,t1 = (low-origin)/direction,(low+1.-origin)/direction
+                assert float(np.minimum(t0,t1).max()) <= float(np.maximum(t0,t1).min())+1e-5
+                errors = silhouette_errors
+            else:
+                assert status==1.
+                c = cube_pdf(low,origin,normal,direction)
+                errors = fallback_errors
+            error = abs(float(row[2,3])/c-1.)
+            errors.append(error)
+            cubes.append(error)
     assert leaves and cubes and max(leaves)<.01 and max(cubes)<.005, (leaves,cubes)
     result = dict(proposal=proposal,job=receipt['job'],source=receipt['source'],emitters=int(header[1]),
                   selected_leaf_samples=len(leaves),cube_samples=len(cubes),null_selections=nulls,
                   leaf_pdf_max_relative_error=max(leaves),cube_pdf_max_relative_error=max(cubes),
                   audit_sha256=sha(folder/'audit.bin'),tree_sha256=sha(folder/'before_tree.bin'))
+    if silhouette:
+        reasons = np.fromfile(folder/'audit.bin','<u4')[1024:1040]
+        assert silhouette_errors and int(reasons[11])==int(reasons[12])==0, reasons.tolist()
+        result.update(silhouette_samples=len(silhouette_errors),fallback_samples=len(fallback_errors),
+                      silhouette_pdf_max_relative_error=max(silhouette_errors),
+                      fallback_pdf_max_relative_error=max(fallback_errors,default=None),
+                      silhouette_numeric_failures=int(reasons[11]),silhouette_missed_cube=int(reasons[12]))
     output.write_text(json.dumps(result,indent=2,allow_nan=False)+'\n',encoding='utf8')
 
 
@@ -61,5 +83,6 @@ if __name__=='__main__':
     parser.add_argument('folder',type=Path)
     parser.add_argument('output',type=Path)
     parser.add_argument('--proposal',choices=('prefix','outer-near','lookahead'),required=True)
+    parser.add_argument('--silhouette',action='store_true')
     a=parser.parse_args()
-    main(a.folder,a.output,a.proposal)
+    main(a.folder,a.output,a.proposal,a.silhouette)
