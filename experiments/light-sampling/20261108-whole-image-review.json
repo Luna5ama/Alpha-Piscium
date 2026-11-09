@@ -1,0 +1,298 @@
+{
+  "scope": "Reused matched full-frame captures; user revised point-ratio-only rejection. No new GPU capture or shader change.",
+  "acceptance_revision": "Fixed points diagnose mechanisms. Compare absolute variance, affected area, tails and visible results before rejecting. Upper flux-diagonal retained for whole-image evaluation, not accepted.",
+  "replay": "python scripts/light_sampling_whole_image_review.py",
+  "script_sha256": "a84b70b9546dfbd049d199907e7b3a211f0cab2603af37a41e97b70488757e84",
+  "artifacts": {
+    "builds/light-sampling/20261108-whole-image-review/comparison.html": "b0b606e8253ab5e5c9a2a21c268c79e4d739f93bb73496d6e9d96a826016d6da",
+    "builds/light-sampling/20261108-whole-image-review/statistics.json": "1abcd3acddfa2bfdb7bbcf1ef4980b8bc69b2d98460a86cee6cb2259d088373f",
+    "builds/light-sampling/20261108-whole-image-review/verification.json": "0bafa2db24530d16562925bfc7e7c99f96a1a16a0807f38e23af560a30ee3aad",
+    "builds/light-sampling/20261108-whole-image-review/ls1-overview.png": "51640f7d823af68fdadc3c1e93906604e01bbbec0a60cffb7efd25e7beb70075",
+    "builds/light-sampling/20261108-whole-image-review/ls5-overview.png": "f9b4a9ebfba06837af434afaf684b245b176f09d5da0e98f9907f49d4f8f17fd"
+  },
+  "images": 28,
+  "validation": {
+    "original_images_pixel_exact": 14,
+    "lossless_png_avif_pairs": 28,
+    "raw_orientation": "raw[1079-display_y]",
+    "javascript_syntax": "passed",
+    "browser": "Unavailable: local browser use disabled in Work settings.",
+    "runtime_jobs": 0
+  },
+  "metrics": {
+    "scope": "32-frame sample variance in linear sRGB, summed across RGB. Common complete receiver mask, no brightness filter. Not error against ground truth; zero observed mean is not proof of no light.",
+    "tile_size": 16,
+    "tail": "Each method: weighted mean variance of its highest-variance 5% of nonempty 16x16 tiles; sets may differ.",
+    "maps": {
+      "noise": "sqrt(tile mean RGB variance)",
+      "delta": "tile mean RGB variance minus Prefix",
+      "scale": "log1p / signed log1p, fixed across both scenes and all methods; limits are pooled tree-method P99.5, not per-method autoscaling.",
+      "sigma_max": 0.7548145750387538,
+      "delta_max": 0.24424784425412235,
+      "sigma_soft": 0.0007548145750387538,
+      "delta_soft": 0.00024424784425412235,
+      "excluded_color": [
+        70,
+        70,
+        70
+      ]
+    }
+  },
+  "scenes": {
+    "1": {
+      "common_pixels": 2022469,
+      "excluded_receivers": 5,
+      "identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+      },
+      "methods": {
+        "prefix": {
+          "variance": 0.02812204453405653,
+          "rms_noise": 0.16769628658398053,
+          "tile_p95": 0.1293084026441651,
+          "worst5_tile_variance": 0.31099373394819957,
+          "zero_mean_fraction": 0.05335508232759068,
+          "mean_rgb": [
+            0.01474035670167782,
+            0.010881805567628583,
+            0.008052957182317957
+          ],
+          "delta_variance": 0.0,
+          "variance_ratio": 1.0,
+          "positive_variance_budget": 0.0,
+          "negative_variance_budget": 0.0,
+          "noise_map_saturated_fraction": 0.006222592286952235,
+          "delta_map_saturated_fraction": 0.0
+        },
+        "camera": {
+          "variance": 0.021097490394163733,
+          "rms_noise": 0.14524975178692642,
+          "tile_p95": 0.08882435463739816,
+          "worst5_tile_variance": 0.22121244227074557,
+          "zero_mean_fraction": 0.03825373837621244,
+          "mean_rgb": [
+            0.014740819890780152,
+            0.01089366718920783,
+            0.008056674002066954
+          ],
+          "delta_variance": -0.0070245541398927976,
+          "variance_ratio": 0.7502118264770586,
+          "positive_variance_budget": 0.003808559221514521,
+          "negative_variance_budget": -0.010833113361407317,
+          "noise_map_saturated_fraction": 0.0022843366202399146,
+          "delta_map_saturated_fraction": 0.008558845648561238
+        },
+        "brdf": {
+          "variance": 0.03935054723266652,
+          "rms_noise": 0.1983697235786412,
+          "tile_p95": 0.20146311625229935,
+          "worst5_tile_variance": 0.3482795194921034,
+          "zero_mean_fraction": 0.43652634477957386,
+          "mean_rgb": [
+            0.014716158395715303,
+            0.01086955394344147,
+            0.008041652834058548
+          ],
+          "delta_variance": 0.011228502698609987,
+          "variance_ratio": 1.3992776088883572,
+          "positive_variance_budget": 0.01619079966207156,
+          "negative_variance_budget": -0.004962296963461575,
+          "noise_map_saturated_fraction": 0.003543193987151348,
+          "delta_map_saturated_fraction": 0.01070473762515025
+        }
+      }
+    },
+    "5": {
+      "common_pixels": 2066954,
+      "excluded_receivers": 2,
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      },
+      "methods": {
+        "prefix": {
+          "variance": 0.024067677882529045,
+          "rms_noise": 0.15513760950372107,
+          "tile_p95": 0.07590672908603474,
+          "worst5_tile_variance": 0.3340136576411327,
+          "zero_mean_fraction": 0.527108005306359,
+          "mean_rgb": [
+            0.010989609149399792,
+            0.006897715929212558,
+            0.002130559051891567
+          ],
+          "delta_variance": 0.0,
+          "variance_ratio": 1.0,
+          "positive_variance_budget": 0.0,
+          "negative_variance_budget": 0.0,
+          "noise_map_saturated_fraction": 0.004873838508259013,
+          "delta_map_saturated_fraction": 0.0
+        },
+        "camera": {
+          "variance": 0.01602189572980952,
+          "rms_noise": 0.12657762728780123,
+          "tile_p95": 0.04433961306137949,
+          "worst5_tile_variance": 0.2493093789475147,
+          "zero_mean_fraction": 0.427414930375809,
+          "mean_rgb": [
+            0.010997176123664713,
+            0.006904620382924001,
+            0.0021314054403408274
+          ],
+          "delta_variance": -0.008045782152719526,
+          "variance_ratio": 0.6657017684884325,
+          "positive_variance_budget": 0.00044204845669133455,
+          "negative_variance_budget": -0.008487830609410857,
+          "noise_map_saturated_fraction": 0.004303917745629559,
+          "delta_map_saturated_fraction": 0.0022593632949741505
+        },
+        "sah": {
+          "variance": 0.016993658923580214,
+          "rms_noise": 0.13035972891802214,
+          "tile_p95": 0.05401393915857522,
+          "worst5_tile_variance": 0.25673272570012434,
+          "zero_mean_fraction": 0.4495116969221376,
+          "mean_rgb": [
+            0.011031416989740127,
+            0.006927770036909173,
+            0.00214002356403299
+          ],
+          "delta_variance": -0.007074018958948831,
+          "variance_ratio": 0.7060780440275076,
+          "positive_variance_budget": 0.00030412228494083735,
+          "negative_variance_budget": -0.007378141243889668,
+          "noise_map_saturated_fraction": 0.004303917745629559,
+          "delta_map_saturated_fraction": 0.0029091116686680014
+        },
+        "brdf": {
+          "variance": 0.07684409065668855,
+          "rms_noise": 0.2772076670236387,
+          "tile_p95": 0.368900253062723,
+          "worst5_tile_variance": 0.678771630275551,
+          "zero_mean_fraction": 0.8487566728625794,
+          "mean_rgb": [
+            0.010993076182657827,
+            0.006906076301956695,
+            0.0021353415153721254
+          ],
+          "delta_variance": 0.05277641277415951,
+          "variance_ratio": 3.192833601635927,
+          "positive_variance_budget": 0.05413366848466005,
+          "negative_variance_budget": -0.001357255710500552,
+          "noise_map_saturated_fraction": 0.017011505819674748,
+          "delta_map_saturated_fraction": 0.06473777355470901
+        }
+      }
+    }
+  },
+  "point_only_separate_cohort": {
+    "world_voxel": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df",
+    "values": [
+      {
+        "point": "left-red-pillar",
+        "window": 1,
+        "prefix_variance": 0.0012955259764170415,
+        "upper_variance": 0.0013687796602688867,
+        "delta": 7.325368385184528e-05,
+        "ratio": 1.0565435855284342
+      },
+      {
+        "point": "yellow-candidate-ceiling",
+        "window": 1,
+        "prefix_variance": 0.01510559711784197,
+        "upper_variance": 0.012207626065772472,
+        "delta": -0.002897971052069499,
+        "ratio": 0.808152499403909
+      },
+      {
+        "point": "left-red-pillar",
+        "window": 2,
+        "prefix_variance": 0.0012980981403692686,
+        "upper_variance": 0.0013700528939934581,
+        "delta": 7.195475362418947e-05,
+        "ratio": 1.0554309041716372
+      },
+      {
+        "point": "yellow-candidate-ceiling",
+        "window": 2,
+        "prefix_variance": 0.015122567804762167,
+        "upper_variance": 0.012215806366177714,
+        "delta": -0.0029067614385844525,
+        "ratio": 0.8077865164096603
+      }
+    ]
+  },
+  "missing": [
+    "upper/flux-diagonal: no full-frame capture",
+    "flat: no full-frame capture",
+    "global area Light-SAH: no ls1 full-frame capture"
+  ],
+  "sources": {
+    "1/camera": {
+      "path": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-1/pair-7323686a/camera",
+      "identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7508cda23bf06f92c6c200b5e4f1555ac26edef5c477de3874eb463265a74e3b",
+        "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+      }
+    },
+    "1/prefix": {
+      "path": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-1/pair-7323686a/prefix",
+      "identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+        "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+      }
+    },
+    "1/brdf": {
+      "path": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-1/brdf-56b028e8",
+      "identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+        "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+      }
+    },
+    "5/camera": {
+      "path": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-5/camera-ebe05a06",
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "e87c6e3be358fbe354784b0a3594441b6ef5efb0330fc2a88cbecb2e1e805983",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      }
+    },
+    "5/prefix": {
+      "path": "builds/light-sampling/20261108-nearfar-combination/cases/light-sampling-5/prefix-nearfar",
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      }
+    },
+    "5/brdf": {
+      "path": "builds/light-sampling/20261108-cluster-iris/cases/light-sampling-5/brdf",
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      }
+    },
+    "5/sah": {
+      "path": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/sah-6a254ce1",
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "185cdbff80e219f1a9eb19456164fbef19065ea1e3fa59abcc05f2ba060b1d13",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      }
+    }
+  }
+}

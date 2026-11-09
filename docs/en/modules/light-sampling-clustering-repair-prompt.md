@@ -2,6 +2,14 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-clustering-repair-prompt.md)
 
+## Current criterion revision: absolute noise and whole-image tradeoffs (2026-11-08)
+
+The user noted that a small relative regression at an already quiet point can buy substantial improvements in difficult regions, so point ratios alone do not justify rejection. **Withdraw the requirement that both windows at every specified point must be no worse than Prefix as a hard rejection/whole-image-capture stop.** Existing measurements remain diagnostic facts. The statement that 14 candidates failed applies to the former strict gate, not overall image usability. Retain upper/flux-diagonal for whole-image evaluation; it is not an accepted baseline.
+
+Subsequent quality judgment must include original 1-spp/32-frame images, absolute RGB variance and changes, affected area/difficult regions, and tail noise, while checking rare bright samples and zero observations. Define regional/tail metrics and finite-window limits. Fixed points continue to diagnose mechanisms, but neither relative percentages nor counts of improved points determine acceptance by themselves. Do not combine points and whole-image results from different cohorts into an aggregate benefit. Lost support and PDF/input-identity errors remain separate correctness issues. Quality and complete construction/sampling costs still require separate acceptance.
+
+Start with the [full-image and absolute-noise viewer](../../../builds/light-sampling/20261108-whole-image-review/comparison.html) and [criterion revision](light-sampling-design.md#acceptance-criterion-revision-absolute-noise-and-whole-image-tradeoffs-2026-11-08). The page reuses 14 original images and adds noise/difference maps. Only ls5 has a whole-image capture of the earlier global area SAH. Current upper, flat, and ls1 global SAH have no full-frame measurements; the viewer explicitly shows these gaps. Do not call this latest-candidate acceptance or rerun the entire old matrix. Lookahead, K, and probes remain unchanged. Reviewed red-pillar factor findings and outstanding paired-capture obligations remain valid; further runtime work first needs the recorded archival-capacity/input-identity conditions satisfied.
+
 ## Current task: decompose the red-pillar contribution mismatch (2026-11-08)
 
 Current status: the offline portion at `f100765c7` is independently reviewed; see the [factor-diagnosis review](light-sampling-design.md#red-pillar-factor-diagnosis-review-2026-11-08). The mean/within-light decomposition, archived RGB variation, and bounded CPU occlusion evidence are supported. Full actual/neutral × visible/unblocked pairs and executed PDFs remain uncaptured because of the current Vibris archival budget. This task is incomplete and no repair baseline is accepted. Retain the remaining capture contract below without restarting the older clustering matrix.

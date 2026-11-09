@@ -36,6 +36,32 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 
 ### Current priority: repair clustering first (2026-11-08)
 
+#### Acceptance criterion revision: absolute noise and whole-image tradeoffs (2026-11-08)
+
+The user identified excessive reliance on relative variance at fixed points, omitting baseline noise, affected area, and benefits in difficult regions. Withdraw the requirement that both windows at all specified points be no worse than Prefix as a hard rejection or whole-image stop. Historical failure of all 14 candidates describes the former gate, not overall usability. Retain upper/flux-diagonal for whole-image evaluation without changing the baseline. Fixed points diagnose mechanisms; acceptance considers matched whole-image/regional absolute noise, tails/rare contributions, visible changes, and cost tradeoffs. Neither win counts nor one relative percentage suffice. Support, PDFs, and input identity still require independent correctness.
+
+In the first window of the same new ls1 cohort, upper/flux-diagonal changes red-pillar RGB variance from `0.001295526` to `0.001368780`, an absolute increase of about `0.000073254`. The central ceiling changes from `0.015105597` to `0.012207626`, decreasing by about `0.002897971`. Second-window changes are approximately `0.000071955`/`−0.002906761`. The ceiling reduction is about 40 times the red increase, demonstrating why +5.6% at an already quieter point cannot alone decide screening. These two points cannot simply be summed with equal weight to represent the whole image either.
+
+The new [whole-image and absolute-noise viewer](../../../builds/light-sampling/20261108-whole-image-review/comparison.html) opens the full frame and reuses 14 original 1-spp/32-frame images: camera/Prefix/Cosine BRDF in ls1, plus the earlier global area SAH in ls5. Fourteen shared-scale noise/difference maps bring the total to 28. Zoom, switching, and arbitrary-position 16×16 absolute-variance readouts are available. All trees use A + Near/Far. **Current upper, flat, and ls1 global SAH have no whole-image capture.** Missing combinations are explicit; the earlier SAH image does not represent upper.
+
+Absolute statistics use common complete receiver pixels across every method within each scene, without brightness filtering. ls1/ls5 retain 2,022,469/2,066,954 pixels, excluding 5/2 incomplete/nonfinite receiver pixels. The table gives pixel-mean summed linear-sRGB channel variance, and the pixel-weighted mean inside each method's own highest-variance 5% of nonempty 16×16 tiles:
+
+| Scene | Method | Whole-image absolute variance | Highest 5% tiles |
+|---|---|---:|---:|
+| ls1 | Camera | 0.02109749 | 0.22121244 |
+| ls1 | Prefix | 0.02812204 | 0.31099373 |
+| ls1 | Cosine BRDF | 0.03935055 | 0.34827952 |
+| ls5 | Camera | 0.01602190 | 0.24930938 |
+| ls5 | Prefix | 0.02406768 | 0.33401366 |
+| ls5 | Global area SAH | 0.01699366 | 0.25673273 |
+| ls5 | Cosine BRDF | 0.07684409 | 0.67877163 |
+
+For ls5 SAH versus Prefix, the whole-image absolute change is `−0.007074019`. Averaging within 16×16 tiles before separating signs gives about `+0.000304122` increase and `−0.007378141` reduction budgets. Their sum reproduces the net change and quantifies local costs against wider benefits in this window; it does not establish statistical significance. Each method selects a different highest-5% tile set, describing its noise tail. Thirty-two-frame zero means and bright samples can miss rare contributions; variance is not error against a high-sample reference.
+
+Noise maps show the square root of tile-mean RGB variance; difference maps subtract Prefix tile variance without dividing by it. Both scenes/all methods share logarithmic/symmetric-log color scales, with saturation fractions reported and excluded pixels gray. Original ls1 images use voxel cohort `023bcd36…`, distinct from new-point M2 cohort `4dfca2b6…`; keep them separate. Sources and metrics are in the [compact record](../../../experiments/light-sampling/20261108-whole-image-review.json), reproduced by the [generator](../../../scripts/light_sampling_whole_image_review.py). Every pixel in all 14 original images matches the display transform and `raw[1079-display_y]`; all 28 PNG/AVIF pairs match. Full-frame previews and difference maps were inspected directly and JavaScript syntax passed. Work settings disable local browser use, so interaction was not tested. No GPU capture or shader modification occurred.
+
+#### Original clustering experiment: starting point and measurements
+
 After inspecting the latest runtime comparison, the user prioritizes clustering over lookahead/moment summaries. Under matched inputs, World Prefix + A + Near/Far has **1.333 times** the whole-image RGB variance of original camera grouping + A + Near/Far in ls1 and **1.502 times** in ls5, while fixed ls1 pillar/wall ROIs improve to **0.567/0.096 times**. Grouping changes alone can therefore redistribute improvements and regressions; a few improved points cannot represent the image. The user additionally identifies improvements on some left red-pillar faces and a darkened yellow-lit ceiling near the upper middle. Locate these through actual receiver geometry rather than equating them with the old two points. See the [independently reviewed grouping record](../../../experiments/light-sampling/20261108-grouping-control.json).
 
 The retained contract is: **for identical complete world emitter keys and flux, camera position, window addresses, and atomic allocation order do not determine cluster membership**. Fixed Morton-prefix topology is now replaceable. Flattening the current tree into a global Morton list and rebuilding the same prefixes may leave clustering unchanged; physical node reordering alone does not repair it. Measure regrouping under emitter-set changes separately; identical-input stability does not establish stability when emitters enter or leave.
