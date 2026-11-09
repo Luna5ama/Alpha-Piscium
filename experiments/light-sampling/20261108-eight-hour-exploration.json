@@ -5467,8 +5467,8 @@
     "instruction": "Finish the existing experimental lines and close. No added candidates, parameter sweeps or new research directions. Do not spend the remaining eight-hour allocation once the closeout is complete.",
     "candidate_inventory": {
       "coarse_anchor_g16_g32": {
-        "state": "matched_g32_quality_and_abba",
-        "closure": "G16 motion and holdouts, G32 same-grid quality and same-topology correct ABBA. First reverse prevented by shared runtime recovery. G64 remains layout-only."
+        "state": "matched_g32_quality_and_both_timing_orders",
+        "closure": "G16 motion and holdouts, G32 same-grid quality and same-source, same-topology correct ABBA/BAAB. G64 remains layout-only."
       },
       "parallel_coarse_sah": {
         "state": "matched_ls5_quality_and_timing",
@@ -5557,7 +5557,8 @@
             "anchor_v": 0.021885428852824466,
             "ratio_v": 0.5266688403460716,
             "first_screen_vt_ratio": 0.5390963020974899,
-            "qualified_abba_vt_ratio": 0.5318354148485365
+            "qualified_abba_vt_ratio": 0.5318354148485365,
+            "qualified_baab_vt_ratio": 0.5160481862956009
           },
           {
             "pixels": 2018294,
@@ -5565,7 +5566,8 @@
             "anchor_v": 0.021960490804372245,
             "ratio_v": 0.5274742077119304,
             "first_screen_vt_ratio": 0.5399206731927672,
-            "qualified_abba_vt_ratio": 0.5326486827966564
+            "qualified_abba_vt_ratio": 0.5326486827966564,
+            "qualified_baab_vt_ratio": 0.5168373128522052
           }
         ],
         "side-a": [
@@ -5575,7 +5577,8 @@
             "anchor_v": 0.07747164154716302,
             "ratio_v": 0.392183898949935,
             "first_screen_vt_ratio": 0.4014380070921973,
-            "qualified_abba_vt_ratio": 0.3960311881331351
+            "qualified_abba_vt_ratio": 0.3960311881331351,
+            "qualified_baab_vt_ratio": 0.3842752299803125
           },
           {
             "pixels": 64,
@@ -5583,7 +5586,8 @@
             "anchor_v": 0.07469359809329035,
             "ratio_v": 0.4346596851570227,
             "first_screen_vt_ratio": 0.4449160667736435,
-            "qualified_abba_vt_ratio": 0.438923658026779
+            "qualified_abba_vt_ratio": 0.438923658026779,
+            "qualified_baab_vt_ratio": 0.42589446156280764
           }
         ],
         "side-b": [
@@ -5593,7 +5597,8 @@
             "anchor_v": 0.001809158876312722,
             "ratio_v": 0.25844002522269366,
             "first_screen_vt_ratio": 0.2645382662471298,
-            "qualified_abba_vt_ratio": 0.2609752988945793
+            "qualified_abba_vt_ratio": 0.2609752988945793,
+            "qualified_baab_vt_ratio": 0.2532283971740672
           },
           {
             "pixels": 64,
@@ -5601,7 +5606,8 @@
             "anchor_v": 0.003230051939681289,
             "ratio_v": 0.4526149668402857,
             "first_screen_vt_ratio": 0.4632950275494612,
-            "qualified_abba_vt_ratio": 0.45705507942711426
+            "qualified_abba_vt_ratio": 0.45705507942711426,
+            "qualified_baab_vt_ratio": 0.4434876621421052
           }
         ],
         "top": [
@@ -5611,7 +5617,8 @@
             "anchor_v": 0.011290050084426184,
             "ratio_v": 0.6464523608174161,
             "first_screen_vt_ratio": 0.6617062763194108,
-            "qualified_abba_vt_ratio": 0.6527940010068429
+            "qualified_abba_vt_ratio": 0.6527940010068429,
+            "qualified_baab_vt_ratio": 0.633416186359401
           },
           {
             "pixels": 64,
@@ -5619,7 +5626,8 @@
             "anchor_v": 0.011629453071691387,
             "ratio_v": 0.6530286210718554,
             "first_screen_vt_ratio": 0.6684377123057688,
-            "qualified_abba_vt_ratio": 0.6594347737897429
+            "qualified_abba_vt_ratio": 0.6594347737897429,
+            "qualified_baab_vt_ratio": 0.6398598316198294
           }
         ],
         "side-a connected plane": [
@@ -5629,7 +5637,8 @@
             "anchor_v": 0.2578485761732665,
             "ratio_v": 0.45265427058679547,
             "first_screen_vt_ratio": 0.4633352587208897,
-            "qualified_abba_vt_ratio": 0.45709476873988314
+            "qualified_abba_vt_ratio": 0.45709476873988314,
+            "qualified_baab_vt_ratio": 0.4435261733004408
           },
           {
             "pixels": 10217,
@@ -5637,7 +5646,8 @@
             "anchor_v": 0.2622906546265164,
             "ratio_v": 0.44649848223142913,
             "first_screen_vt_ratio": 0.45703421623526974,
-            "qualified_abba_vt_ratio": 0.4508785926480058
+            "qualified_abba_vt_ratio": 0.4508785926480058,
+            "qualified_baab_vt_ratio": 0.4374945208223504
           }
         ],
         "side-b connected plane": [
@@ -5647,7 +5657,8 @@
             "anchor_v": 0.002721747599800303,
             "ratio_v": 0.3566831874929552,
             "first_screen_vt_ratio": 0.36509960845879397,
-            "qualified_abba_vt_ratio": 0.3601822178528073
+            "qualified_abba_vt_ratio": 0.3601822178528073,
+            "qualified_baab_vt_ratio": 0.349490415774217
           },
           {
             "pixels": 2142,
@@ -5655,7 +5666,8 @@
             "anchor_v": 0.0025839230249605155,
             "ratio_v": 0.37038179665222176,
             "first_screen_vt_ratio": 0.37912145478026393,
-            "qualified_abba_vt_ratio": 0.37401520915010766
+            "qualified_abba_vt_ratio": 0.37401520915010766,
+            "qualified_baab_vt_ratio": 0.3629127826770448
           }
         ],
         "top connected plane": [
@@ -5665,7 +5677,8 @@
             "anchor_v": 0.052111258951531056,
             "ratio_v": 0.6078809276857218,
             "first_screen_vt_ratio": 0.6222246981910492,
-            "qualified_abba_vt_ratio": 0.6138441855451615
+            "qualified_abba_vt_ratio": 0.6138441855451615,
+            "qualified_baab_vt_ratio": 0.595622573778574
           },
           {
             "pixels": 90888,
@@ -5673,11 +5686,12 @@
             "anchor_v": 0.052177665201305845,
             "ratio_v": 0.6091831142483515,
             "first_screen_vt_ratio": 0.6235576116022422,
-            "qualified_abba_vt_ratio": 0.615159146442205
+            "qualified_abba_vt_ratio": 0.615159146442205,
+            "qualified_baab_vt_ratio": 0.5968985008173219
           }
         ]
       },
-      "scope": "G32 Camera and Anchor quality and the corrected ABBA timing share native projection, leaf, world and ordered topology. The attempted reverse was blocked before start by shared runtime recovery; the false Prefix fallback pair remains excluded.",
+      "scope": "G32 Camera and Anchor quality and both corrected timing orders share native projection, leaves, voxel world and ordered topology. The false Prefix fallback pair and the first unstarted reverse remain excluded. G32 and G16 each use their own same-grid Camera.",
       "excluded_prefix_fallback_timing": [
         {
           "evidence": {
@@ -5783,6 +5797,32 @@
         "native_uv_visual_pair": "7e3ed0a4-5616-4fd1-8d09-b34b687c6392",
         "foreign_recovery": "8df3f505-7b8a-4eaa-aaff-f70ae69412bb",
         "foreign_workspace": "15e0ddd4-2df5-4b59-95da-9ef83f23416f"
+      },
+      "qualified_baab": {
+        "evidence": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/camera-anchor-g32-correct-baab-recovered/accepted.json",
+          "sha256": "23e64adc0dcd2d365a937f006f75ab48caef57b002fc61841cde04d2f8a26007"
+        },
+        "job": "ff8e4452-9c95-4bf0-bba0-f2e3b65bbe1c",
+        "mean_pass_ratio": 0.9798342843987278,
+        "paired_medians": [
+          0.9854146806482365,
+          0.9754419493549928
+        ],
+        "sources": {
+          "candidate": "13518eb004eca5ae5d878305db9ce14c52f775ba",
+          "camera": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9"
+        },
+        "build_block_medians_ms": {
+          "camera": [
+            1.401344,
+            1.400832
+          ],
+          "candidate": [
+            1.44384,
+            1.446912
+          ]
+        }
       }
     },
     "guarded_cdf_stratification": {
@@ -6264,6 +6304,16 @@
             "samples": 19,
             "max_relative_pdf_error": 0.00032046301753152484
           }
+        }
+      },
+      "independent_reviews": {
+        "independent-far-closeout-review": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-far-closeout-review.json",
+          "sha256": "1759c3eca6144215b82c7e28a2df6bc16b3241c87e531d65a07ceba851e4f384"
+        },
+        "independent-entry-faces-paired-review": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-entry-faces-paired-review.json",
+          "sha256": "ffd7d35f88c94a0e97e56d1b17f3361dd6bea97cbbfade34c5ca209563efaed5"
         }
       }
     },
@@ -6789,6 +6839,12 @@
           "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
           "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
         }
+      },
+      "independent_reviews": {
+        "independent-k-closeout-timing-review": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-k-closeout-timing-review.json",
+          "sha256": "06cb74525ce6b3601c03d4721f61bb8b925346d6288e3128901af0824774dca3"
+        }
       }
     },
     "ward_k4": {
@@ -6888,7 +6944,13 @@
         }
       ],
       "source": "b9ea9a60592feb3d3962f17ff12e45e785fd8fee",
-      "scope": "Repeat LS1 paired timing closes the near-threshold screen. BAAB exceeds 1.25 despite the ABBA mean slightly below. Earlier raw mixed-pass spike stays a separate observation."
+      "scope": "Repeat LS1 paired timing closes the near-threshold screen. BAAB exceeds 1.25 despite the ABBA mean slightly below. Earlier raw mixed-pass spike stays a separate observation.",
+      "independent_reviews": {
+        "independent-fast-cull-closeout-review": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-fast-cull-closeout-review.json",
+          "sha256": "23c41f37c2f6cb6c5fa95ef5e0d3b31765e8ad3131eecde63162750d8f2f54d7"
+        }
+      }
     },
     "directional_8b": {
       "quality": {
@@ -7033,6 +7095,16 @@
       "offline_anchor_l1_review": {
         "path": "builds/light-sampling/20261108-eight-hour-exploration/offline-anchor-directional.json",
         "sha256": "4b171b6881d6d6ab9cec0cb097a1c497da68b4416aee4128704cd5c6ba8899ed"
+      },
+      "independent_reviews": {
+        "independent-ls1-directional8b-first-review": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-ls1-directional8b-first-review.json",
+          "sha256": "aba8a7e2308f87fb5d63edf896d23268ebbdfcfb55de66e4cc0ab874e12c2a83"
+        },
+        "independent-directional8b-timing-review": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-directional8b-timing-review.json",
+          "sha256": "1284314a3a10d653268efbc3c5c2b069f95d458af18f925d97bb89833b77cfaa"
+        }
       }
     }
   }
