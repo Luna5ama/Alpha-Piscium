@@ -14,10 +14,10 @@ from light_sampling_point_screening import Tree
 from light_sampling_weight_reference import load_tree
 
 
-FIXTURE = RUN/"ls5-wall-mode3-fixture.json"
+FIXTURE = RUN/"ls5-wall-mode3-v2-fixture.json"
 SCENE = "light-sampling-5"
 CASES = RUN/"cases"/SCENE
-NAME = "ls5-wall-mode3"
+NAME = "ls5-wall-mode3-v2"
 
 
 def archive(job_id):
@@ -41,7 +41,7 @@ def archive(job_id):
     assert config["SETTING_DEBUG_LIGHT_AUDIT"]=="false"
     folder = CASES/NAME
     manifest, ref = retain_manifest(job,result,folder)
-    world_brick = np.floor(fixture["camera_position"]).astype(int)>>4
+    world_brick = (np.floor(fixture["camera_position"]).astype(int)>>4).tolist()
     context = request["__vibris_scene_context"]
     snapshots = [input_identity(folder,16,world_brick,p,context) for p in ("before","between","after")]
     for identity,_ in snapshots:
