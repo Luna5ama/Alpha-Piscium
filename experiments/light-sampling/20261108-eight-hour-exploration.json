@@ -5471,12 +5471,12 @@
         "closure": "G16 motion and holdouts and G32 same-grid quality complete. Repeat G32 ABBA/BAAB with 13518eb0; reject earlier G16-source Prefix fallback. G64 remains layout-only."
       },
       "parallel_coarse_sah": {
-        "state": "measured",
-        "closure": "Existing native topology, build and moving4 quality remain separately reported. The already prepared selective-gate version has an LS5 comparison remaining."
+        "state": "matched_ls5_quality_and_timing",
+        "closure": "Previous native builder and moving4 evidence retained. Combined coarse SAH + selective gate improves the LS5 whole-image tail under both same-topology native timing orders, with material local regressions and higher build cost recorded separately."
       },
       "near_containment_gate": {
-        "state": "pending_gpu",
-        "closure": "Verify LS5 same-emitter-input before declaring a quality effect. Keep camera, Anchor and already prepared coarse-SAH gate as distinct controls."
+        "state": "matched_ls5_quality_and_timing",
+        "closure": "Same frozen face UV lookup with 33 matched emitting base-level color/specular footprints. Anchor gate strongly reduces its own wall tail, but both tested gate variants still regress on the sandstone wall and below-pillar floor relative to Camera. Native paired mean timings are separate from fixed-UV diagnostics."
       },
       "guarded_cdf_strata": {
         "state": "paired_statistics_and_timing_complete",
@@ -6145,7 +6145,464 @@
         "anchor_gate": "75fccb4ccd467ede456c38a789b3204cfb874b97",
         "coarse_sah_gate": "4eb4ee68e85ce7b4cada584ef1ca7281b6e09f0c"
       },
-      "scope": "First 786432 bytes are the six face records for each material, verified against the native buffer layout. The quality-only texture carries this lookup, with sampled color/specular atlas contents checked separately."
+      "scope": "First 786432 bytes are the six face records for each material, verified against the native buffer layout. The quality-only texture carries this lookup, with sampled color/specular atlas contents checked separately.",
+      "runtime_bootstrap": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/after-fornax-ls5-bootstrap/result.json",
+        "sha256": "2b507ba91ad94047c0322884e871561c5ef64016e1b9906008fda96006023698"
+      },
+      "quota_rejected_full_probe_job": "070bdf5f-9ee0-475d-833c-b5a81dbd2582",
+      "quality_pairs": {
+        "camera_anchor_gate": {
+          "quality": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-reprojected-camera-ls5-uv-gate-anchor-gate-ls5-uv-camera.json",
+            "sha256": "a1188c355a09188624e682d140de4414a3b2d01419a58d8366365eff128ee98c"
+          },
+          "atlas": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-fixed-uv-camera-anchor-gate-atlas.json",
+            "sha256": "945e313e7d6a7c697f6001e7750aab7b39411ec2cdd9321e2f7d3a5af5acbeee"
+          },
+          "matched_complete_pixels": 2064477,
+          "atlas_populated_face_rects": 207,
+          "atlas_matched_face_rects": 33,
+          "timing": [
+            {
+              "evidence": {
+                "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-5/ls5-anchor-gate-native-abba/accepted.json",
+                "sha256": "3c02b26dde41adff491602f66ac4b11481b05a399cf9d86ef1192fe930ebf925"
+              },
+              "job": "4d08e45e-9417-4532-9bef-f81a41715550",
+              "order": [
+                "camera",
+                "candidate",
+                "candidate",
+                "camera"
+              ],
+              "mean_pass_ratio": 1.0438208782211846,
+              "mean_pass_cap": true,
+              "build_block_medians_ms": {
+                "camera": [
+                  0.202752,
+                  0.198656
+                ],
+                "candidate": [
+                  0.242688,
+                  0.243712
+                ]
+              }
+            },
+            {
+              "evidence": {
+                "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-5/ls5-anchor-gate-native-baab/accepted.json",
+                "sha256": "134140ce06d5644994b09058440ea23b5af2a631cc8c0bd9cfda6dafa71e7b2b"
+              },
+              "job": "55e1d818-fef9-499c-876a-6f0cfc6b0c8a",
+              "order": [
+                "candidate",
+                "camera",
+                "camera",
+                "candidate"
+              ],
+              "mean_pass_ratio": 1.0308520420121436,
+              "mean_pass_cap": true,
+              "build_block_medians_ms": {
+                "camera": [
+                  0.201728,
+                  0.202752
+                ],
+                "candidate": [
+                  0.242688,
+                  0.247808
+                ]
+              }
+            }
+          ],
+          "regions": {
+            "whole": [
+              {
+                "pixels": 2064477,
+                "baseline_v": 0.3468624598036223,
+                "candidate_v": 0.3294755701276908,
+                "ratio_v": 0.9498738212092045,
+                "ratio_vt_native_orders": [
+                  0.9914981262539043,
+                  0.9791793682473863
+                ]
+              },
+              {
+                "pixels": 2064477,
+                "baseline_v": 0.3471514909149274,
+                "candidate_v": 0.33109230725022476,
+                "ratio_v": 0.9537401276244609,
+                "ratio_vt_native_orders": [
+                  0.9955338576117495,
+                  0.983164958110598
+                ]
+              }
+            ],
+            "A: left sandstone wall": [
+              {
+                "pixels": 5644,
+                "baseline_v": 0.004890565285057183,
+                "candidate_v": 0.027723134758946315,
+                "ratio_v": 5.6686974087949755,
+                "ratio_vt_native_orders": [
+                  5.917104707618525,
+                  5.843588299405248
+                ]
+              },
+              {
+                "pixels": 5644,
+                "baseline_v": 0.0046448967022784,
+                "candidate_v": 0.02804970524406416,
+                "ratio_v": 6.038822183129564,
+                "ratio_vt_native_orders": [
+                  6.303448674615873,
+                  6.225132178827342
+                ]
+              }
+            ],
+            "B: blue-lit pillar": [
+              {
+                "pixels": 4357,
+                "baseline_v": 0.030339581663068813,
+                "candidate_v": 0.0024504693399924463,
+                "ratio_v": 0.08076806619174011,
+                "ratio_vt_native_orders": [
+                  0.08430739378448893,
+                  0.08325992596312727
+                ]
+              },
+              {
+                "pixels": 4357,
+                "baseline_v": 0.029103655582563545,
+                "candidate_v": 0.002232736157987622,
+                "ratio_v": 0.07671669119549673,
+                "ratio_vt_native_orders": [
+                  0.08007848397790682,
+                  0.07908355777529284
+                ]
+              }
+            ],
+            "C: blue floor below pillar": [
+              {
+                "pixels": 4402,
+                "baseline_v": 0.000452894070565615,
+                "candidate_v": 0.0010921721195355568,
+                "ratio_v": 2.4115398953480525,
+                "ratio_vt_native_orders": [
+                  2.517215691427628,
+                  2.485940825513291
+                ]
+              },
+              {
+                "pixels": 4402,
+                "baseline_v": 0.0004571421036592912,
+                "candidate_v": 0.0011900157346706576,
+                "ratio_v": 2.6031637102444156,
+                "ratio_vt_native_orders": [
+                  2.7172366301808433,
+                  2.683476626397364
+                ]
+              }
+            ],
+            "D: blue floor in right shadow": [
+              {
+                "pixels": 12367,
+                "baseline_v": 0.0017421439758752546,
+                "candidate_v": 0.0009864528148938831,
+                "ratio_v": 0.5662292144357864,
+                "ratio_vt_native_orders": [
+                  0.5910418758868541,
+                  0.5836985419480624
+                ]
+              },
+              {
+                "pixels": 12367,
+                "baseline_v": 0.0017238053795848951,
+                "candidate_v": 0.0010222341030772155,
+                "ratio_v": 0.593010159489917,
+                "ratio_vt_native_orders": [
+                  0.6189963854728499,
+                  0.6113057338441279
+                ]
+              }
+            ]
+          }
+        },
+        "anchor_anchor_gate": {
+          "quality": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-reprojected-anchor-ls5-uv-anchor-gate-ls5-uv-anchor.json",
+            "sha256": "03a852e955c519f9dc29bc559370f3b055d526df7f670258cc4b9c81df73127a"
+          },
+          "atlas": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-fixed-uv-anchor-gate-atlas.json",
+            "sha256": "98a9036fabca811b5ed873bf1a3a951bad44df980e2178c8e41bbadf62837d02"
+          },
+          "matched_complete_pixels": 2064477,
+          "atlas_populated_face_rects": 207,
+          "atlas_matched_face_rects": 33,
+          "timing": [],
+          "regions": {
+            "whole": [
+              {
+                "pixels": 2064477,
+                "baseline_v": 0.42729333009588705,
+                "candidate_v": 0.3294755701276908,
+                "ratio_v": 0.7710758556744955,
+                "ratio_vt_native_orders": []
+              },
+              {
+                "pixels": 2064477,
+                "baseline_v": 0.428620890553501,
+                "candidate_v": 0.3318166219626649,
+                "ratio_v": 0.7741494389929815,
+                "ratio_vt_native_orders": []
+              }
+            ],
+            "A: left sandstone wall": [
+              {
+                "pixels": 5644,
+                "baseline_v": 0.642969855280553,
+                "candidate_v": 0.027723134758946315,
+                "ratio_v": 0.04311731651377283,
+                "ratio_vt_native_orders": []
+              },
+              {
+                "pixels": 5644,
+                "baseline_v": 0.6708102132713272,
+                "candidate_v": 0.028334372690327028,
+                "ratio_v": 0.04223902995177927,
+                "ratio_vt_native_orders": []
+              }
+            ],
+            "B: blue-lit pillar": [
+              {
+                "pixels": 4357,
+                "baseline_v": 0.0024504693251735238,
+                "candidate_v": 0.0024504693399924463,
+                "ratio_v": 1.0000000060473815,
+                "ratio_vt_native_orders": []
+              },
+              {
+                "pixels": 4357,
+                "baseline_v": 0.0021874501354190163,
+                "candidate_v": 0.002225872066947394,
+                "ratio_v": 1.017564711947602,
+                "ratio_vt_native_orders": []
+              }
+            ],
+            "C: blue floor below pillar": [
+              {
+                "pixels": 4402,
+                "baseline_v": 0.001092172142056868,
+                "candidate_v": 0.0010921721195355568,
+                "ratio_v": 0.9999999793793393,
+                "ratio_vt_native_orders": []
+              },
+              {
+                "pixels": 4402,
+                "baseline_v": 0.001250928646963527,
+                "candidate_v": 0.001204634544881513,
+                "ratio_v": 0.9629922120702991,
+                "ratio_vt_native_orders": []
+              }
+            ],
+            "D: blue floor in right shadow": [
+              {
+                "pixels": 12367,
+                "baseline_v": 0.0009864527705640976,
+                "candidate_v": 0.0009864528148938831,
+                "ratio_v": 1.0000000449385786,
+                "ratio_vt_native_orders": []
+              },
+              {
+                "pixels": 12367,
+                "baseline_v": 0.0010193754365593448,
+                "candidate_v": 0.0010330285838431345,
+                "ratio_v": 1.0133936396681018,
+                "ratio_vt_native_orders": []
+              }
+            ]
+          }
+        },
+        "camera_coarse_gate": {
+          "quality": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-reprojected-camera-ls5-uv-coarse-coarse-gate-ls5-uv.json",
+            "sha256": "f8c4fe9b96209fe86c1840ca2c19b845f68aa02cc0968a3fda8e3657671ac6c3"
+          },
+          "atlas": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-fixed-uv-camera-coarse-gate-atlas.json",
+            "sha256": "9c6c2d4c2aacaede934bd634d996dda15541d3755fd1a0913ff053ac8da3b4ed"
+          },
+          "matched_complete_pixels": 2064478,
+          "atlas_populated_face_rects": 207,
+          "atlas_matched_face_rects": 33,
+          "timing": [
+            {
+              "evidence": {
+                "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-5/ls5-coarse-gate-native-abba/accepted.json",
+                "sha256": "30d4c08926b0950064ce51f6ccf441c4700bc81cdd8b7a9a24a473c08aef613e"
+              },
+              "job": "204b8bdc-60ba-4096-b384-f55083c3cd65",
+              "order": [
+                "camera",
+                "candidate",
+                "candidate",
+                "camera"
+              ],
+              "mean_pass_ratio": 0.909549534780429,
+              "mean_pass_cap": true,
+              "build_block_medians_ms": {
+                "camera": [
+                  0.2048,
+                  0.207872
+                ],
+                "candidate": [
+                  0.331776,
+                  0.331776
+                ]
+              }
+            },
+            {
+              "evidence": {
+                "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-5/ls5-coarse-gate-native-baab/accepted.json",
+                "sha256": "1986d7bd90ee423159b20a72de5aebba6cd2d5c08b120cf0e3c6d02be96b14e0"
+              },
+              "job": "0fbefc5b-d8ce-400e-af5d-2e45e4903ee0",
+              "order": [
+                "candidate",
+                "camera",
+                "camera",
+                "candidate"
+              ],
+              "mean_pass_ratio": 0.9665207366457714,
+              "mean_pass_cap": true,
+              "build_block_medians_ms": {
+                "camera": [
+                  0.203264,
+                  0.202752
+                ],
+                "candidate": [
+                  0.330752,
+                  0.330752
+                ]
+              }
+            }
+          ],
+          "regions": {
+            "whole": [
+              {
+                "pixels": 2064478,
+                "baseline_v": 0.3463897062295157,
+                "candidate_v": 0.23508647533422802,
+                "ratio_v": 0.6786762744573627,
+                "ratio_vt_native_orders": [
+                  0.6172896896992089,
+                  0.6559546927325379
+                ]
+              },
+              {
+                "pixels": 2064478,
+                "baseline_v": 0.34861961602320196,
+                "candidate_v": 0.23698170497917467,
+                "ratio_v": 0.6797715736208104,
+                "ratio_vt_native_orders": [
+                  0.6182859185437682,
+                  0.6570133220868409
+                ]
+              }
+            ],
+            "A: left sandstone wall": [
+              {
+                "pixels": 5644,
+                "baseline_v": 0.00489880141424438,
+                "candidate_v": 0.015129188450306289,
+                "ratio_v": 3.088344917659804,
+                "ratio_vt_native_orders": [
+                  2.809002683098977,
+                  2.984949404832778
+                ]
+              },
+              {
+                "pixels": 5644,
+                "baseline_v": 0.004895414270929764,
+                "candidate_v": 0.01536815910264972,
+                "ratio_v": 3.1392969526419496,
+                "ratio_vt_native_orders": [
+                  2.855346082813104,
+                  3.0341956032173227
+                ]
+              }
+            ],
+            "B: blue-lit pillar": [
+              {
+                "pixels": 4357,
+                "baseline_v": 0.029747578452136398,
+                "candidate_v": 0.0022178406373422393,
+                "ratio_v": 0.07455533366894808,
+                "ratio_vt_native_orders": [
+                  0.06781176905399137,
+                  0.07205927601858299
+                ]
+              },
+              {
+                "pixels": 4357,
+                "baseline_v": 0.029101111836724224,
+                "candidate_v": 0.002182265734384792,
+                "ratio_v": 0.07498908449370227,
+                "ratio_vt_native_orders": [
+                  0.06820628691485718,
+                  0.07247850518524511
+                ]
+              }
+            ],
+            "C: blue floor below pillar": [
+              {
+                "pixels": 4402,
+                "baseline_v": 0.0004402830567147398,
+                "candidate_v": 0.0010165361234671033,
+                "ratio_v": 2.308824080245538,
+                "ratio_vt_native_orders": [
+                  2.099989868077181,
+                  2.231526350824413
+                ]
+              },
+              {
+                "pixels": 4402,
+                "baseline_v": 0.0004520765278401799,
+                "candidate_v": 0.0008950909971995481,
+                "ratio_v": 1.9799545919269328,
+                "ratio_vt_native_orders": [
+                  1.800866777973516,
+                  1.9136671707143968
+                ]
+              }
+            ],
+            "D: blue floor in right shadow": [
+              {
+                "pixels": 12367,
+                "baseline_v": 0.0017514921173321096,
+                "candidate_v": 0.0009279146234369383,
+                "ratio_v": 0.5297852124223928,
+                "ratio_vt_native_orders": [
+                  0.48186589349233816,
+                  0.5120483937745276
+                ]
+              },
+              {
+                "pixels": 12367,
+                "baseline_v": 0.001730549997911892,
+                "candidate_v": 0.0009604062895993276,
+                "ratio_v": 0.5549717088545078,
+                "ratio_vt_native_orders": [
+                  0.5047742596049172,
+                  0.5363916648596214
+                ]
+              }
+            ]
+          }
+        }
+      }
     },
     "ward_k2": {
       "evidence": {
