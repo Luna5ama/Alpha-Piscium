@@ -94,6 +94,18 @@ moving-4 提供了反例：包含颜色、深度、几何法线及灯／遮挡�
 
 六向邻接摘要是待实验的软权重：按节点到接收点的方向混合六个开放方向质量，并保留 25% 原质量下限，不硬剔除灯或灯面。[离线量化筛查](../../../builds/light-sampling/20261108-eight-hour-exploration/offline-escape-quantization-screen.json)中，逐层递归 UNORM8 保留了 28 个既有 M2 窗的改善，较未量化摘要的最大方差增加约 0.114%，可存成独立 8B 记录；这不证明整图收益或 GPU 成本。另一个[仅改构建代价的筛查](../../../builds/light-sampling/20261108-eight-hour-exploration/offline-exposure-clustering-screen.json)改善顶面、恶化原本较安静的新红柱，保留整图实验资格，不再以单点相对回退直接淘汰。
 
+#### 实际跨砖、粗层成本与灯内数值反例（2026-11-09 08:40 UTC）
+
+粗层并行分桶保持串行方案的有序拓扑，moving-4 最后构建阶段的中位时间约从 0.789 降到 0.396 ms，各构建 pass 中位时间之和约从 1.170 降到 0.778 ms。更便宜的候选 `15df1311` 保留世界 64³ 块内子树，以活跃粗根的最小世界坐标作为 Morton 相位锚点；完整构建的对应和约 0.484 ms，同作业 Prefix 约 0.499 ms。这里的中位数之和不是“总时间的中位数”。它也不是固定世界原点前缀：相同灯输入保持分组，新增或移除最小边界灯仍可能改变锚点。
+
+讨论端直接复算 moving-4 原始两窗，anchor 的 raygen 均值约 4.164 ms，整图最差 5% 方差乘均值时间约为旧 Camera 控制的 0.79 倍；并行分桶约 0.75 倍，见[anchor 独立复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-moving4-anchor-first-review.json)及[并行分桶复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-moving4-parallel-first-review.json)。这是共同接收像素的单场景筛选，Camera 仍是跨作业参照，不足以接受为通用默认。
+
+实际连续移动已验证这条轨迹上的分组稳定性。两次作业的 28 个实际位姿一致；从原始 GPU trace 穷举对齐均得到唯一连续 26 帧。offset 8 与 24 分处 x=112 的两侧，共享 4,042 灯的两路交换无关指纹。Camera 的有序树指纹和节点数改变；Prefix、粗层分桶及 anchor 均保持不变。新旧作业的 Prefix trace 连文件哈希也相同，见[独立跨界复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-anchor-motion.json)。这些有限指纹不覆盖内部包围盒／质量，也不是完整输入的加密证明；其他位姿的灯集合会变化。诊断轨迹不作为性能或时间噪声验收。
+
+将可见 cube 轮廓合成一个投影多边形的候选尚未通过数值审计。实机见证有 52 次无效方向／未命中，其中两次远离 cube。独立重建同一几何并在同一扇区 CDF 内双精度有界求逆后，52 次全部命中；[重放记录](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-silhouette-witness.json)支持求逆数值问题，不是轮廓几何不可采样。[CPU float32 重放](../../../builds/light-sampling/20261108-eight-hour-exploration/silhouette-f32-sectors.json)中，一个原本约 4.75e-14 的末扇区面积放大至约 1.17e-10，导致接近 1 的随机数选错扇区；这不是 GPU 逐位重放，不能认定所有失败都来自同一机制。该见证作业最终场景恢复失败，原件仅用于诊断，不计入画质／性能排名。
+
+后续远场候选 `480550f` 按几何条件选择在一个轴向平面的 cube 轮廓上均匀采样，再用真实面积到立体角 Jacobian 计算 PDF；近场和掠射回到原路径。讨论端用全部八个角的独立凸包，并在真实可见 cube 面积分 proposal，1,207 个合格输入覆盖 26 方位区域，归一误差最大约 1.33e-12，见[独立面域积分](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-far-plane-integral.json)。这只证明双精度几何归一性，实际 GPU 支持、纹理／遮挡方差、速度和原路径自身失败率仍需实机核对。
+
 ### 聚类修复阶段的证据与依据（2026-11-08）
 
 #### 接受判据修订：绝对噪声与整图权衡（2026-11-08）
