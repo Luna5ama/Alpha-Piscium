@@ -1,0 +1,4244 @@
+{
+  "schema": 1,
+  "status": "offline_screen_complete",
+  "offline_screen": {
+    "scope": "Conditional RGB M2 on captured receivers and inputs, with no brightness cutoff. Candidate uses no receiver or moments.",
+    "source": {
+      "20261108-cluster-summaries-reference.npz": "7d003de47afd0d986bb35c8447219133a37899f96359290cc34ffb1220c67794",
+      "20261108-nearfar-combination-reference.npz": "461580964b16260af4d79f468c4f5820ac5c9a449811429a88db2121801c9988"
+    },
+    "builds": {
+      "ls1": {
+        "identity": {
+          "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+          "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+          "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+          "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+        },
+        "light-sah": {
+          "leaves": 10235,
+          "nodes": 15424,
+          "depth": 10,
+          "empty_slots": 0,
+          "bytes_if_compacted_root_1": 493600,
+          "cross_brick_internal": 1213,
+          "area_weighted_mass": 3010148526.662467,
+          "topology_sha256": "59fea38b09d9e76c99ace4db6a04747bdf5806d5a342f4aad11d870e595c5db4",
+          "permuted_input_same_topology": true,
+          "temporary_binary_nodes": 20469,
+          "two_cpu_builds_wall_seconds": 2.058677599998191
+        },
+        "geometry-sah": {
+          "leaves": 10235,
+          "nodes": 15366,
+          "depth": 9,
+          "empty_slots": 0,
+          "bytes_if_compacted_root_1": 491744,
+          "cross_brick_internal": 1218,
+          "area_weighted_mass": 2999193468.941274,
+          "topology_sha256": "f12302c8b967e21ca58f3e11ae27817c4a43af4b3e2c6630ff39bcc0994a2875",
+          "permuted_input_same_topology": true,
+          "temporary_binary_nodes": 20469,
+          "two_cpu_builds_wall_seconds": 1.8153301000129431
+        }
+      },
+      "sides": {
+        "identity": {
+          "camera_sha256": "0254883fead3f40a353ef7e3cf1584c0642a7a0c72987534dd42e6576bb1f5a9",
+          "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+          "ordered_topology_sha256": "a5a3fb77d9496d46cbac728364dfe20240290236141bbb7012f27e8c78c0bf9e",
+          "world_voxel_sha256": "9b32367944fbabac5fb28115de0c3e464bed190be6c92959fed73ee61694f0f3"
+        },
+        "light-sah": {
+          "leaves": 4243,
+          "nodes": 6334,
+          "depth": 9,
+          "empty_slots": 0,
+          "bytes_if_compacted_root_1": 202720,
+          "cross_brick_internal": 619,
+          "area_weighted_mass": 1457763998.367775,
+          "topology_sha256": "42fcbc2490ae33bfcf784a4d3681b231ba27416ef71934adc8780f1aed23999d",
+          "permuted_input_same_topology": true,
+          "temporary_binary_nodes": 8485,
+          "two_cpu_builds_wall_seconds": 0.8944665999733843
+        },
+        "geometry-sah": {
+          "leaves": 4243,
+          "nodes": 6324,
+          "depth": 8,
+          "empty_slots": 0,
+          "bytes_if_compacted_root_1": 202400,
+          "cross_brick_internal": 621,
+          "area_weighted_mass": 1451324686.280888,
+          "topology_sha256": "bf1fb337e6f2f0f48a94e38755df46d50eabe4a5f9af2d37fa375cd3b39fd392",
+          "permuted_input_same_topology": true,
+          "temporary_binary_nodes": 8485,
+          "two_cpu_builds_wall_seconds": 0.7951232999912463
+        }
+      },
+      "side-top": {
+        "identity": {
+          "camera_sha256": "0254883fead3f40a353ef7e3cf1584c0642a7a0c72987534dd42e6576bb1f5a9",
+          "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+          "ordered_topology_sha256": "a5a3fb77d9496d46cbac728364dfe20240290236141bbb7012f27e8c78c0bf9e",
+          "world_voxel_sha256": "9b32367944fbabac5fb28115de0c3e464bed190be6c92959fed73ee61694f0f3"
+        },
+        "light-sah": {
+          "leaves": 4243,
+          "nodes": 6334,
+          "depth": 9,
+          "empty_slots": 0,
+          "bytes_if_compacted_root_1": 202720,
+          "cross_brick_internal": 619,
+          "area_weighted_mass": 1457763998.367775,
+          "topology_sha256": "42fcbc2490ae33bfcf784a4d3681b231ba27416ef71934adc8780f1aed23999d",
+          "permuted_input_same_topology": true,
+          "temporary_binary_nodes": 8485,
+          "two_cpu_builds_wall_seconds": 0.8516648999648169
+        },
+        "geometry-sah": {
+          "leaves": 4243,
+          "nodes": 6324,
+          "depth": 8,
+          "empty_slots": 0,
+          "bytes_if_compacted_root_1": 202400,
+          "cross_brick_internal": 621,
+          "area_weighted_mass": 1451324686.280888,
+          "topology_sha256": "bf1fb337e6f2f0f48a94e38755df46d50eabe4a5f9af2d37fa375cd3b39fd392",
+          "permuted_input_same_topology": true,
+          "temporary_binary_nodes": 8485,
+          "two_cpu_builds_wall_seconds": 0.8589084999985062
+        }
+      }
+    },
+    "rows": [
+      {
+        "point_window": "ls1/ls1-pillar/1",
+        "group": "ls1",
+        "origin": [
+          146.45921325683594,
+          150.15493774414062,
+          87.99700164794922
+        ],
+        "normal": [
+          -2.3153575057222042e-08,
+          -1.8557159364718245e-08,
+          -1.0
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.010282867233950345,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.584144691886675,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 3.117844503127438
+          },
+          "prefix": {
+            "variance": 0.0032980692987209068,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.29159663450751094,
+            "variance_over_camera": 0.32073440448903817,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.00191914359708426,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.2508309522644918,
+            "variance_over_camera": 0.18663506524210827,
+            "variance_over_prefix": 0.581899112255938,
+            "worst_leaf": {
+              "key": [
+                142,
+                153,
+                81,
+                682
+              ],
+              "m2": 9.057526587621576e-06,
+              "candidate_pmf": 0.11594072970260931,
+              "prefix_pmf": 0.19764276431112654,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 4,
+                  "depth": 1,
+                  "bounds": [
+                    104.0,
+                    97.0,
+                    64.0,
+                    227.0,
+                    225.0,
+                    208.0
+                  ],
+                  "mass": 1966.212890625,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08984375
+                  },
+                  "path_probability": 0.7218911085787961,
+                  "near_half": 0.5,
+                  "far_half": 0.22189110857879613,
+                  "moment_optimal_conditional": 0.9501771126401123,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    0.0,
+                    237.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 5792.11083984375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08935546875
+                  },
+                  "path_probability": 0.9052121494012071,
+                  "near_half": 0.5,
+                  "far_half": 0.40521214940120714,
+                  "moment_optimal_conditional": 0.9943340064502707,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0021453162449482687,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.16843599780678473,
+            "variance_over_camera": 0.20863016084319388,
+            "variance_over_prefix": 0.6504764001715454,
+            "worst_leaf": {
+              "key": [
+                142,
+                153,
+                81,
+                682
+              ],
+              "m2": 9.057526587621576e-06,
+              "candidate_pmf": 0.020361619011906258,
+              "prefix_pmf": 0.19764276431112654,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 4,
+                  "depth": 1,
+                  "bounds": [
+                    104.0,
+                    97.0,
+                    64.0,
+                    227.0,
+                    225.0,
+                    208.0
+                  ],
+                  "mass": 1966.212646484375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08984375
+                  },
+                  "path_probability": 0.7218910878001572,
+                  "near_half": 0.5,
+                  "far_half": 0.22189108780015726,
+                  "moment_optimal_conditional": 0.9501771126401124,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    0.0,
+                    237.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 5792.11083984375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08935546875
+                  },
+                  "path_probability": 0.9052121494012071,
+                  "near_half": 0.5,
+                  "far_half": 0.40521214940120714,
+                  "moment_optimal_conditional": 0.9943340064502707,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "ls1/ls1-wall/1",
+        "group": "ls1",
+        "origin": [
+          159.75596618652344,
+          151.40460205078125,
+          82.99700164794922
+        ],
+        "normal": [
+          -2.3153575057222042e-08,
+          -1.8557159364718245e-08,
+          -1.0
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.030945522938390965,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.06750972331874555,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 5.946664020508195
+          },
+          "prefix": {
+            "variance": 0.0052038458590681225,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.24157906781031446,
+            "variance_over_camera": 0.16816150980639077,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.002497539601044687,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.2911072170272167,
+            "variance_over_camera": 0.08070762307093682,
+            "variance_over_prefix": 0.4799411182966771,
+            "worst_leaf": {
+              "key": [
+                157,
+                145,
+                76,
+                682
+              ],
+              "m2": 5.615484600513251e-06,
+              "candidate_pmf": 0.008266236309583144,
+              "prefix_pmf": 0.0562775458606623,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 4,
+                  "depth": 1,
+                  "bounds": [
+                    104.0,
+                    97.0,
+                    64.0,
+                    227.0,
+                    225.0,
+                    208.0
+                  ],
+                  "mass": 1966.212890625,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08984375
+                  },
+                  "path_probability": 0.7432708275472472,
+                  "near_half": 0.5,
+                  "far_half": 0.24327082754724713,
+                  "moment_optimal_conditional": 0.9105473241066341,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    0.0,
+                    237.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 5792.11083984375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08935546875
+                  },
+                  "path_probability": 0.9012059382256284,
+                  "near_half": 0.5,
+                  "far_half": 0.40120593822562844,
+                  "moment_optimal_conditional": 0.9551106076684045,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0019271286593058605,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.29632614305354416,
+            "variance_over_camera": 0.062274877795490985,
+            "variance_over_prefix": 0.370327775167991,
+            "worst_leaf": {
+              "key": [
+                157,
+                145,
+                76,
+                682
+              ],
+              "m2": 5.615484600513251e-06,
+              "candidate_pmf": 0.01757626198836491,
+              "prefix_pmf": 0.0562775458606623,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 4,
+                  "depth": 1,
+                  "bounds": [
+                    104.0,
+                    97.0,
+                    64.0,
+                    227.0,
+                    225.0,
+                    208.0
+                  ],
+                  "mass": 1966.212646484375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08984375
+                  },
+                  "path_probability": 0.7432708075497955,
+                  "near_half": 0.5,
+                  "far_half": 0.2432708075497955,
+                  "moment_optimal_conditional": 0.9105473241066341,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    0.0,
+                    237.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 5792.11083984375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08935546875
+                  },
+                  "path_probability": 0.9012059382256284,
+                  "near_half": 0.5,
+                  "far_half": 0.40120593822562844,
+                  "moment_optimal_conditional": 0.9551106076684045,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "ls1/ls1-pillar/2",
+        "group": "ls1",
+        "origin": [
+          146.45921325683594,
+          150.15493774414062,
+          87.99700164794922
+        ],
+        "normal": [
+          -2.3153575057222042e-08,
+          -1.8557159364718245e-08,
+          -1.0
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.010267411688514033,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.5841318226246964,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 3.1200848828188663
+          },
+          "prefix": {
+            "variance": 0.0032907475514697714,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.2915657363352362,
+            "variance_over_camera": 0.3205041008680962,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0019026473218068508,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.2507978114898727,
+            "variance_over_camera": 0.18530934373025168,
+            "variance_over_prefix": 0.5781808820178433,
+            "worst_leaf": {
+              "key": [
+                142,
+                153,
+                81,
+                682
+              ],
+              "m2": 8.803447338206103e-06,
+              "candidate_pmf": 0.11594072970260931,
+              "prefix_pmf": 0.19764276431112654,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 4,
+                  "depth": 1,
+                  "bounds": [
+                    104.0,
+                    97.0,
+                    64.0,
+                    227.0,
+                    225.0,
+                    208.0
+                  ],
+                  "mass": 1966.212890625,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08984375
+                  },
+                  "path_probability": 0.7218911085787961,
+                  "near_half": 0.5,
+                  "far_half": 0.22189110857879613,
+                  "moment_optimal_conditional": 0.9500761340637529,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    0.0,
+                    237.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 5792.11083984375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08935546875
+                  },
+                  "path_probability": 0.9052121494012071,
+                  "near_half": 0.5,
+                  "far_half": 0.40521214940120714,
+                  "moment_optimal_conditional": 0.9943135374402989,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0021415404696134284,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.16838333111271236,
+            "variance_over_camera": 0.20857646840139182,
+            "variance_over_prefix": 0.6507762859709296,
+            "worst_leaf": {
+              "key": [
+                142,
+                153,
+                81,
+                682
+              ],
+              "m2": 8.803447338206103e-06,
+              "candidate_pmf": 0.020361619011906258,
+              "prefix_pmf": 0.19764276431112654,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 4,
+                  "depth": 1,
+                  "bounds": [
+                    104.0,
+                    97.0,
+                    64.0,
+                    227.0,
+                    225.0,
+                    208.0
+                  ],
+                  "mass": 1966.212646484375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08984375
+                  },
+                  "path_probability": 0.7218910878001572,
+                  "near_half": 0.5,
+                  "far_half": 0.22189108780015726,
+                  "moment_optimal_conditional": 0.950076134063753,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    0.0,
+                    237.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 5792.11083984375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08935546875
+                  },
+                  "path_probability": 0.9052121494012071,
+                  "near_half": 0.5,
+                  "far_half": 0.40521214940120714,
+                  "moment_optimal_conditional": 0.9943135374402989,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "ls1/ls1-wall/2",
+        "group": "ls1",
+        "origin": [
+          159.75596618652344,
+          151.40460205078125,
+          82.99700164794922
+        ],
+        "normal": [
+          -2.3153575057222042e-08,
+          -1.8557159364718245e-08,
+          -1.0
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.030851623786804564,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.06753538744017978,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 5.936944035502773
+          },
+          "prefix": {
+            "variance": 0.0051965495383336354,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.2416637255426407,
+            "variance_over_camera": 0.16843682440326635,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.002441656896282153,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.2911959855559119,
+            "variance_over_camera": 0.0791419250135698,
+            "variance_over_prefix": 0.4698611796675209,
+            "worst_leaf": {
+              "key": [
+                157,
+                145,
+                76,
+                682
+              ],
+              "m2": 5.432138775654268e-06,
+              "candidate_pmf": 0.008266236309583144,
+              "prefix_pmf": 0.0562775458606623,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 4,
+                  "depth": 1,
+                  "bounds": [
+                    104.0,
+                    97.0,
+                    64.0,
+                    227.0,
+                    225.0,
+                    208.0
+                  ],
+                  "mass": 1966.212890625,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08984375
+                  },
+                  "path_probability": 0.7432708275472472,
+                  "near_half": 0.5,
+                  "far_half": 0.24327082754724713,
+                  "moment_optimal_conditional": 0.9104449516803869,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    0.0,
+                    237.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 5792.11083984375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08935546875
+                  },
+                  "path_probability": 0.9012059382256284,
+                  "near_half": 0.5,
+                  "far_half": 0.40120593822562844,
+                  "moment_optimal_conditional": 0.9550522183919866,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0019049250417897325,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.29640571836151886,
+            "variance_over_camera": 0.061744725494950484,
+            "variance_over_prefix": 0.36657497975100223,
+            "worst_leaf": {
+              "key": [
+                157,
+                145,
+                76,
+                682
+              ],
+              "m2": 5.432138775654268e-06,
+              "candidate_pmf": 0.01757626198836491,
+              "prefix_pmf": 0.0562775458606623,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 4,
+                  "depth": 1,
+                  "bounds": [
+                    104.0,
+                    97.0,
+                    64.0,
+                    227.0,
+                    225.0,
+                    208.0
+                  ],
+                  "mass": 1966.212646484375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08984375
+                  },
+                  "path_probability": 0.7432708075497955,
+                  "near_half": 0.5,
+                  "far_half": 0.2432708075497955,
+                  "moment_optimal_conditional": 0.9104449516803869,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    0.0,
+                    237.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 5792.11083984375,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      16.0,
+                      69.0,
+                      -48.0,
+                      240.0,
+                      270.0,
+                      208.0
+                    ],
+                    "mass": 7150.08935546875
+                  },
+                  "path_probability": 0.9012059382256284,
+                  "near_half": 0.5,
+                  "far_half": 0.40120593822562844,
+                  "moment_optimal_conditional": 0.9550522183919866,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "sides/side-26/1",
+        "group": "sides",
+        "origin": [
+          109.15621185302734,
+          76.13873291015625,
+          362.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.00033565893470295486,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.36953228425235335,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.5657307612501936
+          },
+          "prefix": {
+            "variance": 0.00059331922125145,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.21161223551278457,
+            "variance_over_camera": 1.7676252883794514,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0006380658736550865,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.19699224542409557,
+            "variance_over_camera": 1.9009351686697988,
+            "variance_over_prefix": 1.0754175000588304,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.00012758610457367134,
+              "candidate_pmf": 0.19699224542409557,
+              "prefix_pmf": 0.21161223551278457,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6734600669240292,
+                  "near_half": 0.5,
+                  "far_half": 0.17346006692402915,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6439785757956956,
+                  "near_half": 0.5,
+                  "far_half": 0.14397857579569565,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.000397870290124155,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.31311385866500197,
+            "variance_over_camera": 1.1853409785628224,
+            "variance_over_prefix": 0.6705838541433948,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.00012758610457367134,
+              "candidate_pmf": 0.31311385866500197,
+              "prefix_pmf": 0.21161223551278457,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.582628236656754,
+                  "near_half": 0.5,
+                  "far_half": 0.08262823665675405,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6439785757956956,
+                  "near_half": 0.5,
+                  "far_half": 0.14397857579569565,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "sides/side-27/1",
+        "group": "sides",
+        "origin": [
+          112.3916244506836,
+          76.43063354492188,
+          364.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.0010643221141951422,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.5699828685277234,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.4406939162983804
+          },
+          "prefix": {
+            "variance": 0.0024151050759559888,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_camera": 2.269148638128534,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.002692071438655087,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.281709965717556,
+            "variance_over_camera": 2.5293765888636783,
+            "variance_over_prefix": 1.1146808747397727,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.00019383356412304908,
+              "candidate_pmf": 0.1374930596205515,
+              "prefix_pmf": 0.15043927259998666,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.672131604492801,
+                  "near_half": 0.5,
+                  "far_half": 0.172131604492801,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6437862653681903,
+                  "near_half": 0.5,
+                  "far_half": 0.14378626536819022,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0014701602993232481,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.4541214141992939,
+            "variance_over_camera": 1.3813114279176726,
+            "variance_over_prefix": 0.6087355427967471,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 7.991386025021144e-06,
+              "candidate_pmf": 0.07091989084307679,
+              "prefix_pmf": 0.04813696846256246,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.5809330136919578,
+                  "near_half": 0.5,
+                  "far_half": 0.08093301369195781,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6437862653681903,
+                  "near_half": 0.5,
+                  "far_half": 0.14378626536819022,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "sides/side-26/2",
+        "group": "sides",
+        "origin": [
+          109.15621185302734,
+          76.13873291015625,
+          362.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.0003244220446280355,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.36953228425235335,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.5661296564220097
+          },
+          "prefix": {
+            "variance": 0.0005730525524460456,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.21161223551278457,
+            "variance_over_camera": 1.7663798189271513,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0006162310455669797,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.19699224542409557,
+            "variance_over_camera": 1.8994734043844534,
+            "variance_over_prefix": 1.0753482258069158,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.00012311481290192222,
+              "candidate_pmf": 0.19699224542409557,
+              "prefix_pmf": 0.21161223551278457,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6734600669240292,
+                  "near_half": 0.5,
+                  "far_half": 0.17346006692402915,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6439785757956956,
+                  "near_half": 0.5,
+                  "far_half": 0.14397857579569565,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0003844531852342092,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.31311385866500197,
+            "variance_over_camera": 1.1850402634475783,
+            "variance_over_prefix": 0.6708864371918254,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.00012311481290192222,
+              "candidate_pmf": 0.31311385866500197,
+              "prefix_pmf": 0.21161223551278457,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.582628236656754,
+                  "near_half": 0.5,
+                  "far_half": 0.08262823665675405,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6439785757956956,
+                  "near_half": 0.5,
+                  "far_half": 0.14397857579569565,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "sides/side-27/2",
+        "group": "sides",
+        "origin": [
+          112.3916244506836,
+          76.43063354492188,
+          364.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.0010507411287473492,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.5699828685277234,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.4408598366327476
+          },
+          "prefix": {
+            "variance": 0.002383390459817856,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_camera": 2.268294629962032,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0026566386783909096,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.281709965717556,
+            "variance_over_camera": 2.5283474737093865,
+            "variance_over_prefix": 1.1146468542103403,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.00019290132400246726,
+              "candidate_pmf": 0.1374930596205515,
+              "prefix_pmf": 0.15043927259998666,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.672131604492801,
+                  "near_half": 0.5,
+                  "far_half": 0.172131604492801,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6437862653681903,
+                  "near_half": 0.5,
+                  "far_half": 0.14378626536819022,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0014511311256931309,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.4541214141992939,
+            "variance_over_camera": 1.3810548440443273,
+            "variance_over_prefix": 0.6088516129262469,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 8.083794045142283e-06,
+              "candidate_pmf": 0.07091989084307679,
+              "prefix_pmf": 0.04813696846256246,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.5809330136919578,
+                  "near_half": 0.5,
+                  "far_half": 0.08093301369195781,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6437862653681903,
+                  "near_half": 0.5,
+                  "far_half": 0.14378626536819022,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "sides/side-a/window1",
+        "group": "sides",
+        "origin": [
+          110.73225402832031,
+          76.83383178710938,
+          363.0029602050781
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.06453073601029316,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.46884731194566615,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.47079312703398013
+          },
+          "prefix": {
+            "variance": 0.13706813524836264,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2641897667122643,
+            "variance_over_camera": 2.124075188395483,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.15295228969627722,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2411399431489627,
+            "variance_over_camera": 2.3702238522721966,
+            "variance_over_prefix": 1.115885099181754,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.03849449720935988,
+              "candidate_pmf": 0.21247153002145888,
+              "prefix_pmf": 0.23278102837857678,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6727593597897792,
+                  "near_half": 0.5,
+                  "far_half": 0.17275935978977913,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6439538448480764,
+                  "near_half": 0.5,
+                  "far_half": 0.14395384484807636,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.08432540682382988,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.3870303894370992,
+            "variance_over_camera": 1.3067479473716108,
+            "variance_over_prefix": 0.6152079523883156,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                366,
+                10242
+              ],
+              "m2": 2.535124482075516e-05,
+              "candidate_pmf": 0.0460128958827333,
+              "prefix_pmf": 0.03140873833368749,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.5815619945666581,
+                  "near_half": 0.5,
+                  "far_half": 0.08156199456665819,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6439538448480764,
+                  "near_half": 0.5,
+                  "far_half": 0.14395384484807636,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "sides/side-b/window1",
+        "group": "sides",
+        "origin": [
+          120.99700164794922,
+          76.16069030761719,
+          365.782958984375
+        ],
+        "normal": [
+          -1.0,
+          -1.6776782629790432e-08,
+          3.999537412369136e-08
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.00032419881838579505,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.1257528370353968,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.7575330964632659
+          },
+          "prefix": {
+            "variance": 0.0004279665402071525,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_camera": 1.320074336908515,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0004273636460010232,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09639053805381265,
+            "variance_over_camera": 1.3182146934677057,
+            "variance_over_prefix": 0.998591258545966,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.258864242117733e-05,
+              "candidate_pmf": 0.09639053805381265,
+              "prefix_pmf": 0.09625918991574872,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6489410504490805,
+                  "near_half": 0.5,
+                  "far_half": 0.14894105044908051,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6427910353183486,
+                  "near_half": 0.5,
+                  "far_half": 0.14279103531834864,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.00033533865854376435,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.12174817907288739,
+            "variance_over_camera": 1.0343611374447175,
+            "variance_over_prefix": 0.7835627953097627,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.258864242117733e-05,
+              "candidate_pmf": 0.12174817907288739,
+              "prefix_pmf": 0.09625918991574872,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6004281983598012,
+                  "near_half": 0.5,
+                  "far_half": 0.10042819835980121,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6427910353183486,
+                  "near_half": 0.5,
+                  "far_half": 0.14279103531834864,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "sides/side-a/window2",
+        "group": "sides",
+        "origin": [
+          110.73225402832031,
+          76.83383178710938,
+          363.0029602050781
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.06403854544124749,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.46884731194566615,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.47087287055685273
+          },
+          "prefix": {
+            "variance": 0.1359996496836093,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2641897667122643,
+            "variance_over_camera": 2.1237154708390893,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.15175760773055652,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2411399431489627,
+            "variance_over_camera": 2.369785364188001,
+            "variance_over_prefix": 1.1158676370388207,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.03818585261030764,
+              "candidate_pmf": 0.21247153002145888,
+              "prefix_pmf": 0.23278102837857678,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6727593597897792,
+                  "near_half": 0.5,
+                  "far_half": 0.17275935978977913,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6439538448480764,
+                  "near_half": 0.5,
+                  "far_half": 0.14395384484807636,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0836759515906062,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.3870303894370992,
+            "variance_over_camera": 1.3066497843455105,
+            "variance_over_prefix": 0.6152659347672631,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                366,
+                10242
+              ],
+              "m2": 2.552946690326787e-05,
+              "candidate_pmf": 0.0460128958827333,
+              "prefix_pmf": 0.03140873833368749,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.5815619945666581,
+                  "near_half": 0.5,
+                  "far_half": 0.08156199456665819,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6439538448480764,
+                  "near_half": 0.5,
+                  "far_half": 0.14395384484807636,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "sides/side-b/window2",
+        "group": "sides",
+        "origin": [
+          120.99700164794922,
+          76.16069030761719,
+          365.782958984375
+        ],
+        "normal": [
+          -1.0,
+          -1.6776782629790432e-08,
+          3.999537412369136e-08
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.00032824285322158417,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.1257528370353968,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.7573399376056714
+          },
+          "prefix": {
+            "variance": 0.0004334154808464522,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_camera": 1.3204110206593593,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0004328044240869371,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09639053805381265,
+            "variance_over_camera": 1.3185494210738151,
+            "variance_over_prefix": 0.9985901362860372,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.3165247841928056e-05,
+              "candidate_pmf": 0.09639053805381265,
+              "prefix_pmf": 0.09625918991574872,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6489410504490805,
+                  "near_half": 0.5,
+                  "far_half": 0.14894105044908051,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6427910353183486,
+                  "near_half": 0.5,
+                  "far_half": 0.14279103531834864,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0003395335150976505,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.12174817907288739,
+            "variance_over_camera": 1.0343972816628073,
+            "variance_over_prefix": 0.7833903727539865,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.3165247841928056e-05,
+              "candidate_pmf": 0.12174817907288739,
+              "prefix_pmf": 0.09625918991574872,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6004281983598012,
+                  "near_half": 0.5,
+                  "far_half": 0.10042819835980121,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6427910353183486,
+                  "near_half": 0.5,
+                  "far_half": 0.14279103531834864,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "side-top/side-27/1",
+        "group": "side-top",
+        "origin": [
+          112.3916244506836,
+          76.43063354492188,
+          364.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.00108288270862948,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.5699828685277234,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.4401007307249075
+          },
+          "prefix": {
+            "variance": 0.0024605337665443558,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_camera": 2.27220708848372,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0027430091999639866,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.281709965717556,
+            "variance_over_camera": 2.5330621480101008,
+            "variance_over_prefix": 1.1148025023108492,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.00019668685335553343,
+              "candidate_pmf": 0.1374930596205515,
+              "prefix_pmf": 0.15043927259998666,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.672131604492801,
+                  "near_half": 0.5,
+                  "far_half": 0.172131604492801,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6437862653681903,
+                  "near_half": 0.5,
+                  "far_half": 0.14378626536819022,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0014967933226300856,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.4541214141992939,
+            "variance_over_camera": 1.3822303290117726,
+            "variance_over_prefix": 0.6083205778282105,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 8.14807866823148e-06,
+              "candidate_pmf": 0.07091989084307679,
+              "prefix_pmf": 0.04813696846256246,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.5809330136919578,
+                  "near_half": 0.5,
+                  "far_half": 0.08093301369195781,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6437862653681903,
+                  "near_half": 0.5,
+                  "far_half": 0.14378626536819022,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "side-top/top-28/1",
+        "group": "side-top",
+        "origin": [
+          115.77961730957031,
+          76.00300598144531,
+          365.39862060546875
+        ],
+        "normal": [
+          1.6776782629790432e-08,
+          1.0,
+          -2.98201214832261e-08
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.026043811348167856,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.8167184343866032,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.698289582655726
+          },
+          "prefix": {
+            "variance": 0.03729657722963353,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7079705486909253,
+            "variance_over_camera": 1.4320706263393086,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.03424080534184541,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7345300349667652,
+            "variance_over_camera": 1.314738648813558,
+            "variance_over_prefix": 0.9180683023813726,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 6.768373225673847e-07,
+              "candidate_pmf": 0.015333833894283546,
+              "prefix_pmf": 0.014779385837044258,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 15,
+                  "depth": 2,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    324.0,
+                    135.0,
+                    77.0,
+                    409.0
+                  ],
+                  "mass": 212.7714080810547,
+                  "parent": {
+                    "compact_node": 3,
+                    "depth": 1,
+                    "bounds": [
+                      75.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      409.0
+                    ],
+                    "mass": 846.815673828125
+                  },
+                  "path_probability": 0.734530034966765,
+                  "near_half": 0.5,
+                  "far_half": 0.23453003496676506,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 70,
+                  "depth": 5,
+                  "bounds": [
+                    0.0,
+                    0.0,
+                    320.0,
+                    127.0,
+                    79.0,
+                    384.0
+                  ],
+                  "mass": 102.09271240234375,
+                  "parent": {
+                    "compact_node": 31,
+                    "depth": 4,
+                    "bounds": [
+                      0.0,
+                      0.0,
+                      256.0,
+                      224.0,
+                      94.0,
+                      384.0
+                    ],
+                    "mass": 424.79351806640625
+                  },
+                  "path_probability": 0.7109379979806598,
+                  "near_half": 0.5,
+                  "far_half": 0.21093799798065985,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.049503261301883456,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.6186175518689261,
+            "variance_over_camera": 1.9007686947235523,
+            "variance_over_prefix": 1.3272869785635786,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.020998831246750522,
+              "candidate_pmf": 0.373757578637345,
+              "prefix_pmf": 0.4277430493620051,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 14,
+                  "depth": 2,
+                  "bounds": [
+                    95.0,
+                    70.0,
+                    301.0,
+                    119.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 121.91961669921875,
+                  "parent": {
+                    "compact_node": 3,
+                    "depth": 1,
+                    "bounds": [
+                      75.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      368.0
+                    ],
+                    "mass": 629.9302368164062
+                  },
+                  "path_probability": 0.9919681933047318,
+                  "near_half": 0.5,
+                  "far_half": 0.49196819330473185,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 70,
+                  "depth": 5,
+                  "bounds": [
+                    0.0,
+                    0.0,
+                    320.0,
+                    127.0,
+                    79.0,
+                    384.0
+                  ],
+                  "mass": 102.09271240234375,
+                  "parent": {
+                    "compact_node": 31,
+                    "depth": 4,
+                    "bounds": [
+                      0.0,
+                      0.0,
+                      256.0,
+                      224.0,
+                      94.0,
+                      384.0
+                    ],
+                    "mass": 424.79351806640625
+                  },
+                  "path_probability": 0.7109379979806598,
+                  "near_half": 0.5,
+                  "far_half": 0.21093799798065985,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "side-top/side-27/2",
+        "group": "side-top",
+        "origin": [
+          112.3916244506836,
+          76.43063354492188,
+          364.00299072265625
+        ],
+        "normal": [
+          -3.999537412369136e-08,
+          -2.98201214832261e-08,
+          0.9999999403953552
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.0010866737227087928,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.5699828685277234,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.4394483429318376
+          },
+          "prefix": {
+            "variance": 0.0024728133355991417,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_camera": 2.275580318106033,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.002757029273794657,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.281709965717556,
+            "variance_over_camera": 2.5371270291896866,
+            "variance_over_prefix": 1.1149362687849838,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.00019930232016032858,
+              "candidate_pmf": 0.1374930596205515,
+              "prefix_pmf": 0.15043927259998666,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.672131604492801,
+                  "near_half": 0.5,
+                  "far_half": 0.172131604492801,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6437862653681903,
+                  "near_half": 0.5,
+                  "far_half": 0.14378626536819022,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.0015031346944227616,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.4541214141992939,
+            "variance_over_camera": 1.3832438044750368,
+            "variance_over_prefix": 0.6078641977472856,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 8.236578242967433e-06,
+              "candidate_pmf": 0.07091989084307679,
+              "prefix_pmf": 0.04813696846256246,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.5809330136919578,
+                  "near_half": 0.5,
+                  "far_half": 0.08093301369195781,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6437862653681903,
+                  "near_half": 0.5,
+                  "far_half": 0.14378626536819022,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "side-top/top-28/2",
+        "group": "side-top",
+        "origin": [
+          115.77961730957031,
+          76.00300598144531,
+          365.39862060546875
+        ],
+        "normal": [
+          1.6776782629790432e-08,
+          1.0,
+          -2.98201214832261e-08
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.026225520639994143,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.8167184343866032,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.6984990981974101
+          },
+          "prefix": {
+            "variance": 0.0375455325678635,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7079705486909253,
+            "variance_over_camera": 1.4316410752435642,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.034471499518301474,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7345300349667652,
+            "variance_over_camera": 1.314425745498152,
+            "variance_over_prefix": 0.9181251978779176,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 6.636179213288773e-07,
+              "candidate_pmf": 0.015333833894283546,
+              "prefix_pmf": 0.014779385837044258,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 15,
+                  "depth": 2,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    324.0,
+                    135.0,
+                    77.0,
+                    409.0
+                  ],
+                  "mass": 212.7714080810547,
+                  "parent": {
+                    "compact_node": 3,
+                    "depth": 1,
+                    "bounds": [
+                      75.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      409.0
+                    ],
+                    "mass": 846.815673828125
+                  },
+                  "path_probability": 0.734530034966765,
+                  "near_half": 0.5,
+                  "far_half": 0.23453003496676506,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 70,
+                  "depth": 5,
+                  "bounds": [
+                    0.0,
+                    0.0,
+                    320.0,
+                    127.0,
+                    79.0,
+                    384.0
+                  ],
+                  "mass": 102.09271240234375,
+                  "parent": {
+                    "compact_node": 31,
+                    "depth": 4,
+                    "bounds": [
+                      0.0,
+                      0.0,
+                      256.0,
+                      224.0,
+                      94.0,
+                      384.0
+                    ],
+                    "mass": 424.79351806640625
+                  },
+                  "path_probability": 0.7109379979806598,
+                  "near_half": 0.5,
+                  "far_half": 0.21093799798065985,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.04982516326072245,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.6186175518689261,
+            "variance_over_camera": 1.8998731786753795,
+            "variance_over_prefix": 1.3270597019941996,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.02123381345548102,
+              "candidate_pmf": 0.373757578637345,
+              "prefix_pmf": 0.4277430493620051,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 14,
+                  "depth": 2,
+                  "bounds": [
+                    95.0,
+                    70.0,
+                    301.0,
+                    119.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 121.91961669921875,
+                  "parent": {
+                    "compact_node": 3,
+                    "depth": 1,
+                    "bounds": [
+                      75.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      368.0
+                    ],
+                    "mass": 629.9302368164062
+                  },
+                  "path_probability": 0.9919681933047318,
+                  "near_half": 0.5,
+                  "far_half": 0.49196819330473185,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 70,
+                  "depth": 5,
+                  "bounds": [
+                    0.0,
+                    0.0,
+                    320.0,
+                    127.0,
+                    79.0,
+                    384.0
+                  ],
+                  "mass": 102.09271240234375,
+                  "parent": {
+                    "compact_node": 31,
+                    "depth": 4,
+                    "bounds": [
+                      0.0,
+                      0.0,
+                      256.0,
+                      224.0,
+                      94.0,
+                      384.0
+                    ],
+                    "mass": 424.79351806640625
+                  },
+                  "path_probability": 0.7109379979806598,
+                  "near_half": 0.5,
+                  "far_half": 0.21093799798065985,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "side-top/side-b/window1",
+        "group": "side-top",
+        "origin": [
+          120.99700164794922,
+          76.16069030761719,
+          365.782958984375
+        ],
+        "normal": [
+          -1.0,
+          -1.6776782629790432e-08,
+          3.999537412369136e-08
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.00030520107163868664,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.1257528370353968,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.7575170024283591
+          },
+          "prefix": {
+            "variance": 0.0004028966619367075,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_camera": 1.3201023829093175,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0004023290470337181,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09639053805381265,
+            "variance_over_camera": 1.3182425765202317,
+            "variance_over_prefix": 0.9985911650390428,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.009650099566793e-05,
+              "candidate_pmf": 0.09639053805381265,
+              "prefix_pmf": 0.09625918991574872,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6489410504490805,
+                  "near_half": 0.5,
+                  "far_half": 0.14894105044908051,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6427910353183486,
+                  "near_half": 0.5,
+                  "far_half": 0.14279103531834864,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.00031568904652101086,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.12174817907288739,
+            "variance_over_camera": 1.0343641482843169,
+            "variance_over_prefix": 0.7835484290276984,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.009650099566793e-05,
+              "candidate_pmf": 0.12174817907288739,
+              "prefix_pmf": 0.09625918991574872,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6004281983598012,
+                  "near_half": 0.5,
+                  "far_half": 0.10042819835980121,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6427910353183486,
+                  "near_half": 0.5,
+                  "far_half": 0.14279103531834864,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "side-top/top/window1",
+        "group": "side-top",
+        "origin": [
+          114.41864013671875,
+          76.00299835205078,
+          365.20050048828125
+        ],
+        "normal": [
+          1.6776782629790432e-08,
+          1.0,
+          -2.98201214832261e-08
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.004641059312983938,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.8250809722645625,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.7311970984438105
+          },
+          "prefix": {
+            "variance": 0.0063472069608336715,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7117189824545008,
+            "variance_over_camera": 1.367620306656408,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0059491228374738735,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7352905305840307,
+            "variance_over_camera": 1.2818458968689468,
+            "variance_over_prefix": 0.9372820004426778,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.576178583669925e-06,
+              "candidate_pmf": 0.049941079705932756,
+              "prefix_pmf": 0.04834009544873845,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 15,
+                  "depth": 2,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    324.0,
+                    135.0,
+                    77.0,
+                    409.0
+                  ],
+                  "mass": 212.7714080810547,
+                  "parent": {
+                    "compact_node": 3,
+                    "depth": 1,
+                    "bounds": [
+                      75.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      409.0
+                    ],
+                    "mass": 846.815673828125
+                  },
+                  "path_probability": 0.7352905305840306,
+                  "near_half": 0.5,
+                  "far_half": 0.23529053058403063,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 70,
+                  "depth": 5,
+                  "bounds": [
+                    0.0,
+                    0.0,
+                    320.0,
+                    127.0,
+                    79.0,
+                    384.0
+                  ],
+                  "mass": 102.09271240234375,
+                  "parent": {
+                    "compact_node": 31,
+                    "depth": 4,
+                    "bounds": [
+                      0.0,
+                      0.0,
+                      256.0,
+                      224.0,
+                      94.0,
+                      384.0
+                    ],
+                    "mass": 424.79351806640625
+                  },
+                  "path_probability": 0.7138174682254159,
+                  "near_half": 0.5,
+                  "far_half": 0.21381746822541595,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.008220845233243155,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.6184112925389912,
+            "variance_over_camera": 1.7713294915762707,
+            "variance_over_prefix": 1.2951909846285194,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.0035431049287044367,
+              "candidate_pmf": 0.4041761336025968,
+              "prefix_pmf": 0.4651594012117712,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 14,
+                  "depth": 2,
+                  "bounds": [
+                    95.0,
+                    70.0,
+                    301.0,
+                    119.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 121.91961669921875,
+                  "parent": {
+                    "compact_node": 3,
+                    "depth": 1,
+                    "bounds": [
+                      75.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      368.0
+                    ],
+                    "mass": 629.9302368164062
+                  },
+                  "path_probability": 0.9921738300542391,
+                  "near_half": 0.5,
+                  "far_half": 0.4921738300542391,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 70,
+                  "depth": 5,
+                  "bounds": [
+                    0.0,
+                    0.0,
+                    320.0,
+                    127.0,
+                    79.0,
+                    384.0
+                  ],
+                  "mass": 102.09271240234375,
+                  "parent": {
+                    "compact_node": 31,
+                    "depth": 4,
+                    "bounds": [
+                      0.0,
+                      0.0,
+                      256.0,
+                      224.0,
+                      94.0,
+                      384.0
+                    ],
+                    "mass": 424.79351806640625
+                  },
+                  "path_probability": 0.7138174682254159,
+                  "near_half": 0.5,
+                  "far_half": 0.21381746822541595,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "side-top/side-b/window2",
+        "group": "side-top",
+        "origin": [
+          120.99700164794922,
+          76.16069030761719,
+          365.782958984375
+        ],
+        "normal": [
+          -1.0,
+          -1.6776782629790432e-08,
+          3.999537412369136e-08
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.00031166428149171174,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.1257528370353968,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.7574426471835973
+          },
+          "prefix": {
+            "variance": 0.000411469149051185,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_camera": 1.3202319723061606,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0004108892791712362,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09639053805381265,
+            "variance_over_camera": 1.3183714129980058,
+            "variance_over_prefix": 0.9985907330323891,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.0962196546060425e-05,
+              "candidate_pmf": 0.09639053805381265,
+              "prefix_pmf": 0.09625918991574872,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    409.0
+                  ],
+                  "mass": 846.815673828125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6489410504490805,
+                  "near_half": 0.5,
+                  "far_half": 0.14894105044908051,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6427910353183486,
+                  "near_half": 0.5,
+                  "far_half": 0.14279103531834864,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.00032237869491512556,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.12174817907288739,
+            "variance_over_camera": 1.0343780601746586,
+            "variance_over_prefix": 0.7834820560873278,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.0962196546060425e-05,
+              "candidate_pmf": 0.12174817907288739,
+              "prefix_pmf": 0.09625918991574872,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 3,
+                  "depth": 1,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 629.9302368164062,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6004281983598012,
+                  "near_half": 0.5,
+                  "far_half": 0.10042819835980121,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 2,
+                  "depth": 1,
+                  "bounds": [
+                    -32.0,
+                    0.0,
+                    240.0,
+                    224.0,
+                    94.0,
+                    493.0
+                  ],
+                  "mass": 894.4122314453125,
+                  "parent": {
+                    "compact_node": 0,
+                    "depth": 0,
+                    "bounds": [
+                      -32.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      496.0
+                    ],
+                    "mass": 3613.951171875
+                  },
+                  "path_probability": 0.6427910353183486,
+                  "near_half": 0.5,
+                  "far_half": 0.14279103531834864,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "point_window": "side-top/top/window2",
+        "group": "side-top",
+        "origin": [
+          114.41864013671875,
+          76.00299835205078,
+          365.20050048828125
+        ],
+        "normal": [
+          1.6776782629790432e-08,
+          1.0,
+          -2.98201214832261e-08
+        ],
+        "methods": {
+          "camera": {
+            "variance": 0.004621507975194611,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.8250809722645625,
+            "variance_over_camera": 1.0,
+            "variance_over_prefix": 0.7277568663691035
+          },
+          "prefix": {
+            "variance": 0.006350346096014264,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7117189824545008,
+            "variance_over_camera": 1.3740852834397308,
+            "variance_over_prefix": 1.0
+          },
+          "light-sah": {
+            "variance": 0.0059469677549751025,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7352905305840307,
+            "variance_over_camera": 1.2868024434653662,
+            "variance_over_prefix": 0.9364793138924604,
+            "worst_leaf": {
+              "key": [
+                110,
+                76,
+                364,
+                10242
+              ],
+              "m2": 4.48116068370285e-06,
+              "candidate_pmf": 0.049941079705932756,
+              "prefix_pmf": 0.04834009544873845,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 15,
+                  "depth": 2,
+                  "bounds": [
+                    75.0,
+                    -48.0,
+                    324.0,
+                    135.0,
+                    77.0,
+                    409.0
+                  ],
+                  "mass": 212.7714080810547,
+                  "parent": {
+                    "compact_node": 3,
+                    "depth": 1,
+                    "bounds": [
+                      75.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      409.0
+                    ],
+                    "mass": 846.815673828125
+                  },
+                  "path_probability": 0.7352905305840306,
+                  "near_half": 0.5,
+                  "far_half": 0.23529053058403063,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 70,
+                  "depth": 5,
+                  "bounds": [
+                    0.0,
+                    0.0,
+                    320.0,
+                    127.0,
+                    79.0,
+                    384.0
+                  ],
+                  "mass": 102.09271240234375,
+                  "parent": {
+                    "compact_node": 31,
+                    "depth": 4,
+                    "bounds": [
+                      0.0,
+                      0.0,
+                      256.0,
+                      224.0,
+                      94.0,
+                      384.0
+                    ],
+                    "mass": 424.79351806640625
+                  },
+                  "path_probability": 0.7138174682254159,
+                  "near_half": 0.5,
+                  "far_half": 0.21381746822541595,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          },
+          "geometry-sah": {
+            "variance": 0.008248902339989166,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.6184112925389912,
+            "variance_over_camera": 1.7848941047519897,
+            "variance_over_prefix": 1.2989689404749944,
+            "worst_leaf": {
+              "key": [
+                115,
+                76,
+                364,
+                10242
+              ],
+              "m2": 0.003623085758709883,
+              "candidate_pmf": 0.4041761336025968,
+              "prefix_pmf": 0.4651594012117712,
+              "candidate": {
+                "first_underallocated": {
+                  "compact_node": 14,
+                  "depth": 2,
+                  "bounds": [
+                    95.0,
+                    70.0,
+                    301.0,
+                    119.0,
+                    94.0,
+                    368.0
+                  ],
+                  "mass": 121.91961669921875,
+                  "parent": {
+                    "compact_node": 3,
+                    "depth": 1,
+                    "bounds": [
+                      75.0,
+                      -48.0,
+                      240.0,
+                      224.0,
+                      94.0,
+                      368.0
+                    ],
+                    "mass": 629.9302368164062
+                  },
+                  "path_probability": 0.9921738300542391,
+                  "near_half": 0.5,
+                  "far_half": 0.4921738300542391,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              },
+              "prefix": {
+                "first_underallocated": {
+                  "compact_node": 70,
+                  "depth": 5,
+                  "bounds": [
+                    0.0,
+                    0.0,
+                    320.0,
+                    127.0,
+                    79.0,
+                    384.0
+                  ],
+                  "mass": 102.09271240234375,
+                  "parent": {
+                    "compact_node": 31,
+                    "depth": 4,
+                    "bounds": [
+                      0.0,
+                      0.0,
+                      256.0,
+                      224.0,
+                      94.0,
+                      384.0
+                    ],
+                    "mass": 424.79351806640625
+                  },
+                  "path_probability": 0.7138174682254159,
+                  "near_half": 0.5,
+                  "far_half": 0.21381746822541595,
+                  "moment_optimal_conditional": 1.0,
+                  "below_moment_optimal": true
+                }
+              }
+            }
+          }
+        }
+      }
+    ],
+    "script": "scripts/light_sampling_clustering_repair.py",
+    "detailed_local_result": "builds/light-sampling/20261108-clustering-repair/first-screen.json",
+    "limits": [
+      "The ls1 conditional reference has world voxel hash 4dfca2b6 and cannot stand in for grouping-control ls1 with hash 023bcd36.",
+      "The 20 point-windows include repeated receivers. Counts describe the screen and are not independent votes or full-image predictions.",
+      "The candidate topology is CPU-only at this stage. Input-order invariance was tested using a canonical world sort and deterministic permutation."
+    ]
+  }
+}
