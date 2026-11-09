@@ -56,6 +56,26 @@ moving-4 提供了反例：包含颜色、深度、几何法线及灯／遮挡�
 
 后续同时区分等价提速与分布改变：先在前瞻中提前拒绝整个背面父簇，及在建树阶段压紧外层空孩子；两者需证明支持与非空孩子顺序不变。另试两层 cut：将合格跨 brick 子簇展开后，对最多 16 个候选统一归一化 Near/Far，直接进入所选节点，跳过已展开的层。它不是现有前瞻的等价改写，实际 PDF 必须跟随新概率；可先选聚合组再重算其最多四个孩子，以减少长时间存活的数组。28 个既有逐灯 M2 窗的离线筛查证明概率守恒和已观测正贡献支持，但收益不支配完整前瞻，预计节点读取减少也不是 GPU 结论。upper 与前瞻组合在 moving 点上有互补迹象，ls5 墙点仍可能退化；这些都只用于选择后续实机候选，不改变基线。
 
+#### 第二轮筛选、均值身份与支持边界（2026-11-09 07:00 UTC）
+
+讨论端直接读取完整原件，独立重算 ls5、moving-4 新候选的共同像素、两窗 RGB 方差、分位数、尾部与 128 帧计时，和实验报告一致；另从相机矩阵重建世界平面并重新求连通域，moving 的两个侧面／朝上面分别保留 7,449／1,554／65,773 像素，已查看[区域覆盖图](../../../builds/light-sampling/20261108-eight-hour-exploration/review-moving4-plane-regions.png)。它们覆盖完整连通面，替代小块像素作为本轮主要区域诊断，但不代表场景中所有同向表面。
+
+| 筛选 | raygen 均值／Camera | 最差 5% 方差×均值时间／Camera |
+|---|---:|---:|
+| ls5 全局面积 SAH | 0.824 | 约 0.85 |
+| ls5 全局面积 SAH + 灯面混合 | 0.826 | 约 0.81 |
+| moving-4 全局面积 SAH | 0.876 | 约 1.64 |
+| moving-4 全局 flux-diagonal | 0.861 | 约 0.74 |
+| moving-4 Prefix，上层 Near/Far 75/25 | 1.010 | 约 0.85 |
+
+这里的全局树仍由离线图集载入，不包含真实动态构建；初测均值时间不能替代反序配对验收。ls5 SAH 的独立两对计时比约 0.837／0.840，但两处蓝光地面仍有代价。moving 的 75/25 候选只改变跨 brick 父节点的两个已归一化分支分布混合比例，保留原砖内 50/50、Half-space A、灯集合及实际 PDF；其两片侧墙尾部效率代价约为 Camera 的 0.83／0.54。此时没有接受新默认。见[ls5 对照](../../../builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-prefix-global-area-sah-face-mixture-global-face.json)、[moving 对照](../../../builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-camera-prefix-global-area-sah-global-diagonal-outer-near.json)与[独立区域复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-moving4-plane-review.json)。
+
+**均值身份仍有待解释的差异。** moving 两窗中，Camera／面积 SAH／75:25 的整图蓝通道均值约 0.000603，而 Prefix／全局对角线约 0.000581；朝上连通面的蓝通道约 0.004052 对 0.003897。该重复差异超过各自两窗波动，不能直接称作普通随机噪声。接收颜色／几何、灯和体素已核对，但本组未保存发光面 UV 表；两种全局树源码只差冻结节点数据。下一次同作业对照需核对面 UV 与实际发光输入，并区分输入漂移、有限窗口漏采和真实估计器问题。现有统计是筛选线索，不能用来宣称亮度恒定或无偏已经实证通过。
+
+**不能直接剔除所有贴着实心邻居的灯面。** 当前终点接受条件核对材质及距离小于 0.01，没有核对目标体素身份。已有 M2 在全部候选可见面都被这种规则排除的灯上仍有正贡献；独立 CPU 几何重放也找到先命中相邻同材质发光体、距目标点约 0.00664 的有限内部面位置，见[反例](../../../builds/light-sampling/20261108-eight-hour-exploration/neighbor-hit-witness.json)。这不是 GPU 逐样本归因，却足以否定“这些方向必为零”的前提。本轮不改终点语义；实验候选改为 25% 原面分布 + 75% 重加权分布，同材质邻面保留，所有原支持保留，并评价混合后的真实 PDF。GPU 64 个记录中 44 个触发重加权，灯内 PDF 的最大相对差约 1.72e-4；仍需整图及跨场景验收。
+
+新增廉价权重筛查只使用已有 AABB：投影半径、均匀正半空间均值／RMS 和包围球锥的精确最大余弦。前两类在 moving 顶面／部分侧面退化；球锥候选在已有 M2 上较均衡，无新增节点读取／统计，但还没有实际成本与整图收益。对于单位接收法线，令 `h=dot(n,delta)`、`d²=dot(delta,delta)`、`r²=dot(half,half)`；接收点在球内时取 1，否则令 `s=sqrt(d²-r²)`，`h>=s` 时取 1，其余取 `(h*s + sqrt(max(d²-h²,0))*sqrt(r²))/d²`，再沿用原余弦下限及半空间拒绝。[离线结果](../../../builds/light-sampling/20261108-eight-hour-exploration/offline-cosine-moment-screen.json)只筛选下一批候选，不证明全图泛化。
+
 ### 聚类修复阶段的证据与依据（2026-11-08）
 
 #### 接受判据修订：绝对噪声与整图权衡（2026-11-08）
