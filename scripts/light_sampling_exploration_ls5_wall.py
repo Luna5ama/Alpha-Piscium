@@ -7,6 +7,7 @@ import numpy as np
 
 from light_sampling_clustering_repair import key_order, scores
 from light_sampling_exploration_capture import ROOT, RUN, retain_manifest
+from light_sampling_exploration_containment import selective_near
 from light_sampling_exploration_outer_mix import outer_mix
 from light_sampling_moving_analysis import leaves, native_node
 from light_sampling_point_moments import extract, input_identity, read, sha
@@ -112,6 +113,8 @@ def replay(retained_wall=False, fixed_receiver=False):
             base=scores(t,origin,normal)
             full=outer_mix(t,base,.75) if name in ("anchor-75","coarse-sah") else base[0]
             probs[name]=full[order[name]]
+            if fixed_receiver and name in ("anchor-75","coarse-sah"):
+                probs[name+"-near-gate"]=selective_near(t,origin,normal)[order[name]]
         for window in (1,2):
             src=moments/f"{point['id']}-window{window}.npz"
             with np.load(src) as z:

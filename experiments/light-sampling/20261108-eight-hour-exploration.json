@@ -5099,7 +5099,16 @@
       "fixed_world_fixture": {
         "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-fixed-receiver-fixture.json",
         "sha256": "9a54337702732800434d102a8b906d4f50e15d35ec61c84a9fe8404b29aafd11"
-      }
+      },
+      "accepted_fixed_world_ray_trace": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/ls5-fixed-receiver-mode3/accepted.json",
+        "sha256": "660396b40c87d314b0c2b0acd3303ba15638259f9e5263c53dce2ebbf172d452"
+      },
+      "fixed_world_variance_replay": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-fixed-receiver-mode3-variance-replay.json",
+        "sha256": "5d717f80b74756ca6cd744a1d87cd058af5304ccf51d442b1aced00aa966e6b4"
+      },
+      "fixed_world_result": "Independent camera-free ray trace reproduces the sandstone loss. The same one-eighth near-only correction reduces anchor75 wall variance from 35.69–35.80 times Camera to 4.92–4.93 in CPU PMF replay, with unchanged 0.192 times Camera at the blue pillar; SAH goes from 14.39–14.43 to 3.06–3.07 at the wall, unchanged 0.185 at the pillar. No screen/performance acceptance."
     },
     "far_cube_numeric_bound": {
       "series": {
@@ -5210,6 +5219,45 @@
       "path": "builds/light-sampling/20261108-eight-hour-exploration/isolated-glsl-check.json",
       "sha256": "249d4bcf6a2bee1b036885553d58935fa15902bc972d4dfd15a94ac545fee019"
     },
-    "projection_brackets": "The native multi-window archiver accepts additional actual camera buffers around every 32-frame window. This tightens evidence; no new image ranking."
+    "projection_brackets": "The native multi-window archiver accepts additional actual camera buffers around every 32-frame window. This tightens evidence; no new image ranking.",
+    "spatial_tile_phase_sensitivity": {
+      "report": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/spatial-tile-phase-sensitivity.json",
+        "sha256": "27210739fd9f707ad2ef25ed6f7885346973f7c655392d1b4fb9e23c342f2eb0"
+      },
+      "diagonal_tail_ratio_across_origin_ranges": {
+        "16": [
+          0.6451,
+          0.9985
+        ],
+        "32": [
+          0.6476,
+          0.8724
+        ],
+        "64": [
+          0.4743,
+          2.5268
+        ],
+        "128": [
+          0.4068,
+          1.9525
+        ]
+      },
+      "phase_pooled_ratios": {
+        "diagonal": [
+          0.8326,
+          0.7717,
+          0.9241,
+          0.9613
+        ],
+        "outer-near": [
+          0.8721,
+          0.8268,
+          0.7141,
+          0.4778
+        ]
+      },
+      "decision": "The 64px tail reversal from one tile phase is not robust to tile placement. The two actual 32f windows have exact common receiver/UV/crop controls within each pair but are not enough to establish a low-frequency covariance mechanism."
+    }
   }
 }
