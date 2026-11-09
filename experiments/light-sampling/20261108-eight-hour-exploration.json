@@ -49,10 +49,10 @@
     "historical_local_originals_untouched": true
   },
   "next": [
-    "Resolve repeatable moving-4 mean RGB split with paired capture and emitter-face identity.",
-    "Run matched ls1 and ls5 outer-near and matched moving-4 ABBA. Compare separately with frozen global-diagonal.",
-    "Extend dynamic shortlist and independent cosine BRDF-only to the remaining live presets and native 720p fixtures.",
-    "Measure real boundary motion and evaluate runtime build cost separately from offline frozen candidates."
+    "Complete broad native Camera/Prefix/independent Cosine coverage and extend shortlist without pooling scenes.",
+    "Validate dynamic coarse upper topology against offline 64-cube reconstruction and time all build stages separately.",
+    "Keep frozen lookup results scoped to matching atlas pairs; native LS1 and LS5 measurements are candidate screens.",
+    "Run bounded optimization ABBA, arity/stress and real camera boundary motion."
   ],
   "results": [
     {
@@ -1929,8 +1929,8 @@
     {
       "id": "face-mixture-native-pdf-audit",
       "evidence": {
-        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/face-mixture-audit/result.json",
-        "sha256": "223e2ab684316b30195388d3b1776d2d229381a4a10df83ffe476ec27c562609"
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/face-mixture-pdf-audit.json",
+        "sha256": "4b7af8ad77ae6d2a7c520eeb5722b322aeeb9381d97dc00fa52db023037d86c1"
       },
       "capture": {
         "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/face-mixture-audit/accepted.json",
@@ -1969,6 +1969,926 @@
         }
       ],
       "scope": "Point-window and geometric proof checks only; the observed loss of positive support rejects hard blocked-face exclusion."
+    },
+    {
+      "id": "moving4-paired-diagonal-native",
+      "scene": "light-sampling-failure-moving-4",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-camera-paired-diagonal-diagonal-paired.json",
+        "sha256": "8696a4c905f537aafcba6adf6c47a0800d4963bcda5bfc5cc6c2b8ece4fd51f7"
+      },
+      "baseline": "camera-paired-diagonal",
+      "matched_pixels": 2022174,
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "p50_ratios": {
+        "camera-paired-diagonal": 1.0,
+        "diagonal-paired": 0.8554004607670416
+      },
+      "mean_ratios": {
+        "camera-paired-diagonal": 1.0,
+        "diagonal-paired": 0.8404603079134219
+      },
+      "whole_tail": [
+        {
+          "camera-paired-diagonal": 0.01650141,
+          "diagonal-paired": 0.0145462
+        },
+        {
+          "camera-paired-diagonal": 0.01648294,
+          "diagonal-paired": 0.01453251
+        }
+      ],
+      "region_tail_variance_times_mean_ms_ratio": [
+        {
+          "whole": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.740876
+          },
+          "side-a": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.835528
+          },
+          "side-b": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.628534
+          },
+          "top": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.569694
+          },
+          "side-a connected plane": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.860855
+          },
+          "side-b connected plane": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.587804
+          },
+          "top connected plane": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.534766
+          }
+        },
+        {
+          "whole": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.741008
+          },
+          "side-a": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.834678
+          },
+          "side-b": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.575163
+          },
+          "top": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.579592
+          },
+          "side-a connected plane": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.868355
+          },
+          "side-b connected plane": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.61426
+          },
+          "top connected plane": {
+            "camera-paired-diagonal": 1.0,
+            "diagonal-paired": 0.532427
+          }
+        }
+      ],
+      "emitter_uv_bracket_matched": false,
+      "fixed_uv_sha256": null,
+      "atlas_probe_matched": null,
+      "caution": "Same frozen job. Camera and diagonal began with identical emitting UV, Camera UV changed by end. Mean RGB now nearly matches."
+    },
+    {
+      "id": "ls1-paired-outer-near-native",
+      "scene": "light-sampling-1",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-surfaces-camera-paired-outer-outer-near-paired.json",
+        "sha256": "f5baf0650ff2f5090923a804c85bcc78c6f49130eb52cef100750b59f7464e6b"
+      },
+      "baseline": "camera-paired-outer",
+      "matched_pixels": 2022463,
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "p50_ratios": {
+        "camera-paired-outer": 1.0,
+        "outer-near-paired": 0.9400037972280235
+      },
+      "mean_ratios": {
+        "camera-paired-outer": 1.0,
+        "outer-near-paired": 0.9628579043557721
+      },
+      "whole_tail": [
+        {
+          "camera-paired-outer": 0.33272377,
+          "outer-near-paired": 0.60356366
+        },
+        {
+          "camera-paired-outer": 0.3365041,
+          "outer-near-paired": 0.58804766
+        }
+      ],
+      "region_tail_variance_times_mean_ms_ratio": [
+        {
+          "whole": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 1.746632
+          },
+          "red-pillar": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 0.713136
+          },
+          "central-ceiling": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 7.407219
+          },
+          "red-pillar connected plane": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 0.302278
+          },
+          "central-ceiling connected plane": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 1.962866
+          }
+        },
+        {
+          "whole": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 1.682614
+          },
+          "red-pillar": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 0.669029
+          },
+          "central-ceiling": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 4.37656
+          },
+          "red-pillar connected plane": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 0.28692
+          },
+          "central-ceiling connected plane": {
+            "camera-paired-outer": 1.0,
+            "outer-near-paired": 1.891275
+          }
+        }
+      ],
+      "emitter_uv_bracket_matched": false,
+      "fixed_uv_sha256": null,
+      "atlas_probe_matched": null,
+      "caution": "Same job, matched voxel 023b cohort. The Camera UV changed by end. Red pillar improves, whole tail and ceiling regress."
+    },
+    {
+      "id": "moving4-fixed-uv-diagonal-pair",
+      "scene": "light-sampling-failure-moving-4",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-uv-camera-uv-diagonal.json",
+        "sha256": "01b24ec4f01dc39af1fd4ceb3029149cb8e7b531c493401c13dbceaa7ce00575"
+      },
+      "baseline": "uv-camera",
+      "matched_pixels": 2022174,
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "p50_ratios": {
+        "uv-camera": 1.0,
+        "uv-diagonal": 0.874650564687465
+      },
+      "mean_ratios": {
+        "uv-camera": 1.0,
+        "uv-diagonal": 0.845404010156138
+      },
+      "whole_tail": [
+        {
+          "uv-camera": 0.01687705,
+          "uv-diagonal": 0.01488501
+        },
+        {
+          "uv-camera": 0.0168779,
+          "uv-diagonal": 0.01488236
+        }
+      ],
+      "region_tail_variance_times_mean_ms_ratio": [
+        {
+          "whole": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.745619
+          },
+          "side-a": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.857112
+          },
+          "side-b": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.674099
+          },
+          "top": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.574857
+          },
+          "side-a connected plane": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.86643
+          },
+          "side-b connected plane": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.586247
+          },
+          "top connected plane": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.537378
+          }
+        },
+        {
+          "whole": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.745448
+          },
+          "side-a": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.834777
+          },
+          "side-b": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.553203
+          },
+          "top": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.547224
+          },
+          "side-a connected plane": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.872758
+          },
+          "side-b connected plane": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.607381
+          },
+          "top connected plane": {
+            "uv-camera": 1.0,
+            "uv-diagonal": 0.534701
+          }
+        }
+      ],
+      "emitter_uv_bracket_matched": false,
+      "fixed_uv_sha256": "712815a2acea30f20fc050d54aa7459ab8f8f37899483d052b837a11d232ffc2",
+      "atlas_probe_matched": {
+        "atlas-fire-color.bin": true,
+        "atlas-fire-specular.bin": true,
+        "atlas-lava-color.bin": true,
+        "atlas-lava-specular.bin": true
+      },
+      "caution": "Frozen lookup bytes match injected bytes; sampled fire/lava color/specular crops match at both endpoints. Timing includes diagnostic UV fetch."
+    },
+    {
+      "id": "moving4-fixed-uv-outer-near-pair",
+      "scene": "light-sampling-failure-moving-4",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-uv-camera-b-uv-outer-near.json",
+        "sha256": "00b01c9dbea4b1c1abf84290fee868da82782faec1b85e2cdb2e5bb5b2787bac"
+      },
+      "baseline": "uv-camera-b",
+      "matched_pixels": 2022173,
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "p50_ratios": {
+        "uv-camera-b": 1.0,
+        "uv-outer-near": 1.0393403750808363
+      },
+      "mean_ratios": {
+        "uv-camera-b": 1.0,
+        "uv-outer-near": 1.0557350973738218
+      },
+      "whole_tail": [
+        {
+          "uv-camera-b": 0.01672175,
+          "uv-outer-near": 0.01404636
+        },
+        {
+          "uv-camera-b": 0.01672413,
+          "uv-outer-near": 0.01405964
+        }
+      ],
+      "region_tail_variance_times_mean_ms_ratio": [
+        {
+          "whole": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.886823
+          },
+          "side-a": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.838657
+          },
+          "side-b": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.714885
+          },
+          "top": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.99749
+          },
+          "side-a connected plane": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.872797
+          },
+          "side-b connected plane": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.570523
+          },
+          "top connected plane": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.892573
+          }
+        },
+        {
+          "whole": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.887535
+          },
+          "side-a": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.894578
+          },
+          "side-b": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.525313
+          },
+          "top": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.942968
+          },
+          "side-a connected plane": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.869477
+          },
+          "side-b connected plane": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.621897
+          },
+          "top connected plane": {
+            "uv-camera-b": 1.0,
+            "uv-outer-near": 0.89481
+          }
+        }
+      ],
+      "emitter_uv_bracket_matched": false,
+      "fixed_uv_sha256": "712815a2acea30f20fc050d54aa7459ab8f8f37899483d052b837a11d232ffc2",
+      "atlas_probe_matched": {
+        "atlas-fire-color.bin": true,
+        "atlas-fire-specular.bin": true,
+        "atlas-lava-color.bin": true,
+        "atlas-lava-specular.bin": true
+      },
+      "caution": "Same diagnostic lookup and matching endpoint atlas crop bytes in this pair. Timing includes the diagnostic fetch."
+    },
+    {
+      "id": "moving4-fixed-uv-all-cases",
+      "scene": "light-sampling-failure-moving-4",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-uv-camera-uv-camera-b-uv-prefix-uv-diagonal-uv-outer-near-uv-cosine-brdf.json",
+        "sha256": "737056b7624398ffac75a37c564d92bfb8678e458e77ec89a86163a367a6e78e"
+      },
+      "baseline": "uv-camera",
+      "matched_pixels": 2022172,
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "p50_ratios": {
+        "uv-camera": 1.0,
+        "uv-camera-b": 1.037459465503746,
+        "uv-prefix": 0.8869506876886951,
+        "uv-diagonal": 0.874650564687465,
+        "uv-outer-near": 1.0782735100078273,
+        "uv-cosine-brdf": 0.41708598904170857
+      },
+      "mean_ratios": {
+        "uv-camera": 1.0,
+        "uv-camera-b": 1.001250115985795,
+        "uv-prefix": 0.9153531451129913,
+        "uv-diagonal": 0.845404010156138,
+        "uv-outer-near": 1.0570548886958135,
+        "uv-cosine-brdf": 0.4362786695796675
+      },
+      "whole_tail": [
+        {
+          "uv-camera": 0.01687705,
+          "uv-camera-b": 0.01672175,
+          "uv-prefix": 0.0291584,
+          "uv-diagonal": 0.01488501,
+          "uv-outer-near": 0.01404636,
+          "uv-cosine-brdf": 0.0911651
+        },
+        {
+          "uv-camera": 0.0168779,
+          "uv-camera-b": 0.01672413,
+          "uv-prefix": 0.02932039,
+          "uv-diagonal": 0.01488236,
+          "uv-outer-near": 0.01405964,
+          "uv-cosine-brdf": 0.09123642
+        }
+      ],
+      "region_tail_variance_times_mean_ms_ratio": [
+        {
+          "whole": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.992037,
+            "uv-prefix": 1.581452,
+            "uv-diagonal": 0.745619,
+            "uv-outer-near": 0.879761,
+            "uv-cosine-brdf": 2.356656
+          },
+          "side-a": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 1.003284,
+            "uv-prefix": 2.360741,
+            "uv-diagonal": 0.857112,
+            "uv-outer-near": 0.841411,
+            "uv-cosine-brdf": 1.390692
+          },
+          "side-b": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 1.043883,
+            "uv-prefix": 1.96984,
+            "uv-diagonal": 0.674099,
+            "uv-outer-near": 0.746256,
+            "uv-cosine-brdf": 11.504549
+          },
+          "top": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.99077,
+            "uv-prefix": 1.2744,
+            "uv-diagonal": 0.574857,
+            "uv-outer-near": 0.988283,
+            "uv-cosine-brdf": 8.036528
+          },
+          "side-a connected plane": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.989224,
+            "uv-prefix": 1.995069,
+            "uv-diagonal": 0.86643,
+            "uv-outer-near": 0.863392,
+            "uv-cosine-brdf": 1.143585
+          },
+          "side-b connected plane": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.988746,
+            "uv-prefix": 1.300027,
+            "uv-diagonal": 0.586247,
+            "uv-outer-near": 0.564102,
+            "uv-cosine-brdf": 10.070243
+          },
+          "top connected plane": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.99202,
+            "uv-prefix": 1.208027,
+            "uv-diagonal": 0.537378,
+            "uv-outer-near": 0.88545,
+            "uv-cosine-brdf": 1.906764
+          }
+        },
+        {
+          "whole": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.992128,
+            "uv-prefix": 1.590157,
+            "uv-diagonal": 0.745448,
+            "uv-outer-near": 0.880548,
+            "uv-cosine-brdf": 2.35838
+          },
+          "side-a": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.956665,
+            "uv-prefix": 2.345706,
+            "uv-diagonal": 0.834777,
+            "uv-outer-near": 0.855811,
+            "uv-cosine-brdf": 1.292035
+          },
+          "side-b": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 1.043794,
+            "uv-prefix": 1.139839,
+            "uv-diagonal": 0.553203,
+            "uv-outer-near": 0.548318,
+            "uv-cosine-brdf": 8.579281
+          },
+          "top": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.972756,
+            "uv-prefix": 1.238375,
+            "uv-diagonal": 0.547224,
+            "uv-outer-near": 0.917277,
+            "uv-cosine-brdf": 6.612866
+          },
+          "side-a connected plane": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.992991,
+            "uv-prefix": 1.974637,
+            "uv-diagonal": 0.872758,
+            "uv-outer-near": 0.863383,
+            "uv-cosine-brdf": 1.104944
+          },
+          "side-b connected plane": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.995348,
+            "uv-prefix": 1.268073,
+            "uv-diagonal": 0.607381,
+            "uv-outer-near": 0.619005,
+            "uv-cosine-brdf": 10.786204
+          },
+          "top connected plane": {
+            "uv-camera": 1.0,
+            "uv-camera-b": 0.991777,
+            "uv-prefix": 1.213599,
+            "uv-diagonal": 0.534701,
+            "uv-outer-near": 0.887451,
+            "uv-cosine-brdf": 1.912047
+          }
+        }
+      ],
+      "emitter_uv_bracket_matched": false,
+      "fixed_uv_sha256": "712815a2acea30f20fc050d54aa7459ab8f8f37899483d052b837a11d232ffc2",
+      "atlas_probe_matched": {
+        "atlas-fire-color.bin": false,
+        "atlas-fire-specular.bin": true,
+        "atlas-lava-color.bin": false,
+        "atlas-lava-specular.bin": true
+      },
+      "caution": "Actual color atlas crops differ between jobs. Do not use this combined report for fixed-target radiance or timing claims; see the individually matched pairs."
+    },
+    {
+      "id": "ls5-combined-native",
+      "scene": "light-sampling-5",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-prefix-global-face-upper-outer-near-outer-near-outer-face-cosine-brdf.json",
+        "sha256": "bdcf5d1200942cb22331419ed1fdb1e617e3c1e56d2a6e222c1ed72d82b9b6fe"
+      },
+      "baseline": "camera",
+      "matched_pixels": 2066954,
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "p50_ratios": {
+        "camera": 1.0,
+        "prefix": 1.1324285714285713,
+        "global-face": 0.8694285714285714,
+        "upper-outer-near": 0.8698571428571429,
+        "outer-near": 1.2478571428571428,
+        "outer-face": 1.2367142857142857,
+        "cosine-brdf": 0.2797142857142857
+      },
+      "mean_ratios": {
+        "camera": 1.0,
+        "prefix": 1.0786933219146808,
+        "global-face": 0.8261631906745867,
+        "upper-outer-near": 1.0007102834842856,
+        "outer-near": 1.2187348430577907,
+        "outer-face": 1.1310128033671496,
+        "cosine-brdf": 0.2676611988367586
+      },
+      "whole_tail": [
+        {
+          "camera": 0.27028675,
+          "prefix": 0.39411464,
+          "global-face": 0.26629726,
+          "upper-outer-near": 0.31133249,
+          "outer-near": 0.23456138,
+          "outer-face": 0.21879217,
+          "cosine-brdf": 1.495435
+        },
+        {
+          "camera": 0.27003986,
+          "prefix": 0.38835131,
+          "global-face": 0.26720094,
+          "upper-outer-near": 0.30829516,
+          "outer-near": 0.23280895,
+          "outer-face": 0.21721473,
+          "cosine-brdf": 1.49896013
+        }
+      ],
+      "region_tail_variance_times_mean_ms_ratio": [
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.572881,
+            "global-face": 0.813969,
+            "upper-outer-near": 1.152678,
+            "outer-near": 1.057648,
+            "outer-face": 0.915534,
+            "cosine-brdf": 1.480908
+          },
+          "A: left sandstone wall": {
+            "camera": 1.0,
+            "prefix": 31.812024,
+            "global-face": 2.506607,
+            "upper-outer-near": 0.675437,
+            "outer-near": 46.001608,
+            "outer-face": 23.47215,
+            "cosine-brdf": 52.814218
+          },
+          "B: blue-lit pillar": {
+            "camera": 1.0,
+            "prefix": 0.306519,
+            "global-face": 0.026966,
+            "upper-outer-near": 1.198019,
+            "outer-near": 0.102053,
+            "outer-face": 0.057377,
+            "cosine-brdf": 1.938653
+          },
+          "C: blue floor below pillar": {
+            "camera": 1.0,
+            "prefix": 4.863154,
+            "global-face": 7.531097,
+            "upper-outer-near": 1.087944,
+            "outer-near": 2.821065,
+            "outer-face": 1.842582,
+            "cosine-brdf": 9.234216
+          },
+          "D: blue floor in right shadow": {
+            "camera": 1.0,
+            "prefix": 2.209056,
+            "global-face": 4.359495,
+            "upper-outer-near": 1.437855,
+            "outer-near": 0.799466,
+            "outer-face": 0.623227,
+            "cosine-brdf": 16.676388
+          }
+        },
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.551297,
+            "global-face": 0.817478,
+            "upper-outer-near": 1.142476,
+            "outer-near": 1.050706,
+            "outer-face": 0.909764,
+            "cosine-brdf": 1.485756
+          },
+          "A: left sandstone wall": {
+            "camera": 1.0,
+            "prefix": 34.292999,
+            "global-face": 2.669924,
+            "upper-outer-near": 0.713411,
+            "outer-near": 49.403096,
+            "outer-face": 24.414854,
+            "cosine-brdf": 55.92374
+          },
+          "B: blue-lit pillar": {
+            "camera": 1.0,
+            "prefix": 0.30992,
+            "global-face": 0.027725,
+            "upper-outer-near": 1.168999,
+            "outer-near": 0.103012,
+            "outer-face": 0.055044,
+            "cosine-brdf": 1.977782
+          },
+          "C: blue floor below pillar": {
+            "camera": 1.0,
+            "prefix": 6.709618,
+            "global-face": 9.281164,
+            "upper-outer-near": 1.049191,
+            "outer-near": 3.110278,
+            "outer-face": 1.823666,
+            "cosine-brdf": 25.225049
+          },
+          "D: blue floor in right shadow": {
+            "camera": 1.0,
+            "prefix": 2.147199,
+            "global-face": 4.551939,
+            "upper-outer-near": 1.455949,
+            "outer-near": 0.772822,
+            "outer-face": 0.601241,
+            "cosine-brdf": 14.630723
+          }
+        }
+      ],
+      "emitter_uv_bracket_matched": null,
+      "fixed_uv_sha256": null,
+      "atlas_probe_matched": null,
+      "caution": "Single timings exhibit workload/clocks drift; cap-adjacent outer-near must be confirmed by ordered timing. Emitter texture differences were not ruled out."
+    },
+    {
+      "id": "moving4-upper-combined-native",
+      "scene": "light-sampling-failure-moving-4",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-camera-prefix-upper-outer-near-outer-near-outer-face-cosine-brdf.json",
+        "sha256": "0bb58b2c050a3869992d84eaf057c0a0ff6d494afd045ea0f9bab01d6bb19b37"
+      },
+      "baseline": "camera",
+      "matched_pixels": 2022169,
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "p50_ratios": {
+        "camera": 1.0,
+        "prefix": 1.0976975731176104,
+        "upper-outer-near": 1.0056004978220285,
+        "outer-near": 0.9588052271313006,
+        "outer-face": 1.1680149346608588,
+        "cosine-brdf": 0.464965774735532
+      },
+      "mean_ratios": {
+        "camera": 1.0,
+        "prefix": 1.101282036532097,
+        "upper-outer-near": 0.9760255717008556,
+        "outer-near": 1.0094954306116422,
+        "outer-face": 1.1666436567378824,
+        "cosine-brdf": 0.5086651556813432
+      },
+      "whole_tail": [
+        {
+          "camera": 0.01725596,
+          "prefix": 0.02983197,
+          "upper-outer-near": 0.01045971,
+          "outer-near": 0.01451816,
+          "outer-face": 0.0135982,
+          "cosine-brdf": 0.09381854
+        },
+        {
+          "camera": 0.01726518,
+          "prefix": 0.03002927,
+          "upper-outer-near": 0.01045024,
+          "outer-near": 0.01453126,
+          "outer-face": 0.01362052,
+          "cosine-brdf": 0.09395368
+        }
+      ],
+      "region_tail_variance_times_mean_ms_ratio": [
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.903888,
+            "upper-outer-near": 0.591618,
+            "outer-near": 0.849331,
+            "outer-face": 0.919349,
+            "cosine-brdf": 2.76555
+          },
+          "side-a": {
+            "camera": 1.0,
+            "prefix": 2.759287,
+            "upper-outer-near": 0.538922,
+            "outer-near": 0.801898,
+            "outer-face": 0.870996,
+            "cosine-brdf": 1.667178
+          },
+          "side-b": {
+            "camera": 1.0,
+            "prefix": 2.133132,
+            "upper-outer-near": 0.39953,
+            "outer-near": 0.647298,
+            "outer-face": 0.735515,
+            "cosine-brdf": 13.125667
+          },
+          "top": {
+            "camera": 1.0,
+            "prefix": 1.50817,
+            "upper-outer-near": 0.58023,
+            "outer-near": 0.95366,
+            "outer-face": 1.06934,
+            "cosine-brdf": 9.047979
+          },
+          "side-a connected plane": {
+            "camera": 1.0,
+            "prefix": 2.41678,
+            "upper-outer-near": 0.589627,
+            "outer-near": 0.834495,
+            "outer-face": 0.943933,
+            "cosine-brdf": 1.367866
+          },
+          "side-b connected plane": {
+            "camera": 1.0,
+            "prefix": 1.553972,
+            "upper-outer-near": 0.387357,
+            "outer-near": 0.54336,
+            "outer-face": 0.609821,
+            "cosine-brdf": 11.904305
+          },
+          "top connected plane": {
+            "camera": 1.0,
+            "prefix": 1.454302,
+            "upper-outer-near": 0.573529,
+            "outer-near": 0.854839,
+            "outer-face": 0.964761,
+            "cosine-brdf": 2.230065
+          }
+        },
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.915456,
+            "upper-outer-near": 0.590767,
+            "outer-near": 0.849643,
+            "outer-face": 0.920367,
+            "cosine-brdf": 2.768055
+          },
+          "side-a": {
+            "camera": 1.0,
+            "prefix": 2.735289,
+            "upper-outer-near": 0.564668,
+            "outer-near": 0.866851,
+            "outer-face": 0.954346,
+            "cosine-brdf": 1.571111
+          },
+          "side-b": {
+            "camera": 1.0,
+            "prefix": 1.091598,
+            "upper-outer-near": 0.30258,
+            "outer-near": 0.62936,
+            "outer-face": 0.622999,
+            "cosine-brdf": 9.275428
+          },
+          "top": {
+            "camera": 1.0,
+            "prefix": 1.510034,
+            "upper-outer-near": 0.654281,
+            "outer-near": 0.892505,
+            "outer-face": 1.017386,
+            "cosine-brdf": 7.817495
+          },
+          "side-a connected plane": {
+            "camera": 1.0,
+            "prefix": 2.366394,
+            "upper-outer-near": 0.585871,
+            "outer-near": 0.829353,
+            "outer-face": 0.932252,
+            "cosine-brdf": 1.311201
+          },
+          "side-b connected plane": {
+            "camera": 1.0,
+            "prefix": 1.539177,
+            "upper-outer-near": 0.401822,
+            "outer-near": 0.623148,
+            "outer-face": 0.67855,
+            "cosine-brdf": 12.656393
+          },
+          "top connected plane": {
+            "camera": 1.0,
+            "prefix": 1.460235,
+            "upper-outer-near": 0.57198,
+            "outer-near": 0.85607,
+            "outer-face": 0.966563,
+            "cosine-brdf": 2.240678
+          }
+        }
+      ],
+      "emitter_uv_bracket_matched": null,
+      "fixed_uv_sha256": null,
+      "atlas_probe_matched": null,
+      "caution": "Upper topology is frozen; the separate dynamic outer-near and outer-face still use native Prefix construction."
+    },
+    {
+      "id": "moving4-outer-near-abba",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/outer-near-abba/accepted.json",
+        "sha256": "191c53319ac12c00d233047fcbf4d46bf96e9b879c2b8d5e88db8de21ffb38d2"
+      },
+      "same_inputs": true,
+      "ratios": [
+        0.8619686800894855,
+        1.0460954446854664
+      ],
+      "median_ratio": 0.9452071586173082,
+      "mean_ratio": 0.9728150307859145,
+      "cap_pass": true
+    },
+    {
+      "id": "coarse-upper-and-adaptive-offline",
+      "evidence": [
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/coarse-upper-offline.json",
+          "sha256": "1e1487b4ffa6d9e54a0433e633dd85021be1c6abf59b7ffda6226b547f9a4f0f"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/adaptive-near-offline.json",
+          "sha256": "e4fe1eccfb0d933fdf7ca27e2af3bd35cd6ceae3f700ad9a784be47e4c4caf28"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-animated-atlas-probes.json",
+          "sha256": "7fe91507ceb1dbdcf3479a27fa258f63a72b37a3c4110be64caf98455a6726de"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/secondary-source-recipes.json",
+          "sha256": "9daac09d194b2c72945213ed5e80f49605db39ffd6104d6fa8c4d323f293979a"
+        }
+      ],
+      "scope": "Point windows only for coarse topology and adaptive near. Atlas crops record the coordinates of the explicit animated-material check."
     }
   ],
   "frozen_candidate_refs": {
@@ -2044,6 +2964,42 @@
     "upper-outer-near": {
       "ref": "experiment/light-sampling-eight-hour-upper-outer-near",
       "source": "2a214517e0e2bb400c88fa6b2ae5cbc6df76bb73"
+    },
+    "uv-camera": {
+      "ref": "experiment/light-sampling-eight-hour-uv-camera",
+      "source": "19c0a8303a9fdf34a44b37be272bba9526fa9421"
+    },
+    "uv-prefix": {
+      "ref": "experiment/light-sampling-eight-hour-uv-prefix",
+      "source": "7558ca2d4d49fa8f3501877c710ffe2deafc33bc"
+    },
+    "uv-diagonal": {
+      "ref": "experiment/light-sampling-eight-hour-uv-diagonal",
+      "source": "c5ee429f7a30bfc0f66b0bf0eff31cf2a44daf9a"
+    },
+    "uv-outer-near": {
+      "ref": "experiment/light-sampling-eight-hour-uv-outer-near",
+      "source": "28ded6718165b904cc5ee930256d923fb151f43a"
+    },
+    "sphere-bound": {
+      "ref": "experiment/light-sampling-eight-hour-sphere-bound",
+      "source": "a8651b692efbf2d0a753a21ab0bf60ffbc348414"
+    },
+    "cdf4": {
+      "ref": "experiment/light-sampling-eight-hour-cdf4",
+      "source": "8165b8a571d3b31432a5aeb23a188ee3d4534cf5"
+    },
+    "cube-reuse": {
+      "ref": "experiment/light-sampling-eight-hour-cube-reuse",
+      "source": "8ffdbe06863808283fa0d76615d269650c0b02ba"
+    },
+    "outer-agreement": {
+      "ref": "experiment/light-sampling-eight-hour-outer-agreement",
+      "source": "c536f00962448575f10aeb6f5682b626088dcd09"
+    },
+    "dynamic-coarse-upper": {
+      "ref": "experiment/light-sampling-eight-hour-dynamic-coarse-upper",
+      "source": "11cb4137c4108a256a8a0ab1c1d2bb5b28bb1b50"
     }
   },
   "runtime_scene_recovery": {

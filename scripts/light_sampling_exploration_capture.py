@@ -255,11 +255,18 @@ def input_identity(folder, context, settings):
         uv = {}
         for phase in ('before','after'):
             path = folder/f'{phase}_face-uv.bin'
-            data = np.fromfile(path,'<u4').reshape(16384,6,2)
+            # Binding 9 allocates extra space; the shader reads material * 6 + face.
+            data = np.fromfile(path,'<u4',count=16384*6*2).reshape(16384,6,2)
             uv[phase] = dict(raw_sha256=sha(path), emitting_sha256=hashlib.sha256(
                 ids.tobytes()+data[ids].tobytes()).hexdigest(),
                 populated_emitting_faces=int(np.any(data[ids]!=0,axis=2).sum()))
         identity['face_uv'] = dict(material_count=len(ids), **uv)
+    if (folder/'frozen-face-uv.bin').is_file():
+        identity['frozen_face_uv_sha256'] = sha(folder/'frozen-face-uv.bin')
+        identity['atlas_probes'] = {phase:{f.name.removeprefix(phase+'_'):sha(f)
+                                            for f in sorted(folder.glob(phase+'_atlas-*.bin'))}
+                                     for phase in ('before','after')}
+        assert all(len(rows)==4 for rows in identity['atlas_probes'].values())
     return identity
 
 
@@ -423,6 +430,13 @@ def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surfa
     if all(uv_identities.values()):
         emitting_uv_matched = len({uv[p]['emitting_sha256'] for uv in uv_identities.values()
                                    for p in ('before','after')})==1
+    fixed_uv = {n:r['identity'].get('frozen_face_uv_sha256') for n,r in cases.items()}
+    if any(fixed_uv.values()):
+        assert all(fixed_uv.values()) and len(set(fixed_uv.values()))==1, fixed_uv
+    probe_matched = None
+    if all('atlas_probes' in r['identity'] for r in cases.values()):
+        probes = [r['identity']['atlas_probes'][phase] for r in cases.values() for phase in ('before','after')]
+        probe_matched = {name:len({row[name] for row in probes})==1 for name in probes[0]}
     receiver_match = np.ones_like(common)
     input_payloads = [('colortex8','<u4',(height,width,4)), ('colortex10','<f4',(height,width))]
     if all((folder/n/'colortex9.bin').exists() for n in names):
@@ -479,7 +493,8 @@ def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surfa
                   windows=windows, joint_complete_pixels=int(common.sum()), before_receiver_match_pixels=complete_pixels,
                   receiver_data_compared=[field for field,_,_ in input_payloads],
                   receiver_mismatches=mismatches, full_receiver=full_receiver, proposal_mass_change=mass_change,
-                  emitting_uv_matched=emitting_uv_matched)
+                  emitting_uv_matched=emitting_uv_matched, frozen_face_uv_sha256=next(iter(fixed_uv.values())),
+                  atlas_probe_matched=probe_matched)
     tag = ('full-gbuffer-' if full_receiver else '') + ('surfaces-' if surface_regions else '') + '-'.join(names)
     out = RUN/f'{scene}-{tag}.json'
     out.write_text(json.dumps(result,indent=2,allow_nan=False)+'\n',encoding='utf8')
