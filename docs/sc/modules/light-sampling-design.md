@@ -118,6 +118,20 @@ anchor 在 moving-4 的收益不能推广到所有场景。同输入 ls5 配对�
 
 [单样本 BRDF／选灯 MIS 余量筛查](../../../builds/light-sampling/20261108-eight-hour-exploration/offline-brdf-mis-headroom.json)也未给出这些失败点的通用修法。普通投影面上 `p_BRDF/p_cube` 为常数，小投影面积分支用几何上下界；将固定 M2 代入混合密度，50/50 对 anchor 的新红柱点约增至 `1.30–1.31` 倍，顶面约降至 `0.81`，moving 点多为 `1.79–2.60` 倍，砂岩墙约 `1.16` 倍。它仍可能适合其他近灯／稀疏场景，但不能仅凭互补直觉加入本轮默认。此筛查假设两个 proposal 评价同一目标积分，尚未验证现有同材质终点容差下的契约，未实现反向 PMF 或测量成本；[PBRT 接口](https://pbr-book.org/4ed/Light_Sources/Light_Sampling)说明反向 PMF 是实际 MIS 的必要部分。
 
+#### 局部细化与廉价替代的边界（2026-11-09 10:06 UTC）
+
+局部包含修正候选 `e3cb50a1f` 只展开这样的跨 brick 簇的 Near 端点：包围盒包含接收点，且投影跨度在接收半空间内的部分不到八分之一。保留原 Far 端点及实际混合 PDF。这是多读一层的几何启发式，不代表证明该盒为空或不可见。投影修复后的 ls5 原生筛选中，投影缩放固定为 `0.5625/1.0`；旧数据为 `0.48042044/0.85408080`。应在新镜头批次内部比较方法，并将旧物理区域重新投影，不能沿用原屏幕坐标。
+
+独立[整图复算](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-ls5-anchor-near-gate-camera-fixed-fov-first-review.json)与[反向映射区域复核](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-fixed-fov-regions.json)均与原始统计吻合。对配对 Camera，候选 raygen 均值为 `4.333568/4.284984 = 1.0113`；整图最差 5% V 从 `0.34686/0.34763` 变为 `0.32935/0.33149`，P99 则从 `0.26873/0.26784` 升至 `0.36910/0.37201`。重新投影后的墙区域保留 5,644 像素，尾部 V 从 `0.00489/0.00472` 升至 `0.02792/0.02896`；柱下蓝光地面也退化，蓝柱及右侧地面改善。相对未修正 anchor，墙尾部 V 从 `0.6433/0.6951` 降至 `0.0277/0.0285`，raygen 均值基本不变。已查看[区域叠图](../../../builds/light-sampling/20261108-eight-hour-exploration/review-ls5-fixed-fov-regions.png)。
+
+**这些仍属于诊断筛选。** 发光 UV 哈希不同，本批也没有固定 UV 及 atlas 探针身份；算术复核和几何一致不等于发光输入稳定。不能把有希望的局部机制或约 4% 的整图尾部效率差当作质量验收；还需要跨场景与配对平均耗时确认。
+
+[耗时标记复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-timing-cap-review.json)发现历史 `raw_timing_cap` 使用中位数。例如 ls1 fast-cull 前瞻的中位比为 `1.049`，平均比却为 `1.636`，其标记不能满足既定上限。[原始时间序列](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-lookcull-timing-diagnostic.json)还包含其他 pass 的尖峰；保留这些样本，不擅自归因或删离群值，最终按合格配对的平均耗时取舍。
+
+另两项固定点研究暂不值得追加 GPU 实验。[两棵稳定上层树混合](../../../builds/light-sampling/20261108-eight-hour-exploration/offline-stable-tree-mixture.json)采用预先固定的 +1 brick 世界相位及真正的边缘 brick PMF，能修墙点，但仍有退化并增加反向路径读取；anchor/phase-75 对 anchor 的方差比中位 `0.920`、最差 `1.596`，非空逻辑读取比中位 `1.816`。逻辑读取不等于 GPU 成本。[SLC-2019 距离门限适配](../../../builds/light-sampling/20261108-eight-hour-exploration/offline-sibling-distance-gate.json)在 30 个点窗上更差：将对角线距离测试推广至四个非零孩子，并在上层禁用衰减，中位方差比约为 Prefix 的 `41.2`、anchor 的 `101.4`；只替换 Near 端点也很差。这是将[原始二孩子规则](https://www.cemyuksel.com/research/stochasticlightcuts/stochasticlightcuts_techreport.pdf)适配到当前反射界与拓扑，不是论文复现；整体取消距离区分不适合这些已采集条件。
+
+独立[有理数精确 slab 复核](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-far-boundary-witness.json)还确认：三个 far-plane 失败射线中两个确实与目标立方体相交，第三个已存 float 射线实际偏离约 `9.57e-8` 世界单位。因此，单纯容忍小 slab 缝隙不能证明有效命中。候选 `cc1faea0b` 对新放行的边界情况检查精确目标 voxel 身份，应与旧同材质／距离容差明确区分。此项只复核反例及源码依据，不代表整图收益或成本验收。
+
 ### 聚类修复阶段的证据与依据（2026-11-08）
 
 #### 接受判据修订：绝对噪声与整图权衡（2026-11-08）
