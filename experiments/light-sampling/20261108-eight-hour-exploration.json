@@ -5500,7 +5500,7 @@
       },
       "k": {
         "state": "partly_closed",
-        "closure": "Prefix cut2 native PDF and quality exist; matched Ward K1 exists. Narrow matched K4 check replaces the excluded mismatched capture."
+        "closure": "Cut2 native PDF and matched quality/timing screen, Ward K1 matched quality/timing screen, Ward K2 prior six-scene quality with explicit timing gap. A narrow matched K4 check replaces the excluded mismatched capture."
       },
       "other_archived_screens": {
         "state": "measured_or_negative",
@@ -6093,7 +6093,22 @@
         }
       ],
       "scope": "Different acquisition orders use disjoint actual Iris seed intervals. Pooled tile differences measure observed 32f block noise; V*T for independent samples is not applied to stratified frames. Native UV timing has no seed SSBO writes or frozen-UV sampler.",
-      "failed_three_method_visual_reservation": "76a6092e-2dea-43a6-974d-838e-db112d933252"
+      "failed_three_method_visual_reservation": "76a6092e-2dea-43a6-974d-838e-db112d933252",
+      "independent_reviews": {
+        "cdf-block": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-cdf-block-review.json",
+          "sha256": "5ff41d23dc9d27d062f7b30e4785334e406225aacbdb00506af99b3f2aa74e98"
+        },
+        "cdf-source-pair": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-cdf-source-pair-review.json",
+          "sha256": "a7cf9d373cc6f0e5edea5179bcc0e88c842fd7294e93323d50a49fb8a160eb5c"
+        },
+        "closeout-timing": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-closeout-timing-review.json",
+          "sha256": "964c3ef081dc418cb2d365714541e8acf3ea5a34992bdbfb472e29f85bc6ae07"
+        }
+      },
+      "confirmed_ordered_topology_sha256": "886f8fb65a4df23a655370672df7f44992acc77bc900420395a22c8a8e44cf47"
     },
     "far_silhouette_initial": {
       "quality": {
@@ -6131,6 +6146,23 @@
         "coarse_sah_gate": "4eb4ee68e85ce7b4cada584ef1ca7281b6e09f0c"
       },
       "scope": "First 786432 bytes are the six face records for each material, verified against the native buffer layout. The quality-only texture carries this lookup, with sampled color/specular atlas contents checked separately."
+    },
+    "ward_k2": {
+      "evidence": {
+        "path": "experiments/light-sampling/20261108-nearfar-combination.json",
+        "sha256": "abe45fe3eb7bcb41b8b213f0523b864d2be973083e3daadb67b9ff5b03645ef3"
+      },
+      "scope": "Previous matched real Iris six-scene 32f quality matrix, with Near/Far enabled. Compare to Prefix A + Near/Far on the common complete pixels. No comparable live build or full raygen timing against Camera was accepted for Ward K2.",
+      "whole_image_window_variance_ratios": {
+        "ls1": 0.714,
+        "ls2": 0.743,
+        "ls3": 0.943,
+        "ls4": 0.831,
+        "ls5": 0.922,
+        "moving-4": 0.959
+      },
+      "moving4_upward_receiver_v_ratio_vs_prefix_nearfar_approx": 1.53,
+      "decision": "Close the quality screen as a mixed local tradeoff. The moving-4 upward counterexample and the remaining 4% whole-image advantage over Prefix there do not justify widening the frozen closeout to a new K2 timing matrix."
     }
   }
 }
