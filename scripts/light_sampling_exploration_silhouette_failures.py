@@ -10,10 +10,12 @@ from light_sampling_geometry import cube_integral
 from light_sampling_point_moments import read, sha
 
 
-def decode(folder, rejected_restore=False, far_plane=False, artifact="audit"):
-    capture = read(folder/('diagnostic-only.json' if rejected_restore else 'accepted.json'))
+def decode(folder, rejected_restore=False, far_plane=False, artifact="audit", rejected_input=False):
+    capture = read(folder/('diagnostic-only.json' if (rejected_restore or rejected_input) else 'accepted.json'))
     if rejected_restore:
         assert capture['status']=='rejected_transaction_restore_failure'
+    if rejected_input:
+        assert capture['status']=='rejected_camera_input_drift'
     path = folder/f"{artifact}.bin"
     data = np.fromfile(path,'<u4')
     counts = data[1024:1040].astype(int)
@@ -51,7 +53,7 @@ def decode(folder, rejected_restore=False, far_plane=False, artifact="audit"):
     h = [row['projected_solid_angle'] for row in failures]
     gaps = [row['relative_gap'] for row in failures if 'relative_gap' in row and row['reason'] in (12,14)]
     report = dict(job=capture['job'],source=capture['source'],audit_sha256=sha(path),failure_count=int(counts[15]),
-                  rejected_restore=rejected_restore,proposal="far_plane" if far_plane else "silhouette",
+                  rejected_restore=rejected_restore,rejected_input=rejected_input,proposal="far_plane" if far_plane else "silhouette",
                   reasons=dict(Counter(x['reason'] for x in failures)),records=failures,
                   projected_solid_angle_min_median_max=np.quantile(h,[0,.5,1]).tolist() if h else None,
                   relative_miss_min_median_max=np.quantile(gaps,[0,.5,1]).tolist() if gaps else None,
@@ -59,18 +61,18 @@ def decode(folder, rejected_restore=False, far_plane=False, artifact="audit"):
     return report
 
 
-def series(folder, far_plane):
+def series(folder, far_plane, rejected_input=False):
     files = sorted(folder.glob("audit-*.bin"))
     stems = ["audit",*(f.stem for f in files)]
     assert len(stems)>1
     frames = [read(folder/f"{stem}.json")["frame_id"] for stem in stems]
     assert all(a<b for a,b in zip(frames,frames[1:]))
-    decoded = [decode(folder,False,far_plane,stem) for stem in stems]
+    decoded = [decode(folder,False,far_plane,stem,rejected_input) for stem in stems]
     reasons = Counter()
     for report in decoded:
         reasons.update(report["reasons"])
     return dict(job=decoded[0]["job"],source=decoded[0]["source"],frames=frames,reasons=dict(reasons),
-                failures=sum(r["failure_count"] for r in decoded),frames_and_witnesses=decoded,
+                failures=sum(r["failure_count"] for r in decoded),frames_and_witnesses=decoded,rejected_input=rejected_input,
                 scope="Distinct recorded native debug frames at the same scene and camera. Not a timing test.")
 
 
@@ -81,10 +83,11 @@ if __name__=='__main__':
     p.add_argument('--rejected-restore',action='store_true')
     p.add_argument('--far-plane',action='store_true')
     p.add_argument('--series',action='store_true')
+    p.add_argument('--rejected-input',action='store_true')
     args = p.parse_args()
     if args.series:
         assert not args.rejected_restore
-        result = series(args.folder,args.far_plane)
+        result = series(args.folder,args.far_plane,args.rejected_input)
     else:
-        result = decode(args.folder,args.rejected_restore,args.far_plane)
+        result = decode(args.folder,args.rejected_restore,args.far_plane,rejected_input=args.rejected_input)
     args.output.write_text(json.dumps(result,indent=2,allow_nan=False)+"\n",encoding="utf8")

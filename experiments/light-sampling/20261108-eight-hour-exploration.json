@@ -4967,5 +4967,203 @@
       "decision": "Independently validated 38 far plane PDFs, max relative error 4.04e-6; 1 of 1,368,649 far-plane draws flagged slab miss, no bad PDFs. Legacy-only diagnostic logged 1 bad PDF and 13 slab misses in 1,980,303 receivers. Hold far-plane performance/quality ranking pending the exact failure witness."
     },
     "decision": "Do not generalize the moving4 winner. LS5 has a large absolute sandstone wall regression at both 50/50 and 75/25; near weighting amplifies it. LS3 whole-image tails worsen. In moving4 at G32 the 31,994-light, 30-root native topology matches CPU and anchor beats Prefix; the Camera cap at G32 is pending."
+  },
+  "stage10_recovery_and_targeted_diagnosis": {
+    "all_native_presets_viewer": {
+      "viewer": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/all-preset-baseline-viewer/comparison.html",
+        "sha256": "33a4b134101fec34a2f83e3e0775d4e74f20a323848a777dc22e9db4a5e96bc5"
+      },
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/all-preset-baseline-viewer/evidence.json",
+        "sha256": "a4ad93eaefad3fba571772307d514078de93e5d4002a15a67913fb9569f29212"
+      },
+      "presets": 11,
+      "images": 102,
+      "scope": "1 spp plus two disjoint 32-frame means. LS2 Camera/Prefix and Camera/BRDF cohorts separate. Pixel, native raw row, and static HTML validation; no browser interaction test."
+    },
+    "actual_projection_drift": {
+      "rejected_g32_group": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/rejected/moving4-g32-camera-anchor-drift/rejected.json",
+        "sha256": "1e3d24d3d870f79965ab0e354886e1cc69396e566f4e6c91290506a2ec707359"
+      },
+      "moving4_g16": {
+        "report": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/projection-preflights/light-sampling-failure-moving-4/moving4-post-drift-g16/accepted.json",
+          "sha256": "a3de6450896c8a605bc986ad471c59e2c963cf565e30e5da84fa1d90c090b44f"
+        },
+        "fov": [
+          94.76954650878906,
+          96.29954528808594,
+          97.55955505371094
+        ]
+      },
+      "moving4_g32": {
+        "report": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/projection-preflights/light-sampling-failure-moving-4/moving4-post-drift-g32/accepted.json",
+          "sha256": "d69339fe617422bc15c9f72082ca4fd853d9030c1474a950dc114c04d4ff7bc5"
+        },
+        "fov": [
+          94.5895004272461,
+          98.0094985961914,
+          94.67948913574219
+        ]
+      },
+      "ls1": {
+        "report": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/projection-preflights/light-sampling-1/ls1-post-drift/accepted.json",
+          "sha256": "7877102c2e138d94ed4a7c02d00b7068abda13f0c3e550e024725373664622ff"
+        },
+        "fov": [
+          94.63524627685547,
+          95.17523193359375,
+          95.22024536132812
+        ]
+      },
+      "ls3": {
+        "report": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/projection-preflights/light-sampling-3/ls3-post-drift/accepted.json",
+          "sha256": "6bb28fb6067017621a0e40b6c07c01060beb8be0543f73a970af255c134a9aee"
+        },
+        "fov": [
+          96.30022430419922,
+          95.31022644042969,
+          96.70523071289062
+        ]
+      },
+      "ls5": {
+        "report": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/projection-preflights/light-sampling-5/ls5-post-drift/accepted.json",
+          "sha256": "6d223654da0cc221ea64919260be46947d750e5f8870213e627ae1b10aeee24a"
+        },
+        "fov": [
+          96.43523406982422,
+          96.57023620605469,
+          95.17523193359375
+        ]
+      },
+      "decision": "View transforms remain fixed in these preflights; actual projection scale varies despite requested FOV 90 and scope warmup. Do not combine across camera cohorts. No game settings or service changes; try native deterministic static camera scope for quality only."
+    },
+    "ls5_sandstone_diagnostic": {
+      "accepted_wall": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/ls5-wall-mode3/accepted.json",
+        "sha256": "6889e5dec29edbaade7d557ed404eafd58015450c1f33b7ac18688b079969e02"
+      },
+      "rejected_v2": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/ls5-wall-mode3-v2/job-result.json",
+        "sha256": "da080b35eecacf04f43b89b96d33403335bfc48c7342110e4ca2bb2c7c2a6ef1"
+      },
+      "replay": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-wall-mode3-variance-replay.json",
+        "sha256": "cd69de83dfcaa5079543124c5d1e1d845032b53d179b1f36de355d0f7f75c601"
+      },
+      "path": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-wall-dominant-path.json",
+        "sha256": "3548dd370a23fb9eac87f482f0ecb27857d1fd18608acf7286ac6c6480f72d71"
+      },
+      "selected_candidate": {
+        "ref": "experiment/light-sampling-eight-hour-dynamic-coarse-anchor-near-gate",
+        "source": "e3cb50a1ff0c4edc4b5650943e707554d2e4989f",
+        "parent": "15df1311d5c1fe2e87d47f64bf724e853f84fb42"
+      },
+      "screen": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/soft-containment-offline-with-selective.json",
+        "sha256": "44036710524c78d1bee6d08c4c533672dae1156cd7537787e5fc47654df410a7"
+      },
+      "decision": "Measured two fixed wall windows, 2172 lights and 15264 valid samples per light per window. Top three lamps (307,12..14,255,4440) fall from 12.3–13.1 percent per lamp under Camera to 0.342–0.363 percent under Anchor75. One broad mostly-behind containing sibling takes 82.7 percent at the affected split. A single conditional near-only expansion moves point variance from about 35.7 to 4.92 times Camera offline; 28 prior point windows are near unchanged (worst 1.000274 times anchor). Broad unconditional floors have large regressions; no whole-image or timing conclusion yet."
+    },
+    "far_cube_numeric_bound": {
+      "series": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls3-far-plane-witness-series.json",
+        "sha256": "cca00ff52f8256a66b7d5ec91c6599395565e17f6346c1d5e0d491b02aeaa0e0"
+      },
+      "rejected_identity": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-3/far-plane-witness-series-audit/diagnostic-only.json",
+        "sha256": "e0347464a057931af37ad8619b30384f99c95f4bf6148f6918386e729e0efafe"
+      },
+      "source": {
+        "quality": {
+          "ref": "experiment/light-sampling-eight-hour-cube-far-plane-roundoff",
+          "source": "43bdb20bf8a050acbd1800a8f2522d0fa4bfd2be",
+          "parent": "480550f3094ff699436c0a8162984600545143c2"
+        },
+        "audit": {
+          "ref": "experiment/light-sampling-eight-hour-cube-far-plane-roundoff-audit",
+          "source": "d3b0f05fadf333c0571bca3b360a57c26a464f3c",
+          "parent": "43bdb20bf8a050acbd1800a8f2522d0fa4bfd2be"
+        },
+        "scope": "The selected ray and PDF are unchanged. A conservative 8-ULP-scale slab comparison lets the real visibility trace determine the edge cases; no clamping, forced hit, or fallback after drawing."
+      },
+      "decision": "Twelve native diagnostic frames drifted in projection and are excluded from image/perf ranking. Three far events retained actual ray values: two hit in double and one misses by 9.85e-8 blocks at the slab midpoint. Let the unchanged native visibility ray resolve only floating-point ambiguous slab edges; no post-draw proposal change."
+    },
+    "cdf_stratification": {
+      "source": {
+        "control": {
+          "ref": "experiment/light-sampling-eight-hour-uv-anchor-residual-f32",
+          "source": "b0cfd925c349e68c76debf888d8412ef6c25ecd9",
+          "parent": "b706ee9583ff41d9256236de755e5cdfd790317f"
+        },
+        "stratified": {
+          "ref": "experiment/light-sampling-eight-hour-uv-anchor-residual-f32-strata",
+          "source": "21f0fc9b8ccd6d8cd666dd5582267559b8f897d8",
+          "parent": "b0cfd925c349e68c76debf888d8412ef6c25ecd9"
+        },
+        "configuration": "G16 arity4 model6",
+        "guard": "Restart the entire remaining subtree before selecting any child if prefix mass < 2^-8 or a positive child interval < 2^-20.",
+        "scope": "No change to nominal conditional CDF probabilities, no temporal reuse. Check native PDF path and actual 32-frame mean error before interpreting results."
+      },
+      "root_vs_full_independent": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/offline-full-cdf-strata.json",
+        "sha256": "be065ffd7a99dc83145ca9dcfd16eec9182b8144bc7d36fff26688260286ebef"
+      },
+      "guard_headroom": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/guarded-f32-cdf-headroom.json",
+        "sha256": "1185fa133ae1cc4481326b1adb1516842f21d1a2f1eb8c9844bea9733ed997bf"
+      },
+      "ideal_midpoint_lattice": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/guarded-f32-cdf-lattice.json",
+        "sha256": "89cafdea8efdf2b2658b5ffa28e8e2de131f5ba685946d87bc0e68b4487257d7"
+      },
+      "minimum_ideal_guarded_terminal_bins": 11,
+      "max_ideal_guarded_terminal_total_variation": 7.476970188326683e-06,
+      "decision": "Root-only headroom negligible; guarded full traversal retained the full analytical improvement in these fixed fixtures (median 26.15 percent at anchor). Verify native compiled behavior and 8 disjoint 32f means against identical non-stratified CDF reuse; no observed image or performance claim."
+    },
+    "deterministic_quality_pilot": {
+      "sources": {
+        "methods": {
+          "uv-camera": {
+            "ref": "experiment/light-sampling-eight-hour-deterministic-id-uv-camera",
+            "source": "7498a20f1fc0c6f20491015c922a0be661823130",
+            "parent": "ea786e11cf45de3b955e003fbc36655034728ccb"
+          },
+          "uv-diagonal": {
+            "ref": "experiment/light-sampling-eight-hour-deterministic-id-uv-diagonal",
+            "source": "40f231e4654360b1a49cf40660d3f301fa7055f1",
+            "parent": "49c04d9ec8afa3420f80a23f14d420386b735488"
+          }
+        },
+        "warmup_frames": 144,
+        "sample_frame_intervals": [
+          [
+            16,
+            47
+          ],
+          [
+            48,
+            79
+          ],
+          [
+            80,
+            111
+          ],
+          [
+            112,
+            143
+          ]
+        ],
+        "scope": "Shader diagnostic sums and valid receiver counts only; the estimator/target is unchanged. This source is never used for timing."
+      },
+      "decision": "Two controlled moving4 UV sources write four block sums, valid counts and receiver identity during the deterministic static camera warmup. Compare only if camera, receiver, voxel/leaves, frozen UV and probed atlas support match; this source is not timed."
+    }
   }
 }

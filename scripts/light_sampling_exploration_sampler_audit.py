@@ -7,6 +7,7 @@ import numpy as np
 
 from light_sampling_clustering_repair import scores
 from light_sampling_exploration_endpoints import endpoints
+from light_sampling_exploration_containment import selective_near
 from light_sampling_exploration_outer_mix import outer_mix
 from light_sampling_geometry import cube_integral
 from light_sampling_moving_analysis import native_node
@@ -35,6 +36,8 @@ def main(folder, output, proposal, silhouette=False):
         base = scores(tree,origin,normal)
         if proposal=='lookahead':
             pmf = endpoints(tree,origin,normal,base[0])['both-endpoints']
+        elif proposal=='near-gate':
+            pmf = selective_near(tree,origin,normal)
         elif proposal=='outer-near':
             pmf = outer_mix(tree,base,.75)
         else:
@@ -82,7 +85,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('folder',type=Path)
     parser.add_argument('output',type=Path)
-    parser.add_argument('--proposal',choices=('prefix','outer-near','lookahead'),required=True)
+    parser.add_argument('--proposal',choices=('prefix','outer-near','lookahead','near-gate'),required=True)
     parser.add_argument('--silhouette',action='store_true')
     a=parser.parse_args()
     main(a.folder,a.output,a.proposal,a.silhouette)

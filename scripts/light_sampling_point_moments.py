@@ -186,13 +186,16 @@ def nonemissive_identity(folder, camera_brick, grid=16):
                 definition='Sorted signed world-brick xyz int64 plus all4096 packed uint32 material words; root-reachable emitter words zeroed, empty bricks omitted.')
 
 
-def extract(folder, fixture, output, prefix='window'):
+def extract(folder, fixture, output, prefix='window', points=None):
     """Equal 32-sample complete pixel groups; keep zero samples and report missingness."""
     light_count = int(fixture['light_count'])
     summary = []
     audit_path = folder / 'audit.bin'
     audit = np.fromfile(audit_path, '<f4')[:32].reshape(2, 4, 4).astype(float)
-    for point, receiver in enumerate(fixture['receivers']):
+    selected = np.arange(len(fixture['receivers'])) if points is None else np.asarray(points,dtype=int)
+    assert len(selected) and len(set(selected))==len(selected) and ((0<=selected)&(selected<len(audit))).all()
+    for point in selected:
+        receiver = fixture['receivers'][point]
         assert audit[point, 2, 3] == 1, 'Mode3 receiver invalid'
         assert np.linalg.norm(audit[point, 0, :3] - receiver.get('origin_actual', receiver.get('origin'))) < .005
         assert audit[point, 1, :3] @ receiver['normal'] > .999
@@ -202,14 +205,15 @@ def extract(folder, fixture, output, prefix='window'):
     for path in (folder / 'audit_between.bin', folder / 'audit_after.bin', folder / 'audit-after.bin'):
         if not path.exists():
             continue
-        later = np.fromfile(path, '<f4')[:32].reshape(2, 4, 4).astype(float)
+        later = np.fromfile(path, '<f4')[:32].reshape(2, 4, 4).astype(float)[selected]
+        reference = audit[selected]
         assert np.all(later[:, 2, 3] == 1)
-        assert np.all(later[:, 0, 3] == audit[:, 0, 3])
-        assert np.allclose(later[:, 0, :3], audit[:, 0, :3], rtol=0, atol=.005)
-        assert np.all(np.sum(later[:, 1, :3] * audit[:, 1, :3], axis=1) > .999)
-        assert np.array_equal(later[:, 1, 3], audit[:, 1, 3])
-        assert np.allclose(later[:, 2, :3], audit[:, 2, :3], rtol=1e-6, atol=1e-7)
-        assert np.array_equal(later[:, 3], audit[:, 3])
+        assert np.all(later[:, 0, 3] == reference[:, 0, 3])
+        assert np.allclose(later[:, 0, :3], reference[:, 0, :3], rtol=0, atol=.005)
+        assert np.all(np.sum(later[:, 1, :3] * reference[:, 1, :3], axis=1) > .999)
+        assert np.array_equal(later[:, 1, 3], reference[:, 1, 3])
+        assert np.allclose(later[:, 2, :3], reference[:, 2, :3], rtol=1e-6, atol=1e-7)
+        assert np.array_equal(later[:, 3], reference[:, 3])
     previous_end = -1
     output.mkdir(parents=True, exist_ok=True)
     for window in (1, 2):
@@ -230,7 +234,8 @@ def extract(folder, fixture, output, prefix='window'):
         mean, variance = image('mean'), image('variance')
         counts, nonfinite = image('valid_count'), image('nonfinite')
         incomplete, valid_batches = image('incomplete_batches'), image('valid_batches')
-        for point, receiver in enumerate(fixture['receivers']):
+        for point in selected:
+            receiver = fixture['receivers'][point]
             means, variances = mean[:, point], variance[:, point]
             good = np.isfinite(means).all(axis=2) & np.isfinite(variances).all(axis=2)
             good &= (counts[:, point] == 32).all(axis=2) & (nonfinite[:, point] == 0).all(axis=2)

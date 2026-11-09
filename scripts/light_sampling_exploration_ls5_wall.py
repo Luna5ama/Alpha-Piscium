@@ -20,7 +20,7 @@ CASES = RUN/"cases"/SCENE
 NAME = "ls5-wall-mode3-v2"
 
 
-def archive(job_id):
+def archive(job_id, retained_wall=False):
     job = ROOT/".vibris/jobs"/job_id
     request = read(job/"request.json")["arguments"]
     saved = read(job/"result.json")
@@ -30,7 +30,8 @@ def archive(job_id):
     assert result["restoration"]["status"]=="RECEIPT_STATUS_OK"
     assert len(result["action_receipts"])==len(request["actions"])
     assert all(r["status"]=="RECEIPT_STATUS_OK" for r in result["action_receipts"])
-    fixture = read(FIXTURE)
+    fixture_path = RUN/"ls5-wall-mode3-fixture.json" if retained_wall else FIXTURE
+    fixture = read(fixture_path)
     assert provenance["resolved_revision"]==request["sources"][0]["resolved_revision"]==fixture["source"]
     assert provenance["source_snapshot_sha256"]==request["sources"][0]["snapshot_sha256"]
     assert request["preset_id"]==provenance["preset_id"]==SCENE and not provenance["stale"]
@@ -39,20 +40,32 @@ def archive(job_id):
     assert all(config[k]==v for k,v in request["configs"][0]["values"].items())
     assert config["SETTING_DEBUG_LIGHT_SAMPLING"]=="3"
     assert config["SETTING_DEBUG_LIGHT_AUDIT"]=="false"
-    folder = CASES/NAME
-    manifest, ref = retain_manifest(job,result,folder)
+    folder = CASES/("ls5-wall-mode3" if retained_wall else NAME)
+    if retained_wall:
+        ref = next(a for a in result["artifacts"] if a["kind"]=="ARTIFACT_KIND_MANIFEST")
+        assert sha(folder/"manifest.json")==ref["sha256"]
+        manifest=read(folder/"manifest.json")
+        assert manifest["manifest_id"]==result["result_manifest_id"]
+        for item in manifest["files"]:
+            path=Path(item["relative_path"])
+            assert not path.is_absolute() and ".." not in path.parts
+            f=folder/path
+            assert f.stat().st_size==item["byte_size"] and sha(f)==item["sha256"]
+    else:
+        manifest, ref = retain_manifest(job,result,folder)
     world_brick = (np.floor(fixture["camera_position"]).astype(int)>>4).tolist()
     context = request["__vibris_scene_context"]
     snapshots = [input_identity(folder,16,world_brick,p,context) for p in ("before","between","after")]
     for identity,_ in snapshots:
         assert all(identity[k]==v for k,v in fixture["identity"].items()),identity
         assert identity==snapshots[0][0]
-    extracted = extract(folder,fixture,folder/"moments")
-    assert len(extracted)==4 and all(not x["unavailable_lights"] for x in extracted)
+    selected = [0] if retained_wall else None
+    extracted = extract(folder,fixture,folder/"moments",points=selected)
+    assert len(extracted)==(2 if retained_wall else 4) and all(not x["unavailable_lights"] for x in extracted)
     out = dict(job=job_id,source=fixture["source"],path=folder.relative_to(ROOT).as_posix(),
                manifest_id=manifest["manifest_id"],manifest_sha256=ref["sha256"],
                scene_sha256=provenance["scene_sha256"],identity=snapshots[0][0],
-               fixture_sha256=sha(FIXTURE),moments_path=(folder/"moments/moments.json").relative_to(ROOT).as_posix(),
+               fixture_sha256=sha(fixture_path),wall_only=retained_wall,moments_path=(folder/"moments/moments.json").relative_to(ROOT).as_posix(),
                moments_sha256=sha(folder/"moments/moments.json"),
                sampled_groups=[dict(point=x["point"],window=x["window"],
                    incomplete=x["missing_pixel_groups"],nonfinite=x["nonfinite_rgb_samples"],
@@ -61,10 +74,11 @@ def archive(job_id):
     print(json.dumps(out))
 
 
-def replay():
-    fixture=read(FIXTURE)
-    moments=CASES/NAME/"moments"
-    acceptance=read(CASES/NAME/"accepted.json")
+def replay(retained_wall=False):
+    fixture=read(RUN/"ls5-wall-mode3-fixture.json" if retained_wall else FIXTURE)
+    folder=CASES/("ls5-wall-mode3" if retained_wall else NAME)
+    moments=folder/"moments"
+    acceptance=read(folder/"accepted.json")
     cases={"camera":"camera-paired-anchor","anchor-75":"dynamic-coarse-anchor",
            "anchor-50":"anchor-geometry-only","prefix":"prefix","coarse-sah":"dynamic-coarse-upper"}
     trees={}
@@ -81,9 +95,9 @@ def replay():
         assert keys==[(*map(int,row[:3]),row[3]) for row in rows]
         trees[name]=Tree(node)
     order={n:key_order(t,keys) for n,t in trees.items()}
-    audit=np.fromfile(CASES/NAME/"audit.bin","<f4")[:32].reshape(2,4,4).astype(float)
+    audit=np.fromfile(CASES/("ls5-wall-mode3" if retained_wall else NAME)/"audit.bin","<f4")[:32].reshape(2,4,4).astype(float)
     out=[]
-    for i,point in enumerate(fixture["receivers"]):
+    for i,point in enumerate(fixture["receivers"][:1] if retained_wall else fixture["receivers"]):
         origin,normal=audit[i,0,:3],audit[i,1,:3]
         probs={}
         for name,t in trees.items():
@@ -122,8 +136,9 @@ if __name__=="__main__":
     p=argparse.ArgumentParser()
     p.add_argument("operation",choices=("archive","replay"))
     p.add_argument("job",nargs="?")
+    p.add_argument("--retained-wall",action="store_true")
     a=p.parse_args()
     if a.operation=="archive":
-        archive(a.job)
+        archive(a.job,a.retained_wall)
     else:
-        replay()
+        replay(a.retained_wall)
