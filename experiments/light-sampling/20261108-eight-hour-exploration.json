@@ -48,6 +48,266 @@
     "post_release_reserved_bytes": 7456185,
     "historical_local_originals_untouched": true
   },
-  "next": "Experiment owner first captures matched controls and upper/lookahead/K quality and timings; discussion performs research and independent review.",
-  "results": []
+  "next": "Run distance-gated lookahead and moving-4 controls; confirm timing with paired order; continue ls5 recovery without restart.",
+  "results": [
+    {
+      "id": "ls1-initial-screen",
+      "scene": "light-sampling-1",
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "quality_windows": [
+        32,
+        32
+      ],
+      "timing_screen_frames": 128,
+      "matched_pixels": 2017704,
+      "receiver": {
+        "matched_fields": [
+          "geometric normal",
+          "material ID",
+          "view Z"
+        ],
+        "same_camera_leaf_world_voxel": true,
+        "not_captured": "colortex9 receiver albedo; added to subsequent requests",
+        "large_full_colortex8_difference": "low 16 bits of .a are lightmap and are unused by ls_loadReceiver",
+        "mismatches": {
+          "prefix/colortex8": 3170,
+          "upper/colortex8": 3493,
+          "lookahead/colortex8": 3895,
+          "prefix/colortex10": 4668,
+          "upper/colortex10": 4697,
+          "lookahead/colortex10": 4671
+        }
+      },
+      "comparison": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-camera-prefix-upper-lookahead.json",
+        "sha256": "cb88fc2027ee92860cc1cbd0f38063ad8df22fec5136624e0907c827a7e0a0f5"
+      },
+      "previous_strict_full_gbuffer_comparison": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-full-gbuffer-camera-prefix-upper.json",
+        "sha256": "23003bc716f57122fdde208d9cf5ac85379e4ef24a98d539a81287b09d5a1c26"
+      },
+      "frozen_upper_atlas": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/upper-atlas/atlas.json",
+        "sha256": "966f6fc88ca3bee6773aec5bf6b79323edc6e317b65e0a61daf45208cc16f573"
+      },
+      "candidates": {
+        "camera": {
+          "source": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+          "source_snapshot_sha256": "2c7ce3c1e768ae580e9904dfacb94bced6e2e1236c4773b80c18b2cc291f8899",
+          "job": "269adf76-5fe6-4351-95ea-1f079dae5f58",
+          "capture_path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-1/camera",
+          "manifest_sha256": "171179c13867df550281024b4bbcd60553b8c2c7ba8fa353aa0ed1f058994083",
+          "tree_ordered_sha256": "7508cda23bf06f92c6c200b5e4f1555ac26edef5c477de3874eb463265a74e3b",
+          "model": "6",
+          "p50_raygen_ms": 8.54016,
+          "p50_tree_prepare_ms": 0.295936,
+          "raygen_time_ratio": 1.0,
+          "windows_whole": [
+            {
+              "mean": 0.021218028135043067,
+              "p50": 0.000961067215030198,
+              "p95": 0.06076493003638459,
+              "p99": 0.34409783287381207,
+              "worst05_mean": 0.33058955583761296,
+              "spatial_std": 0.18453165249119016,
+              "zero_mean_fraction": 0.038269240681487474,
+              "variance_times_ms": {
+                "mean": 0.1812053551577694,
+                "p99": 2.938650548395615,
+                "worst05_mean": 2.823287701182149
+              }
+            },
+            {
+              "mean": 0.021173258783181288,
+              "p50": 0.0009596100090902837,
+              "p95": 0.060565888229757496,
+              "p99": 0.3416553586907682,
+              "worst05_mean": 0.3299987909402725,
+              "spatial_std": 0.18359843841586013,
+              "zero_mean_fraction": 0.038295012548916985,
+              "variance_times_ms": {
+                "mean": 0.1808230177297735,
+                "p99": 2.917791428076551,
+                "worst05_mean": 2.818242474436478
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "source": "e9132607ec1540820fc0d7f53772579a0598e50f",
+          "source_snapshot_sha256": "73b38b52c964008f5b8144fadf81e14a8ecaa2f820e0283694f17f5927a613d8",
+          "job": "f03c4f23-1b35-45db-b6e9-c580dd991099",
+          "capture_path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-1/prefix",
+          "manifest_sha256": "d98c02aa7866a41f3f5813a1b3147f26a2a71504d07731f86f13debddf918b8f",
+          "tree_ordered_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+          "model": "6",
+          "p50_raygen_ms": 9.091072,
+          "p50_tree_prepare_ms": 0.327168,
+          "raygen_time_ratio": 1.0645083932853716,
+          "windows_whole": [
+            {
+              "mean": 0.027681014026066778,
+              "p50": 0.0010807760236275499,
+              "p95": 0.08027548550453498,
+              "p99": 0.4842612201161681,
+              "worst05_mean": 0.44499656550923206,
+              "spatial_std": 0.26177730549879563,
+              "zero_mean_fraction": 0.05333190596836801,
+              "variance_times_ms": {
+                "mean": 0.25165009154398293,
+                "p99": 4.402453618883933,
+                "worst05_mean": 4.045495816797145
+              }
+            },
+            {
+              "mean": 0.028032545454188654,
+              "p50": 0.0010810460859147497,
+              "p95": 0.08095791278756222,
+              "p99": 0.483964973471592,
+              "worst05_mean": 0.45185309700835036,
+              "spatial_std": 0.2695507512423564,
+              "zero_mean_fraction": 0.05337205060801783,
+              "variance_times_ms": {
+                "mean": 0.25484588906730177,
+                "p99": 4.399760419308333,
+                "worst05_mean": 4.107829038325898
+              }
+            }
+          ]
+        },
+        "upper": {
+          "source": "937741acfbbf9e2d8bcab2318ec46e2fed0c572d",
+          "source_snapshot_sha256": "d9a98d514b3ddd7e009917c92ecef8eb8f8aba2dadb2ab72fa5badef234b1086",
+          "job": "ae256068-c6e3-402e-814a-0ba7f99aa4c3",
+          "capture_path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-1/upper",
+          "manifest_sha256": "36ec2aa48e8e3dd5c8c6418e12efc496a42e494795172a36e7900220a36c333d",
+          "tree_ordered_sha256": "1079ff052257b35b3666d4481218d719044d7072c7466368c70979f23e098118",
+          "model": "6",
+          "p50_raygen_ms": 8.388608,
+          "p50_tree_prepare_ms": 0.284672,
+          "raygen_time_ratio": 0.9822541966426859,
+          "windows_whole": [
+            {
+              "mean": 0.024490567979441276,
+              "p50": 0.0012615831674338551,
+              "p95": 0.06945412336277151,
+              "p99": 0.40293310139328176,
+              "worst05_mean": 0.38815224233288664,
+              "spatial_std": 0.22594098186194045,
+              "zero_mean_fraction": 0.04824146653820382,
+              "variance_times_ms": {
+                "mean": 0.20544177447688491,
+                "p99": 3.3800478378124943,
+                "worst05_mean": 3.2560570052515914
+              }
+            },
+            {
+              "mean": 0.02449261963878236,
+              "p50": 0.0012616086096386425,
+              "p95": 0.06929405699484041,
+              "p99": 0.4026568134874102,
+              "worst05_mean": 0.3885022881251043,
+              "spatial_std": 0.24057063600864872,
+              "zero_mean_fraction": 0.04821123415525766,
+              "variance_times_ms": {
+                "mean": 0.20545898504284682,
+                "p99": 3.3777301668749975,
+                "worst05_mean": 3.258993402184555
+              }
+            }
+          ]
+        },
+        "lookahead": {
+          "source": "e9132607ec1540820fc0d7f53772579a0598e50f",
+          "source_snapshot_sha256": "73b38b52c964008f5b8144fadf81e14a8ecaa2f820e0283694f17f5927a613d8",
+          "job": "c2800b9b-796e-4879-8261-b4afb716284e",
+          "capture_path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-1/lookahead",
+          "manifest_sha256": "b5c34dd5414b90577daf19c1d79ff1412795cc728611ee8a34426fc2f987c0da",
+          "tree_ordered_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+          "model": "11",
+          "p50_raygen_ms": 10.791424,
+          "p50_tree_prepare_ms": 0.325632,
+          "raygen_time_ratio": 1.2636091127098321,
+          "windows_whole": [
+            {
+              "mean": 0.015815800821985727,
+              "p50": 0.0014501605401164852,
+              "p95": 0.0483243615250103,
+              "p99": 0.2354493423367966,
+              "worst05_mean": 0.23245202835813158,
+              "spatial_std": 0.13421825609815785,
+              "zero_mean_fraction": 0.05155959446975374,
+              "variance_times_ms": {
+                "mean": 0.1706750125695965,
+                "p99": 2.5408336836775227,
+                "worst05_mean": 2.508488397672622
+              }
+            },
+            {
+              "mean": 0.01595934556361487,
+              "p50": 0.0014486591702365104,
+              "p95": 0.04886513139358604,
+              "p99": 0.23660831063054485,
+              "worst05_mean": 0.23502281105224543,
+              "spatial_std": 0.13819794537710822,
+              "zero_mean_fraction": 0.05135936688433983,
+              "variance_times_ms": {
+                "mean": 0.17222406473948704,
+                "p99": 2.5533406019379172,
+                "worst05_mean": 2.5362308037366668
+              }
+            }
+          ]
+        }
+      },
+      "findings": [
+        "Frozen upper improves mean/tail and time relative to Prefix, but does not match Camera on whole-image mean or tail. Atlas read and validation is not dynamic upper construction.",
+        "One-level lookahead improves mean and tail V*T; first timing is 1.2636\u00d7 Camera and requires paired/ordered repeats."
+      ],
+      "restoration": {
+        "actual_scene_sha256": "6541ce12e1e9e7ecbea47971c0a7eec90fde0d50407b547377791b8c099fa674",
+        "actual_settings_sha256": "563e2f171c562fb922fd6ea73401ab521f1ef531b2d404ec21f872133ddb8f50",
+        "actual_source_sha256": "692e264dcc499169c1239efe0c47cf6cacaa181e9e54b3840f3a7e9613aa31b8",
+        "actual_source_uuid": "0ee6b5f2-50ce-4687-beae-dd8cb343623d",
+        "expected_scene_sha256": "6541ce12e1e9e7ecbea47971c0a7eec90fde0d50407b547377791b8c099fa674",
+        "expected_settings_sha256": "563e2f171c562fb922fd6ea73401ab521f1ef531b2d404ec21f872133ddb8f50",
+        "expected_source_sha256": "692e264dcc499169c1239efe0c47cf6cacaa181e9e54b3840f3a7e9613aa31b8",
+        "expected_source_uuid": "0ee6b5f2-50ce-4687-beae-dd8cb343623d",
+        "status": "RECEIPT_STATUS_OK",
+        "temporal_state_reset": true,
+        "verified_at_unix_ms": 1794204042104
+      }
+    },
+    {
+      "id": "ls1-k4-unmatched",
+      "scene": "light-sampling-1",
+      "mode": 14,
+      "case": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-1/ward-k4/accepted.json",
+        "sha256": "46fd92045e8f4ae7b443e5c7d1bfeae0e152173b4e5190b3b1013a0a9f802445"
+      },
+      "observed_p50_raygen_ms": 25.651712,
+      "quality_comparison": "excluded: world voxel identity differs from the four-method cohort; timing not accepted as matched"
+    },
+    {
+      "id": "ls5-first-load-failed",
+      "scene": "light-sampling-5",
+      "job": "342182e9-4b97-4785-89da-c22c99878c0a",
+      "reason": "WORLD_LOAD_FAILED: 238/3461 render-view chunks missing; restoration receipt OK."
+    }
+  ],
+  "frozen_candidate_refs": {
+    "upper": {
+      "ref": "experiment/light-sampling-eight-hour-upper",
+      "source": "937741acfbbf9e2d8bcab2318ec46e2fed0c572d"
+    },
+    "near-lookahead": {
+      "ref": "experiment/light-sampling-eight-hour-near-lookahead",
+      "source": "08b8892e27f7edbbef4eaea124b06007dbc27bc8",
+      "rule": "Use model 11 lookahead on a cross-brick cluster only when the receiver-to-AABB distance is at most its half-diagonal."
+    }
+  }
 }
