@@ -68,6 +68,7 @@
         "transient_caustics_final": "R32F",
         "transient_gi_shadowHint": "R32F",
         "transient_bloom": "RGBA16F",
+        "transient_bloomShape": "RGBA16F",
         "history_taa": "RGBA16F",
         "transient_lumaDiff": "RGBA8",
         "transient_taaOutput": "RGBA16F",

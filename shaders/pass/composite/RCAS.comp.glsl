@@ -1,5 +1,6 @@
 #include "/techniques/ffx/fsr1/RCAS.glsl"
 #include "/util/AgxInvertible.glsl"
+#include "/util/Math.glsl"
 #include "/techniques/debug/DebugOutput.glsl"
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -17,7 +18,7 @@ void rcas_storeOutput(ivec2 texelPos, vec4 color) {
         debugOutput(texelPos, color);
         #endif
         color.a = 1.0;
-        color.rgb = agxInvertible_inverse(color.rgb);
+        color.rgb = min(agxInvertible_inverse(color.rgb), FP16_MAX);
         imageStore(uimg_main, texelPos, color);
     }
 }

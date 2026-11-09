@@ -337,7 +337,8 @@ void main() {
         vec3 color = max(texelFetch(usam_main, texelPos, 0).rgb, 0.0);
         float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 0u), frameCounter);
         color = dither_fp16(color, ditherNoise);
-        imageStore(uimg_main, texelPos, vec4(agxInvertible_inverse(color), 1.0));
+        color = min(agxInvertible_inverse(color), FP16_MAX);
+        imageStore(uimg_main, texelPos, vec4(color, 1.0));
     }
 }
 

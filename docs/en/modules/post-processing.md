@@ -19,7 +19,7 @@ transform.
 | [`ExposureMip.comp.glsl`](../../../shaders/pass/composite/ExposureMip.comp.glsl), [`ExposureGather.comp.glsl`](../../../shaders/pass/composite/ExposureGather.comp.glsl)         | Auto-exposure weights, mip, and statistics        |
 | [`PostComposite.comp.glsl`](../../../shaders/pass/composite/PostComposite.comp.glsl), [`OverlayComposite.comp.glsl`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | Main post composition and overlay                 |
 | [`techniques/displaytransform/`](../../../shaders/techniques/displaytransform/)                                                                                                  | Exposure, DRT, and display transform              |
-| [`FinalGlobalDataUpdate.comp.glsl`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl), [`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl)       | Next-frame state and final screen output          |
+| [`Final`](../../../shaders/pass/composite/Final.frag.glsl) | Final screen output |
 
 ## DOF
 
@@ -49,9 +49,72 @@ changing the sampling sequence requires updating reprojection conventions as wel
 
 ## Bloom
 
-When `SETTING_BLOOM` is enabled, [`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) builds levels 1–10
-with `BLOOM_DOWN_SAMPLE` and `BLOOM_PASS=1..10`, then reconstructs levels 10–2 with `BLOOM_UP_SAMPLE`.
-`SETTING_BLOOM_PASS` disables unused high levels at the program layer, and the resource is `transient_bloom`.
+`SETTING_BLOOM_SHAPE` selects Standard (0, default), Four-point Star (1), or Horizontal Streak (2).
+Standard is an eight-scale, long-tailed Gaussian approximation with a concentrated core. Each scale contributes
+1/8 of the normalized filter; it is not a single Gaussian. The fixed eight levels preserve the broad halo that
+was lost in the rejected four-level prototype.
+
+The filters use offline-fitted offsets and nonnegative weights in
+[`BloomTaps.glsl`](../../../shaders/techniques/BloomTaps.glsl). Fitting accounts for decimation phases and bilinear
+sampling, following the [DPF approach](https://huakaifugui2.github.io/CZ-DPF-Paper/). Runtime uses fixed RGB filters
+and a fixed pyramid depth. The four-scale fitting proxy calibrates reusable taps; it does not set the runtime depth.
+
+| Order | Pass/stage | Purpose |
+|---|---|---|
+| 1 | [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl), downsample levels 1–8 | Five bilinear reads per output texel. The first level reads the decoded linear main image and applies Bloom-only highlight compression. |
+| 2 | [`BloomShape`](../../../shaders/pass/composite/BloomShape.comp.glsl), optional | Reads raw level 1 before reconstruction, evaluates the generated directional kernel, and writes a separate half-resolution image. Standard and Bloom Off disable this pass. |
+| 3 | [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl), reconstruct levels 8–2 | Eight bilinear reads per output texel. The deepest contribution and each finer downsample receive weight 1/8; the invocation reads the finer texel that it then overwrites. |
+| 4 | [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl) | Fuses the last upsample, adds the optional shape with centered bilinear reconstruction, and applies Bloom intensity and underwater boost. |
+
+[`programs.main.kts`](../../../scripts/programs.main.kts) owns this order and its enable conditions.
+[`Bloom.glsl`](../../../shaders/techniques/Bloom.glsl) owns common addressing and sampling. Downsample and shape reads
+zero-extend their bilinear footprint at screen edges while keeping atlas reads inside the input tile. Upsampling
+clamps to the valid input mip. This prevents a long streak from repeatedly copying a bright edge texel.
+
+- `transient_bloom`: frame-local RGBA16F atlas with ceil-sized padded mip tiles; reconstructed in place from coarse
+  to fine.
+- `transient_bloomShape`: frame-local RGBA16F logical image; only its half-resolution region is written and read.
+  It lives from the shape pass through post composition. The allocation in
+  [`shadesmith.json`](../../../shaders/shadesmith.json) reuses a slot after FXAA/RCAS have finished with it, without
+  increasing the current physical atlas dimensions. It remains a separate logical resource from the pyramid.
+
+The star has four diagonal arms; the streak combines a bright inner band and a longer soft band. Both retain the
+whole standard core and tail and add directional energy, with gains 0.375 and 0.5 respectively. Their generated
+kernels use 109 and 72 bilinear reads. Generating them from raw level 1 avoids shaping an already blurred accumulated
+mip. Parameters and custom PNG/function input are maintained by
+[`fit-bloom-shape.py`](../../../scripts/fit-bloom-shape.py); see [kernel fitting](../development/scripts.md#bloom-kernel-fitting).
+
+Highlight compression belongs to the first Bloom downsample, after AA decoding. RGB and luma modes retain their
+existing curves. AA retains its original log encoding and dark-value floor without Bloom rolloff; decoded writes in
+[`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) and the TAA-off path of
+[`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) clamp to the RGBA16F limit of 65504.
+
+### Bloom validation and limits
+
+The accepted 2026-11-08 shader snapshot `692e264d…` was checked on Minecraft 1.21.11, Iris 1.10.6-vibris.3 and
+RTX 3080 Ti. Five 1280×720 scenes covered Small lamps night, Craft close lights, outdoor point lights, Non-cube
+architecture and Frutiger interior. Each had Standard, Star, Streak and Bloom Off full-frame captures with a shared
+camera, time and fixed exposure within the scene, after 192 warmup frames. TAA-off shape output was finite and
+nonzero; Bloom Off omitted the shape pass.
+
+Small lamps night, fixed EV 9.45, paired forward/reverse order, 128 warmup and 128 sampled frames per window:
+
+| Mode | Bloom plus entire PostComposite p50 / p95 | p50 increase over paired Standard |
+|---|---:|---:|
+| Standard | 0.190–0.191 / 0.199–0.200 ms | — |
+| Four-point Star | 0.275 / 0.282 ms | 0.084 ms |
+| Horizontal Streak | 0.279 / 0.286 ms | 0.088 ms |
+
+These are sums of aligned per-frame program timings before computing quantiles, not whole-frame timings. RCAS and
+an unchanged volumetric-composite sentinel had stable medians. The accepted shader files and regenerated built-in
+weights matched the measured source exactly before integration.
+
+Independent CPU impulse models support a near-radial standard kernel: at radii 12, 24, 48 and 96 pixels, the
+eight-phase mean fourfold angular component was about 1.0–1.9% of ring brightness, versus 2.6–3.2% for the previous
+COD filter. Dyadic sampling still has pixel-grid and phase error; this is an approximation, not exact rotational
+symmetry. Odd viewport sizes, boundary energy and phase centroids have CPU coverage; odd-size runtime, underwater
+rendering and other GPUs remain unmeasured. Shape fitting error describes the added raw-level-1 branch, not the
+complete Bloom result.
 
 ## Post composition and exposure
 
@@ -60,7 +123,7 @@ with `BLOOM_DOWN_SAMPLE` and `BLOOM_PASS=1..10`, then reconstructs levels 10–2
 | 1     | [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                      | Combines the main color, DOF, bloom, and other post inputs; the RTWSM companion pass owns independent resources |
 | 2     | [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                          | Builds luminance/weight levels                                                                                  |
 | 3     | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl)                                                                                                    | Reduces exposure statistics                                                                                     |
-| 4     | [`FinalGlobalDataUpdate`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl) and [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | Persists global/exposure state for the next frame and composes the overlay                                      |
+| 4 | [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | Composes the overlay |
 
 The exposure screen controls manual EV, minimum/maximum EV, emissive/distance/center weighting, average-luminance time
 and target range, highlight/shadow percentiles, and adaptation parameters. `transient_exposureWeights` carries per-pixel
@@ -89,8 +152,9 @@ define parallel production post-processing branches.
 ## Maintenance invariants
 
 - Keep TAA history color space, pre-exposure, jitter, and motion/reprojection aligned.
-- Bloom pass count controls both program-enable conditions and pyramid access.
-- Update exposure state at frame end; final must not observe a partially updated state.
+- Keep the eight Bloom levels, layer weights, generated taps and atlas addressing consistent. Refit directional
+  shapes if the raw level-1 carrier changes.
+- Keep exposure production, adaptation and final display consumers synchronized.
 - Validate display-transform changes numerically with color charts/gradients and across SDR, wide-gamut, and HDR
   configurations for clipping, NaN, and negative values.
 - Test static detail, moving edges, disocclusion, bright emissives, dark adaptation, translucent edges, and UI/overlays.

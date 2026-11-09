@@ -2859,6 +2859,22 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             comment = "使明亮区域发光并渗透到周围像素，就像光线使相机过曝一样。"
                         }
                     }
+                    slider("SETTING_BLOOM_SHAPE", 0, 0..2) {
+                        lang {
+                            name = "Bloom Shape"
+                            comment = "Choose the standard glow, a four-point star, or a horizontal streak."
+                            0 value "Standard"
+                            1 value "Four-point Star"
+                            2 value "Horizontal Streak"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "泛光形状"
+                            comment = "选择标准泛光、四向星芒或横向光带。"
+                            0 value "标准"
+                            1 value "四向星芒"
+                            2 value "横向光带"
+                        }
+                    }
                     slider("SETTING_BLOOM_INTENSITY", 0.0, -8.0..8.0 step 0.25) {
                         lang {
                             name = "Bloom Intensity"
@@ -2870,17 +2886,6 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "泛光强度"
                             comment = "泛光发光效果的亮度。数值越高，发光越强烈、越戏剧化。"
-                        }
-                    }
-                    slider("SETTING_BLOOM_PASS", 8, 1..10) {
-                        lang {
-                            name = "Bloom Passes"
-                            comment =
-                                "Processing passes for bloom. Higher values increase glow reach and smoothness but reduce performance."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "泛光层级"
-                            comment = "泛光的处理次数。数值越高，发光范围和平滑度越大，但会降低性能。"
                         }
                     }
                     empty()

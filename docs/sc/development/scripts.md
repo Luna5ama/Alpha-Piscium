@@ -43,6 +43,37 @@ kotlin <script>.main.kts
 对会生成运行时纹理的脚本，检查二进制尺寸/布局，并同步 [`scripts/shaders.properties`](../../../scripts/shaders.properties)
 的 `customTexture.*` 格式、维度、类型；shader 侧同步 sampler 维度、整数/浮点访问类别及硬编码通道假设。
 
+## Bloom 核拟合
+
+[`fit-bloom.py`](../../../scripts/fit-bloom.py) 用四尺度高斯代理校准共用的五 tap 下采样与八 tap 上采样，写入
+[`BloomTaps.glsl`](../../../shaders/techniques/BloomTaps.glsl)，并检查代理全部 256 个相位的单位质量与质心。
+运行时另行按相等权重组合八层。[`fit-bloom-shape.py`](../../../scripts/fit-bloom-shape.py) 使用实际原始第 1 层 Bloom
+载体拟合星芒、横带或自定义形状，生成 [`BloomShapeTaps.glsl`](../../../shaders/techniques/BloomShapeTaps.glsl)。
+
+两者需要 Python、NumPy 和 SciPy；形状输入还需要 Pillow。从仓库根目录以低进程优先级运行。只在有意修改标准核时重新校准
+共用 tap，之后也要重新拟合形状载体：
+
+```powershell
+python -B scripts/fit-bloom.py
+python -B scripts/fit-bloom-shape.py --builtins --output shaders/techniques/BloomShapeTaps.glsl
+```
+
+自定义目标先创建输出目录，再任选一个入口：
+
+```powershell
+python -B scripts/fit-bloom-shape.py --image <weights.png> --carrier bloom --mip 1 --tap-budget 64 --output <fit.json> --glsl <shape.glsl>
+python -B scripts/fit-bloom-shape.py --function <kernel.py> --size 129 --carrier bloom --mip 1 --tap-budget 64 --output <fit.json> --glsl <shape.glsl>
+```
+
+PNG 输入是不透明 8/16 位灰度图，像素为原始线性权重。函数输入是可信 Python 文件，定义 `psf(x, y)` 并返回与坐标网格
+相同形状的数组。两种入口均要求奇数尺寸、有限非负权重和正总质量。中心 texel 为原点，x 向右、y 向下，单位是全分辨率像素。
+输入归一化为单位质量；JSON gather 偏移以 mip texel 为单位，GLSL 为 atlas 坐标翻转 y，并将相邻 tap 合并成等价双线性读取。
+运行时 GLSL 导出要求 `--carrier bloom --mip 1`。
+
+自定义输出是供维护者评估的滤波片段，不会自动新增玩家选项。`--report` 为 `--builtins` 增加 JSON 报告。
+生成源码与生成器修改一起提交，临时拟合报告放入忽略的输出目录。修改权重后复查输入相位、边缘行为及 Iris 渲染。
+运行时契约与已接受成本见 [Bloom](../modules/post-processing.md#bloom)。
+
 ## 二进制纹理辅助
 
 [`bintex.main.kts`](../../../scripts/bintex.main.kts) 是把一个或多个输入文件转换成指定维度/通道数二进制纹理的独立 CLI：

@@ -11,22 +11,18 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "/util/Colors.glsl"
 #include "/util/Coords.glsl"
 #include "/util/FullScreenComp.glsl"
-#include "/util/AgxInvertible.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
+#ifdef SETTING_BLOOM
 /*const*/
-#define BLOOM_UP_SAMPLE 1
 #define BLOOM_PASS 1
-#define BLOOM_NON_STANDALONE a
 /*const*/
-#include "/techniques/Bloom.comp.glsl"
+#include "/techniques/Bloom.glsl"
+#endif
 
 void main() {
     displaytransform_init();
-    #ifdef SETTING_BLOOM
-    bloom_init();
-    #endif
 
     bool valid = all(lessThan(texelPos, uval_mainImageSizeI));
     vec4 outputColor = vec4(0.0);
@@ -35,7 +31,18 @@ void main() {
         outputColor = texelFetch(usam_main, texelPos, 0);
 
         #ifdef SETTING_BLOOM
-        outputColor += bloom_mainOutput(texelPos);
+        // The eight levels are averaged. Keep the former default 8/128 blend.
+        float bloomIntensity = SETTING_BLOOM_INTENSITY - 4.0;
+        if (isEyeInWater == 1) {
+            bloomIntensity += SETTING_BLOOM_UNDERWATER_BOOST;
+        }
+        vec3 glow = bloom_filterPixel(texelPos);
+        #if SETTING_BLOOM_SHAPE != 0
+        vec2 shapeSize = vec2(global_mipmapTileCeilPadded[1].zw);
+        vec2 shapeTexel = clamp((vec2(texelPos) + 0.5) * 0.5, vec2(0.5), shapeSize - 0.5);
+        glow += transient_bloomShape_sample(shapeTexel * uval_mainImageSizeRcp).rgb;
+        #endif
+        outputColor.rgb += glow * exp2(bloomIntensity);
         #endif
 
         #if SETTING_DEBUG_OUTPUT == 3
