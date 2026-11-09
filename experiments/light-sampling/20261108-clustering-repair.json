@@ -15156,5 +15156,315 @@
         }
       }
     ]
+  },
+  "clustering_cost_independent_review": {
+    "reviewed_rule_commit": "05c59e0a8",
+    "reviewed_bottom_up_commit": "6c9d07a2838755541c8877c3ead956fa390f4a39",
+    "decision": "Fourteen fixed candidates do not meet the shared preservation gate. Accept the bounded offline findings; no new clustering baseline or GPU phase. Lookahead/K remain deferred.",
+    "rule_screen": {
+      "partition_enumerations": 420,
+      "variance_work_scores": 420,
+      "maximum_variance_relative_error": 9.125066493531933e-16,
+      "independence": "Original builders reused; independently enumerate root and two following binary levels per rule/scope/cohort. Independent scalar PMF and M2/work recomputation for all windows; independently identify preserved brick subtrees.",
+      "result_sha256": "a3147c5fbd8f253f72900c325177919405e25f502acf4725656ce5c7ddd10653"
+    },
+    "bottom_up": {
+      "variance_work_scores": 112,
+      "maximum_variance_relative_error": 8.742954704282705e-16,
+      "independence": "Source review of monotone merge costs and symmetric tie order. Candidate builders reused; independent scalar PMFs, tree/brick identities, variance/work recomputation, and exact local loss decomposition.",
+      "result_sha256": "6fda6eab9e7635550522da7f24e77cd41de8f192ef07c49c9333907d96f3d461",
+      "side_a_global_loss_depth_1_fraction": 0.5818415138852808
+    },
+    "closest_candidate": {
+      "method": "upper/flux-diagonal",
+      "points": {
+        "left-red-pillar": {
+          "variance_over_prefix": [
+            1.0554309041716372,
+            1.0565435855284342
+          ],
+          "nonempty_read_ratio": [
+            0.8674020707356194,
+            0.8674020707356194
+          ]
+        },
+        "yellow-candidate-ceiling": {
+          "variance_over_prefix": [
+            0.8077865164096603,
+            0.808152499403909
+          ],
+          "nonempty_read_ratio": [
+            0.8698444502238726,
+            0.8698444502238726
+          ]
+        },
+        "side-a": {
+          "variance_over_prefix": [
+            0.602786798858951,
+            0.6028466529190714
+          ],
+          "nonempty_read_ratio": [
+            0.7417642748828187,
+            0.7417642748828187
+          ]
+        },
+        "side-b": {
+          "variance_over_prefix": [
+            0.568465218064769,
+            0.568808722326115
+          ],
+          "nonempty_read_ratio": [
+            0.7451942120331173,
+            0.7451942120331173
+          ]
+        },
+        "top": {
+          "variance_over_prefix": [
+            0.48362195650541034,
+            0.49014722781055636
+          ],
+          "nonempty_read_ratio": [
+            0.7114407556934749,
+            0.7114407556934749
+          ]
+        },
+        "reviewed-vertical-face": {
+          "variance_over_prefix": [
+            0.475320353824542,
+            0.47555706087612903
+          ],
+          "nonempty_read_ratio": [
+            0.7605817638882905,
+            0.7605817638882905
+          ]
+        }
+      },
+      "accepted": false
+    },
+    "flat_diagnostic": {
+      "scope": "Diagnostic all-leaf Half-space A + Near/Far normalization, with independent scalar star-tree evaluation. O(N) per receiving point, not a proposed runtime sampler or best possible distribution.",
+      "rows": [
+        {
+          "cohort": "new/1",
+          "point": "left-red-pillar",
+          "window": 1,
+          "variance_over_prefix": 1.2480098331745475
+        },
+        {
+          "cohort": "new/1",
+          "point": "yellow-candidate-ceiling",
+          "window": 1,
+          "variance_over_prefix": 0.28955470699522806
+        },
+        {
+          "cohort": "new/1",
+          "point": "left-red-pillar",
+          "window": 2,
+          "variance_over_prefix": 1.251390612708373
+        },
+        {
+          "cohort": "new/1",
+          "point": "yellow-candidate-ceiling",
+          "window": 2,
+          "variance_over_prefix": 0.2899116012775882
+        },
+        {
+          "cohort": "new/5",
+          "point": "reviewed-vertical-face",
+          "window": 1,
+          "variance_over_prefix": 0.6273575790267594
+        },
+        {
+          "cohort": "new/5",
+          "point": "reviewed-vertical-face-rng2",
+          "window": 1,
+          "variance_over_prefix": 0.6275631956899138
+        },
+        {
+          "cohort": "new/5",
+          "point": "reviewed-vertical-face",
+          "window": 2,
+          "variance_over_prefix": 0.6280744597299014
+        },
+        {
+          "cohort": "new/5",
+          "point": "reviewed-vertical-face-rng2",
+          "window": 2,
+          "variance_over_prefix": 0.6277128479166565
+        },
+        {
+          "cohort": "previous/sides",
+          "point": "side-26",
+          "window": 1,
+          "variance_over_prefix": 0.3757997550923336
+        },
+        {
+          "cohort": "previous/sides",
+          "point": "side-27",
+          "window": 1,
+          "variance_over_prefix": 0.22446724403740895
+        },
+        {
+          "cohort": "previous/sides",
+          "point": "side-26",
+          "window": 2,
+          "variance_over_prefix": 0.37637311014888086
+        },
+        {
+          "cohort": "previous/sides",
+          "point": "side-27",
+          "window": 2,
+          "variance_over_prefix": 0.22490895823036705
+        },
+        {
+          "cohort": "previous/sides",
+          "point": "side-a",
+          "window": 1,
+          "variance_over_prefix": 0.17025219032823805
+        },
+        {
+          "cohort": "previous/sides",
+          "point": "side-b",
+          "window": 1,
+          "variance_over_prefix": 0.43445405495314443
+        },
+        {
+          "cohort": "previous/sides",
+          "point": "side-a",
+          "window": 2,
+          "variance_over_prefix": 0.17042157908382516
+        },
+        {
+          "cohort": "previous/sides",
+          "point": "side-b",
+          "window": 2,
+          "variance_over_prefix": 0.4340035183765269
+        },
+        {
+          "cohort": "previous/side-top",
+          "point": "side-27",
+          "window": 1,
+          "variance_over_prefix": 0.22358165000750035
+        },
+        {
+          "cohort": "previous/side-top",
+          "point": "top-28",
+          "window": 1,
+          "variance_over_prefix": 0.32883728089998115
+        },
+        {
+          "cohort": "previous/side-top",
+          "point": "side-27",
+          "window": 2,
+          "variance_over_prefix": 0.22226729994247235
+        },
+        {
+          "cohort": "previous/side-top",
+          "point": "top-28",
+          "window": 2,
+          "variance_over_prefix": 0.32924171523932644
+        },
+        {
+          "cohort": "previous/side-top",
+          "point": "side-b",
+          "window": 1,
+          "variance_over_prefix": 0.4344165161548661
+        },
+        {
+          "cohort": "previous/side-top",
+          "point": "top",
+          "window": 1,
+          "variance_over_prefix": 0.41077331074421736
+        },
+        {
+          "cohort": "previous/side-top",
+          "point": "side-b",
+          "window": 2,
+          "variance_over_prefix": 0.4342430850327021
+        },
+        {
+          "cohort": "previous/side-top",
+          "point": "top",
+          "window": 2,
+          "variance_over_prefix": 0.4026099604975353
+        },
+        {
+          "cohort": "previous/ls1",
+          "point": "ls1-pillar",
+          "window": 1,
+          "variance_over_prefix": 0.3645359205011314
+        },
+        {
+          "cohort": "previous/ls1",
+          "point": "ls1-wall",
+          "window": 1,
+          "variance_over_prefix": 0.4612530141583157
+        },
+        {
+          "cohort": "previous/ls1",
+          "point": "ls1-pillar",
+          "window": 2,
+          "variance_over_prefix": 0.36204440050516207
+        },
+        {
+          "cohort": "previous/ls1",
+          "point": "ls1-wall",
+          "window": 2,
+          "variance_over_prefix": 0.45959543087757787
+        }
+      ],
+      "independent_check_sha256": "a8a55c441d5f3a020c5a40f8f6a6dcfaee28b525774617a27dfd1d8862661fa0",
+      "interpretation": "Flattening current leaf geometric A+NearFar weights still increases red-pillar variance by about 25%, while helping the ceiling and moving points. The existing hierarchy happens to reallocate probability usefully for some red-pillar lights. This is not a proof that all clustering fails or that flat weights are the optimal distribution.",
+      "missing_positive_support": 0,
+      "maximum_null_probability": 0
+    },
+    "next_proposal": "Investigate construction costs using representative contribution responses, with spatial compactness and actual current-sampler evaluation. First separate occlusion/emission/within-light effects; use independent world-space probe coverage and held-out validation rather than fitting current M2 points. Not implemented or dispatched for capture; construction budget and update stability unresolved.",
+    "artifacts": [
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/cost_diagnostics.py",
+        "sha256": "ceb0c8b915a9679f3bce6352445dc85b229ec152eb335c0019b11a4793aa4f87"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/cost-diagnostics.json",
+        "sha256": "45b082b8fb0dc3ef87d33ccbaaf0c85609c8c0b8d19733ae0af18f2cc3384de3"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/rule_screen_review.py",
+        "sha256": "bfa025e5f3768a527e12edaea5179832a70c0ee9481407e45bdd441082785318"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/rule-screen-review.json",
+        "sha256": "854520f21b284191faf300b4b734d85ba2f1395597ad4e756c1bc3549793b3db"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/agglomerative_review.py",
+        "sha256": "b564c5495c70a48f5275e56fbc1813ac7df1da420ae550ef6671d3171791eb14"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/agglomerative-review.json",
+        "sha256": "c8e0310afadfeedb324700b86832c9d86ec7a717e2b9fe3deb2c87bdce6eaa19"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/flat_reference_review.py",
+        "sha256": "f1aeaea8027fc6d196fc49393479d9fd7fef85e92a58bb5931c05582a6bb0472"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/flat-reference-review.json",
+        "sha256": "619de7e6bd2c6e69c689f483eaccb7b0e712def8effef114260c59da8d0bddcf"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/flat_reference_independent.py",
+        "sha256": "c5561e7feec799d4642cbf67601885c890d8e1f9d2b3006bd9c150c072e08b9b"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/flat-reference-independent.json",
+        "sha256": "a8a55c441d5f3a020c5a40f8f6a6dcfaee28b525774617a27dfd1d8862661fa0"
+      }
+    ],
+    "limits": [
+      "Finite fixed-receiver conditional M2 only; no new image/runtime/movement acceptance.",
+      "Expected traversed nodes/records are work proxies, not GPU timing.",
+      "No runtime weight/default, lookahead, or K changes."
+    ]
   }
 }

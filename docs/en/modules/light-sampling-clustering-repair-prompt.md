@@ -4,6 +4,8 @@ Language: English | [简体中文](../../sc/modules/light-sampling-clustering-re
 
 ## Further clustering-cost screening (2026-11-08)
 
+This round is complete and reviewed: six rules × two scopes plus two bottom-up controls give 14 candidates, none passing the shared preservation gate. The additional flat-leaf diagnostic is cross-checked; see the [design record](light-sampling-design.md#new-cost-results-and-the-next-boundary) for results and the next proposal. The specification remains for provenance, without a new GPU phase or accepted baseline.
+
 The latest request is to investigate clustering that preserves the red pillar, ceiling, and moving side faces, leaving lookahead and K unchanged. Continue from the layer review at `906982dce`, limited to **offline cost screening and path diagnosis**. Do not resume earlier GPU expansion, dynamic construction, runtime, or default changes. Keep model 6 Near/Far and existing artifact/cleanup restrictions.
 
 Hypotheses: area cost does not directly constrain the box diagonal used by the sampler's cosine bound; spatial or flux imbalance may also suppress important small clusters through successive levels. Neither is yet an established cause. [Lightcuts' omnidirectional cluster metric](https://www.cs.cornell.edu/~kb/projects/lightcuts/lightcuts.pdf) uses flux times squared box diagonal. This test uses a related top-down partition cost, not a reproduction of its bottom-up construction.
@@ -30,6 +32,12 @@ Also record node count, maximum depth, and expected internal levels/nonempty chi
 The experiment author may add one compact research script reusing the inputs/scorer, and append this round to the existing experiment index without changing prior records. Put artifacts in a separate subdirectory of the current clustering-repair run; use Idle for lengthy CPU work. The discussion chat owns bilingual design/prompt documents; do not overwrite them. Commit scripts and necessary tracked summaries; deliver reproducible commands, input/script hashes, full per-point results, construction limitations, and worst counterexamples. No GPU work, new capture, or cleanup.
 
 Continue the human-authorized experiment chat `01a18648-f66e-78e0-8d01-cd906ca45429` / discussion chat `01a18c0e-8678-7800-8ab8-04b69f072f12` two-way handoff, host=`local`, retaining model and effort. Use wt4 / `2.0/light-sampling`; inspect current state and protect uncommitted documentation. Notify the discussion chat on completion or a design-changing counterexample for independent review. Completion does not automatically start a GPU phase.
+
+### Construction-direction control after the first screen
+
+The six-rule screen is complete at `05c59e0a8`, with no passing candidate; the closest upper/flux-diagonal still regresses the red pillar by about 5.6%. While the discussion side independently reviews it, add just one bottom-up rule: `d(A,B) = (PhiA+PhiB) * dot(diagonal(AABB_union), diagonal(AABB_union))`, applied to individual lights and complete original brick subtrees, giving two candidates. This keeps the size metric while separating top-down partitioning from bottom-up merging. No exponent, penalty, blend, or grid-offset sweeps; no H-PLOC kernel, Morton-local neighbor approximation, or parallel scheduling.
+
+Use the monotonic merge cost and mutual-nearest-neighbor construction from [Fast Agglomerative Clustering](https://www.graphics.cornell.edu/~bjw/IRT08Agglomerative.pdf). Offline searches may compare all active clusters in batches without a new kd-tree. Nearest means the full merge cost, not center distance. Break ties with symmetric world-key pairs and order children by world key. Cross-check a small original-light subset against naive globally minimum-pair merging for equivalence and determinism. Retain original widening without additionally opening input brick interiors. Build only from world light keys, bounds, and flux; no receiver data. Keep the 28-window, support/null, work-proxy, and two-way handoff contracts. Preserve the first screen, append this control separately, and do not automatically enter a GPU phase regardless of its result.
 
 ## Offline follow-up after review (2026-11-08)
 
