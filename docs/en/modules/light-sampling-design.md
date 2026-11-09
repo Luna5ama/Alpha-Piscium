@@ -46,6 +46,18 @@ Clustering should make existing coarse estimates more useful, but benefit still 
 
 Near/Far remains enabled for the clustering comparison, but a negligible cost has not been established. In the forward/reverse means from the [old camera-grouping timings](../../../experiments/light-sampling/20261031-nearfar-iteration.json), initial sampling changes from A to A + Near/Far as follows: ls1 **4.683 → 4.928 ms (+5.23%)**, ls2 **3.003 → 2.940 ms (−2.10%)**, ls4 **4.025 → 4.233 ms (+5.19%)**, ls5 **2.089 → 2.386 ms (+14.22%)**. Nodes remain 32B with no additional build summaries. Timings include light selection, conditional sampling, and true tracing, with only two orders; they neither isolate current World Prefix query cost nor establish significance for small differences. Add narrow current ls1/ls5 A versus A + Near/Far timing pairs. Previous local counterexamples remain valid.
 
+The first [offline clustering screen](../../../experiments/light-sampling/20261108-clustering-repair.json) (`c429b44fb`) has not selected an acceptable repair. These are only two-window conditional variance results for the newer moving-4 interior points, relative to **World Prefix + A + Near/Far = 1**:
+
+| Receiver | Flux light-SAH | Geometric SAH |
+|---|---:|---:|
+| side-a | 1.116 | 0.615 |
+| side-b | 0.999 | 0.783–0.784 |
+| top | 0.936–0.937 | 1.295–1.299 |
+
+The older ls1 pillar/wall points give 0.578–0.582/0.470–0.480 for the flux candidate, but belong to an earlier voxel cohort and are not the newly reported regions. The 20 point-windows include repeated points and windows; improvement in 12 windows is not acceptance by majority vote. Both flux/count terms and axis regularization `Kr`/1 change between the SAH variants, so their difference cannot be attributed to flux alone.
+
+The discussion-side [independent recomputation](../../../builds/light-sampling/20261108-clustering-repair/review/offline_review.py) reuses the candidate builder, checks CPU logical parent/child structure, AABBs, and per-emitter flux, independently evaluates scalar Near/Far PMFs, and recomputes 20 windows × 4 methods from the original NPZs. Its [result](../../../builds/light-sampling/20261108-clustering-repair/review/offline-review.json) has maximum relative variance difference 5.98e-16 and zero positive-M2 support failures. The reported side-a ancestor receives probability 0.672759; both the globally optimal leaf distribution's conditional share and the locally optimal share with that branch's interior proposal retained equal 1.0 here. These generally differ: the former normalizes descendant `sum(sqrt(M2_i))`, while the latter normalizes each child's `sqrt(sum(M2_i / p(i|child)))`. Keep the labels distinct. No PMF/moment-alignment error explaining these offline regressions was found. Dynamic GPU construction, whole-image benefits in newly reported regions, and new costs remain unverified. The experiment chat continues the new ls1/ls5 regions and narrow Near/Far timings without reopening K/lookahead work.
+
 The user authorized arranging the next experiments. The [current clustering task prompt](light-sampling-clustering-repair-prompt.md) defines implementation, captures, return notification, and review. It supersedes further lookahead/K1/K2/K4 selection and mandatory prefix-parent preservation in older tasks without relabeling their results. The November 1 route and later summary discussions below remain historical evidence.
 
 ### Previous route and evidence (2026-11-01)
