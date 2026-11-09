@@ -68,9 +68,9 @@ def adaptive_tree(root):
     return result,len(atoms)
 
 
-def anchored_tree(root):
-    """Canonical Morton layout above the 64-block groups, anchored at the lamps."""
-    atoms = cell_roots(root, (64,64,64))
+def anchored_tree(root, size=(64,64,64)):
+    """Canonical Morton layout above native coarse groups, anchored at the lamps."""
+    atoms = cell_roots(root, size)
     cells = np.array(list(atoms),dtype=np.int64)
     rel = cells-cells.min(axis=0)
     assert (rel<1024).all()

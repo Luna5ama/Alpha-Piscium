@@ -88,10 +88,11 @@ def main(prefix, candidate, output, rule):
     baseline, live = controls.values()
     for k in ('camera_sha256','leaf_sha256','world_voxel_sha256','grid'):
         assert baseline['identity'][k] == live['identity'][k], k
-    assert live['identity']['grid']==16
-    cell = (64,64,64)
+    grid = live['identity']['grid']
+    assert grid==16 or rule=='anchor'
+    cell = {16:(64,64,64),32:(256,128,128),64:(256,256,256)}[grid]
     report = {'scope':'Exact leaf list and retained subtree bounds, mass, material and nonempty child order; physical links and empty slots may differ.',
-              'rule':rule,'scene':live['scene'], 'sources':{n:p['source'] for n,p in controls.items()}, 'phases':{}}
+              'rule':rule,'scene':live['scene'],'grid':grid,'cell':cell,'sources':{n:p['source'] for n,p in controls.items()}, 'phases':{}}
     for phase in ('before','after'):
         paths = {n:p/f'{phase}_tree.bin' for n,p in (('prefix',prefix),('live',candidate))}
         def root(path):
@@ -104,7 +105,7 @@ def main(prefix, candidate, output, rule):
         _, prefix_tree, baseline_rows = root(paths['prefix'])
         header, candidate_tree, rows = root(paths['live'])
         assert rows == baseline_rows
-        expected, count = anchored_tree(prefix_tree) if rule=='anchor' else coarse_tree(prefix_tree,cell)
+        expected, count = anchored_tree(prefix_tree,cell) if rule=='anchor' else coarse_tree(prefix_tree,cell)
         assert int(header[7])==count, (header[7],count,'live coarse path did not run')
         observed = cell_roots(candidate_tree,cell)
         control = cell_roots(prefix_tree,cell)
