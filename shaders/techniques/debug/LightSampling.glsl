@@ -357,9 +357,19 @@ LightSamplingNode ls_select(vec3 origin, vec3 normal, inout uint rng, uint audit
         }
         if (total == 0.0) { pdf = 0.0; return ls_emptyNode(); }
         #ifdef LS_NEAR_FAR
+        #if SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
+        bool outer = any(notEqual(ivec3(node.boundsMinMass.xyz) >> 4,
+                                  ivec3(node.boundsMaxLink.xyz - 1.0) >> 4));
+        float nearFraction = outer ? 0.75 : 0.5;
+        weightsLow = mix(weightsLow / total, zeroTotal > 0.0 ? zeroLow / zeroTotal : nearLow / nearTotal, nearFraction);
+        #if LS_TREE_ARITY == 8
+        weightsHigh = mix(weightsHigh / total, zeroTotal > 0.0 ? zeroHigh / zeroTotal : nearHigh / nearTotal, nearFraction);
+        #endif
+        #else
         weightsLow = 0.5 * (weightsLow / total + (zeroTotal > 0.0 ? zeroLow / zeroTotal : nearLow / nearTotal));
         #if LS_TREE_ARITY == 8
         weightsHigh = 0.5 * (weightsHigh / total + (zeroTotal > 0.0 ? zeroHigh / zeroTotal : nearHigh / nearTotal));
+        #endif
         #endif
         total = 0.0;
         for (uint i = 0u; i < count; ++i) {
