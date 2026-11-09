@@ -4664,7 +4664,11 @@
         },
         "scope": "No temporal reuse; same one-frame marginal under randomized per-pixel permutation and jitter, unchanged selection PDF/support. Cross-frame independence is not assumed."
       },
-      "decision": "Prepared moving4 ablation with a fixed UV control. Keep PDFs and within-light samples; no reuse and no independence assumption across frames."
+      "decision": "Fixed-point analytic screen only. Root stratification removes median 0.062 percent and maximum 4.82 percent of independent mean variance for anchor over 28 point windows. Deprioritize in favor of pooled observed tile tests; the point screen cannot rule out effects on spatial covariance.",
+      "screen": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/root-strata-fixed-point-screen.json",
+        "sha256": "e95a2b396ac2f184247ed7b831f205e91c1c72adf7b5972afc2724b14b701b16"
+      }
     },
     "runtime_readiness": {
       "ls2": {
@@ -4680,6 +4684,35 @@
         "sha256": "3ca3f46bec877392e6ce7d561469e3d54a39f744350ff45b777953c0db02a623"
       },
       "decision": "Readiness failures occurred before sampling and restored exactly. Scoped unfreeze readiness followed by normal frozen motion recovered moving4."
+    },
+    "ls2_brdf_pair": {
+      "report": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-2-camera-paired-brdf-cosine-brdf-paired.json",
+        "sha256": "1a2d3f56a1d549c781fc56d0036bdfa13fbb88893dd5c1aa0c38d256b227694e"
+      },
+      "camera_then_brdf": [
+        {
+          "tail_vtimes_p50_ratio": 0.5046560422117224,
+          "tail_vtimes_mean_ratio": 0.5790550555181652,
+          "zero_mean_fractions": [
+            0.17347287945347073,
+            0.465416962757195
+          ]
+        },
+        {
+          "tail_vtimes_p50_ratio": 0.5010793346513733,
+          "tail_vtimes_mean_ratio": 0.574951051163331,
+          "zero_mean_fractions": [
+            0.17339666978907586,
+            0.46564559175037956
+          ]
+        }
+      ],
+      "joint_complete_pixels": 1981376,
+      "median_time_ratio": 0.3389291745306447,
+      "mean_time_ratio": 0.3888958727501579,
+      "emitting_uv_matched": false,
+      "decision": "Separate 6feb world-voxel cohort. Do not merge with the 838a Camera/Prefix pair. World voxel, leaves, geometry and consumed G-buffer match within the pair; the observed emitting-UV snapshots do not."
     }
   }
 }
