@@ -5500,7 +5500,7 @@
       },
       "k": {
         "state": "partly_closed",
-        "closure": "Cut2 native PDF and matched quality/timing screen, Ward K1 matched quality/timing screen, Ward K2 prior six-scene quality with explicit timing gap. A narrow matched K4 check replaces the excluded mismatched capture."
+        "closure": "Cut2 native PDF and matched quality/timing screen, Ward K1 matched quality/timing screen, Ward K2 prior six-scene quality plus pending matched LS1 Camera timing. A narrow matched K4 check replaces the excluded mismatched capture."
       },
       "other_archived_screens": {
         "state": "measured_or_negative",
@@ -6162,7 +6162,7 @@
         "moving-4": 0.959
       },
       "moving4_upward_receiver_v_ratio_vs_prefix_nearfar_approx": 1.53,
-      "decision": "Close the quality screen as a mixed local tradeoff. The moving-4 upward counterexample and the remaining 4% whole-image advantage over Prefix there do not justify widening the frozen closeout to a new K2 timing matrix."
+      "decision": "Prior six-scene real-Iris whole-image results all improve relative to Prefix + Near/Far. The local upward receiver is a diagnostic, so closeout still needs a minimal matched Camera mean-raygen check on LS1, where the prior quality improvement is largest."
     }
   }
 }
