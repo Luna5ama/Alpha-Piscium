@@ -22,17 +22,33 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 [LightSamplingBuild](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl), and
 [option registration](../../../scripts/options.main.kts).
 
-## Current selection and backlog (2026-11-01)
+## Current selection and backlog (2026-11-08)
 
 | Item | Confirmed choice |
 |------|------------------|
 | Conditional emitter sampling | Retain projected-solid-angle cube sampling without repeating its adoption comparison |
-| Node weights | Half-space A (32B) is implemented as default; near/far and A + near/far remain explicit experiments with unresolved local regressions |
-| Spatial grouping | Select the latest complete world prefixes as the starting point for further motion-stability repair; current quality remains unaccepted, as detailed below. Gilbert was rejected and its implementation removed |
+| Node weights | Half-space A (32B) remains the implemented default; this clustering comparison fixes A + Near/Far, separately checking its current-tree cost and benefit without switching defaults |
+| Spatial grouping | Prioritize clustering repair; retain world stability for identical emitter sets while allowing replacement of fixed Morton-prefix parents and global cross-brick clustering. World Prefix remains an unaccepted quality control |
 | Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
-| Lookahead | Return to the backlog; revisit only in an explicit quality versus traversal-cost comparison |
+| Lookahead and moment summaries | Defer selection and new combination experiments for one-level lookahead and K1/K2/K4 until clustering is repaired; retain existing evidence |
 | Visibility guidance | Exclude from the current runtime baseline; defer further discussion at the user's request |
 | H-PLOC | On hold at the user's request; retain the global cross-brick scope if reopened |
+
+### Current priority: repair clustering first (2026-11-08)
+
+After inspecting the latest runtime comparison, the user prioritizes clustering over lookahead/moment summaries. Under matched inputs, World Prefix + A + Near/Far has **1.333 times** the whole-image RGB variance of original camera grouping + A + Near/Far in ls1 and **1.502 times** in ls5, while fixed ls1 pillar/wall ROIs improve to **0.567/0.096 times**. Grouping changes alone can therefore redistribute improvements and regressions; a few improved points cannot represent the image. The user additionally identifies improvements on some left red-pillar faces and a darkened yellow-lit ceiling near the upper middle. Locate these through actual receiver geometry rather than equating them with the old two points. See the [independently reviewed grouping record](../../../experiments/light-sampling/20261108-grouping-control.json).
+
+The retained contract is: **for identical complete world emitter keys and flux, camera position, window addresses, and atomic allocation order do not determine cluster membership**. Fixed Morton-prefix topology is now replaceable. Flattening the current tree into a global Morton list and rebuilding the same prefixes may leave clustering unchanged; physical node reordering alone does not repair it. Measure regrouping under emitter-set changes separately; identical-input stability does not establish stability when emitters enter or leave.
+
+The first unvalidated candidate globally partitions the actual emitter distribution into spatial bins, using existing flux and AABB surface area in a light-BVH split cost, then converts the result during construction to the existing four-way, 32B contiguous-child representation. The flux, area, and axis regularization terms follow [PBRT's light-BVH construction](https://pbr-book.org/4ed/Light_Sources/Light_Sampling); this experiment adds no direction cones and treats their bounds as uniformly omnidirectional. This is a simplified candidate, not a reproduction of published quality results. Input consists of individual emitters across bricks; bricks still own extraction. Ordinary geometric SAH is only an offline explanatory control, not an automatic GPU matrix. No H-PLOC parallel builder has been selected.
+
+Clustering should make existing coarse estimates more useful, but benefit still depends on weights and receivers; smaller AABBs/SAH do not imply lower sampling variance. Screen with true conditional M2 and regression regions, then integrate a viable candidate into the live runtime and assess motion stability and complete build cost. Runtime clustering must not use receivers, measured M2, or visibility as an oracle or apply orientation-specific factors. One-level lookahead and K1/K2/K4 are excluded from this round.
+
+Near/Far remains enabled for the clustering comparison, but a negligible cost has not been established. In the forward/reverse means from the [old camera-grouping timings](../../../experiments/light-sampling/20261031-nearfar-iteration.json), initial sampling changes from A to A + Near/Far as follows: ls1 **4.683 → 4.928 ms (+5.23%)**, ls2 **3.003 → 2.940 ms (−2.10%)**, ls4 **4.025 → 4.233 ms (+5.19%)**, ls5 **2.089 → 2.386 ms (+14.22%)**. Nodes remain 32B with no additional build summaries. Timings include light selection, conditional sampling, and true tracing, with only two orders; they neither isolate current World Prefix query cost nor establish significance for small differences. Add narrow current ls1/ls5 A versus A + Near/Far timing pairs. Previous local counterexamples remain valid.
+
+The user authorized arranging the next experiments. The [current clustering task prompt](light-sampling-clustering-repair-prompt.md) defines implementation, captures, return notification, and review. It supersedes further lookahead/K1/K2/K4 selection and mandatory prefix-parent preservation in older tasks without relabeling their results. The November 1 route and later summary discussions below remain historical evidence.
+
+### Previous route and evidence (2026-11-01)
 
 Continue motion repair with **complete-world-prefix A (World Prefix A, `d29c5d178`) plus importance correction for coarse cross-brick clusters**.
 Complete world coordinates determine parents. For the same emitter set, moving the camera window changes coverage/addresses without changing parent membership or introducing modulo seams.
