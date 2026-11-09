@@ -5259,5 +5259,208 @@
       },
       "decision": "The 64px tail reversal from one tile phase is not robust to tile placement. The two actual 32f windows have exact common receiver/UV/crop controls within each pair but are not enough to establish a low-frequency covariance mechanism."
     }
+  },
+  "stage11_native_freeze_fix": {
+    "runtime_fix": "Vibris 137b020 was deployed by the runtime owner before resumption. FOV Effects was observed at 0 percent. A new task restore point was established after restart with the native Camera control in LS5.",
+    "safe_snapshot": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/after-restart-ls5-safe-snapshot/result.json",
+      "sha256": "5f5c766511377a1acef95fbe08cd90ba863d83791d1fcb27c6bc917f10019905"
+    },
+    "preflight": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/projection-preflights/light-sampling-5/freeze-fix-ls5/accepted.json",
+      "sha256": "8db1ef37f256150fba9cc27500dbc2aa442d5d375fd581824e534ce95a0f6b7d"
+    },
+    "ls5_gate_vs_anchor": {
+      "report": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-reprojected-anchor-fixed-fov-anchor-near-gate-fixed-fov.json",
+        "sha256": "301bdb4b45f8aba70f8551c21e608b67cfc53f087248ba2e7260366c64bdc0e3"
+      },
+      "controls": [
+        "anchor-fixed-fov",
+        "anchor-near-gate-fixed-fov"
+      ],
+      "mean_time_ratio": 0.9915176569233469,
+      "common_pixels": 2064477,
+      "emitting_uv_matched": false,
+      "regions": {
+        "whole": [
+          {
+            "pixels": 2064477,
+            "tail_v_base": 0.4273804111424001,
+            "tail_v_trial": 0.3294755701276908,
+            "tail_vt_ratio": 0.76437954756341
+          },
+          {
+            "pixels": 2064477,
+            "tail_v_base": 0.42922705674056916,
+            "tail_v_trial": 0.33142025644801065,
+            "tail_vt_ratio": 0.7655832291319935
+          }
+        ],
+        "A: left sandstone wall": [
+          {
+            "pixels": 5644,
+            "tail_v_base": 0.6433133516883063,
+            "tail_v_trial": 0.027723134758946315,
+            "tail_vt_ratio": 0.04272875348633979
+          },
+          {
+            "pixels": 5644,
+            "tail_v_base": 0.6951185762174579,
+            "tail_v_trial": 0.0284669340803432,
+            "tail_vt_ratio": 0.04060525605965582
+          }
+        ],
+        "B: blue-lit pillar": [
+          {
+            "pixels": 4357,
+            "tail_v_base": 0.00241243536058408,
+            "tail_v_trial": 0.0024504693399924463,
+            "tail_vt_ratio": 1.0071497284650788
+          },
+          {
+            "pixels": 4357,
+            "tail_v_base": 0.002288448655686273,
+            "tail_v_trial": 0.0022134984004807865,
+            "tail_vt_ratio": 0.9590439104652404
+          }
+        ],
+        "C: blue floor below pillar": [
+          {
+            "pixels": 4402,
+            "tail_v_base": 0.0011023325860875135,
+            "tail_v_trial": 0.0010921721195355568,
+            "tail_vt_ratio": 0.9823785984250394
+          },
+          {
+            "pixels": 4402,
+            "tail_v_base": 0.0010732948399463803,
+            "tail_v_trial": 0.0011436647479684643,
+            "tail_vt_ratio": 1.0565258948493335
+          }
+        ],
+        "D: blue floor in right shadow": [
+          {
+            "pixels": 12367,
+            "tail_v_base": 0.000987168345101702,
+            "tail_v_trial": 0.0009864528148938831,
+            "tail_vt_ratio": 0.990798974199539
+          },
+          {
+            "pixels": 12367,
+            "tail_v_base": 0.0010303928243803955,
+            "tail_v_trial": 0.0010068383915720163,
+            "tail_vt_ratio": 0.9688518973453272
+          }
+        ]
+      }
+    },
+    "ls5_gate_vs_camera": {
+      "report": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-reprojected-camera-gate-fixed-fov-anchor-gate-paired-camera-fixed-fov.json",
+        "sha256": "1f6b086d0d88ea18d9e19a3f2ea6b479db33552ed1b13b32de3c0fda681d75a0"
+      },
+      "controls": [
+        "camera-gate-fixed-fov",
+        "anchor-gate-paired-camera-fixed-fov"
+      ],
+      "mean_time_ratio": 1.0113381986957244,
+      "common_pixels": 2064477,
+      "emitting_uv_matched": false,
+      "regions": {
+        "whole": [
+          {
+            "pixels": 2064477,
+            "tail_v_base": 0.3468624598036223,
+            "tail_v_trial": 0.3293484695273896,
+            "tail_vt_ratio": 0.9602730952885477
+          },
+          {
+            "pixels": 2064477,
+            "tail_v_base": 0.3476292262250618,
+            "tail_v_trial": 0.33148753608873405,
+            "tail_vt_ratio": 0.9643780854634459
+          }
+        ],
+        "A: left sandstone wall": [
+          {
+            "pixels": 5644,
+            "tail_v_base": 0.004890565285057183,
+            "tail_v_trial": 0.027922801647628257,
+            "tail_vt_ratio": 5.7742600854617105
+          },
+          {
+            "pixels": 5644,
+            "tail_v_base": 0.004721043673279231,
+            "tail_v_trial": 0.028960383849947455,
+            "tail_vt_ratio": 6.203870259051995
+          }
+        ],
+        "B: blue-lit pillar": [
+          {
+            "pixels": 4357,
+            "tail_v_base": 0.030339581663068813,
+            "tail_v_trial": 0.0024124354057041956,
+            "tail_vt_ratio": 0.08041600918461343
+          },
+          {
+            "pixels": 4357,
+            "tail_v_base": 0.028884918255060406,
+            "tail_v_trial": 0.0021893702370866653,
+            "tail_vt_ratio": 0.0766557042779704
+          }
+        ],
+        "C: blue floor below pillar": [
+          {
+            "pixels": 4402,
+            "tail_v_base": 0.000452894070565615,
+            "tail_v_trial": 0.0011023325552417282,
+            "tail_vt_ratio": 2.4615712442194764
+          },
+          {
+            "pixels": 4402,
+            "tail_v_base": 0.0004683065133667928,
+            "tail_v_trial": 0.001034462465542666,
+            "tail_vt_ratio": 2.233988587941861
+          }
+        ],
+        "D: blue floor in right shadow": [
+          {
+            "pixels": 12367,
+            "tail_v_base": 0.0017421439758752546,
+            "tail_v_trial": 0.0009871683884687308,
+            "tail_vt_ratio": 0.5730646339386215
+          },
+          {
+            "pixels": 12367,
+            "tail_v_base": 0.0017455711826641338,
+            "tail_v_trial": 0.0010033293128916957,
+            "tail_vt_ratio": 0.5813027105831561
+          }
+        ]
+      }
+    },
+    "regions": "Legacy projected regions were mapped to the new 90-degree lens at the same preset pose. Sandstone overlap is 5,644 pixels, and the below-pillar floor still regresses against Camera. Exact sampled lookup words for dominant blue material 4440 matched on the anchor/gate pair; the entire emitter lookup was not static.",
+    "ls3_far_pdf": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/ls3-far-plane-exact-boundary-fixed-fov-pdf.json",
+      "sha256": "1f5c9cd3f876743f270b1e9ec38966dd754ea9763bcb21cf584be5c621c08789"
+    },
+    "moving4_f32_iid_pdf": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-residual-f32-iid-native-pdf.json",
+      "sha256": "2d58309b5e57e69484a6c355dcd859925692ca0171410486b77bd32b86168f8d"
+    },
+    "moving4_f32_strata_pdf": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-residual-f32-strata-fixed-fov-pdf.json",
+      "sha256": "1316626da8f6f9b47fb6314b9dffd829f0a1f0938a3f56aa38c7290b8395e149"
+    },
+    "cdf_include_fix": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/guarded-cdf-strata-native-compile-fix.json",
+      "sha256": "4a1e7a87c2e6b7052ff5319769ad269219e5db23d75da71f81814526db7edc3f"
+    },
+    "cdf_first_native_compile_rejected": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/moving4-cdf-strata-compile/result.json",
+      "sha256": "d328bd353acd2bbf364f9095e05149589cad9fc3ad691aea0d6caebce558e5a8"
+    },
+    "cdf_status": "Corrected compile and the frozen 90-degree native per-draw PDF check passed. Independent pooled block-quality measurements follow."
   }
 }
