@@ -123,6 +123,13 @@ def archive(job_id, name):
                  for a in req['actions']) for tag in methods}
     assert len(sizes)==1 and sizes <= {4,6}
     count = sizes.pop()
+    cameras = sorted(folder.glob('*--window*-camera.bin'))
+    if cameras:
+        assert len(cameras)==len(methods)*count*2
+        for path in cameras:
+            cam=np.fromfile(path,'<f4')
+            stamp=hashlib.sha256(np.r_[cam[16:32],cam[80:112]].tobytes()).hexdigest()
+            assert stamp==before['camera_sha256'],(path,stamp,before['camera_sha256'])
     for tag in methods:
         raw[tag],valid = windows(folder,tag,height,width,count)
         mask &= valid
@@ -137,7 +144,7 @@ def archive(job_id, name):
     report = dict(job=job_id,scene=req['preset_id'],manifest_id=manifest['manifest_id'],manifest_sha256=ref['sha256'],
                   resolution=dim,identity=before,coordinates='camera-window relative',matched_complete_pixels=int(mask.sum()),receiver_mismatches=mismatches,
                   fixed_uv_sha256=fixed[0],atlas_crop_match=probe_match,methods=methods,
-                  windows_per_method=count,
+                  windows_per_method=count,projection_checkpoints=len(cameras),
                   scope='Disjoint 32f mean windows, paired in acquisition order. Tile ratios are radiance differences, not a timing benchmark. Matching atlas crops do not certify all emitters or intermediate frames.')
     (folder/'accepted.json').write_text(json.dumps(report,indent=2,allow_nan=False)+'\n',encoding='utf8')
     return report

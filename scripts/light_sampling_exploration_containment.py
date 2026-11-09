@@ -61,7 +61,7 @@ def regularized(tree,origin,normal,mode,near_mix=.75):
     return q
 
 
-def selective_near(tree, origin, normal, threshold=0.125):
+def selective_near(tree, origin, normal, threshold=0.125, outer_near=0.75):
     """Recompute just the near endpoint of broad, mostly-behind containing boxes."""
     b = tree.nodes
     lo,hi = b[:,:3],b[:,4:7]
@@ -96,7 +96,7 @@ def selective_near(tree, origin, normal, threshold=0.125):
         p = f/f.sum()
         if z.sum():
             n = z
-        a = .75 if wide[i] else .5
+        a = outer_near if wide[i] else .5
         q[s] = q[i]*((1.-a)*p+a*n/n.sum() if n.sum() else p)
     np.testing.assert_allclose(q[tree.leaves].sum()+null,1.,rtol=0,atol=3e-12)
     return q

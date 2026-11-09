@@ -5082,6 +5082,23 @@
       "workload_proxy": {
         "path": "builds/light-sampling/20261108-eight-hour-exploration/selective-near-gate-workload-proxy.json",
         "sha256": "ccd2751717f0fdec95d0adc6a3729d8f877f758c6b528ae9d394a7aebf59ae46"
+      },
+      "sibling_breakdown": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-wall-broad-sibling-contributions.json",
+        "sha256": "928a67aa02f98109acde838b034afe9e5798fe7d412c061fd962e8156027639a"
+      },
+      "same_gate_across_topologies": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/selective-near-multi-topology-screen.json",
+        "sha256": "f75cf89180850f7ec6fc530df01d430c2d0ab4311ec958408789560ad80b26ac"
+      },
+      "parallel_coarse_sah_gate_source": {
+        "ref": "experiment/light-sampling-eight-hour-dynamic-coarse-sah-near-gate",
+        "source": "a9e977d1e28c99e259c9beeac0ef76080cf7b94a",
+        "parent": "11482bf26ae73fe27c0736771adf7757e7cbbfc5"
+      },
+      "fixed_world_fixture": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-fixed-receiver-fixture.json",
+        "sha256": "9a54337702732800434d102a8b906d4f50e15d35ec61c84a9fe8404b29aafd11"
       }
     },
     "far_cube_numeric_bound": {
@@ -5142,7 +5159,11 @@
       },
       "minimum_ideal_guarded_terminal_bins": 11,
       "max_ideal_guarded_terminal_total_variation": 7.476970188326683e-06,
-      "decision": "Root-only headroom negligible; guarded full traversal retained the full analytical improvement in these fixed fixtures (median 26.15 percent at anchor). Verify native compiled behavior and 8 disjoint 32f means against identical non-stratified CDF reuse; no observed image or performance claim."
+      "decision": "Root-only headroom negligible; guarded full traversal retained the full analytical improvement in these fixed fixtures (median 26.15 percent at anchor). Verify native compiled behavior and 8 disjoint 32f means against identical non-stratified CDF reuse; no observed image or performance claim.",
+      "pcg_cpu_screen": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/guarded-cdf-pcg-screen.json",
+        "sha256": "41ad5a4c9a06f3b6ec01741a05b2ae3dd860980f6e03301ab3d36ae11f766f37"
+      }
     },
     "deterministic_quality_pilot": {
       "sources": {
@@ -5184,6 +5205,11 @@
         "path": "builds/light-sampling/20261108-eight-hour-exploration/deterministic-quality/light-sampling-failure-moving-4/uv-camera-diagonal-stationary/report.json",
         "sha256": "df8b3a3fbfcf764e4adcace0a3623475efdaf00db2e7033f5fcffacec9d09968"
       }
-    }
+    },
+    "isolated_glsl_smoke": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/isolated-glsl-check.json",
+      "sha256": "249d4bcf6a2bee1b036885553d58935fa15902bc972d4dfd15a94ac545fee019"
+    },
+    "projection_brackets": "The native multi-window archiver accepts additional actual camera buffers around every 32-frame window. This tightens evidence; no new image ranking."
   }
 }

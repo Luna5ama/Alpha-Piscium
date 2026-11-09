@@ -37,7 +37,7 @@ def lower_bound(lo,hi,cdf,norm,upper,transitions):
     return lo
 
 
-def exhaust(tree,q):
+def exhaust(tree,q,return_intervals=False):
     endpoints=[]
     guarded=0
     def walk(i,lo,hi,history,interval_mass):
@@ -74,6 +74,8 @@ def exhaust(tree,q):
     assert counts.sum()==N and (counts>0).all()
     np.testing.assert_allclose(probs.sum(),1,atol=2e-12,rtol=0)
     actual=counts/N
+    if return_intervals:
+        return endpoints
     return dict(guarded_nodes=guarded,terminal_intervals=len(counts),min_terminal_bins=int(counts.min()),
                 tv_distance=float(abs(actual-probs).sum()/2),
                 max_relative_terminal_error=float(abs(actual/probs-1).max()),
