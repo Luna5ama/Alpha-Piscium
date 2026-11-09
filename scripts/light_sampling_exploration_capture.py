@@ -603,7 +603,7 @@ def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surfa
         windows.append(summaries)
     result = dict(scene=scene, baseline=names[0], resolution=dim, cases=cases,
                   time_ratios=time_ratios, mean_time_ratios=mean_time_ratios, max_ratio=1.25,
-                  raw_timing_cap={n:r<=1.25 for n,r in time_ratios.items()},
+                  raw_timing_cap={n:r<=1.25 for n,r in mean_time_ratios.items()},
                   windows=windows, joint_complete_pixels=int(common.sum()), before_receiver_match_pixels=complete_pixels,
                   receiver_data_compared=[field for field,_,_ in input_payloads],
                   receiver_mismatches=mismatches, full_receiver=full_receiver, proposal_mass_change=mass_change,
