@@ -215,21 +215,24 @@ def archive_ordered(job_id, name):
                      for part in parts for check in (part['before'],part['after']))
     medians = [r['timing']['initial']['p50_ns'] for r in parts]
     configs_order = [r['config'] for r in parts]
-    assert configs_order in (['camera','candidate','candidate','camera'], ['candidate','camera','camera','candidate'])
+    candidates = set(configs_order)-{'camera'}
+    assert len(candidates)==1
+    candidate = candidates.pop()
+    assert configs_order in (['camera',candidate,candidate,'camera'], [candidate,'camera','camera',candidate])
     pooled = {cfg:float(np.mean([m for m,r in zip(medians,parts,strict=True) if r['config']==cfg]))
-              for cfg in ('camera','candidate')}
+              for cfg in ('camera',candidate)}
     means = {cfg:float(np.mean([part['timing']['initial']['mean_ns'] for part in parts if part['config']==cfg]))
-             for cfg in ('camera','candidate')}
-    for cfg in ('camera','candidate'):
+             for cfg in ('camera',candidate)}
+    for cfg in ('camera',candidate):
         assert len({p['before']['ordered_topology_sha256'] for p in parts if p['config']==cfg})==1
     paired = []
     for i,j in ((0,1),(2,3)):
         p = {parts[k]['config']:medians[k] for k in (i,j)}
-        paired.append(p['candidate']/p['camera'])
+        paired.append(p[candidate]/p['camera'])
     report = dict(job=job_id, path=folder.relative_to(ROOT).as_posix(), parts=parts, order=configs_order,
                   identity=common, same_input=same_input, mean_of_block_medians_ns=pooled,
-                  paired_time_ratios=paired, time_ratio=pooled['candidate']/pooled['camera'],
-                  mean_of_block_means_ns=means, mean_time_ratio=means['candidate']/means['camera'],
+                  paired_time_ratios=paired, time_ratio=pooled[candidate]/pooled['camera'],
+                  mean_of_block_means_ns=means, mean_time_ratio=means[candidate]/means['camera'],
                   manifest_id=manifest['manifest_id'],manifest_sha256=ref['sha256'],
                   restoration=result['restoration'])
     (folder/'accepted.json').write_text(json.dumps(report,indent=2,allow_nan=False)+'\n',encoding='utf8')
