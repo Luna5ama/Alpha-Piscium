@@ -40,6 +40,10 @@ const ivec3 workGroups = ivec3(LS_WORLD_GROUPS, 1, 1);
 const ivec3 workGroups = ivec3(1, 1, 1);
 shared uvec3 ls_topKeys[16];
 shared uint ls_topNodes[16];
+#if VOXEL_GRID_SIZE == 16 && LS_TREE_ARITY == 4 && SETTING_DEBUG_LIGHT_WEIGHT_MODEL == 6
+#define LS_COARSE_UPPER
+#include "/techniques/debug/LightSamplingCoarseUpper.glsl"
+#endif
 #endif
 
 void main() {
@@ -173,6 +177,9 @@ void main() {
     }
     #else
     if (gl_GlobalInvocationID.x != 0u) return;
+    #ifdef LS_COARSE_UPPER
+    if (ls_buildCoarseUpper()) return;
+    #endif
     uvec3 low, dimensions;
     ls_worldRange(uint(LS_WORLD_LEVELS), low, dimensions);
     uint count = 0u;
