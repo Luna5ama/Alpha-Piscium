@@ -39,6 +39,23 @@
 
 首轮将已有 upper/flux-diagonal、前瞻和 K 候选放到同输入质量＋性能对照，再依真实反例迭代。保留 Camera、World Prefix 与 Cosine BRDF 控制；不以固定少数点或旧有限窗口推断所有场景。第一份可复查结果即可回传，讨论端持续复查；截止前收口最佳已验证候选及未完成范围，不因一次失败终止探索。当前状态和本轮原件入口在[实验记录](../../../experiments/light-sampling/20261108-eight-hour-exploration.json)。
 
+#### 首轮筛选与独立复查（2026-11-09 06:20 UTC）
+
+初轮采用既有 1080p preset、两段独立 32 帧窗口与 128 帧完整采样 pass 计时，尚非配对性能验收。ls1 的 Camera、Prefix、frozen upper、前瞻具有相同相机、灯及完整世界体素；按采样器实际读取的几何法线、材质与深度精确匹配后保留 2,017,704 像素。lightmap 变化不影响本估计器，不能用整个 packed G-buffer 的差异误删半张图；原始哈希仍保留。首批缺少接收面颜色快照，所以只作筛选，后续已补入 `colortex9`。讨论端直接重算原始计数、RGB 方差、分位数与计时，结果一致，并检查了全图和分布曲线。
+
+| ls1 方法 | raygen 中位数／均值 ms | 两窗最差 5% 像素平均方差 |
+|---|---:|---:|
+| Camera + A + Near/Far | 8.540 / 8.477 | 0.33059 / 0.33000 |
+| Prefix + A + Near/Far | 9.091 / 9.214 | 0.44500 / 0.45185 |
+| frozen upper + A + Near/Far | 8.389 / 8.376 | 0.38815 / 0.38850 |
+| Prefix + 一层前瞻 + Near/Far | 10.791 / 10.877 | 0.23245 / 0.23502 |
+
+前瞻主要改善分布尾部，普通分位并非全面优于 Camera。其初测时间比为中位数 `1.264`、均值 `1.283`，尚未满足 25% 上限；`V*T` 同时保留两种时间统计，固定预算理论对应期望耗时。将两窗按样本数及均值差合并成 64 样本的辅助检查仍得到相同排序，不能把 32 帧样本方差当作真值误差。原始报告与独立记录见[首轮对照](../../../builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-camera-prefix-upper-lookahead.json)、[独立复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-ls1-first-review.json)及[全图预览](../../../builds/light-sampling/20261108-eight-hour-exploration/review-ls1-first-grid.png)。upper 的构建时间仍只是冻结图集装入。
+
+moving-4 提供了反例：包含颜色、深度、几何法线及灯／遮挡体一致性检查的共同像素为 2,022,174。普通前瞻／距离受限前瞻的中位时间分别为 Camera 的 `1.563`／`1.450`，最差 5% 方差约为 `0.0246`／`0.0249`，而 Camera 为 `0.0173`。两者均未通过本场景的速度或质量筛选，不能从 ls1 推广；见[moving-4 首轮报告](../../../builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-camera-prefix-near-lookahead-lookahead.json)。
+
+后续同时区分等价提速与分布改变：先在前瞻中提前拒绝整个背面父簇，及在建树阶段压紧外层空孩子；两者需证明支持与非空孩子顺序不变。另试两层 cut：将合格跨 brick 子簇展开后，对最多 16 个候选统一归一化 Near/Far，直接进入所选节点，跳过已展开的层。它不是现有前瞻的等价改写，实际 PDF 必须跟随新概率；可先选聚合组再重算其最多四个孩子，以减少长时间存活的数组。28 个既有逐灯 M2 窗的离线筛查证明概率守恒和已观测正贡献支持，但收益不支配完整前瞻，预计节点读取减少也不是 GPU 结论。upper 与前瞻组合在 moving 点上有互补迹象，ls5 墙点仍可能退化；这些都只用于选择后续实机候选，不改变基线。
+
 ### 聚类修复阶段的证据与依据（2026-11-08）
 
 #### 接受判据修订：绝对噪声与整图权衡（2026-11-08）

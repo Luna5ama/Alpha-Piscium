@@ -42,6 +42,23 @@ The hard performance cap is actual raygen-pass time no more than `1.25` times th
 
 First compare existing upper/flux-diagonal, lookahead, and K candidates on matched quality and time, then iterate from actual counterexamples. Keep Camera, World Prefix, and Cosine BRDF controls. A few fixed points or older finite windows cannot establish every scene. Return the first reviewable result for ongoing discussion-side review. Before the deadline, consolidate the best validated candidate and remaining scope rather than stopping exploration at one failure. Current state and originals are linked from the [experiment record](../../../experiments/light-sampling/20261108-eight-hour-exploration.json).
 
+#### Initial screening and independent review (2026-11-09 06:20 UTC)
+
+The first round uses existing 1080p presets, two independent 32-frame windows, and 128-frame complete sampling-pass timing; it is not paired performance acceptance. In ls1, Camera, Prefix, frozen upper, and lookahead have identical camera, lights, and complete world voxels. Exact matching of the geometry normal, material, and depth actually read by the sampler retains 2,017,704 pixels. Changing lightmap fields do not affect this estimator; matching every packed G-buffer bit would incorrectly discard half the image. Retain the original hashes. This first batch lacks receiver-color snapshots and remains screening evidence; subsequent jobs include `colortex9`. The discussion-side review directly recomputed original counts, RGB variance, quantiles, and timings, matched the report, and inspected full images and distribution curves.
+
+| ls1 method | Raygen median / mean ms | Worst-5%-pixel mean variance in two windows |
+|---|---:|---:|
+| Camera + A + Near/Far | 8.540 / 8.477 | 0.33059 / 0.33000 |
+| Prefix + A + Near/Far | 9.091 / 9.214 | 0.44500 / 0.45185 |
+| Frozen upper + A + Near/Far | 8.389 / 8.376 | 0.38815 / 0.38850 |
+| Prefix + one-level lookahead + Near/Far | 10.791 / 10.877 | 0.23245 / 0.23502 |
+
+Lookahead mainly improves the distribution tail; ordinary quantiles do not uniformly beat Camera. Its initial median/mean time ratios are `1.264`/`1.283`, so it has not met the 25% cap. Retain both timing statistics for `V*T`; fixed-budget theory uses expected time. An auxiliary 64-sample merge accounting for sample counts and differences between window means preserves the ordering, but 32-frame sample variance is not error against truth. See the [initial comparison](../../../builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-camera-prefix-upper-lookahead.json), [independent review](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-ls1-first-review.json), and [full-frame preview](../../../builds/light-sampling/20261108-eight-hour-exploration/review-ls1-first-grid.png). Upper's construction timing still covers only loading a frozen atlas.
+
+Moving-4 provides a counterexample: 2,022,174 common pixels pass receiver color, depth, geometry-normal, light, and occluder checks. Ordinary/distance-gated lookahead takes `1.563`/`1.450` times Camera's median time, with worst-5% variance around `0.0246`/`0.0249`, versus Camera's `0.0173`. Neither passes this scene's speed or quality screen; ls1 cannot establish general improvement. See the [initial moving-4 report](../../../builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-camera-prefix-near-lookahead-lookahead.json).
+
+Next distinguish equivalent acceleration from changes to the distribution. First reject wholly back-facing parent clusters before lookahead and compact empty outer children during construction; both require preserving support and nonempty child order. A separate two-level cut expands eligible cross-brick children, normalizes Near/Far across up to 16 candidates, and directly enters the selected node, skipping the expanded level. It is not an equivalent rewrite of existing lookahead: actual PDFs must follow the new probabilities. Selecting an aggregate group and then recomputing its at-most-four children can avoid long-lived arrays. Offline screening over 28 existing per-light M2 windows checks probability conservation and observed positive support, but does not dominate full lookahead; fewer expected node reads are not GPU evidence. Combining upper with lookahead shows complementary behavior at moving points while potentially regressing the ls5 wall. These results select runtime candidates without changing the baseline.
+
 ### Evidence and rationale from clustering repair (2026-11-08)
 
 #### Acceptance criterion revision: absolute noise and whole-image tradeoffs (2026-11-08)
