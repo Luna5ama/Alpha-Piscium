@@ -100,9 +100,11 @@ bool ls_buildCoarseUpper() {
         }
     }
     if (n == 0u) return false;
-    // Count the root separately. At most 2*n-2 descendants for n inputs.
-    if (ls_allocatedNodes > LS_LOCAL_NODE_CAPACITY - (2u * n - 2u)) return false;
-    uint base = LS_OUTER_NODE_COUNT + ls_allocatedNodes;
+    // Level 3 roots are already copied to shared. Their descendants are
+    // in lower levels (or the local tree) and never use this upper range.
+    // G16 provides 284 slots here; at most 248 descendants are required.
+    uint base = ls_levelOffset(LS_COARSE_LEVEL + 1u);
+    if (2u * n - 2u > LS_OUTER_NODE_COUNT - base) return false;
     uint next = base;
     uint tail = 1u;
     ls_coarseQueue[0] = uvec3(0u, n, 1u);
@@ -126,7 +128,6 @@ bool ls_buildCoarseUpper() {
         merged.boundsMaxLink.w = uintBitsToFloat(ls_childLink(first, next - first));
         ls_nodes[item.z] = merged;
     }
-    ls_allocatedNodes += next - base;
     ls_reserved = n; // Native diagnostic: number of roots used by this build.
     return true;
 }
