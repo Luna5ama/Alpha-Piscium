@@ -2,6 +2,16 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-clustering-repair-prompt.md)
 
+## Current task: finish the frozen candidate set (2026-11-09)
+
+At about `10:12 UTC`, the user replaced the open eight-hour exploration with complete closeout of directions already proposed. **Freeze the candidate set now; do not introduce new candidates, combinations, parameter sweeps, or research directions.** Finish the feasible work already undertaken, then stop. This instruction supersedes the continuing-exploration language and the previous 13:10/13:49 schedule below; do not wait merely to fill the original duration.
+
+The experiment owner records the finite inventory in the shared experiment index, including existing refs, implemented but unmeasured work, and previously proposed offline candidates. Complete necessary implementation, identity/PDF checks, matched image/mean-raygen measurements, and reviewable artifacts for unresolved viable candidates. Existing decisive negative evidence may close a direction without a gratuitous full GPU matrix. A vague backlog entry does not complete an unfinished attempt; distinguish a measured rejection, limited validated scope, and an external blocker with its actual evidence. Necessary control/input/statistics repairs belong to finishing the existing experiment.
+
+The remaining inventory includes the ongoing selective Near-containment refinement, guarded CDF/32-frame stratification, far-plane boundary work, six-direction 8B soft summary, and unresolved earlier lookahead/K/coarse-tree variants. This is an inventory to reconcile, not a requirement to rerun already resolved variants or reopen unrelated historical backlog. Keep the per-scene `1.25` **mean** raygen cap against Camera + A + Near/Far, full support, input identity, and whole-image/tail criteria unchanged.
+
+Maintain the agreed round-level ownership. The experiment owner completes the frozen package, runtime/resource handback, candidate records, and comparison artifacts, then notifies discussion for independent review. Discussion reconciles every inventory entry and closes the active goal after finishing this scope, so automatic continuation cannot reopen exploration. Leave no active job or continuation instruction belonging to this round without an explicit owner and status.
+
 ## Current task: continuous eight-hour exploration (2026-11-08)
 
 The user authorized about eight hours of continued research, implementation, and runtime experiments to reduce variance and time across scenes and difficult regions while raygen takes at most 1.25 times baseline time. The user then explicitly confirmed: **reopen comparisons of one-level lookahead and K; the performance baseline is Camera grouping + Half-space A + Near/Far.** This section supersedes the earlier scope limits of red-pillar diagnosis only, no lookahead/K changes, and no new GPU work. Existing evidence remains valid. Do not stop after one candidate or one regressed point.
