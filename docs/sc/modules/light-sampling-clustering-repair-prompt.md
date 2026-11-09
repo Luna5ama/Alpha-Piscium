@@ -2,11 +2,84 @@
 
 语言：简体中文 | [English](../../en/modules/light-sampling-clustering-repair-prompt.md)
 
+## 当前任务：红柱贡献失配分解（2026-11-08）
+
+本轮只回答：**红柱的重要灯为什么与现有几何／通量估权失配，遮挡、真实发光和灯内采样分别提供了什么证据？** 不先指定主因，不要求交付修复候选。此节替代下文已经完成的准则筛选及未执行的 GPU 扩展；不重跑 14 个构造，不改聚类、Half-space A + Near/Far（model 6）、前瞻、K、32B 节点或默认，不建立探针／接收响应缓存。现有固定接收点只用于诊断，数据不进入建树。
+
+用户本次原话：“那就先查清红柱的失配到底来自遮挡、实际发光还是灯内采样，写好提示词让实验 agent 做，完事通知你复查。前瞻和 K 先不动，也先别急着加探针。”沿用已指定的实验 chat `01a18648-f66e-78e0-8d01-cd906ca45429` 与讨论 chat `01a18c0e-8678-7800-8ab8-04b69f072f12`，host=`local`，模型与 effort 不变。该人类授权包括本轮诊断、必要的最小补采和完成后回传复查。讨论端维护双语设计／提示词；实验端实现诊断、采集和结果索引。
+
+### 起点与原件
+
+使用 wt4 / `I:/code/mcshaders/Alpha-Piscium-4` / `2.0/light-sampling`，准备起点 `024cc3366`。执行前检查最新提交、未提交改动及共享 runtime 所有者，不 reset 到旧快照。阅读[当前诊断依据](light-sampling-design.md#新准则筛选结果与下一步边界)、[实验索引](../../../experiments/light-sampling/20261108-clustering-repair.json)的 `clustering_cost_independent_review`、[全叶独立复核](../../../builds/light-sampling/20261108-clustering-repair/review/flat-reference-independent.json)。
+
+- 复用[新接收点紧凑参考](../../../experiments/light-sampling/20261108-clustering-repair-reference.npz)，SHA-256 `3317ac116bc89c055528f9fb8038fb7bd791ffe27821aced8bd75a9d92167e0`；完整 ls1 [M2 原件](../../../builds/light-sampling/20261108-clustering-repair/cases/light-sampling-1/m2-1f1d84ea/)来自 fixture 提交 `6a8ec6234c93538baa648a2ddb5bb8edbdbe2afc`。
+- 本 cohort 有 10,235 盏灯；灯集合 SHA `ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631`，世界 voxel SHA `4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df`。它与旧整图 grouping-control 的遮挡快照不同；不能只凭灯键相同混用 M2／画面。
+- 主点 `left-red-pillar`：raw `(250,679)`，display `(250,400)`，1920×1080；采样 origin 约 `(158.996994,151.341949,83.529083)`，法线朝 −X，材质 `10938`。保留原中央顶面 raw `(1000,909)`、display `(1000,170)`、朝 −Y、材质 `8401` 为同场景控制。精确 origin、normal、albedo 与两窗身份以参考和 receiver audit 为准；不换回旧边缘点。
+- 现有 [mode 3 条件评估](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl)固定 `lightPdf=1`，输出线性 sRGB 的 RGB 与 `dot(RGB,RGB)`；[提取器](../../../scripts/light_sampling_point_moments.py)保留均值、M2 和完整样本数。它没有保存逐样本 reason、材质发光、灯内 PDF 的联合记录，不能从零 RGB 反推遮挡原因。
+
+### 先复用 M2，定位需要分解的灯
+
+只比较原 Prefix、最接近的 top-down `upper/flux-diagonal`（无 Kr、保留原 brick 子树）及 flat 全叶参考，固定实际 A + Near/Far PMF。复用[分层输入](../../../scripts/light_sampling_clustering_hierarchy.py)、[准则构造](../../../scripts/light_sampling_clustering_rule_screen.py)和[已有矩分解实现](../../../scripts/light_sampling_point_screening.py)，不新建通用实验框架。flat 同时改变归一化域和混合层次，仍不是最优 PDF 或单独的 AABB 消融。
+
+对每个窗口记 `mu_i=E[X_i]`、`M2_i=E[||X_i||²]`、`s_i²=M2_i-||mu_i||²`；`X_i` 是固定选中灯 i 后、除以灯内 PDF 的贡献，**不含选灯逆概率**。核对：
+
+`V(q) = sum_i(||mu_i||²/q_i) - ||sum_i(mu_i)||² + sum_i(s_i²/q_i)`。
+
+相对 Prefix 的差额为 `sum_i(M2_i*(1/q_i-1/qPrefix_i))`，分别列出均值项与灯内波动项的正、负、净差额，以及累计占比。灯内波动已经包含随机方向下的遮挡和纹理变化，不能据此直接宣布 cube sampler 有问题。保留两窗，说明有限样本下 `||mu_hat||²` 的偏差；用独立窗口交叉估计或原批次统计检查结论是否稳定，不靠截断负值掩盖误差。
+
+逐灯表至少保留完整世界键、材质、mass、三套 q、near/far 份额（flat 两半及树上关键分支，不把逐层混合误作两棵整树的 50/50 混合）、mu、M2、s²、差额及参考最优份额 `sqrt(M2_i)/sum(sqrt(M2))`。主灯既包括 flat 的三盏净增量来源，也包括上层候选的反例：
+
+| 世界键 `(x,y,z,material)` | 保留理由 |
+|---|---|
+| `(154,146,78,10254)` | flat 第一主项，原概率约 4.104% → 1.724% |
+| `(150,146,78,10254)` | flat 第二主项，约 2.280% → 1.279% |
+| `(157,145,76,682)` | flat 第三主项，约 1.297% → 0.541% |
+| `(146,153,88,682)` | 原全局／上层反例；flat 反而提高其概率，不能与上三项混为同一失败 |
+
+按两种候选各自的差额补少量必要对照：实际抢走概率的低贡献灯、同材质／相近几何的灯及负差额灯。报告选取依据和未覆盖差额；不只挑成功命中或某个材质。若现有统计足以排除某项，保留证据；其余再补缺失字段。
+
+### 缺失因素的最小配对诊断
+
+沿真实调用核对 [LightSamplingInitial](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl)、[cube 面选择与 PDF](../../../shaders/techniques/debug/LightSamplingCube.glsl)、[建树 mass](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl)、[体素表面读取](../../../shaders/techniques/voxel/SurfaceData.glsl)、[材质解码](../../../shaders/util/Material.glsl)和[体素追踪](../../../shaders/techniques/voxel/VoxelTrace.glsl)。当前 mass 是 hardcoded emissive 经曲线／倍率后的标量；实际 `surface.material.emissive` 还依赖纹理、PBR 分支、发光颜色／亮度曲线及色彩空间。区分灯源差异与红色接收面 albedo 对 RGB 方差的影响，不能把这两者都叫“发光强度”。
+
+优先从已保存字段恢复；恢复不了时，可在隔离的诊断来源中扩展现有 mode 3，不新增面向用户的设置或生产路径。只补这两个固定接收点。保留同一个随机方向／面样本，同时记录实际贡献和以下 2×2 反事实；额外诊断不得消耗或改变原评估的 RNG 序列。
+
+| 发光值 | 实际目标可见性 | 去掉中途遮挡 |
+|---|---|---|
+| 目标表面实际 RGB 发光 | 原始 X，必须与原评估核对 | 同一目标、面、UV、PDF 下的未遮挡贡献 |
+| 建树 mass 对应的恒定中性发光 | 去掉面纹理／颜色和材质亮度失配，保留遮挡 | 仅几何及当前灯内 proposal 的控制 |
+
+中性发光的 RGB 空间及统一比例必须明确，所有灯沿用原 mass，不按结果拟合逐灯尺度；接收点 albedo 保持不变。每格用自己的均值和 M2 计算相对 Prefix 的方差／差额，原 q 保持不变。反事实改变了积分目标，不能拿它与原始物理图像直接比较绝对噪声，也不能把两个因素的降幅当成可相加的因果百分比；报告交互和残差。
+
+**未遮挡目标发光必须在被挡样本上也能计算。** 使用所选目标 cube 的正确入口、法线、材质、UV 和原材质解码；不能读取第一遮挡体的发光，也不能把被挡样本的目标发光填零。用实际可见样本验证目标重建与真实命中的面／UV／发光一致。cube 几何无有效采样域仍保持原语义，不能把几何失败改成可见。若目标重建无法核实，明确缺项而不是伪造未遮挡参考。
+
+完整逐灯紧凑矩可复用现有 mode 3 的遍历；逐样本详情只需主灯和必要对照，避免全场景大转储。至少能区分无有效 cube 面／半球域、采样或 cube 入口失败、正常挡住、无命中、先命中另一发光体／目标身份不符、到达目标但实际发光为零、有效贡献，以及 trace exhausted／非有限值。记录必要的目标与实际命中、面、UV、`cosine`、面选择概率、完整灯内立体角 PDF、发光 RGB、贡献和原因。没有完整逐灯反事实时，只报告覆盖灯的差额与未解释部分，不能宣称全局方差比例。
+
+### 灯内采样的判据与有限样本边界
+
+对主灯和必要对照复核 PDF 是否包括面选择概率及面积／立体角转换，是否触发 tiny-sliver 面积 fallback、是否有非有限或失去支持。使用简单独立积分或独立参考采样检查恒定中性发光、无遮挡时的积分／PDF；这是诊断参考，不替换运行时 sampler。分别报告几何因子 `max(dot(n,w),0)/(pi*pOmega)` 的波动、实际发光变化、可见率及贡献尾部。
+
+对理想的无采样噪声灯内积分，离线把每灯 M2 换为 `||mu_i||²`，只回答灯内波动可解释多少；它不等价于实现了更好的廉价 sampler。当前 lamp-optimal PMF 仍按 `sqrt(M2)`，不能换成通量或均值份额冒充同一最优目标。高灯内方差、材质代理失配、遮挡不均和 PDF／实现错误需分别下结论；允许多个因素共存。
+
+沿用两个不重叠 32 帧窗口与原完整样本协议，保留每灯有效／缺失数和零样本。若主灯靠罕见贡献决定结论，可只对这些灯补独立样本并报告不确定性；不因零观测宣称永久不可见。trace exhausted／非有限值不可当零。先确认一份新诊断原件的字段、身份和原 X 复现，再扩大必要样本。
+
+### 输入有效性、交付与回传
+
+新采集必须核对实际 shader pack、完整源码、fixture、编译成功、场景／相机／接收点、G／渲染距离、叶灯／通量、世界 voxel、PBR／纹理与有关设置；旧文件未存的身份明确列为缺项。以原 1920×1080 固定像素协议为准。若无法恢复原遮挡／材质 cohort，在同一新快照重做本轮实际与反事实控制并重新求三套 q，单独记录；不能把新因素乘到旧 M2 上。不要悄悄换点或移动相机寻找有利结果。
+
+实验端可改必要的诊断脚本及临时采集来源，保留可复算源码／补丁／refs；普通评估和候选公式不变。新增记录放入[实验索引](../../../experiments/light-sampling/20261108-clustering-repair.json)的独立 `red_pillar_factor_diagnosis` 字段，保留旧记录及紧凑格式。原件放在[当前 run](../../../builds/light-sampling/20261108-clustering-repair/)的独立子目录，交付输入／源码哈希、完整逐灯统计、主灯配对明细、复算命令及短结论。无需新增整图、moving／ls5、性能或 BRDF-only 矩阵；本轮不是画面质量或性能验收。
+
+先回答哪项有直接证据、哪项被排除到什么范围、交互／未解释差额和下一步最小修复方向；发现真实 PDF／采样实现错误时给复现和定位，不把修复混进本轮对照。无需等待额外阶段批准即可完成上述诊断及必要补采，但不自动实施探针、响应聚类或其他新方案。
+
+实验端独占本轮共享 runtime 操作；PowerShell 7 无 profile，耗时非 benchmark 工作 Idle；如用 Pyxis，沿用昂贵执行前核对有效 priority tier 的约定。不得重启 Minecraft／launcher；无重启路径仍不可用时带已有离线结果和缺口回报。已有清理暂停及自动删除拒绝继续有效，不重试删除或换工具绕过。保留新必要原件至复查，注明路径／用途／回收条件，保护无关改动。提交前完成适用的 Target Iris 诊断编译／原评估核对及两个 diff 检查；没有 GPU 工作则明确说明。
+
+完成或遇到实质阻塞后，停止提交新 runtime 作业。恢复本轮接手时已核实的普通评估来源与配置；若不能安全恢复则明确停留状态，不将诊断当基线。核验并交还实际来源、场景、配置、冻结状态和活动任务。使用 `send_message_to_thread` 向 host=`local`、讨论 chat `01a18c0e-8678-7800-8ab8-04b69f072f12` 发送结果入口、提交／refs、原件、结论和未验范围，明确“请复查红柱因素诊断”。回传依据为本节可核对的人类授权；讨论端负责独立复查和后续路线决定。
+
 ## 聚类准则再筛（2026-11-08）
 
 本轮已完成并复查；六规则 × 两种范围及 bottom-up 两项共 14 个候选均未达共同保留门槛。全叶归一化补充诊断也已交叉复核，结果与下一步提议见[设计记录](light-sampling-design.md#新准则筛选结果与下一步边界)。以下保留执行规格；没有新的 GPU 阶段或已接受基线。
 
-用户最新要求是继续研究能同时保住红柱、顶面和 moving 侧面的聚类方案，前瞻与 K 不动。本轮从 `906982dce` 的分层复查继续，范围为**离线准则筛选与路径诊断**；不恢复旧提示词的 GPU 扩展、动态构建、运行时或默认修改。Near/Far 继续固定为 model 6，原件与清理限制照旧。
+上一轮要求是继续研究能同时保住红柱、顶面和 moving 侧面的聚类方案，前瞻与 K 不动。本轮从 `906982dce` 的分层复查继续，范围为**离线准则筛选与路径诊断**；不恢复旧提示词的 GPU 扩展、动态构建、运行时或默认修改。Near/Far 继续固定为 model 6，原件与清理限制照旧。
 
 研究假说：当前面积代价没有直接约束采样器余弦界所用的包围盒对角线；另一方面，树的空间／通量分配失衡可能使重要小簇在多层连续失去概率。这些是假说，不是已确认原因。[Lightcuts 的全方向聚类度量](https://www.cs.cornell.edu/~kb/projects/lightcuts/lightcuts.pdf)使用通量乘包围盒对角线平方，可作为尺度代价的依据；这里测试的是同类度量的 top-down 划分，不称为原论文 bottom-up 算法的复现。
 

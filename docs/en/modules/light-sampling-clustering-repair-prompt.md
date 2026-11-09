@@ -2,11 +2,84 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-clustering-repair-prompt.md)
 
+## Current task: decompose the red-pillar contribution mismatch (2026-11-08)
+
+Answer only: **why do important red-pillar lights disagree with the current geometric/flux weights, and what evidence distinguishes occlusion, actual emission, and within-light sampling?** Do not preselect a cause or require a repair candidate. This section supersedes the completed cost screen and unexecuted GPU expansion below. Do not rerun the 14 constructors, change clustering, Half-space A + Near/Far (model 6), lookahead, K, 32B nodes, or defaults, or introduce probes/receiver-response caches. Existing fixed receivers are diagnostic inputs only; their data must not enter construction.
+
+The human explicitly requested this factor diagnosis, a prompt for the experiment agent, and notification back for review, while leaving lookahead/K unchanged and deferring probes. Continue experiment chat `01a18648-f66e-78e0-8d01-cd906ca45429` and discussion chat `01a18c0e-8678-7800-8ab8-04b69f072f12`, host=`local`, retaining model and effort. This authorization covers the diagnosis, minimal necessary additional capture, and completion notification. The discussion side owns bilingual design/prompt documents; the experiment side owns diagnostics, capture, and result entries.
+
+### Starting point and evidence
+
+Use wt4 / `I:/code/mcshaders/Alpha-Piscium-4` / `2.0/light-sampling`, prepared at `024cc3366`. Inspect newer commits, uncommitted work, and shared runtime ownership before execution; do not reset to an old snapshot. Read the [current diagnostic basis](light-sampling-design.md#new-cost-results-and-the-next-boundary), `clustering_cost_independent_review` in the [experiment index](../../../experiments/light-sampling/20261108-clustering-repair.json), and the [independent flat audit](../../../builds/light-sampling/20261108-clustering-repair/review/flat-reference-independent.json).
+
+- Reuse the [new-receiver compact reference](../../../experiments/light-sampling/20261108-clustering-repair-reference.npz), SHA-256 `3317ac116bc89c055528f9fb8038fb7bd791ffe27821aced8bd75a9d92167e0`. Complete ls1 [M2 originals](../../../builds/light-sampling/20261108-clustering-repair/cases/light-sampling-1/m2-1f1d84ea/) use fixture commit `6a8ec6234c93538baa648a2ddb5bb8edbdbe2afc`.
+- This cohort has 10,235 lights, leaf SHA `ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631`, and world voxel SHA `4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df`. Its occluder snapshot differs from the older whole-image grouping-control cohort. Matching light keys alone does not permit mixing M2 or images.
+- Main receiver `left-red-pillar`: raw `(250,679)`, display `(250,400)`, 1920×1080; sampling origin approximately `(158.996994,151.341949,83.529083)`, normal toward −X, material `10938`. Retain the central ceiling at raw `(1000,909)`, display `(1000,170)`, facing −Y, material `8401`, as the same-scene control. Exact origin, normal, albedo, and both window identities come from the reference/receiver audits; do not revert to old edge points.
+- Existing [mode-3 conditional evaluation](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl) fixes `lightPdf=1` and outputs linear-sRGB RGB plus `dot(RGB,RGB)`. The [extractor](../../../scripts/light_sampling_point_moments.py) retains means, M2, and complete counts. It does not retain joint per-sample reason, material emission, and within-light PDF records; zero RGB cannot identify occlusion by itself.
+
+### First reuse M2 to identify the lights requiring explanation
+
+Compare only original Prefix, the closest top-down `upper/flux-diagonal` (no Kr, original brick subtrees preserved), and the flat reference, using their actual fixed A + Near/Far PMFs. Reuse [hierarchy inputs](../../../scripts/light_sampling_clustering_hierarchy.py), [rule construction](../../../scripts/light_sampling_clustering_rule_screen.py), and the [existing moment decomposition](../../../scripts/light_sampling_point_screening.py), without a generic experiment framework. Flat also changes normalization domains and mixing levels; it is neither the optimal PDF nor an isolated AABB ablation.
+
+For each window, define `mu_i=E[X_i]`, `M2_i=E[||X_i||²]`, and `s_i²=M2_i-||mu_i||²`. `X_i` is the contribution conditional on selecting light i, divided by the within-light PDF and **excluding inverse light-selection probability**. Check:
+
+`V(q) = sum_i(||mu_i||²/q_i) - ||sum_i(mu_i)||² + sum_i(s_i²/q_i)`.
+
+The difference from Prefix is `sum_i(M2_i*(1/q_i-1/qPrefix_i))`. Separate positive, negative, and net differences and cumulative shares for the mean and within-light variance terms. Within-light variation already includes occlusion and texture changes with random direction; it does not by itself establish a cube-sampler defect. Preserve both windows and state finite-sample bias in `||mu_hat||²`. Use independent-window cross estimates or original batch statistics to check conclusion stability rather than masking errors by clamping negative values.
+
+The per-light table must retain complete world key, material, mass, all three q values, near/far shares (flat halves and relevant tree branches, not a 50/50 mixture of two complete trees), mu, M2, s², differences, and reference-optimal share `sqrt(M2_i)/sum(sqrt(M2))`. Include the three dominant flat increments and the upper-tree counterexample:
+
+| World key `(x,y,z,material)` | Reason to retain |
+|---|---|
+| `(154,146,78,10254)` | Leading flat increment; original probability about 4.104% → 1.724% |
+| `(150,146,78,10254)` | Second flat increment; about 2.280% → 1.279% |
+| `(157,145,76,682)` | Third flat increment; about 1.297% → 0.541% |
+| `(146,153,88,682)` | Original global/upper counterexample; flat increases its probability, so it has a different role |
+
+Add only necessary controls selected from each candidate's differences: low-contribution lights receiving displaced probability, matched-material/nearby-geometry lights, and negative-difference lights. State selection rationale and uncovered differences; do not select only successful hits or one material. Retain evidence where existing statistics rule out a factor; capture only the remaining missing quantities.
+
+### Minimal paired diagnosis for missing factors
+
+Follow the real path through [LightSamplingInitial](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl), [cube face selection/PDF](../../../shaders/techniques/debug/LightSamplingCube.glsl), [construction mass](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl), [voxel surface lookup](../../../shaders/techniques/voxel/SurfaceData.glsl), [material decoding](../../../shaders/util/Material.glsl), and [voxel tracing](../../../shaders/techniques/voxel/VoxelTrace.glsl). Current mass is a scalar hardcoded emissive value with curve/multiplier; actual `surface.material.emissive` additionally depends on textures, the PBR branch, emission color/luminance curves, and color space. Distinguish emitter differences from the red receiver's albedo weighting of RGB variance, rather than calling both emission strength.
+
+Recover saved quantities first. Where impossible, extend existing mode 3 in an isolated diagnostic source without new user-facing settings or production paths. Capture only these two fixed receivers. Retain the same random direction/face sample while recording actual contribution and the following 2×2 counterfactuals; extra diagnostics must not consume or alter the original evaluator's RNG sequence.
+
+| Emission | Actual target visibility | Intermediate occlusion removed |
+|---|---|---|
+| Actual target-surface RGB emission | Original X, checked against original evaluation | Unoccluded contribution with the same target, face, UV, and PDF |
+| Constant neutral emission proportional to construction mass | Remove face texture/color and material-brightness mismatch, retain occlusion | Geometry and current within-light proposal only |
+
+Specify neutral emission's RGB space and common scale; retain each original mass without fitting per-light scales to results. Keep receiver albedo fixed. Use each cell's own mean and M2 to compute its variance/difference relative to Prefix with original q unchanged. Counterfactuals change the integration target: do not compare their absolute noise with the physical image or add factor reductions as causal percentages. Report interactions and residuals.
+
+**Unoccluded target emission must also be available for blocked samples.** Use the selected target cube's correct entry, normal, material, UV, and original material decoding. Do not use the first blocker's emission or fill blocked targets with zero emission. Verify reconstructed target faces/UV/emission against actual visible hits. Preserve original semantics when cube geometry has no valid sampling domain; geometry failures must not become visible samples. If target reconstruction cannot be verified, record the gap rather than inventing an unoccluded reference.
+
+Compact per-light moments can reuse the existing mode-3 traversal; retain detailed samples only for dominant lights and necessary controls, avoiding whole-scene dumps. Distinguish no valid cube face/hemisphere domain, sampling or cube-entry failure, ordinary blockage, no hit, another emitter hit first/target mismatch, arrival at a target with zero actual emission, valid contribution, and trace exhaustion/nonfinite results. Record the required target and actual hit, face, UV, `cosine`, face-selection probability, full within-light solid-angle PDF, emission RGB, contribution, and reason. If counterfactuals do not cover every light, report covered differences and unexplained remainder instead of claiming a global variance ratio.
+
+### Within-light sampling criteria and finite-sample limits
+
+For dominant lights and controls, verify that PDFs include face selection and area/solid-angle conversion, identify tiny-sliver area-fallback use, and check nonfinite values or lost support. Use simple independent integration or reference sampling to check constant neutral emission without occlusion and PDF normalization. This is a diagnostic reference, not a runtime sampler replacement. Separately report variation in `max(dot(n,w),0)/(pi*pOmega)`, actual emission, visibility rate, and contribution tails.
+
+For an ideal noiseless within-light integral, substitute `||mu_i||²` for per-light M2 offline only to measure how much within-light variation can explain; this does not implement a better cheap sampler. The optimum light-selection PMF for the current sampler remains proportional to `sqrt(M2)`, not flux or mean shares. Distinguish high within-light variance, material-proxy mismatch, unequal occlusion, and PDF/implementation errors; several may coexist.
+
+Retain two nonoverlapping 32-frame windows and the original complete-sample protocol, including zeros and per-light valid/missing counts. If rare contributions control a dominant light's conclusion, add independent samples only there and report uncertainty. Zero observations do not establish permanent invisibility. Trace exhaustion/nonfinite values cannot count as zero. Verify one new diagnostic artifact's fields, identities, and original-X reproduction before extending necessary samples.
+
+### Validity, delivery, and return notification
+
+For new capture, verify actual shader pack, complete source, fixture, compilation success, scene/camera/receivers, G/render distance, light keys/flux, world voxels, PBR/textures, and relevant settings. Explicitly list identity fields absent from old artifacts. Retain the original 1920×1080 fixed-pixel protocol. If the old occlusion/material cohort cannot be restored, remeasure this round's actual/counterfactual controls and recompute all three q distributions in one new snapshot, recorded separately. Do not apply new factor measurements to old M2, silently switch receivers, or move the camera to seek favorable results.
+
+The experiment side may modify necessary diagnostic scripts and temporary capture sources, retaining reproducible source/patches/refs; normal evaluation and candidate formulas stay unchanged. Append a separate `red_pillar_factor_diagnosis` field to the [experiment index](../../../experiments/light-sampling/20261108-clustering-repair.json), preserving existing records and compact formatting. Use a separate subdirectory of the [current run](../../../builds/light-sampling/20261108-clustering-repair/) for originals. Deliver input/source hashes, complete per-light statistics, paired dominant-light details, reproduction commands, and a short conclusion. No new whole-image, moving/ls5, performance, or BRDF-only matrix is required; this is not image-quality or performance acceptance.
+
+Answer which factors have direct evidence, what has been ruled out within which scope, remaining interactions/unexplained differences, and the smallest subsequent repair direction. For an actual PDF/sampling implementation defect, provide reproduction and localization without mixing its repair into these controls. No additional stage approval is needed for this diagnosis and necessary capture; do not automatically implement probes, response clustering, or another new design.
+
+The experiment side exclusively operates the shared runtime for this round. Use PowerShell 7 without a profile and Idle priority for lengthy non-benchmark work; if using Pyxis, retain the effective-priority-tier check before expensive execution. Do not restart Minecraft/the launcher. If safe non-restart recovery fails, return existing offline results and the missing evidence. Existing cleanup holds and automatic deletion rejections remain effective; do not retry deletion or bypass them with another tool. Retain necessary new originals until review, identifying paths, purpose, and release conditions, and protect unrelated work. Before committing, complete applicable Target Iris diagnostic compilation/original-evaluation checks and both diff checks; explicitly state when no GPU work occurred.
+
+On completion or a material blocker, stop submitting runtime jobs. Restore the verified normal evaluator source/configuration present at handoff; if safe restoration is unavailable, explicitly report the remaining state without presenting diagnostics as a baseline. Verify and return actual source, scene, configuration, frozen state, and active jobs. Use `send_message_to_thread` to notify discussion chat `01a18c0e-8678-7800-8ab8-04b69f072f12`, host=`local`, with result entry, commits/refs, originals, conclusions, and untested scope, explicitly requesting review of the red-pillar factor diagnosis. The return route follows the verifiable human authorization above; the discussion side owns independent review and subsequent route selection.
+
 ## Further clustering-cost screening (2026-11-08)
 
 This round is complete and reviewed: six rules × two scopes plus two bottom-up controls give 14 candidates, none passing the shared preservation gate. The additional flat-leaf diagnostic is cross-checked; see the [design record](light-sampling-design.md#new-cost-results-and-the-next-boundary) for results and the next proposal. The specification remains for provenance, without a new GPU phase or accepted baseline.
 
-The latest request is to investigate clustering that preserves the red pillar, ceiling, and moving side faces, leaving lookahead and K unchanged. Continue from the layer review at `906982dce`, limited to **offline cost screening and path diagnosis**. Do not resume earlier GPU expansion, dynamic construction, runtime, or default changes. Keep model 6 Near/Far and existing artifact/cleanup restrictions.
+The previous request was to investigate clustering that preserves the red pillar, ceiling, and moving side faces, leaving lookahead and K unchanged. Continue from the layer review at `906982dce`, limited to **offline cost screening and path diagnosis**. Do not resume earlier GPU expansion, dynamic construction, runtime, or default changes. Keep model 6 Near/Far and existing artifact/cleanup restrictions.
 
 Hypotheses: area cost does not directly constrain the box diagonal used by the sampler's cosine bound; spatial or flux imbalance may also suppress important small clusters through successive levels. Neither is yet an established cause. [Lightcuts' omnidirectional cluster metric](https://www.cs.cornell.edu/~kb/projects/lightcuts/lightcuts.pdf) uses flux times squared box diagonal. This test uses a related top-down partition cost, not a reproduction of its bottom-up construction.
 
