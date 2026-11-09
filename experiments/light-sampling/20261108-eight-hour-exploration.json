@@ -5483,12 +5483,12 @@
         "closure": "Two non-overlapping native seed cohorts and ordinary UV timing complete. One-spp visual comparison split into a two-method job after the first three-method reservation was rejected."
       },
       "far_silhouette_plane": {
-        "state": "pending_gpu",
-        "closure": "Native selected-event/PDF check completed. Same-context reverse timing closes the costly LS3 image result."
+        "state": "closed_mean_cap_failed",
+        "closure": "Matched LS3 initial quality screen 2.246 mean, reverse mean 2.479, effectively unchanged whole-image tail V. Numerical boundary repair separately passes native checks."
       },
       "far_entry_faces": {
-        "state": "pending_gpu",
-        "closure": "Pre-freeze cheaper isolated follow-up. Confirm native sampled PDFs and event counts, then one matched LS3 quality and timed comparison."
+        "state": "closed_mean_cap_failed",
+        "closure": "Native far support/PDF check passes. Camera ABBA mean 1.359, both adjacent median pairs above 1.33, and two LS3 quality windows have slightly higher whole-image tail V."
       },
       "directional_8b": {
         "state": "pending_gpu",
@@ -6124,7 +6124,38 @@
         1.0070024656751446,
         1.0045349169224642
       ],
-      "scope": "First same-input LS3 screen. Native PDF and boundary audit passed separately."
+      "scope": "First same-input LS3 screen. Native PDF and boundary audit passed separately.",
+      "qualified_reverse": {
+        "quality": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-3-camera-far-fixed-fov-far-plane-fixed-fov.json",
+          "sha256": "d4dccb070f8cfa2f792cd636226f7bef7bc31be89fdc1ecbecd8cedbcbe475f6"
+        },
+        "timing": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-3/ls3-far-silhouette-correct-baab/accepted.json",
+          "sha256": "c87bd44a227afd2d393eb1d7f3b59f42ac8e4ed502378de72a6da49f30cf6f6d"
+        },
+        "timing_job": "2bcd999a-6522-44aa-afcd-4f26f67a3c7c",
+        "mean_pass_ratio": 2.4787504966335816,
+        "mean_pass_cap": false,
+        "emitted_uv_bracket_match": true,
+        "pixels": 1987457,
+        "baseline_tail_v": [
+          0.5717246446531258,
+          0.5742987244264812
+        ],
+        "candidate_tail_v": [
+          0.5757281268529435,
+          0.5769031214304325
+        ],
+        "ratio_v": [
+          1.0070024656751446,
+          1.0045349169224642
+        ],
+        "ratio_vt": [
+          2.4961078619035058,
+          2.4899914242073318
+        ]
+      }
     },
     "far_entry_faces": {
       "source": "661cf8539f612fa00de9ba3be633c3e6ddda628c",
@@ -6133,7 +6164,62 @@
         "path": "builds/light-sampling/20261108-eight-hour-exploration/far-entry-faces-glsl-smoke.json",
         "sha256": "970a5fcafdc4bc332eff673cff3376e7cc81e2d925b5a80ffd5249cd8218459a"
       },
-      "scope": "The far eligibility matches the silhouette trial. The entry-face mixture has conditional solid-angle density r^3 / sum(A_i * d_i). Native geometry and quality qualification are pending."
+      "scope": "Native entry-face PDF and full-frame far event counters pass. Two LS3 windows are essentially unchanged in whole-image tail V. Paired Camera mean raygen cost exceeds 1.25 in ABBA, and the image-capture timing agrees in direction.",
+      "qualified_native": {
+        "quality": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-3-camera-ls3-entry-far-entry-faces-ls3.json",
+          "sha256": "fd2de3eb58b18f222a41eebce792b7ec4d5b0eaf06434e226e682f9800efce44"
+        },
+        "timing": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-3/ls3-far-entry-faces-abba/accepted.json",
+          "sha256": "2083cd116a6ca84c49ad5469813c6b570ceff991c9cc07be7ac53db73d55cbbb"
+        },
+        "timing_job": "ea6efb7b-cb0a-46ff-95b2-42463e7479bd",
+        "mean_pass_ratio": 1.3593229881642206,
+        "mean_pass_cap": false,
+        "emitted_uv_bracket_match": true,
+        "pixels": 1987468,
+        "baseline_tail_v": [
+          0.5716091950617396,
+          0.5727546476502416
+        ],
+        "candidate_tail_v": [
+          0.5736620627417957,
+          0.5762349416914061
+        ],
+        "ratio_v": [
+          1.0035913832348942,
+          1.0060764134441205
+        ],
+        "ratio_vt": [
+          1.3642048379547198,
+          1.3675827966444036
+        ]
+      },
+      "native_pdf": {
+        "evidence": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ls3-far-entry-faces-native-pdf.json",
+          "sha256": "96831b30368a79e3007350b7d77cc759691eb695ae83bf5689f2f0641083c256"
+        },
+        "counts": {
+          "far_bad_pdf": 0,
+          "far_slab_miss": 0,
+          "legacy_bad_pdf": 0,
+          "legacy_slab_miss": 10,
+          "far_selected": 1375598,
+          "receiver_evaluations": 1987468
+        },
+        "selected_pdf_check": {
+          "far_plane": {
+            "samples": 40,
+            "max_relative_pdf_error": 2.591937435791891e-07
+          },
+          "legacy": {
+            "samples": 19,
+            "max_relative_pdf_error": 0.00032046301753152484
+          }
+        }
+      }
     },
     "ls5_fixed_uv": {
       "source_buffer": "cases/light-sampling-5/camera-gate-fixed-fov/before_face-uv.bin",
@@ -6602,6 +6688,20 @@
             ]
           }
         }
+      },
+      "independent_reviews": {
+        "independent-ls5-gate-paired-review": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-ls5-gate-paired-review.json",
+          "sha256": "6a10ad2e3afaca0a3ad42727ecddbab632e5e9b94d8a894fb87b277d0250073f"
+        },
+        "independent-fixed-uv-gate-atlas-review": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-fixed-uv-gate-atlas-review.json",
+          "sha256": "e3302be294b0bd3763dfb477150c6cb737c45cb2869326e28cb191fb16e9ceb6"
+        }
+      },
+      "coarse_gate_native_pdf": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-coarse-gate-native-pdf.json",
+        "sha256": "1e6f31a5278b53cdb7286071c8e3e6bb386659c05f3d3abafcee68810f5c4943"
       }
     },
     "ward_k2": {
