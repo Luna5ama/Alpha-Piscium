@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "offline_screen_complete",
+  "status": "offline_screen_and_ls5_frozen_prototype_verified",
   "offline_screen": {
     "scope": "Conditional RGB M2 on captured receivers and inputs, with no brightness cutoff. Candidate uses no receiver or moments.",
     "source": {
@@ -4239,6 +4239,1188 @@
       "The ls1 conditional reference has world voxel hash 4dfca2b6 and cannot stand in for grouping-control ls1 with hash 023bcd36.",
       "The 20 point-windows include repeated receivers. Counts describe the screen and are not independent votes or full-image predictions.",
       "The candidate topology is CPU-only at this stage. Input-order invariance was tested using a canonical world sort and deterministic permutation."
+    ],
+    "trace_reference": "Conditional share of the globally optimal leaf PMF proportional to sqrt(M2)."
+  },
+  "perturbation": {
+    "scope": "Offline diagnostic: add the retained 6314 new ls1 lights at unchanged common-light keys and flux. This is legal input perturbation, not camera motion.",
+    "common": 3921,
+    "added": 6314,
+    "old_fixture_sha256": "c4c6f86c3cb050ee614846e1a94e55ee6ae7e634a5cf80917f263cddf63c1f56",
+    "old_topology": "f34a68d163df327d76a9bd5a548ce4092bfd25151ef32dfb1e2fb5bb6116ba7c",
+    "pruned_new_topology": "fd404a16f6dc58470927123f6d9fcc9bea26c6baa34b906a9bf6f79088bad733",
+    "unordered_old_topology": "22f38c82e2443a1e320199d61987d7e24eaf923bed492b71db8171ffa30964e6",
+    "unordered_pruned_new_topology": "1d2742ea84fbd8f6fdc71213dd68d441edfa814fc6baa6419f4fe4b47cda8d0b",
+    "receivers": [
+      {
+        "point": "ls1-pillar",
+        "before_null": 0.0,
+        "after_null": 0.0,
+        "probability_on_new_lights": 0.607827424600663,
+        "unconditional_total_variation": 0.6936473465506101,
+        "conditional_common_total_variation": 0.37529804497434993,
+        "common_support_changes": 0,
+        "permuted_input_pmf_bit_identical": true
+      },
+      {
+        "point": "ls1-wall",
+        "before_null": 0.0,
+        "after_null": 0.0,
+        "probability_on_new_lights": 0.6040944261275695,
+        "unconditional_total_variation": 0.6207720956596365,
+        "conditional_common_total_variation": 0.296266035162432,
+        "common_support_changes": 0,
+        "permuted_input_pmf_bit_identical": true
+      }
     ]
+  },
+  "nearfar_abba": [
+    {
+      "scene": 1,
+      "job": "4018aac8-8d2a-4d60-90b9-a059cea55e4f",
+      "manifest_id": "aefd354c-9b34-3abd-a95b-8413239e62ee",
+      "manifest_sha256": "82fe6f38900ef8d32782d33a308abec6967e395411ac2dc7926557dd90081fff",
+      "directory": "builds/light-sampling/20261108-clustering-repair/timing/ls1-4018aac8",
+      "identity": {
+        "emitters": 10235,
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+        "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+      },
+      "frames": 128,
+      "warmup_frames": 128,
+      "order": [
+        "a1",
+        "b1",
+        "b2",
+        "a2"
+      ],
+      "cases": {
+        "a1": {
+          "initial": {
+            "passes": [
+              "composite41_compute"
+            ],
+            "mean_ms": 7.306752,
+            "p50_ms": 7.304192,
+            "p95_ms": 7.336601600000001,
+            "min_ms": 7.276544,
+            "max_ms": 7.364608
+          },
+          "build": {
+            "passes": [
+              "prepare6_compute",
+              "prepare7_compute",
+              "prepare8_compute",
+              "prepare9_compute",
+              "prepare10_compute",
+              "prepare11_compute",
+              "prepare12_compute",
+              "prepare13_compute",
+              "prepare26_compute"
+            ],
+            "mean_ms": 0.32649599999999995,
+            "p50_ms": 0.32665599999999995,
+            "p95_ms": 0.32972799999999997,
+            "min_ms": 0.32256,
+            "max_ms": 0.33075200000000005
+          },
+          "shared_voxel_build": {
+            "passes": [
+              "prepare2_compute"
+            ],
+            "mean_ms": 0.181936,
+            "p50_ms": 0.181248,
+            "p95_ms": 0.1860096,
+            "min_ms": 0.178176,
+            "max_ms": 0.190464
+          },
+          "shared_voxel_propagate": {
+            "passes": [
+              "prepare3_compute"
+            ],
+            "mean_ms": 0.013191999999999997,
+            "p50_ms": 0.013312,
+            "p95_ms": 0.013977599999999991,
+            "min_ms": 0.012288,
+            "max_ms": 0.016384
+          },
+          "sentinel_voxel_allocator": {
+            "passes": [
+              "begin11_compute"
+            ],
+            "mean_ms": 0.019032,
+            "p50_ms": 0.019456,
+            "p95_ms": 0.019456,
+            "min_ms": 0.018432,
+            "max_ms": 0.02048
+          }
+        },
+        "b1": {
+          "initial": {
+            "passes": [
+              "composite41_compute"
+            ],
+            "mean_ms": 7.513496,
+            "p50_ms": 7.512575999999999,
+            "p95_ms": 7.535616,
+            "min_ms": 7.479296,
+            "max_ms": 7.548928
+          },
+          "build": {
+            "passes": [
+              "prepare6_compute",
+              "prepare7_compute",
+              "prepare8_compute",
+              "prepare9_compute",
+              "prepare10_compute",
+              "prepare11_compute",
+              "prepare12_compute",
+              "prepare13_compute",
+              "prepare26_compute"
+            ],
+            "mean_ms": 0.32643999999999995,
+            "p50_ms": 0.32665599999999995,
+            "p95_ms": 0.3293696,
+            "min_ms": 0.32256,
+            "max_ms": 0.33075199999999993
+          },
+          "shared_voxel_build": {
+            "passes": [
+              "prepare2_compute"
+            ],
+            "mean_ms": 0.18216,
+            "p50_ms": 0.182272,
+            "p95_ms": 0.185344,
+            "min_ms": 0.178176,
+            "max_ms": 0.190464
+          },
+          "shared_voxel_propagate": {
+            "passes": [
+              "prepare3_compute"
+            ],
+            "mean_ms": 0.013127999999999997,
+            "p50_ms": 0.013312,
+            "p95_ms": 0.013312,
+            "min_ms": 0.012288,
+            "max_ms": 0.01536
+          },
+          "sentinel_voxel_allocator": {
+            "passes": [
+              "begin11_compute"
+            ],
+            "mean_ms": 0.019048000000000002,
+            "p50_ms": 0.018432,
+            "p95_ms": 0.019456,
+            "min_ms": 0.018432,
+            "max_ms": 0.032768
+          }
+        },
+        "b2": {
+          "initial": {
+            "passes": [
+              "composite41_compute"
+            ],
+            "mean_ms": 7.5142560000000005,
+            "p50_ms": 7.514112,
+            "p95_ms": 7.536281600000001,
+            "min_ms": 7.484416,
+            "max_ms": 7.554048
+          },
+          "build": {
+            "passes": [
+              "prepare6_compute",
+              "prepare7_compute",
+              "prepare8_compute",
+              "prepare9_compute",
+              "prepare10_compute",
+              "prepare11_compute",
+              "prepare12_compute",
+              "prepare13_compute",
+              "prepare26_compute"
+            ],
+            "mean_ms": 0.32682399999999995,
+            "p50_ms": 0.32665599999999995,
+            "p95_ms": 0.32972799999999997,
+            "min_ms": 0.32256,
+            "max_ms": 0.33177599999999996
+          },
+          "shared_voxel_build": {
+            "passes": [
+              "prepare2_compute"
+            ],
+            "mean_ms": 0.181984,
+            "p50_ms": 0.181248,
+            "p95_ms": 0.185344,
+            "min_ms": 0.178176,
+            "max_ms": 0.2048
+          },
+          "shared_voxel_propagate": {
+            "passes": [
+              "prepare3_compute"
+            ],
+            "mean_ms": 0.013031999999999998,
+            "p50_ms": 0.013312,
+            "p95_ms": 0.013312,
+            "min_ms": 0.012288,
+            "max_ms": 0.01536
+          },
+          "sentinel_voxel_allocator": {
+            "passes": [
+              "begin11_compute"
+            ],
+            "mean_ms": 0.018968000000000002,
+            "p50_ms": 0.019456,
+            "p95_ms": 0.019456,
+            "min_ms": 0.018432,
+            "max_ms": 0.02048
+          }
+        },
+        "a2": {
+          "initial": {
+            "passes": [
+              "composite41_compute"
+            ],
+            "mean_ms": 7.306096,
+            "p50_ms": 7.303168,
+            "p95_ms": 7.339264,
+            "min_ms": 7.271424,
+            "max_ms": 7.359488
+          },
+          "build": {
+            "passes": [
+              "prepare6_compute",
+              "prepare7_compute",
+              "prepare8_compute",
+              "prepare9_compute",
+              "prepare10_compute",
+              "prepare11_compute",
+              "prepare12_compute",
+              "prepare13_compute",
+              "prepare26_compute"
+            ],
+            "mean_ms": 0.32679199999999997,
+            "p50_ms": 0.32665599999999995,
+            "p95_ms": 0.32972799999999997,
+            "min_ms": 0.323584,
+            "max_ms": 0.3328
+          },
+          "shared_voxel_build": {
+            "passes": [
+              "prepare2_compute"
+            ],
+            "mean_ms": 0.18164799999999998,
+            "p50_ms": 0.181248,
+            "p95_ms": 0.18432,
+            "min_ms": 0.178176,
+            "max_ms": 0.188416
+          },
+          "shared_voxel_propagate": {
+            "passes": [
+              "prepare3_compute"
+            ],
+            "mean_ms": 0.013095999999999997,
+            "p50_ms": 0.013312,
+            "p95_ms": 0.013312,
+            "min_ms": 0.012288,
+            "max_ms": 0.017408
+          },
+          "sentinel_voxel_allocator": {
+            "passes": [
+              "begin11_compute"
+            ],
+            "mean_ms": 0.018864000000000002,
+            "p50_ms": 0.018432,
+            "p95_ms": 0.019456,
+            "min_ms": 0.018432,
+            "max_ms": 0.02048
+          }
+        }
+      },
+      "stats": {
+        "initial": {
+          "a_ms": 7.306424,
+          "b_ms": 7.513876,
+          "b_minus_a_ms": 0.20745199999999997,
+          "b_over_a": 1.0283930962670658,
+          "ab_percent": 2.829492502277331,
+          "ba_percent": 2.849127632596127,
+          "a_late_over_early": 0.9999102200266274,
+          "b_late_over_early": 1.0001011513149138
+        },
+        "build": {
+          "a_ms": 0.32664399999999993,
+          "b_ms": 0.3266319999999999,
+          "b_minus_a_ms": -1.2000000000012001e-05,
+          "b_over_a": 0.9999632627570076,
+          "ab_percent": -0.017151818092719928,
+          "ba_percent": 0.009792161374821973,
+          "a_late_over_early": 1.0009065960991865,
+          "b_late_over_early": 1.0011763264305844
+        },
+        "shared_voxel_build": {
+          "a_ms": 0.18179199999999998,
+          "b_ms": 0.182072,
+          "b_minus_a_ms": 0.0002800000000000302,
+          "b_over_a": 1.0015402217919382,
+          "ab_percent": 0.12312021809868234,
+          "ba_percent": 0.18497313485423827,
+          "a_late_over_early": 0.9984170257673027,
+          "b_late_over_early": 0.9990338164251209
+        },
+        "shared_voxel_propagate": {
+          "a_ms": 0.013143999999999996,
+          "b_ms": 0.013079999999999998,
+          "b_minus_a_ms": -6.399999999999809e-05,
+          "b_over_a": 0.9951308581862448,
+          "ab_percent": -0.4851425106124907,
+          "ba_percent": -0.4886988393402403,
+          "a_late_over_early": 0.9927228623408125,
+          "b_late_over_early": 0.9926873857404023
+        },
+        "sentinel_voxel_allocator": {
+          "a_ms": 0.018948,
+          "b_ms": 0.019008000000000004,
+          "b_minus_a_ms": 6.0000000000004494e-05,
+          "b_over_a": 1.0031665611146297,
+          "ab_percent": 0.0840689365279701,
+          "ba_percent": 0.5513146734520857,
+          "a_late_over_early": 0.991172761664565,
+          "b_late_over_early": 0.99580008399832
+        }
+      },
+      "scope": "GPU stage times, unaltered clocks. Initial includes proposal, cube sampling and tracing. Tree build is sum of all nine active stages per frame."
+    },
+    {
+      "scene": 5,
+      "job": "b21a35eb-248d-4676-a11b-f0e22c28aecd",
+      "manifest_id": "f1147ff5-5aeb-373d-b621-6d431a25821a",
+      "manifest_sha256": "862b0546d690a300dc5830731076e0f35429777c8eac6a80646d3824317f0bb7",
+      "directory": "builds/light-sampling/20261108-clustering-repair/timing/ls5-b21a35eb",
+      "identity": {
+        "emitters": 2172,
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      },
+      "frames": 128,
+      "warmup_frames": 128,
+      "order": [
+        "a1",
+        "b1",
+        "b2",
+        "a2"
+      ],
+      "cases": {
+        "a1": {
+          "initial": {
+            "passes": [
+              "composite41_compute"
+            ],
+            "mean_ms": 3.077528,
+            "p50_ms": 3.07712,
+            "p95_ms": 3.08224,
+            "min_ms": 3.067904,
+            "max_ms": 3.085312
+          },
+          "build": {
+            "passes": [
+              "prepare6_compute",
+              "prepare7_compute",
+              "prepare8_compute",
+              "prepare9_compute",
+              "prepare10_compute",
+              "prepare11_compute",
+              "prepare12_compute",
+              "prepare13_compute",
+              "prepare26_compute"
+            ],
+            "mean_ms": 0.19183200000000003,
+            "p50_ms": 0.19148800000000002,
+            "p95_ms": 0.195584,
+            "min_ms": 0.18841600000000003,
+            "max_ms": 0.19865600000000003
+          },
+          "shared_voxel_build": {
+            "passes": [
+              "prepare2_compute"
+            ],
+            "mean_ms": 0.14664,
+            "p50_ms": 0.147456,
+            "p95_ms": 0.149504,
+            "min_ms": 0.141312,
+            "max_ms": 0.151552
+          },
+          "shared_voxel_propagate": {
+            "passes": [
+              "prepare3_compute"
+            ],
+            "mean_ms": 0.012975999999999996,
+            "p50_ms": 0.013312,
+            "p95_ms": 0.013312,
+            "min_ms": 0.012288,
+            "max_ms": 0.014336
+          },
+          "sentinel_voxel_allocator": {
+            "passes": [
+              "begin11_compute"
+            ],
+            "mean_ms": 0.017864,
+            "p50_ms": 0.017408,
+            "p95_ms": 0.018432,
+            "min_ms": 0.017408,
+            "max_ms": 0.02048
+          }
+        },
+        "b1": {
+          "initial": {
+            "passes": [
+              "composite41_compute"
+            ],
+            "mean_ms": 3.6321120000000002,
+            "p50_ms": 3.632128,
+            "p95_ms": 3.6389375999999998,
+            "min_ms": 3.622912,
+            "max_ms": 3.641344
+          },
+          "build": {
+            "passes": [
+              "prepare6_compute",
+              "prepare7_compute",
+              "prepare8_compute",
+              "prepare9_compute",
+              "prepare10_compute",
+              "prepare11_compute",
+              "prepare12_compute",
+              "prepare13_compute",
+              "prepare26_compute"
+            ],
+            "mean_ms": 0.19159200000000004,
+            "p50_ms": 0.19148800000000002,
+            "p95_ms": 0.19456,
+            "min_ms": 0.18739200000000003,
+            "max_ms": 0.196608
+          },
+          "shared_voxel_build": {
+            "passes": [
+              "prepare2_compute"
+            ],
+            "mean_ms": 0.14764,
+            "p50_ms": 0.147456,
+            "p95_ms": 0.149504,
+            "min_ms": 0.141312,
+            "max_ms": 0.150528
+          },
+          "shared_voxel_propagate": {
+            "passes": [
+              "prepare3_compute"
+            ],
+            "mean_ms": 0.012991999999999998,
+            "p50_ms": 0.013312,
+            "p95_ms": 0.013312,
+            "min_ms": 0.012288,
+            "max_ms": 0.014336
+          },
+          "sentinel_voxel_allocator": {
+            "passes": [
+              "begin11_compute"
+            ],
+            "mean_ms": 0.018015999999999997,
+            "p50_ms": 0.018432,
+            "p95_ms": 0.018432,
+            "min_ms": 0.017408,
+            "max_ms": 0.022528
+          }
+        },
+        "b2": {
+          "initial": {
+            "passes": [
+              "composite41_compute"
+            ],
+            "mean_ms": 3.6319120000000003,
+            "p50_ms": 3.631104,
+            "p95_ms": 3.638272,
+            "min_ms": 3.623936,
+            "max_ms": 3.64032
+          },
+          "build": {
+            "passes": [
+              "prepare6_compute",
+              "prepare7_compute",
+              "prepare8_compute",
+              "prepare9_compute",
+              "prepare10_compute",
+              "prepare11_compute",
+              "prepare12_compute",
+              "prepare13_compute",
+              "prepare26_compute"
+            ],
+            "mean_ms": 0.19159200000000004,
+            "p50_ms": 0.19148800000000002,
+            "p95_ms": 0.19456,
+            "min_ms": 0.18739200000000003,
+            "max_ms": 0.19456
+          },
+          "shared_voxel_build": {
+            "passes": [
+              "prepare2_compute"
+            ],
+            "mean_ms": 0.147896,
+            "p50_ms": 0.147968,
+            "p95_ms": 0.149504,
+            "min_ms": 0.14336,
+            "max_ms": 0.150528
+          },
+          "shared_voxel_propagate": {
+            "passes": [
+              "prepare3_compute"
+            ],
+            "mean_ms": 0.012975999999999998,
+            "p50_ms": 0.013312,
+            "p95_ms": 0.013977599999999991,
+            "min_ms": 0.012288,
+            "max_ms": 0.014336
+          },
+          "sentinel_voxel_allocator": {
+            "passes": [
+              "begin11_compute"
+            ],
+            "mean_ms": 0.017904,
+            "p50_ms": 0.017408,
+            "p95_ms": 0.018432,
+            "min_ms": 0.017408,
+            "max_ms": 0.019456
+          }
+        },
+        "a2": {
+          "initial": {
+            "passes": [
+              "composite41_compute"
+            ],
+            "mean_ms": 3.077568,
+            "p50_ms": 3.078144,
+            "p95_ms": 3.08224,
+            "min_ms": 3.068928,
+            "max_ms": 3.084288
+          },
+          "build": {
+            "passes": [
+              "prepare6_compute",
+              "prepare7_compute",
+              "prepare8_compute",
+              "prepare9_compute",
+              "prepare10_compute",
+              "prepare11_compute",
+              "prepare12_compute",
+              "prepare13_compute",
+              "prepare26_compute"
+            ],
+            "mean_ms": 0.192552,
+            "p50_ms": 0.19251200000000002,
+            "p95_ms": 0.19558400000000004,
+            "min_ms": 0.18944000000000003,
+            "max_ms": 0.200704
+          },
+          "shared_voxel_build": {
+            "passes": [
+              "prepare2_compute"
+            ],
+            "mean_ms": 0.14712800000000004,
+            "p50_ms": 0.147456,
+            "p95_ms": 0.149504,
+            "min_ms": 0.142336,
+            "max_ms": 0.152576
+          },
+          "shared_voxel_propagate": {
+            "passes": [
+              "prepare3_compute"
+            ],
+            "mean_ms": 0.012967999999999997,
+            "p50_ms": 0.013312,
+            "p95_ms": 0.013312,
+            "min_ms": 0.012288,
+            "max_ms": 0.016384
+          },
+          "sentinel_voxel_allocator": {
+            "passes": [
+              "begin11_compute"
+            ],
+            "mean_ms": 0.017960000000000004,
+            "p50_ms": 0.01792,
+            "p95_ms": 0.018432,
+            "min_ms": 0.017408,
+            "max_ms": 0.022528
+          }
+        }
+      },
+      "stats": {
+        "initial": {
+          "a_ms": 3.077548,
+          "b_ms": 3.6320120000000005,
+          "b_minus_a_ms": 0.5544640000000003,
+          "b_over_a": 1.1801642086492234,
+          "ab_percent": 18.02043718205002,
+          "ba_percent": 18.012404599995847,
+          "a_late_over_early": 1.0000129974447023,
+          "b_late_over_early": 0.9999449356187254
+        },
+        "build": {
+          "a_ms": 0.19219200000000003,
+          "b_ms": 0.19159200000000004,
+          "b_minus_a_ms": -0.0005999999999999894,
+          "b_over_a": 0.996878121878122,
+          "ab_percent": -0.12510947078693269,
+          "ba_percent": -0.49856662096470217,
+          "a_late_over_early": 1.003753284123608,
+          "b_late_over_early": 1.0
+        },
+        "shared_voxel_build": {
+          "a_ms": 0.14688400000000001,
+          "b_ms": 0.147768,
+          "b_minus_a_ms": 0.0008839999999999959,
+          "b_over_a": 1.0060183546199721,
+          "ab_percent": 0.6819421713038842,
+          "ba_percent": 0.5219944538088939,
+          "a_late_over_early": 1.003327877795963,
+          "b_late_over_early": 1.0017339474397182
+        },
+        "shared_voxel_propagate": {
+          "a_ms": 0.012971999999999997,
+          "b_ms": 0.012983999999999999,
+          "b_minus_a_ms": 1.2000000000001593e-05,
+          "b_over_a": 1.0009250693802036,
+          "ab_percent": 0.12330456226881115,
+          "ba_percent": 0.06169031462062158,
+          "a_late_over_early": 0.999383477188656,
+          "b_late_over_early": 0.9987684729064039
+        },
+        "sentinel_voxel_allocator": {
+          "a_ms": 0.017912000000000004,
+          "b_ms": 0.017959999999999997,
+          "b_minus_a_ms": 4.799999999999249e-05,
+          "b_over_a": 1.002679767753461,
+          "ab_percent": 0.8508732646663519,
+          "ba_percent": -0.3118040089087115,
+          "a_late_over_early": 1.0053739364084193,
+          "b_late_over_early": 0.9937833037300179
+        }
+      },
+      "scope": "GPU stage times, unaltered clocks. Initial includes proposal, cube sampling and tracing. Tree build is sum of all nine active stages per frame."
+    }
+  ],
+  "nearfar_ls5_quality": {
+    "whole_scene": {
+      "common_receivers": 2066956,
+      "common_complete": 2066956,
+      "excluded_incomplete": 0,
+      "methods": {
+        "Prefix A": {
+          "complete_receivers": 2066956,
+          "missing_from_common_receivers": 0,
+          "missing_rgb_samples_on_common_receivers": 0.0,
+          "zero_direct_common": 1422758,
+          "mean_rgb": [
+            0.011028765103690422,
+            0.006945242459042775,
+            0.002157154423502548
+          ],
+          "variance_rgb_sum": 0.09305445022955038,
+          "variance_ratio_to_prefix_a": 1.0
+        },
+        "Prefix A + Near/Far": {
+          "complete_receivers": 2066956,
+          "missing_from_common_receivers": 0,
+          "missing_rgb_samples_on_common_receivers": 0.0,
+          "zero_direct_common": 1089509,
+          "mean_rgb": [
+            0.010989598849148024,
+            0.006897709427420208,
+            0.0021305569895621332
+          ],
+          "variance_rgb_sum": 0.02406765460304082,
+          "variance_ratio_to_prefix_a": 0.25864055446751644,
+          "variance_ratio_to_off": 0.25864055446751644
+        }
+      }
+    },
+    "reviewed-vertical-face": {
+      "common_receivers": 81,
+      "common_complete": 81,
+      "excluded_incomplete": 0,
+      "methods": {
+        "Prefix A": {
+          "complete_receivers": 81,
+          "missing_from_common_receivers": 0,
+          "missing_rgb_samples_on_common_receivers": 0.0,
+          "zero_direct_common": 49,
+          "mean_rgb": [
+            0.011167123494094905,
+            0.005814818111065068,
+            0.0013117616104516205
+          ],
+          "variance_rgb_sum": 0.03291743833955766,
+          "variance_ratio_to_prefix_a": 1.0
+        },
+        "Prefix A + Near/Far": {
+          "complete_receivers": 81,
+          "missing_from_common_receivers": 0,
+          "missing_rgb_samples_on_common_receivers": 0.0,
+          "zero_direct_common": 13,
+          "mean_rgb": [
+            0.013473240636723161,
+            0.007742511143055989,
+            0.0020725124196707087
+          ],
+          "variance_rgb_sum": 0.01347140577863655,
+          "variance_ratio_to_prefix_a": 0.40924830297160897,
+          "variance_ratio_to_off": 0.40924830297160897
+        }
+      }
+    }
+  },
+  "frozen_prototype": {
+    "revision": "52025a87725d606cfb44177e7b6e0ce9d98a46ab",
+    "ref": "experiment/light-sampling-clustering-frozen",
+    "fixture_revision": "6a8ec6234c93538baa648a2ddb5bb8edbdbe2afc",
+    "fixture_ref": "experiment/light-sampling-clustering-m2",
+    "mode": "CPU-baked native 32-byte quaternary node table. Retained voxel extraction and lower build stages, replaces root finish with guarded atlas-to-SSBO copy; no dynamic clustering.",
+    "atlas": {
+      "width": 2048,
+      "height": 26,
+      "bytes": 851968,
+      "sha256": "aa3522d8ec38eab010885dd18eb67e7182616355515fb81367d5774e8395a8b8",
+      "trees": [
+        {
+          "scene_slot": 1,
+          "input": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-1/pair-7323686a/prefix/tree.bin",
+          "input_sha256": "014b7e24c71963032a32271c8c491710288a2c15121a260167b79cc37fc58435",
+          "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+          "native_tree_sha256": "34286c6cb34298abcdf541e9fb6e1c0f9ca744bc78d6789a30a3e4f29f3fcc41",
+          "semantic_topology_sha256": "59fea38b09d9e76c99ace4db6a04747bdf5806d5a342f4aad11d870e595c5db4",
+          "stats": {
+            "leaves": 10235,
+            "nodes": 15424,
+            "depth": 10,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 493600,
+            "cross_brick_internal": 1213,
+            "area_weighted_mass": 3010148526.662467
+          },
+          "cpu_seconds": 1.3209060999797657
+        },
+        {
+          "scene_slot": 5,
+          "input": "builds/light-sampling/20261108-nearfar-combination/cases/light-sampling-5/prefix-nearfar/tree.bin",
+          "input_sha256": "c1343c1d0d6b3fb7d1c6df26a7e67130f202020b7eea86efcf782d3f57a68d07",
+          "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+          "native_tree_sha256": "52e55536832fa7f72fff4af2f10dc34c687b85a99acee1aa59907710d56be5ca",
+          "semantic_topology_sha256": "185cdbff80e219f1a9eb19456164fbef19065ea1e3fa59abcc05f2ba060b1d13",
+          "stats": {
+            "leaves": 2172,
+            "nodes": 3195,
+            "depth": 8,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 102272,
+            "cross_brick_internal": 205,
+            "area_weighted_mass": 493577322.25608474
+          },
+          "cpu_seconds": 0.2554873999906704
+        },
+        {
+          "scene_slot": 6,
+          "input": "builds/light-sampling/20261108-nearfar-combination/cases/light-sampling-failure-moving-4/prefix-nearfar/tree.bin",
+          "input_sha256": "fe53b1996aa2d28db9fb077bc7ee26ecb306a8fcecd1c22833e77b3c4126592e",
+          "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+          "native_tree_sha256": "35599b022828be50088ae42f87802252079b27c534f4521eda39c7ade7e5fa61",
+          "semantic_topology_sha256": "42fcbc2490ae33bfcf784a4d3681b231ba27416ef71934adc8780f1aed23999d",
+          "stats": {
+            "leaves": 4243,
+            "nodes": 6334,
+            "depth": 9,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 202720,
+            "cross_brick_internal": 619,
+            "area_weighted_mass": 1457763998.367775
+          },
+          "cpu_seconds": 0.5488660000264645
+        }
+      ]
+    },
+    "ls5_cost": {
+      "job": "e6610552-2591-4e54-96ad-d3b6ad73d61d",
+      "manifest_id": "7a139c82-652f-30d1-9665-cffb7163dfe2",
+      "manifest_sha256": "99c47d6e2c59b63b42095db5e5c5591374732123a8dfdd8622f1f8efaf44dfd4",
+      "metrics": {
+        "prefix": {
+          "initial": {
+            "mean_ms": 3.631936,
+            "p50_ms": 3.632128,
+            "p95_ms": 3.6379136
+          },
+          "build": {
+            "mean_ms": 0.191152,
+            "p50_ms": 0.191488,
+            "p95_ms": 0.193536
+          },
+          "root_finish_or_validated_copy": {
+            "mean_ms": 0.019752000000000006,
+            "p50_ms": 0.019456,
+            "p95_ms": 0.02048
+          }
+        },
+        "sah": {
+          "initial": {
+            "mean_ms": 3.005528,
+            "p50_ms": 3.00544,
+            "p95_ms": 3.0102016
+          },
+          "build": {
+            "mean_ms": 0.182256,
+            "p50_ms": 0.182272,
+            "p95_ms": 0.18432
+          },
+          "root_finish_or_validated_copy": {
+            "mean_ms": 0.010879999999999999,
+            "p50_ms": 0.011264,
+            "p95_ms": 0.011264
+          }
+        }
+      },
+      "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a",
+      "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+      "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+      "scope": "One adjacent 128+128 timing pair on ls5 with audit off. The shader copy reads the already-uploaded atlas, checks each leaf and writes the SSBO; Iris upload is not isolated."
+    },
+    "ls5_quality": {
+      "job": "6a254ce1-e13a-4f74-a711-9be6cd4209cc",
+      "manifest_id": "148d0103-4bfd-335d-bf79-af298788cc02",
+      "manifest_sha256": "4f42f017e5fb88db5edede20a155f53cc654bb61a5695aebd16cec00f5da239f",
+      "path": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/sah-6a254ce1",
+      "provenance": {
+        "resolved_revision": "52025a87725d606cfb44177e7b6e0ce9d98a46ab",
+        "source_snapshot_sha256": "780e2e50613f8acbaed84bda0f7dc13d9a69eab49b0a5b23fa2ab0475a0e0559",
+        "preset_sha256": "21ab84808d11e8bc016f2ee3536864ff46aee9ce405ca4d89e30ae279112757e",
+        "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+        "config_sha256": "6c719ca39cebfc3efd5a7d115b75becee751c411ce6098efbf6613d69dbeee6e"
+      },
+      "model": 6,
+      "emitters": 2172,
+      "semantic_topology_sha256": "185cdbff80e219f1a9eb19456164fbef19065ea1e3fa59abcc05f2ba060b1d13",
+      "receiver": {
+        "pixels": 2073600,
+        "sha256": "fe5dcbde1c343cc0d3985fa4d721107c6f1995087db0981a4b439d777a080012"
+      },
+      "audit": {
+        "max_pdf_relative_error": 5.347458880144984e-07,
+        "max_cube_relative_error": 8.450523554426326e-05,
+        "cube_sample_count": 64
+      },
+      "probe": false,
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "185cdbff80e219f1a9eb19456164fbef19065ea1e3fa59abcc05f2ba060b1d13",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      },
+      "window": {
+        "frames": 32,
+        "batches": 8,
+        "batch_lengths": [
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4,
+          4
+        ],
+        "start_frame": 136631,
+        "end_frame": 136662,
+        "screen_batch_nonfinite_samples": [
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1,
+            1,
+            1,
+            0
+          ]
+        ]
+      }
+    }
+  },
+  "new_point_windows": [
+    {
+      "scene": 5,
+      "point": "reviewed-vertical-face",
+      "window": 1,
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
+      "moments_sha256": "ba995589e83ee512d4f1ead8f97200af4d48a642790f3718f58018b76a5c7004",
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      },
+      "grouping_control_input_match": true,
+      "methods": {
+        "prefix": {
+          "variance": 0.015058013258100553,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.12973503358448032,
+          "variance_over_prefix": 1.0
+        },
+        "camera": {
+          "variance": 0.003150348154994416,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.5845791640297986,
+          "variance_over_prefix": 0.20921406436534157
+        },
+        "light-sah": {
+          "variance": 0.009358600450167117,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.20641888220045013,
+          "variance_over_prefix": 0.6215030024052209
+        },
+        "geometry-sah": {
+          "variance": 0.011256278055055208,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.17236353515885217,
+          "variance_over_prefix": 0.7475274368615543
+        },
+        "prefix-A": {
+          "variance": 0.05099798981726788,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.03877011158275934,
+          "variance_over_prefix": 3.3867674933698964
+        }
+      }
+    },
+    {
+      "scene": 5,
+      "point": "reviewed-vertical-face-rng2",
+      "window": 1,
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
+      "moments_sha256": "0b3202b9da3e5b9194b9d03569ff9fd2328729e2857defac1dee6cc78d08913a",
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      },
+      "grouping_control_input_match": true,
+      "methods": {
+        "prefix": {
+          "variance": 0.01489440061570911,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.12973503358448032,
+          "variance_over_prefix": 1.0
+        },
+        "camera": {
+          "variance": 0.003117971553257935,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.5845791640297986,
+          "variance_over_prefix": 0.20933850469749102
+        },
+        "light-sah": {
+          "variance": 0.009261691358599028,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.20641888220045013,
+          "variance_over_prefix": 0.6218237039247306
+        },
+        "geometry-sah": {
+          "variance": 0.011139222880622336,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.17236353515885217,
+          "variance_over_prefix": 0.7478799025234898
+        },
+        "prefix-A": {
+          "variance": 0.05043573770737944,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.03877011158275934,
+          "variance_over_prefix": 3.3862213732981585
+        }
+      }
+    },
+    {
+      "scene": 5,
+      "point": "reviewed-vertical-face",
+      "window": 2,
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
+      "moments_sha256": "deb1b377ac3918383508082edd1db1081638d6d5f37719468dfce9a77e26a400",
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      },
+      "grouping_control_input_match": true,
+      "methods": {
+        "prefix": {
+          "variance": 0.01551903264038484,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.12973503358448032,
+          "variance_over_prefix": 1.0
+        },
+        "camera": {
+          "variance": 0.0032412608277575233,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.5845791640297986,
+          "variance_over_prefix": 0.20885714353888662
+        },
+        "light-sah": {
+          "variance": 0.009662857546211977,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.20641888220045013,
+          "variance_over_prefix": 0.6226456100792348
+        },
+        "geometry-sah": {
+          "variance": 0.011623544911157193,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.17236353515885217,
+          "variance_over_prefix": 0.7489864336588542
+        },
+        "prefix-A": {
+          "variance": 0.05256033734828201,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.03877011158275934,
+          "variance_over_prefix": 3.3868307752317883
+        }
+      }
+    },
+    {
+      "scene": 5,
+      "point": "reviewed-vertical-face-rng2",
+      "window": 2,
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
+      "moments_sha256": "a2a282aa73fe80d577eebf6972103beb0b6d21908dd10e760f777735c5eb5082",
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      },
+      "grouping_control_input_match": true,
+      "methods": {
+        "prefix": {
+          "variance": 0.015142450269758356,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.12973503358448032,
+          "variance_over_prefix": 1.0
+        },
+        "camera": {
+          "variance": 0.0031657601855993567,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.5845791640297986,
+          "variance_over_prefix": 0.20906525226778083
+        },
+        "light-sah": {
+          "variance": 0.009419101560557376,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.20641888220045013,
+          "variance_over_prefix": 0.622032854178737
+        },
+        "geometry-sah": {
+          "variance": 0.01132957772493584,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.17236353515885217,
+          "variance_over_prefix": 0.748199764443845
+        },
+        "prefix-A": {
+          "variance": 0.051283402657412665,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.03877011158275934,
+          "variance_over_prefix": 3.386730796127029
+        }
+      }
+    }
+  ],
+  "runtime_options": {
+    "client_render_distance": 32,
+    "client_simulation_distance": 8,
+    "integrated_server": "The live integrated server logged changing view distance to 32 and simulation distance to 8 after scene load."
   }
 }

@@ -165,6 +165,7 @@ def score(tree, keys, origin, normal, moments):
 
 
 def trace(tree, score_result, m2, leaf):
+    """Condition the globally optimal leaf PMF on each ancestor subtree."""
     _, _, _, q, cond, order = score_result
     weights = np.zeros(len(tree.nodes))
     weights[order] = np.sqrt(m2)
@@ -225,6 +226,7 @@ def main(output):
     ref = EVIDENCE/'20261108-cluster-summaries-reference.npz'
     new = EVIDENCE/'20261108-nearfar-combination-reference.npz'
     result = dict(scope='Conditional RGB M2 on captured receivers and inputs, with no brightness cutoff. Candidate uses no receiver or moments.',
+                  trace_reference='Conditional share of the globally optimal leaf PMF proportional to sqrt(M2).',
                   source={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in (ref,new)}, builds={}, rows=[])
     with np.load(ref) as data, np.load(new) as combo:
         meta = json.loads(str(data['metadata']))
