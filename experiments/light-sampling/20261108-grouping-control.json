@@ -1338,8 +1338,21 @@
   },
   "retention": {
     "root": "builds/light-sampling/20261108-grouping-control",
-    "scope": "Accepted and rejected local captures, source setup and viewer verification until the discussion chat completes independent review. For reused captures retain the existing ls5 source directories cited above.",
-    "owner": "Light Sampling experiment chat. Local originals were hash-verified before removing only exact duplicate managed Vibris manifests from this run. Historical raw cleanup remains paused."
+    "scope": "Keep the comparison page, verification, accepted same-input captures and review evidence for the next grouping control. Historical raw cleanup remains paused.",
+    "owner": "Light Sampling experiment chat. Local originals were hash-verified before removing only exact duplicate managed Vibris manifests from this run. Historical raw cleanup remains paused.",
+    "cleanup": {
+      "status": "blocked_by_policy",
+      "action": "Automatic approval rejected both the source-copy removal and the separate temporary-file removal before execution.",
+      "temporary_paths_still_present": [
+        "camera-source",
+        "source.tar",
+        "camera.index",
+        "generator.log",
+        "agent/.codex/config.toml"
+      ],
+      "source_preserved_in_refs": true,
+      "pyxis_viewer_session_closed": true
+    }
   },
   "limits": [
     "Finite 32-frame variance, mean and zero-coverage statistics; whole-image ratios do not establish asymptotic variance or bias.",
