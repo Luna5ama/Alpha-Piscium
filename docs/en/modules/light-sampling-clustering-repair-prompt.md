@@ -2,6 +2,35 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-clustering-repair-prompt.md)
 
+## Further clustering-cost screening (2026-11-08)
+
+The latest request is to investigate clustering that preserves the red pillar, ceiling, and moving side faces, leaving lookahead and K unchanged. Continue from the layer review at `906982dce`, limited to **offline cost screening and path diagnosis**. Do not resume earlier GPU expansion, dynamic construction, runtime, or default changes. Keep model 6 Near/Far and existing artifact/cleanup restrictions.
+
+Hypotheses: area cost does not directly constrain the box diagonal used by the sampler's cosine bound; spatial or flux imbalance may also suppress important small clusters through successive levels. Neither is yet an established cause. [Lightcuts' omnidirectional cluster metric](https://www.cs.cornell.edu/~kb/projects/lightcuts/lightcuts.pdf) uses flux times squared box diagonal. This test uses a related top-down partition cost, not a reproduction of its bottom-up construction.
+
+Start from the existing [SAH builder and scorer](../../../scripts/light_sampling_clustering_repair.py), [hierarchy inputs and interfaces](../../../scripts/light_sampling_clustering_hierarchy.py), and three verified compact M2 references. Retain Prefix, original global area SAH, and original upper-only results as controls. Screen only these six definitions, without result-driven parameter sweeps, translated grids, or hand-picked axes:
+
+| Rule | Fixed definition |
+|---|---|
+| flux-diagonal-Kr | Original 12 buckets and three axes; cost becomes `Kr * (PhiL * dot(dL,dL) + PhiR * dot(dR,dR))` |
+| flux-diagonal | Same, without Kr |
+| count-diagonal | Same, without Kr, replacing Phi by construction primitive count; upper-only primitives are complete brick subtrees |
+| spatial-midpoint | Split the longest world-axis center range at its midpoint |
+| count-median | Same longest center axis; approximately halve primitive count in stable order |
+| flux-median | Same longest center axis; choose the nonempty contiguous partition with closest left/right flux |
+
+The first three use full primitive bounds and original flux. The latter three use doubled integer box centers, fixed world-axis tie-breaking, and stable complete world-key order; coincident centers fall back to deterministic key bisection. Midpoint must not create empty children. Run each with **global individual lights** and **upper-only regrouping preserving original complete brick subtrees**, giving 12 defined candidates. Indivisible bricks remain a control, not a restriction on eventual cross-brick clustering. Keep the original binary-to-four-way conversion; no new widening policy.
+
+Construction may read only complete world light keys, primitive bounds, flux, and primitive counts explicitly used by the rule. It may not read test receivers, normals, M2, occlusion, camera state, or material semantics; material ID is only part of light identity and deterministic ordering. Preserve leaves, final 32B records, Half-space A + Near/Far, cube sampling, and actual PDFs. No lookahead, K summaries, orientation multipliers, or visibility weights.
+
+Score all 28 point-windows in the original five input groups, keeping cohorts separate. Report conditional variance relative to Prefix, positive-M2 support, null probability, and mean-reference identity per window. Highlight the new red pillar/ceiling, moving interior side-a/side-b/top, and ls5 vertical point; retain old edge points and old ls1 results. Report each candidate's worst point rather than hiding regressions behind averages or win counts. Initial screening requires both windows at every specified interior point to be no worse than Prefix. If none qualifies, return the closest candidates and remaining failures, without declaring a repair. Finite-window improvement is not whole-image or movement acceptance.
+
+Also record node count, maximum depth, and expected internal levels/nonempty child-record reads under each point's actual PMF. These are offline work proxies, not GPU milliseconds. Verify full light keys/flux, permutation determinism, subtree interfaces, positive-M2 support, and probability conservation. For at most two promising candidates, trace the problematic lights at the red pillar, ceiling, and moving receivers, separating near/far contributions. Cross-check probability changes with separately aggregated references rather than reporting total cost alone.
+
+The experiment author may add one compact research script reusing the inputs/scorer, and append this round to the existing experiment index without changing prior records. Put artifacts in a separate subdirectory of the current clustering-repair run; use Idle for lengthy CPU work. The discussion chat owns bilingual design/prompt documents; do not overwrite them. Commit scripts and necessary tracked summaries; deliver reproducible commands, input/script hashes, full per-point results, construction limitations, and worst counterexamples. No GPU work, new capture, or cleanup.
+
+Continue the human-authorized experiment chat `01a18648-f66e-78e0-8d01-cd906ca45429` / discussion chat `01a18c0e-8678-7800-8ab8-04b69f072f12` two-way handoff, host=`local`, retaining model and effort. Use wt4 / `2.0/light-sampling`; inspect current state and protect uncommitted documentation. Notify the discussion chat on completion or a design-changing counterexample for independent review. Completion does not automatically start a GPU phase.
+
 ## Offline follow-up after review (2026-11-08)
 
 This follow-up is complete and independently reviewed. The [design record](light-sampling-design.md#review-of-layer-isolation-and-controlled-composition) reports four-tree isolation and the reviewer's additional controlled composition. The specification below remains for provenance and does not restart earlier GPU stages; no new clustering baseline is accepted.

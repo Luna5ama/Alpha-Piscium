@@ -37,7 +37,7 @@
 
 本轮保留的契约是：**同一完整世界灯集合及通量下，相机位置、窗口地址与原子分配次序不决定簇归属**。固定 Morton 前缀本身不再是必须保留的拓扑。只把现有前缀树改成全局 Morton 列表再按同样前缀建树，可能没有改变聚类；只重排物理节点也没有修复此问题。灯集合改变后的重分组扰动另测，不将同输入稳定性扩大为流入／流出灯时也稳定。
 
-首个待验候选是按实际灯分布做全局分桶空间划分，用现有通量和 AABB 面积构造 light-BVH 分割代价，再在建树时转换成现有四叉、32B 连续孩子表示。参考 [PBRT 的 light-BVH 构建](https://pbr-book.org/4ed/Light_Sources/Light_Sampling)中的通量、面积与轴向正则项；本实验不新增方向锥，按统一全方向界处理方向项。这是简化候选，不是对论文质量结论的复现。全局逐灯输入可跨 brick，brick 仍负责提取。普通几何 SAH 只作离线解释对照，不自动扩成 GPU 候选矩阵；H-PLOC 的并行构建器仍未选定。
+首轮候选按实际灯分布做全局分桶空间划分，用现有通量和 AABB 面积构造 light-BVH 分割代价，再在建树时转换成现有四叉、32B 连续孩子表示。参考 [PBRT 的 light-BVH 构建](https://pbr-book.org/4ed/Light_Sources/Light_Sampling)中的通量、面积与轴向正则项；本实验不新增方向锥，按统一全方向界处理方向项。这是简化候选，不是对论文质量结论的复现。全局逐灯输入可跨 brick，brick 仍负责提取。普通几何 SAH 只作离线解释对照，不自动扩成 GPU 候选矩阵；H-PLOC 的并行构建器仍未选定。
 
 聚类应让现有粗簇估权更可信，但其收益仍取决于权重与接收点；更小的 AABB／SAH 不等于更低采样方差。先用真实条件 M2 和退化区域筛选，再将可行候选接入实机、检查移动稳定性及完整构建成本。不同聚类不得使用接收点、实测 M2 或可见性作为运行时 oracle，也不按面朝向补倍率。一层前瞻及 K1／K2／K4 不进入本轮候选。
 
@@ -93,6 +93,16 @@ Near/Far 在这批点与 ls5 的收益已确认，继续用于聚类实验；当
 
 只改上层使所测 moving-4 内部 side-a／side-b／top 约为 0.596／0.654／0.980，ls5 垂直点约为 0.838，但中央顶面仍退化。因此本轮没有选出可以直接替换的构造；这些点继续作为新聚类代价或分簇约束的反例集，候选状态与世界稳定契约均不变。结果、受控第五树及根层诊断可由[独立复算脚本](../../../builds/light-sampling/20261108-clustering-repair/review/hierarchy_review.py)和[输出](../../../builds/light-sampling/20261108-clustering-repair/review/hierarchy-review.json)复查。范围是有限接收点离线分析，无新 GPU／默认变更。
 
+
+#### 聚类准则再筛：目标与诊断
+
+用户要求继续找能同时保住红柱、顶面与 moving 侧面的分组，前瞻／K 保持暂停。当前[离线任务](light-sampling-clustering-repair-prompt.md#聚类准则再筛2026-11-08)固定 A + Near/Far 和原四叉宽化，筛通量／灯数乘对角线平方、空间中点、数量中位与通量中位六条规则，各比较全局逐灯和保留 brick 子树的上层构造。测试点、法线、M2 与遮挡不进入建树；没有参数、网格相位或测试朝向拟合。候选同时按全部指定内部点和工作量筛选，不能按平均胜场选默认。
+
+依据与边界：[PBRT](https://pbr-book.org/4ed/Light_Sources/Light_Sampling)的面积代价是启发式，并非这里的逐灯采样方差目标；[Lightcuts](https://www.cs.cornell.edu/~kb/projects/lightcuts/lightcuts.pdf)提供通量乘包围盒对角线平方的全方向簇尺度度量。本轮只借用该度量测试 top-down 划分，不能混称为原算法复现。[Fast Agglomerative Clustering](https://www.graphics.cornell.edu/~bjw/IRT08Agglomerative.pdf)说明 bottom-up 可以产生不同的小簇，但它的 Lightcuts／追踪结果不能预言当前单灯采样收益；尚未据此选定或接通 H-PLOC。[Learning to Cluster](https://www.csie.ntu.edu.tw/~cyy/publications/papers/Wang2021LCR.pdf)主要学习接收区域的 cut 与概率，不是无需接收信息的全局树重建，这轮不引入它。
+
+讨论端另做[逐节点方差分解](../../../builds/light-sampling/20261108-clustering-repair/review/cost_diagnostics.py)，[结果](../../../builds/light-sampling/20261108-clustering-repair/review/cost-diagnostics.json)使用真实 M2 归因而不参与建树。令 `S_v = sum_i(sqrt(M2_i))`，当前节点到达概率为 `q_v`、孩子条件概率为 `p_c`，局部损失为 `(sum_c(S_c² / p_c) - S_v²) / q_v`。逐层相加严格还原当前方差减逐灯最优方差；这是全局逐灯最优分布的分解，不是固定内部 proposal 的根层最优。
+
+新红柱首窗的原全局 SAH 最大损失位于深度 4／3，占其超额方差约 42.2%／17.2%。深度 3 有一孩子包围盒包含接收点，独占 near 的半份概率，混合后份额 0.58445；按测得 M2 的最优条件份额为 0.00693。深度 4 的另一个通量仅 5 的孩子获 0.22040，参考份额却为 0.89631。问题同时涉及包围盒覆盖无灯空间与灯通量不等于接收贡献；对角线代价是否够用尚待本轮数据。moving side-b 的上层控制中，最大的剩余损失已在两个同通量叶灯间：实际约各半，但当前 M2 只在其中一盏为正。不能把这类有限窗口的零观测当永久不可见，也不能承诺仅改聚类消除全部方差。
 
 ### 前一轮路线与依据（2026-11-01）
 
