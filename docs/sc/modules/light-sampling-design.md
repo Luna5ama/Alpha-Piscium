@@ -138,7 +138,7 @@ anchor 在 moving-4 的收益不能推广到所有场景。同输入 ls5 配对�
 
 moving-4 的固定投影 G32 对照已补齐：31,994 灯，共同完整接收像素 2,018,294，Camera `24e7ca13` 与 anchor `13518eb0` 的发光 UV 前后身份一致。[独立原件复算](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-moving4-anchor-g32-fixed-fov-first-review.json)得到两窗整图最差 5% V：Camera `0.0415544/0.0416333`，anchor `0.0218854/0.0219605`，约为 `0.527` 倍；已检查[整图预览](../../../builds/light-sampling/20261108-eight-hour-exploration/review-moving4-anchor-g32-fixed-fov-first-grid.png)。这替代上文投影漂移而无效的 G32 Camera 比较，不推翻 ls3／ls5 的回退。
 
-[逐样本计时复核](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-closeout-timing-review.json)读取每段全部 128 个样本，核对加载来源、有效设置、相机与恢复回执，保留尖峰。G32 ABBA／BAAB 的平均 raygen 比为 `1.1312/1.0826`，四个邻接平均比为 `1.1542/1.1096/1.1671/1.0030`，均低于 `1.25`；整图尾部 V 乘对应平均时间约为 Camera 的 `0.596/0.570`。sentinel 平均比为 `1.0469/1.0746`，没有用它归一化或扣除候选耗时。G32 的保留单元仍是 `256×128×128` 世界块；G64 仅有布局计算，不宣称实机收益。
+[逐样本计时复核](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-closeout-timing-review.json)读取每段全部 128 个样本，核对加载来源、有效设置、相机与恢复回执，保留尖峰。**随后实验侧发现，名为 G32 Anchor 的 ABBA／BAAB 实际使用 G16 专用 `15df1311`，其 `VOXEL_GRID_SIZE == 16` 条件在 G32 关闭了粗层路径，实际执行 Prefix。** 讨论侧核对源码与四段回执后确认；此前只确认回执内部一致，没有发现它与画质候选 `13518eb0` 不同。撤回 `1.1312/1.0826` 作为 Anchor G32 耗时及 `0.596/0.570` 的尾部 V*T 结论，保留原始算术记录并标为候选来源不匹配。正确 G32 来源的配对计时待补。G32 画质采集本身用的是正确版本，其保留单元为 `256×128×128` 世界块；G64 仅有布局计算，不宣称实机收益。
 
 guarded CDF 的质量对照使用相同 anchor 树、固定发光 UV，每种方法每个采集顺序有四个连续 32 帧块。正反顺序实际 Iris seed 区间互不重叠，各分层块均覆盖全部 32 个 strata。[独立复算](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-cdf-block-review.json)直接读取块均值，用两对 `0.5 * ||meanA-meanB||²` 的平均估计块噪声，并用独立积分图实现复核 16／64 像素 tile。两批共同完整像素为 `2,018,290/2,018,292`；少量非有限样本的像素由完整性掩码剔除，原始计数仍记录，未填零。
 
