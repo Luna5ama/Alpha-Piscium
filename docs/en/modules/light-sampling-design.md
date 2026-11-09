@@ -137,6 +137,23 @@ Two additional fixed-point studies do not merit immediate GPU expansion. [Mixing
 
 A separate [exact rational slab check](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-far-boundary-witness.json) finds that two of three far-plane failure rays intersect the selected cube, while the third stored float ray misses by about `9.57e-8` world units. Allowing a tiny slab gap alone therefore does not prove a valid hit. Candidate `cc1faea0b` uses exact selected-voxel identity for newly admitted boundary cases; keep that distinction from the older same-material/distance acceptance. This review validates the counterexample and source rationale, not whole-image benefit or cost.
 
+#### Frozen-candidate closeout review: G32 and measured frame blocks (2026-11-09 10:30 UTC)
+
+The fixed-projection moving-4 G32 comparison is complete: 31,994 lights, 2,018,294 common complete receiver pixels, and matching before/after emissive UV identities for Camera `24e7ca13` and anchor `13518eb0`. [Independent raw-data recomputation](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-moving4-anchor-g32-fixed-fov-first-review.json) gives whole-image worst-5% V of `0.0415544/0.0416333` for Camera and `0.0218854/0.0219605` for anchor across the two windows, approximately `0.527` times Camera. The [whole-image preview](../../../builds/light-sampling/20261108-eight-hour-exploration/review-moving4-anchor-g32-fixed-fov-first-grid.png) was inspected. This replaces the invalid G32 Camera comparison with projection drift above; it does not overturn the ls3/ls5 regressions.
+
+The [sample-by-sample timing review](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-closeout-timing-review.json) reads all 128 samples per block, checks loaded sources, effective settings, camera and restoration receipts, and retains spikes. G32 ABBA/BAAB mean raygen ratios are `1.1312/1.0826`; the four adjacent mean ratios are `1.1542/1.1096/1.1671/1.0030`, all below `1.25`. Whole-image tail V times the corresponding mean time is approximately `0.596/0.570` of Camera. Mean sentinel ratios are `1.0469/1.0746`; they were not used to normalize or subtract candidate time. G32 still retains `256×128×128` world-block cells. G64 has only a layout calculation, with no runtime benefit claimed.
+
+The guarded CDF quality control uses the same anchor tree and fixed emissive UV lookup, with four consecutive 32-frame blocks per method and acquisition order. Actual Iris seed intervals for the forward/reverse orders are disjoint, and every stratified block covers all 32 strata. The [independent review](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-cdf-block-review.json) reads block means directly, estimates block noise by averaging two pairs of `0.5 * ||meanA-meanB||²`, and checks 16/64-pixel tiles using an independent integral-image implementation. The cohorts retain `2,018,290/2,018,292` common complete pixels. Pixels with a small number of nonfinite samples are excluded by completeness masks; original counts remain recorded and are not filled with zero.
+
+| 32-frame block noise measure | Forward: iid → stratified | Reverse: iid → stratified |
+|---|---:|---:|
+| Per-pixel mean | `3.34029e-5 → 2.06216e-5` | `3.32964e-5 → 2.04640e-5` |
+| Per-pixel worst-5% mean | `5.85534e-4 → 3.59987e-4` | `5.83298e-4 → 3.56667e-4` |
+| 16×16 tile mean/tail ratio | `0.5494/0.5337` | `0.6309/0.6247` |
+| 64×64 tile mean/tail ratio | `0.5691/0.5000` | `0.5371/0.5585` |
+
+Quality sources `20dfc7d0`/`5c5e653d` record seeds. Separate native-UV timing uses sources without seed writes or a frozen-UV sampler. Stratified ABBA/BAAB mean time ratios are `1.0066/0.9914` against the same-tree guarded iid control, and `1.0819/1.0397` against Camera, all within the cap. The quality comparison is stratified versus same-tree iid, not a measured reduction versus Camera. Correlated frames cannot use single-frame V divided by 32 or the independent-sample V*T shortcut. Fixed-UV hashes and four emissive-atlas crops match at endpoints; that establishes those checks, not all texture content on every frame. Two block pairs and one static scene remain limited evidence, not acceptance for dynamic accumulation or all scenes.
+
 ### Evidence and rationale from clustering repair (2026-11-08)
 
 #### Acceptance criterion revision: absolute noise and whole-image tradeoffs (2026-11-08)
