@@ -15414,7 +15414,7 @@
         }
       ],
       "independent_check_sha256": "a8a55c441d5f3a020c5a40f8f6a6dcfaee28b525774617a27dfd1d8862661fa0",
-      "interpretation": "Flattening current leaf geometric A+NearFar weights still increases red-pillar variance by about 25%, while helping the ceiling and moving points. The existing hierarchy happens to reallocate probability usefully for some red-pillar lights. This is not a proof that all clustering fails or that flat weights are the optimal distribution.",
+      "interpretation": "Flattening current leaf geometric A+NearFar weights still increases red-pillar variance by about 25%, while helping the ceiling and moving points. Flattening also changes normalization domains and mixture levels, so this does not isolate box looseness alone. The existing hierarchy happens to reallocate probability usefully for some red-pillar lights. This is not a proof that all clustering fails or that flat weights are the optimal distribution.",
       "missing_positive_support": 0,
       "maximum_null_probability": 0
     },
