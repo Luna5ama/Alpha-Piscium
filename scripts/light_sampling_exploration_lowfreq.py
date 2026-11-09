@@ -60,6 +60,30 @@ def windows(folder, tag, height, width, count):
     return fields,mask
 
 
+def shader_seed_windows(folder, tag, frames):
+    """Map each bracketed accumulation window to the actual Iris seed counter."""
+    modulus = 720720
+    offsets = []
+    for i, phase, limit in ((1, 'before', frames[0][0]), (len(frames), 'after', frames[-1][1])):
+        path = folder/f'{tag}--window{i:02}-{phase}-seed.bin'
+        capture_frame = int(read(path.with_suffix('.json'))['frame_id'])
+        words = np.fromfile(path, '<f4', count=1012)
+        seed = float(words[1008])
+        assert np.isfinite(seed) and seed == int(seed) and 0 <= seed < modulus
+        if phase == 'before':
+            assert capture_frame <= limit, (path, capture_frame, limit)
+        else:
+            assert capture_frame >= limit, (path, capture_frame, limit)
+        offsets.append((int(seed) - capture_frame) % modulus)
+    assert offsets[0] == offsets[1], (tag, offsets)
+    output = []
+    for start, end in frames:
+        first, last = (start + offsets[0]) % modulus, (end + offsets[0]) % modulus
+        assert last - first == 31 and (not output or first > output[-1][1])
+        output.append([first, last])
+    return output
+
+
 def pool(mean, mask, size):
     ny,nx = (a//size for a in mask.shape)
     region = mask[:ny*size,:nx*size]
@@ -136,6 +160,8 @@ def archive(job_id, name):
     assert mask.any()
     for tag in methods:
         methods[tag]['frames'] = [f for _,f in raw[tag].values()]
+        if (folder/f'{tag}--window01-before-seed.bin').is_file():
+            methods[tag]['shader_seed_frames'] = shader_seed_windows(folder,tag,methods[tag]['frames'])
         methods[tag]['tile_noise'] = {}
         for s in (16,64):
             pooled = [pool(mean,mask,s) for mean,_ in raw[tag].values()]
