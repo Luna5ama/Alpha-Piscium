@@ -138,7 +138,8 @@ def main(output):
     definitions=[
         ("anchor-near-gate","e3cb50a1ff0c4edc4b5650943e707554d2e4989f",lambda r:select(r,True)),
         ("far-cube","43bdb20bf8a050acbd1800a8f2522d0fa4bfd2be",far),
-        ("stratified-f32","21f0fc9b8ccd6d8cd666dd5582267559b8f897d8",lambda r:select(r,defines="#define LS_RESIDUAL_F32\n#define LS_RESIDUAL_STRATA\n")),
+        ("far-cube-entry-faces","661cf8539f612fa00de9ba3be633c3e6ddda628c",far),
+        ("stratified-f32","f9fdbcf836a9ecb1c9f0ff8199b7ee25d2ac0d76",lambda r:select(r,defines="#define LS_RESIDUAL_F32\n#define LS_RESIDUAL_STRATA\n")),
         ("stratified-f64","16b13a4808a41e22c0d6423ff6e1c2760999412e",lambda r:select(r,defines="#define LS_RESIDUAL_SELECT\n#define LS_RESIDUAL_STRATA\n")),
         ("fixed-ls5-receiver","d3d0e978579a54a1ed9ae758ccda84559262c331",mode3),
         ("deterministic-receiver-and-sum","7498a20f1fc0c6f20491015c922a0be661823130",deterministic),

@@ -174,14 +174,31 @@ def main(args):
     print(json.dumps({k:v for k,v in result.items() if k!="witnesses"}))
 
 
-def live(folder, output, legacy_only):
+def entry_faces_pdf(low, origin, direction):
+    lo = low - origin
+    hi = lo + 1.0
+    near, far = [], []
+    for a, b, d in zip(lo, hi, direction, strict=True):
+        if d == 0.0:
+            assert a <= 0.0 <= b
+            continue
+        near.append(min(a/d, b/d))
+        far.append(max(a/d, b/d))
+    enter, leave = max(near), min(far)
+    assert enter > 0.0 and enter <= leave * (1.0 + 1e-6)
+    # All entry faces have unit area, so only their perpendicular distances remain.
+    weighted_face_area = np.maximum(np.maximum(lo, -hi), 0.0).sum()
+    return (enter * np.linalg.norm(direction))**3 / weighted_face_area
+
+
+def live(folder, output, legacy_only, entry_faces=False):
     case = read(folder/"accepted.json")
     assert case["restore"]["status"] == "RECEIPT_STATUS_OK"
     data = np.fromfile(folder/"audit.bin","<u4")
     assert len(data) >= 1040
     counters = data[1024:1040].tolist()
     source = case["source"]
-    words = table(source)
+    words = None if entry_faces else table(source)
     errors = {"far_plane":[],"legacy":[]}
     for o,n,d,l in data[:1024].view("<f4").reshape(64,4,4).astype(float):
         if not (d[3] > 0.):
@@ -189,10 +206,13 @@ def live(folder, output, legacy_only):
         assert np.isfinite(d).all() and abs(np.linalg.norm(d[:3])-1.) < 2e-5
         direction = d[:3]
         if l[3] == 2.:
-            geom = geometry(l[:3],o[:3],n[:3],words)
-            assert geom is not None
-            axis,_,plane,_,_,_,_,hull,_,_ = geom
-            expected = (plane/direction[axis])**2/(hull.volume*abs(direction[axis]))
+            if entry_faces:
+                expected = entry_faces_pdf(l[:3],o[:3],direction)
+            else:
+                geom = geometry(l[:3],o[:3],n[:3],words)
+                assert geom is not None
+                axis,_,plane,_,_,_,_,hull,_,_ = geom
+                expected = (plane/direction[axis])**2/(hull.volume*abs(direction[axis]))
             tag = "far_plane"
         else:
             expected = cube_pdf(l[:3].copy(),o[:3],n[:3],direction)
@@ -212,7 +232,8 @@ def live(folder, output, legacy_only):
         qualified = valid_pdf_samples and bool(errors["far_plane"]) and not any((counters[11],counters[12]))
     report = dict(source=source,job=case["job"],scene=case["scene"],counters=counters,
                   diagnostic_counts=counts,verified=evidence,legacy_only=legacy_only,qualified=qualified,
-                  scope="Native debug frame; sampled PDFs and full-frame event counters are separate. Legacy failures remain explicit even when the far-plane audit qualifies.")
+                  far_proposal="entry_faces" if entry_faces else "silhouette_plane",
+                  scope="Native debug frame; sampled PDFs and full-frame event counters are separate. Legacy failures remain explicit even when the far audit qualifies.")
     output.write_text(json.dumps(report,indent=2,allow_nan=False)+"\n",encoding="utf8")
     print(json.dumps(report))
     if not qualified:
@@ -228,9 +249,11 @@ if __name__=="__main__":
     native=sub.add_parser("live")
     native.add_argument("folder",type=Path)
     native.add_argument("output",type=Path)
-    native.add_argument("--legacy-only",action="store_true")
+    proposal = native.add_mutually_exclusive_group()
+    proposal.add_argument("--legacy-only",action="store_true")
+    proposal.add_argument("--entry-faces",action="store_true")
     args=p.parse_args()
     if args.mode=="live":
-        live(args.folder,args.output,args.legacy_only)
+        live(args.folder,args.output,args.legacy_only,args.entry_faces)
     else:
         main(args)
