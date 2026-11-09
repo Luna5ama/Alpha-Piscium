@@ -51,12 +51,12 @@ def windows(folder, tag, height, width, count):
         f = int(meta['start_frame']),int(meta['end_frame'])
         assert f[1]-f[0]==31 and (i==1 or f[0]>fields[i-1][1][1])
         def image(field):
-            return np.memmap(folder/f'{stem}.{field}.bin','<f4','r',shape=(height,width,4))[::-1,:,:3]
+            return np.memmap(folder/f'{stem}.{field}.bin','<f4','r',shape=(height,width,4))[::-1]
         mean = image('mean')
-        mask &= np.isfinite(mean).all(axis=2)
+        mask &= (mean[:,:,3]==1) & np.isfinite(mean[:,:,:3]).all(axis=2)
         for field,value in (('valid_count',32),('valid_batches',8),('incomplete_batches',0)):
-            mask &= (image(field)==value).all(axis=2)
-        fields[i] = mean,f
+            mask &= (image(field)[:,:,:3]==value).all(axis=2)
+        fields[i] = mean[:,:,:3],f
     return fields,mask
 
 
@@ -135,7 +135,7 @@ def archive(job_id, name):
             mse = [np.square(a-b).sum(axis=1)/2. for a,b in zip(pooled[::2],pooled[1::2],strict=True)]
             methods[tag]['tile_noise'][str(s)] = dict(pairs=[stats(y) for y in mse],average_of_pairs=stats(np.mean(mse,axis=0)))
     report = dict(job=job_id,scene=req['preset_id'],manifest_id=manifest['manifest_id'],manifest_sha256=ref['sha256'],
-                  resolution=dim,identity=before,matched_complete_pixels=int(mask.sum()),receiver_mismatches=mismatches,
+                  resolution=dim,identity=before,coordinates='camera-window relative',matched_complete_pixels=int(mask.sum()),receiver_mismatches=mismatches,
                   fixed_uv_sha256=fixed[0],atlas_crop_match=probe_match,methods=methods,
                   windows_per_method=count,
                   scope='Disjoint 32f mean windows, paired in acquisition order. Tile ratios are radiance differences, not a timing benchmark. Matching atlas crops do not certify all emitters or intermediate frames.')
