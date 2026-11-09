@@ -1,0 +1,53 @@
+{
+  "status": "active",
+  "started_utc": "2026-11-09 05:49:07",
+  "target_closeout_utc": "2026-11-09 13:49:07",
+  "user_decisions": {
+    "duration_hours": 8,
+    "lookahead_and_k": "reopened",
+    "performance_baseline": "Camera grouping + Half-space A + Near/Far",
+    "raygen_max_ratio": 1.25,
+    "quality_priority": "Difficult regions/tails first, with reasonable aggregate mean cost."
+  },
+  "objective": "Minimize absolute variance and variance*time at matched inputs while maintaining support/PDF/world stability and the per-scene raygen cap.",
+  "baseline": {
+    "camera": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+    "prefix": "e9132607ec1540820fc0d7f53772579a0598e50f",
+    "working_start": "253baf30c",
+    "metric_scope": "Full LightSamplingInitial pass including selection, within-light sampling and visibility tracing; build/preparation costs separate."
+  },
+  "owners": {
+    "runtime": "01a18648-f66e-78e0-8d01-cd906ca45429",
+    "research_review": "01a18c0e-8678-7800-8ab8-04b69f072f12",
+    "host": "local"
+  },
+  "prompt": "docs/sc/modules/light-sampling-clustering-repair-prompt.md",
+  "run": "builds/light-sampling/20261108-eight-hour-exploration",
+  "admission": {
+    "initial_cap_bytes": 3221225472,
+    "initial_used_bytes": 3170529255,
+    "verified_duplicate_manifests": [
+      {
+        "manifest_id": "339c6820-e0ea-3c7d-bf60-748cc312ac9e",
+        "manifest_sha256": "f52c41009bb3f9e5890de39b61461bef5d15e6b1b3eb3510dc6c797204a03b5a",
+        "retained": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-clustering-repair\\cases\\light-sampling-1\\m2-1f1d84ea",
+        "file_count": 60,
+        "logical_bytes": 1044067629,
+        "deleted_managed_only": true
+      },
+      {
+        "manifest_id": "42bbf184-a9f4-32ad-bd0e-b5db3ef0f0cd",
+        "manifest_sha256": "244c1a2021eb48a0f1a4450e47a2da56385622fa818be990c34b24c365581e01",
+        "retained": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-cluster-summaries\\captures\\ls1",
+        "file_count": 64,
+        "logical_bytes": 1312559172,
+        "deleted_managed_only": true
+      }
+    ],
+    "post_release_used_bytes": 824689992,
+    "post_release_reserved_bytes": 7456185,
+    "historical_local_originals_untouched": true
+  },
+  "next": "Experiment owner first captures matched controls and upper/lookahead/K quality and timings; discussion performs research and independent review.",
+  "results": []
+}

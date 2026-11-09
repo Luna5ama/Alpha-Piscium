@@ -30,11 +30,19 @@ are [LightSampling](../../../shaders/techniques/debug/LightSampling.glsl),
 | Node weights | Half-space A (32B) remains the implemented default; this clustering comparison fixes A + Near/Far, separately checking its current-tree cost and benefit without switching defaults |
 | Spatial grouping | Prioritize clustering repair; retain world stability for identical emitter sets while allowing replacement of fixed Morton-prefix parents and global cross-brick clustering. World Prefix remains an unaccepted quality control |
 | Branching | Default to four-way, retaining binary and eight-way alternatives; all run without geometric lookahead |
-| Lookahead and moment summaries | Defer selection and new combination experiments for one-level lookahead and K1/K2/K4 until clustering is repaired; retain existing evidence |
+| Lookahead and moment summaries | The user reopened one-level lookahead and K1/K2/K4 for the eight-hour exploration; judge actual variance/time and retain earlier evidence |
 | Visibility guidance | Exclude from the current runtime baseline; defer further discussion at the user's request |
 | H-PLOC | On hold at the user's request; retain the global cross-brick scope if reopened |
 
-### Current priority: repair clustering first (2026-11-08)
+### Current execution: eight-hour variance and time exploration (2026-11-08)
+
+The user authorized about eight hours of continued research, implementation, and runtime iteration, explicitly reopening lookahead/K and selecting **Camera grouping + A + Near/Far** as the performance baseline. The interval is approximately `2026-11-09 05:49 UTC` to `2026-11-09 13:49 UTC`. Retain the discussion/experiment split and follow the [current work package](light-sampling-clustering-repair-prompt.md#current-task-continuous-eight-hour-exploration-2026-11-08). This supersedes the earlier stage restrictions of no lookahead/K before clustering repair and offline diagnosis only. World stability, full support, and actual PDFs remain required.
+
+The hard performance cap is actual raygen-pass time no more than `1.25` times the frozen Camera baseline in each validated representative scene. Initially time the complete [LightSamplingInitial](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl), including selection, within-emitter sampling, and true visibility rays; report full construction/preparation separately. Efficiency uses `V*T`, not `V/T`, since independent-sample equal-time mean variance scales with `V*T/B`. Combine each regional/tail V with measured time separately instead of inventing a combined score. Continue prioritizing difficult regions/tails while retaining mean and zero-observation constraints; allow a moderate mean cost for a substantial tail benefit.
+
+First compare existing upper/flux-diagonal, lookahead, and K candidates on matched quality and time, then iterate from actual counterexamples. Keep Camera, World Prefix, and Cosine BRDF controls. A few fixed points or older finite windows cannot establish every scene. Return the first reviewable result for ongoing discussion-side review. Before the deadline, consolidate the best validated candidate and remaining scope rather than stopping exploration at one failure. Current state and originals are linked from the [experiment record](../../../experiments/light-sampling/20261108-eight-hour-exploration.json).
+
+### Evidence and rationale from clustering repair (2026-11-08)
 
 #### Acceptance criterion revision: absolute noise and whole-image tradeoffs (2026-11-08)
 

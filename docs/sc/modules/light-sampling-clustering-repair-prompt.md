@@ -2,6 +2,37 @@
 
 语言：简体中文 | [English](../../en/modules/light-sampling-clustering-repair-prompt.md)
 
+## 当前任务：八小时持续探索（2026-11-08）
+
+用户已授权约八小时持续研究、实现和实机实验，目标是在 raygen 不超过基线 1.25 倍耗时的前提下，尽量降低不同场景和困难区域的方差与耗时。用户随后明确：**允许重新比较一层前瞻和 K；性能基线为 Camera grouping + Half-space A + Near/Far。** 本节取代此前“只做红柱分解”“不改前瞻／K”“不启动新 GPU 作业”的本轮范围限制；已有证据仍保留。不要因一轮候选或一个点退化就停止。
+
+开始于 `2026-11-09 05:49 UTC`（洛杉矶 11 月 8 日 21:49），约在 `2026-11-09 13:49 UTC` 收口。期间持续产生可复查进展；最后预留整合、复查与运行时交还时间。时间预算不是要求空等；原件／环境阻塞时继续可独立的离线研究并及时回传实质障碍。
+
+### 目标、基线与边界
+
+- 在相同场景／完整输入／分辨率／1 spp 下，效率代价取 `V*T`，不是 `V/T`：独立样本的固定时间均值方差随 `V*T/B` 变化。对均值、P99、最差 5% 等 V 分别乘同一实测时间，不混成未经选择的总分。若引入复用或相关性，另用实际等时间误差／方差验证，不能直接套独立样本结论。
+- 每个已验代表场景的 raygen 候选／基线时间比不得超过 `1.25`，不得通过跨场景平均隐藏超限。临界或漂移结果先复测，不宣布通过。Camera 作为速度／质量参考，不接受其相机相依分组为移动修复。World Prefix + A + Near/Far 与独立 Cosine BRDF-only 继续保留。
+- 从当前 [LightSamplingInitial](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl)实际执行的完整 pass 计时，包含选灯、灯内采样与真实可见性光线；核对 catalog 中的实际 pass／metric。需要分离 proposal 成本时另报，不能以微测替代该上限。完整建树、上传／缓存、有关 sibling 与稳定 workload sentinel 单列，不能靠隐藏准备成本宣称总体改善。
+- Camera 控制的已核对源为 `24e7ca13d4b735d83c8957be5bc78ff00a33ffc9`，ref `experiment/light-sampling-grouping-camera`；Prefix 控制为 `e9132607ec1540820fc0d7f53772579a0598e50f`。执行前重查源码与有效设置，固定 model 6、四叉和投影立体角灯内采样。新候选可改变聚类、权重或前瞻／K，但一次可归因变更后再组合。
+- 保持完整灯支持、实际 PDF 和世界空间稳定性；不靠丢灯、截断贡献、钳制亮点、额外降噪或改变目标照明取得低方差。接收点 M2 可评分，不可直接拟合后用同一批点宣称泛化。大规模探针／ReGIR／RIS 系统不是本轮起步工作，只有明确的新证据才重开相应设计。
+
+### 执行与反馈循环
+
+1. 先接手并核对实际来源／配置／场景、冻结状态和活跃作业。解决 managed artifact 容量：已保留并逐文件验证的本任务 managed 副本可按精确 manifest 释放；历史本地原件和被自动审批拒绝的清理路径继续保留，不使用宽泛 prune，不修改 quota／服务或重启 Minecraft 绕过限制。每份新采集保存并核对完整原件后，及时处理自己的 managed 重复副本。
+2. 首轮优先让尚未整图验证的 upper/flux-diagonal 和已有一层前瞻／K 进入同输入的成本与质量比较。先做能区分路线的小组，再扩展胜出者；不要一口气重跑所有旧矩阵。现有前瞻／K 的 A 与 A + Near/Far 来源可复用，必须核对真正执行路径。离线树载入可筛质量，但不能冒充已完成实时建树。
+3. 根据实测反例与研究证据迭代：优先修复概率失配或真实实现问题；有限的参数选择需有机制理由，不无限扫描并挑最优。允许改善 shader 访存、活跃寄存器和遍历实现以回收预算，保持估计器语义并核对 PDF。实验端可自行完成可逆实现选择；跨模块状态／新的近似目标先回传讨论侧。
+4. 首轮重点覆盖 ls1 红柱／顶面、ls5 墙／柱／两处蓝光地面以及 moving-4 侧面／朝上面，随后覆盖既有 ls1–ls6 和 moving-1–moving-4；按实际灯数保留稀疏／密集情形。新采集优先 720p，既有 1080p 点协议与图像作为独立 cohort；质量和速度只能在同一分辨率／输入配对。预算内对胜出者补 G／渲染距离压力和边界移动；未测项明确列出，不能宣称覆盖“所有情况”。
+5. 每候选保留 1 spp 和至少两个独立 32 帧窗口的完整画面／统计；先复用适用原件，再补缺口。用共同完整接收像素，不按亮度筛掉零观测。按场景和必要区域报告绝对均值／中位数／P5／P95／P99、V 的空间标准差、最差 5% 像素均值、零观测与罕见亮点。尾部优先、平均允许有限代价，不能用单点比值或单个分位数否决／接受。
+6. 对有希望的候选做同源控制及配对／反序 GPU 计时，固定暖机与帧数、关闭诊断写入。使用命中的 named pass、相关 sibling 和 sentinel；保存完整源码／设置／灯与遮挡身份。第一次得到可复查的质量＋时间结果就通知讨论侧，不必等所有场景；有实质反例也立即回传并继续独立工作。临近截止只扩展必要验证，不另起大改造。
+
+### 所有权、交付与回传
+
+沿用 wt4 / `I:/code/mcshaders/Alpha-Piscium-4` / `2.0/light-sampling`，本轮文档起点 `253baf30c`。实验 chat `01a18648-f66e-78e0-8d01-cd906ca45429` 是唯一 runtime 操作者，负责 shader／采集／统计实现与实验结果；讨论 chat `01a18c0e-8678-7800-8ab8-04b69f072f12` 负责研究、双语设计／提示词及独立复查，host 均为 `local`，保留模型和 effort。人类此前授权的双向回传继续适用；本轮新增执行授权来自上述八小时请求和两个明确答复。
+
+原件与候选来源放在 [本轮 run](../../../builds/light-sampling/20261108-eight-hour-exploration/)，紧凑索引为 [实验记录](../../../experiments/light-sampling/20261108-eight-hour-exploration.json)。不 reset 共享分支、不覆盖对方未提交文件；冻结候选使用可复查提交／refs，只有确需隔离时才创建临时 worktree。时间不敏感的编译／离线分析使用 Idle 优先级，benchmark 保持正常；Gradle 全局目录出问题即停止相关构建，不改目录规避。
+
+交付候选与基线的方差／时间／`V*T`、1.25 上限状态、分场景和尾部取舍、源码／原件及对比页、支持／PDF／移动稳定性检查、建树与临时存储成本和未验范围。保留有价值的负结果。截止交还实际运行时状态、存活任务和保留资源，不以派工或静态通过当完成。使用 `send_message_to_thread` 在首份结果、反例、实质阻塞及最终完成时通知讨论 chat，请其复查；普通等待不反复催促或额外轮询 Vibris。
+
 ## 当前判据修订：绝对噪声与整图权衡（2026-11-08）
 
 用户指出，原本低方差点的小幅相对退化可能换来困难区域的大幅收益，仅按固定点比值淘汰没有充分依据。**撤销此前“每个指定点的两个窗口都不得高于 Prefix”作为候选淘汰／停止整图采集的硬门槛。** 旧结果仍是诊断事实；“14 个候选未通过”只对应旧严格门槛，不代表整体画面不可用。upper/flux-diagonal 恢复为待整图评估候选，尚未接受为基线。
@@ -157,7 +188,7 @@
 
 ## 来源与已知差额
 
-先读[当前设计决定](light-sampling-design.md#当前优先级先修聚类2026-11-08)、[同输入分组记录](../../../experiments/light-sampling/20261108-grouping-control.json)与[对比页](../../../builds/light-sampling/20261108-grouping-control/viewer/comparison.html)。当前同输入结果为 ls1／ls5 的 World Prefix/Camera RGB 方差 1.333／1.502，而 ls1 局部又改善。此次调查的起点是已经证实的分组差异；历史视距变化不是这组同输入回退的解释。
+先读[当前设计决定](light-sampling-design.md#聚类修复阶段的证据与依据2026-11-08)、[同输入分组记录](../../../experiments/light-sampling/20261108-grouping-control.json)与[对比页](../../../builds/light-sampling/20261108-grouping-control/viewer/comparison.html)。当前同输入结果为 ls1／ls5 的 World Prefix/Camera RGB 方差 1.333／1.502，而 ls1 局部又改善。此次调查的起点是已经证实的分组差异；历史视距变化不是这组同输入回退的解释。
 
 冻结控制来源为 `experiment/light-sampling-grouping-prefix`（`e9132607e`）和 `experiment/light-sampling-grouping-camera`（`24e7ca13d`）。后者是当前评价路径上的原始相机分组，不是已放弃的世界取模方案。当前开发入口为 [LightSamplingBuild](../../../shaders/pass/prepare/LightSamplingBuild.comp.glsl)、[LightSamplingLayout](../../../shaders/techniques/debug/LightSamplingLayout.glsl)、[LightSampling](../../../shaders/techniques/debug/LightSampling.glsl) 和 [LightSamplingInitial](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl)。
 
