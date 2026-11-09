@@ -1,5 +1,5 @@
 {
-  "status": "closeout",
+  "status": "experiment_data_complete_gpu_handoff_pending",
   "started_utc": "2026-11-09 05:49:07",
   "target_closeout_utc": "2026-11-09 13:49:07",
   "user_decisions": {
@@ -49,9 +49,8 @@
     "historical_local_originals_untouched": true
   },
   "next": [
-    "Complete the frozen closeout list once the shared GPU is returned.",
-    "Finish the additive real Iris candidate comparator and preserve the compact indexed conclusions.",
-    "Restore the verified runtime state, release owned resources, and hand the complete package to the research chat."
+    "Complete the closeout comparator, then close the report.",
+    "Wait for fresh user intent before operating the Windows Vibris window."
   ],
   "results": [
     {
@@ -5479,8 +5478,8 @@
         "closure": "Same frozen face UV lookup with 33 matched emitting base-level color/specular footprints. Anchor gate strongly reduces its own wall tail, but both tested gate variants still regress on the sandstone wall and below-pillar floor relative to Camera. Native paired mean timings are separate from fixed-UV diagnostics."
       },
       "guarded_cdf_strata": {
-        "state": "paired_statistics_and_timing_complete",
-        "closure": "Two non-overlapping native seed cohorts and ordinary UV timing complete. One-spp visual comparison split into a two-method job after the first three-method reservation was rejected."
+        "state": "paired_statistics_timing_and_visual_complete",
+        "closure": "Two disjoint actual-seed cohorts, native UV paired cost, and native UV 1spp/32f visual pair are all complete."
       },
       "far_silhouette_plane": {
         "state": "closed_mean_cap_failed",
@@ -6194,7 +6193,22 @@
           "sha256": "964c3ef081dc418cb2d365714541e8acf3ea5a34992bdbfb472e29f85bc6ae07"
         }
       },
-      "confirmed_ordered_topology_sha256": "886f8fb65a4df23a655370672df7f44992acc77bc900420395a22c8a8e44cf47"
+      "confirmed_ordered_topology_sha256": "886f8fb65a4df23a655370672df7f44992acc77bc900420395a22c8a8e44cf47",
+      "native_uv_visual": {
+        "quality": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-reprojected-surfaces-camera-cdf-native-uv-strata-cdf-native-uv.json",
+          "sha256": "7ade9df01187776db712fae5f17365dcbd2d4c2db3c0f631729f376e3b56ce92"
+        },
+        "job": "6093c082-61b8-46bf-809b-714ffda129e7",
+        "common_complete_pixels": 2018294,
+        "emitting_uv_brackets_match": true,
+        "mean_pass_ratio_screen": 1.0276205326373118,
+        "whole_tail_v_ratio": [
+          0.8195393213501447,
+          0.8166852998962237
+        ],
+        "scope": "One native 1spp image and two 32f mean windows per method. Camera to combined Anchor + CDF compares two methods, and the frame-level variance is descriptive. The separate frozen same-tree block measurements quantify the stratification contribution."
+      }
     },
     "far_silhouette_initial": {
       "quality": {
@@ -7106,6 +7120,23 @@
           "sha256": "1284314a3a10d653268efbc3c5c2b069f95d458af18f925d97bb89833b77cfaa"
         }
       }
+    },
+    "runtime_at_closeout": {
+      "safe_snapshot_receipt": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/finish-after-bloom-ls5-safe-snapshot/result.json",
+        "sha256": "5e22fdb5f69b632367638e12e457e7e81c62c806eb630bf9f9568a05e08d2013"
+      },
+      "job": "8c18d5f8-44f9-4d6c-bf3e-24be6a0d7359",
+      "scene": "light-sampling-5",
+      "grid": 16,
+      "weight_model": 6,
+      "source": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+      "source_uuid": "46ce3ca6-87e5-4d99-b09b-7d3623fb7675",
+      "active_jobs": 0,
+      "queued_jobs": 0,
+      "vibris_pid": 70844,
+      "jvm_state": "running",
+      "handoff_state": "Await user intent after physical Escape stopped the Windows close action. No close was attempted. Fornax was told the GPU is still occupied."
     }
   }
 }
