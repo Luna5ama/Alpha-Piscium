@@ -21,10 +21,11 @@ def area(lo, hi):
     return 2 * (x*y + y*z + z*x)
 
 
-def split(positions, flux, ids, light_sah, aspect_correction):
-    p = positions[ids]
+def split(centers2, lower, upper, flux, ids, light_sah, aspect_correction):
+    p = centers2[ids]
     lo, hi = p.min(axis=0), p.max(axis=0)
-    diag = hi - lo + 1
+    bounds_lo, bounds_hi = lower[ids], upper[ids]
+    diag = bounds_hi.max(axis=0) - bounds_lo.min(axis=0)
     best = None
     for axis in range(3):
         extent = hi[axis] - lo[axis]
@@ -35,8 +36,8 @@ def split(positions, flux, ids, light_sah, aspect_correction):
         flux_bins = np.bincount(bucket, weights=flux[ids], minlength=BUCKETS) if light_sah else count
         aabb_lo = np.full((BUCKETS, 3), np.inf)
         aabb_hi = np.full((BUCKETS, 3), -np.inf)
-        np.minimum.at(aabb_lo, bucket, p)
-        np.maximum.at(aabb_hi, bucket, p+1)
+        np.minimum.at(aabb_lo, bucket, bounds_lo)
+        np.maximum.at(aabb_hi, bucket, bounds_hi)
         nonempty = (np.cumsum(count)[:-1] != 0) & (np.cumsum(count[::-1])[::-1][1:] != 0)
         slots = np.flatnonzero(nonempty)
         l = slots
@@ -60,25 +61,38 @@ def split(positions, flux, ids, light_sah, aspect_correction):
 
 
 def build(keys, flux, light_sah, *, aspect_correction=None):
-    if aspect_correction is None:
-        aspect_correction = light_sah
-    order = np.lexsort(keys.T[::-1])
-    keys, flux = keys[order], flux[order]
-    assert len(keys) and np.all(np.isfinite(flux) & (flux > 0))
-    assert len({tuple(k) for k in keys}) == len(keys)
     positions = keys[:, :3].astype(np.int64)
     leaves = [Node(np.array([*p, m, *(p + 1)], float), int(key[3]), ())
-              for p, key, m in zip(positions, keys, flux)]
+              for p, key, m in zip(positions, keys, flux, strict=True)]
+    return build_primitives(keys, leaves, light_sah, aspect_correction=aspect_correction)
+
+
+def build_primitives(keys, primitives, light_sah, *, aspect_correction=None):
+    if aspect_correction is None:
+        aspect_correction = light_sah
+    assert len(keys) == len(primitives) and len(keys)
+    assert len({tuple(k) for k in keys}) == len(keys)
+    order = np.lexsort(keys.T[::-1])
+    primitives = [primitives[i] for i in order]
+    data = np.stack([node.data for node in primitives])
+    flux = data[:, 3]
+    bounds = data[:, [0, 1, 2, 4, 5, 6]]
+    integral = bounds.astype(np.int64)
+    np.testing.assert_array_equal(bounds, integral)
+    lower, upper = integral[:, :3], integral[:, 3:]
+    assert np.all(upper > lower) and np.all(np.isfinite(flux) & (flux > 0))
+    # Doubled integer centers keep bucket boundaries exact for odd-sized bounds.
+    centers2 = lower + upper
     # Build depth-first with an explicit worklist so unbalanced inputs cannot
     # consume the Python recursion limit. Children retain low/high split order.
     binary = [None]
-    stack = [(0, np.arange(len(keys)))]
+    stack = [(0, np.arange(len(primitives)))]
     while stack:
         i, indices = stack.pop()
         if len(indices) == 1:
-            binary[i] = leaves[int(indices[0])]
+            binary[i] = primitives[int(indices[0])]
             continue
-        left, right = split(positions, flux, indices, light_sah, aspect_correction)
+        left, right = split(centers2, lower, upper, flux, indices, light_sah, aspect_correction)
         j = len(binary)
         binary.extend([None, None])
         binary[i] = (j, j+1)
@@ -99,14 +113,18 @@ def build(keys, flux, light_sah, *, aspect_correction=None):
     return wide[0]
 
 
-def control(data, prefix):
+def control_root(data, prefix):
     nodes, materials, children = (data[prefix+k] for k in ('nodes','materials','children'))
     nodes = nodes.astype(float, copy=False)
     out = [None] * len(nodes)
     for i in reversed(range(len(nodes))):
         child = tuple(out[j] for j in children[i] if j >= 0)
         out[i] = Node(nodes[i, :7], int(materials[i]) if materials[i] >= 0 else None, child)
-    return Tree(out[0])
+    return out[0]
+
+
+def control(data, prefix):
+    return Tree(control_root(data, prefix))
 
 
 def scores(tree, origin, normal):

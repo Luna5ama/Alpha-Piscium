@@ -7210,5 +7210,1997 @@
         "sha256": "fbfb6e4a99628a7aa8e2d94ca580444f12bfbd7d82f7c6503f2471e3a3b22d3f"
       }
     ]
+  },
+  "hierarchy_isolation": {
+    "scope": "Offline hierarchy isolation with captured conditional RGB moments, 12-bin flux SAH + Kr and the original model 6.",
+    "source_sha256": {
+      "20261108-clustering-repair-reference.npz": "3317ac116bc89c055528f9fb8038fbf7bd791ffe27821aced8bd75a9d92167e0",
+      "20261108-cluster-summaries-reference.npz": "7d003de47afd0d986bb35c8447219133a37899f96359290cc34ffb1220c67794",
+      "20261108-nearfar-combination-reference.npz": "461580964b16260af4d79f468c4f5820ac5c9a449811429a88db2121801c9988"
+    },
+    "cohorts": {
+      "new/1": {
+        "identity": {
+          "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+          "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+          "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+          "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+        },
+        "bricks": 453,
+        "inner_mass_max_absolute": 0.0001220703125,
+        "inner_mass_max_relative": 1.3669190819443385e-07,
+        "topology": {
+          "prefix": {
+            "leaves": 10235,
+            "nodes": 18119,
+            "depth": 14,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 579840,
+            "cross_brick_internal": 283,
+            "area_weighted_mass": 6295159293.588087,
+            "ordered_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0"
+          },
+          "upper_only": {
+            "leaves": 10235,
+            "nodes": 18063,
+            "depth": 12,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 578048,
+            "cross_brick_internal": 227,
+            "area_weighted_mass": 3022942004.368357,
+            "ordered_sha256": "6f366cd7aeee9a0b38c02a4c22031dc783985b6a01387d530740d65045d29801"
+          },
+          "inner_only": {
+            "leaves": 10235,
+            "nodes": 15415,
+            "depth": 13,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 493312,
+            "cross_brick_internal": 283,
+            "area_weighted_mass": 6293881523.316107,
+            "ordered_sha256": "40f3698656b0fb630f386cc41dec57c5f0ec726e168b0a42cc26c9950b01565d"
+          },
+          "global_sah": {
+            "leaves": 10235,
+            "nodes": 15424,
+            "depth": 10,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 493600,
+            "cross_brick_internal": 1213,
+            "area_weighted_mass": 3010148526.662467,
+            "ordered_sha256": "59fea38b09d9e76c99ace4db6a04747bdf5806d5a342f4aad11d870e595c5db4"
+          }
+        }
+      },
+      "new/5": {
+        "identity": {
+          "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+          "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+          "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+          "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+        },
+        "bricks": 118,
+        "inner_mass_max_absolute": 3.0517578125e-05,
+        "inner_mass_max_relative": 1.13078744079621e-07,
+        "topology": {
+          "prefix": {
+            "leaves": 2172,
+            "nodes": 3876,
+            "depth": 14,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 124064,
+            "cross_brick_internal": 71,
+            "area_weighted_mass": 962026957.0883772,
+            "ordered_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761"
+          },
+          "upper_only": {
+            "leaves": 2172,
+            "nodes": 3860,
+            "depth": 11,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 123552,
+            "cross_brick_internal": 55,
+            "area_weighted_mass": 498282619.20481664,
+            "ordered_sha256": "0a35d2c03f59e6a6cf15893e9025f74be2d4b59429b0acfc171c3432daf1a397"
+          },
+          "inner_only": {
+            "leaves": 2172,
+            "nodes": 3256,
+            "depth": 13,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 104224,
+            "cross_brick_internal": 71,
+            "area_weighted_mass": 961771695.2719693,
+            "ordered_sha256": "c03cc33777c19f3833918bf57f89641485e2c7c595bf69063dd0ef938e9fe9f6"
+          },
+          "global_sah": {
+            "leaves": 2172,
+            "nodes": 3195,
+            "depth": 8,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 102272,
+            "cross_brick_internal": 205,
+            "area_weighted_mass": 493577322.25608474,
+            "ordered_sha256": "185cdbff80e219f1a9eb19456164fbef19065ea1e3fa59abcc05f2ba060b1d13"
+          }
+        }
+      },
+      "previous/sides": {
+        "identity": {
+          "camera_sha256": "0254883fead3f40a353ef7e3cf1584c0642a7a0c72987534dd42e6576bb1f5a9",
+          "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+          "ordered_topology_sha256": "a5a3fb77d9496d46cbac728364dfe20240290236141bbb7012f27e8c78c0bf9e",
+          "world_voxel_sha256": "9b32367944fbabac5fb28115de0c3e464bed190be6c92959fed73ee61694f0f3"
+        },
+        "bricks": 546,
+        "inner_mass_max_absolute": 1.9073486328125e-06,
+        "inner_mass_max_relative": 1.375844734270724e-07,
+        "topology": {
+          "prefix": {
+            "leaves": 4243,
+            "nodes": 7490,
+            "depth": 15,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 239712,
+            "cross_brick_internal": 345,
+            "area_weighted_mass": 3225221034.419284,
+            "ordered_sha256": "a5a3fb77d9496d46cbac728364dfe20240290236141bbb7012f27e8c78c0bf9e"
+          },
+          "upper_only": {
+            "leaves": 4243,
+            "nodes": 7414,
+            "depth": 12,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 237280,
+            "cross_brick_internal": 269,
+            "area_weighted_mass": 1451151555.923666,
+            "ordered_sha256": "6d94406f14f8e05a98e77087b279cfac9e99f5830cd29663c311ef4e509a4430"
+          },
+          "inner_only": {
+            "leaves": 4243,
+            "nodes": 6520,
+            "depth": 14,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 208672,
+            "cross_brick_internal": 345,
+            "area_weighted_mass": 3224517585.750628,
+            "ordered_sha256": "6510233482d31b296911a7e5b748e047d84098384fc3f2f498509a83388815e3"
+          },
+          "global_sah": {
+            "leaves": 4243,
+            "nodes": 6334,
+            "depth": 9,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 202720,
+            "cross_brick_internal": 619,
+            "area_weighted_mass": 1457763998.367775,
+            "ordered_sha256": "42fcbc2490ae33bfcf784a4d3681b231ba27416ef71934adc8780f1aed23999d"
+          }
+        }
+      },
+      "previous/side-top": {
+        "identity": {
+          "camera_sha256": "0254883fead3f40a353ef7e3cf1584c0642a7a0c72987534dd42e6576bb1f5a9",
+          "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+          "ordered_topology_sha256": "a5a3fb77d9496d46cbac728364dfe20240290236141bbb7012f27e8c78c0bf9e",
+          "world_voxel_sha256": "9b32367944fbabac5fb28115de0c3e464bed190be6c92959fed73ee61694f0f3"
+        },
+        "bricks": 546,
+        "inner_mass_max_absolute": 1.9073486328125e-06,
+        "inner_mass_max_relative": 1.375844734270724e-07,
+        "topology": {
+          "prefix": {
+            "leaves": 4243,
+            "nodes": 7490,
+            "depth": 15,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 239712,
+            "cross_brick_internal": 345,
+            "area_weighted_mass": 3225221034.419284,
+            "ordered_sha256": "a5a3fb77d9496d46cbac728364dfe20240290236141bbb7012f27e8c78c0bf9e"
+          },
+          "upper_only": {
+            "leaves": 4243,
+            "nodes": 7414,
+            "depth": 12,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 237280,
+            "cross_brick_internal": 269,
+            "area_weighted_mass": 1451151555.923666,
+            "ordered_sha256": "6d94406f14f8e05a98e77087b279cfac9e99f5830cd29663c311ef4e509a4430"
+          },
+          "inner_only": {
+            "leaves": 4243,
+            "nodes": 6520,
+            "depth": 14,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 208672,
+            "cross_brick_internal": 345,
+            "area_weighted_mass": 3224517585.750628,
+            "ordered_sha256": "6510233482d31b296911a7e5b748e047d84098384fc3f2f498509a83388815e3"
+          },
+          "global_sah": {
+            "leaves": 4243,
+            "nodes": 6334,
+            "depth": 9,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 202720,
+            "cross_brick_internal": 619,
+            "area_weighted_mass": 1457763998.367775,
+            "ordered_sha256": "42fcbc2490ae33bfcf784a4d3681b231ba27416ef71934adc8780f1aed23999d"
+          }
+        }
+      },
+      "previous/ls1": {
+        "identity": {
+          "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+          "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+          "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+          "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+        },
+        "bricks": 453,
+        "inner_mass_max_absolute": 0.0001220703125,
+        "inner_mass_max_relative": 1.3669190819443385e-07,
+        "topology": {
+          "prefix": {
+            "leaves": 10235,
+            "nodes": 18119,
+            "depth": 14,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 579840,
+            "cross_brick_internal": 283,
+            "area_weighted_mass": 6295159293.588087,
+            "ordered_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0"
+          },
+          "upper_only": {
+            "leaves": 10235,
+            "nodes": 18063,
+            "depth": 12,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 578048,
+            "cross_brick_internal": 227,
+            "area_weighted_mass": 3022942004.368357,
+            "ordered_sha256": "6f366cd7aeee9a0b38c02a4c22031dc783985b6a01387d530740d65045d29801"
+          },
+          "inner_only": {
+            "leaves": 10235,
+            "nodes": 15415,
+            "depth": 13,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 493312,
+            "cross_brick_internal": 283,
+            "area_weighted_mass": 6293881523.316107,
+            "ordered_sha256": "40f3698656b0fb630f386cc41dec57c5f0ec726e168b0a42cc26c9950b01565d"
+          },
+          "global_sah": {
+            "leaves": 10235,
+            "nodes": 15424,
+            "depth": 10,
+            "empty_slots": 0,
+            "bytes_if_compacted_root_1": 493600,
+            "cross_brick_internal": 1213,
+            "area_weighted_mass": 3010148526.662467,
+            "ordered_sha256": "59fea38b09d9e76c99ace4db6a04747bdf5806d5a342f4aad11d870e595c5db4"
+          }
+        }
+      }
+    },
+    "windows": [
+      {
+        "cohort": "new/1",
+        "point": "left-red-pillar",
+        "window": 1,
+        "previous_label": null,
+        "methods": {
+          "prefix": {
+            "variance": 0.0012955259764170415,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2026,
+            "measured_positive_mass": 0.20342928534654306,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.001268428820508567,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2026,
+            "measured_positive_mass": 0.22171175972092858,
+            "variance_over_prefix": 0.9790840504924374
+          },
+          "inner_only": {
+            "variance": 0.0013150585164585704,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2026,
+            "measured_positive_mass": 0.20127055316785625,
+            "variance_over_prefix": 1.0150769188708582
+          },
+          "global_sah": {
+            "variance": 0.0033987395154263735,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2026,
+            "measured_positive_mass": 0.34200087346293495,
+            "variance_over_prefix": 2.6234437419974115
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 1.629282772634116,
+        "inner_pinned_mass_variance_over_prefix": 1.0150769129341843,
+        "inner_rounding_max_leaf_pmf_delta": 2.996033074409432e-10,
+        "root_only_oracle": {
+          "prefix": {
+            "variance": 0.0012856735712308467,
+            "null_probability": 0.0,
+            "children": [
+              {
+                "compact_node": 1,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  -48.0,
+                  240.0,
+                  252.0,
+                  0.0
+                ],
+                "mass": 1357.978515625,
+                "existing_root_probability": 0.09837290404052591,
+                "conditional_second_moment": 7.232449167908432e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.07299859773011463
+              },
+              {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  0.0,
+                  237.0,
+                  270.0,
+                  208.0
+                ],
+                "mass": 5792.11083984375,
+                "existing_root_probability": 0.9016270959594741,
+                "conditional_second_moment": 0.0011663184262939268,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.9270014022698854
+              }
+            ],
+            "variance_over_unmodified_prefix": 0.9923950539274844
+          },
+          "upper_only": {
+            "variance": 0.001220864233733991,
+            "null_probability": 0.0,
+            "children": [
+              {
+                "compact_node": 1,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  -40.0,
+                  46.0,
+                  270.0,
+                  44.0
+                ],
+                "mass": 1442.0443115234375,
+                "existing_root_probability": 0.07166979876720175,
+                "conditional_second_moment": 4.436244265998058e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.05858740392012767
+              },
+              {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  68.0,
+                  69.0,
+                  -48.0,
+                  240.0,
+                  237.0,
+                  59.0
+                ],
+                "mass": 797.435546875,
+                "existing_root_probability": 0.05994361529156327,
+                "conditional_second_moment": 1.24328086951697e-05,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.09808015745732854
+              },
+              {
+                "compact_node": 3,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  112.0,
+                  67.0,
+                  107.0,
+                  221.0,
+                  208.0
+                ],
+                "mass": 2963.39697265625,
+                "existing_root_probability": 0.1797530301294456,
+                "conditional_second_moment": 2.4579455510936922e-05,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.13790583996507563
+              },
+              {
+                "compact_node": 4,
+                "depth": 1,
+                "bounds": [
+                  113.0,
+                  97.0,
+                  64.0,
+                  227.0,
+                  225.0,
+                  208.0
+                ],
+                "mass": 1947.212646484375,
+                "existing_root_probability": 0.6886335558117893,
+                "conditional_second_moment": 0.0006431475276581826,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.7054265986574682
+              }
+            ],
+            "variance_over_unmodified_prefix": 0.9423695517942929
+          },
+          "inner_only": {
+            "variance": 0.0013046794015259123,
+            "null_probability": 0.0,
+            "children": [
+              {
+                "compact_node": 1,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  -48.0,
+                  240.0,
+                  252.0,
+                  0.0
+                ],
+                "mass": 1357.9786376953125,
+                "existing_root_probability": 0.09837291114358851,
+                "conditional_second_moment": 7.2358101447403625e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.07250963506112573
+              },
+              {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  0.0,
+                  237.0,
+                  270.0,
+                  208.0
+                ],
+                "mass": 5792.11083984375,
+                "existing_root_probability": 0.9016270888564115,
+                "conditional_second_moment": 0.0011838986844102412,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.9274903649388742
+              }
+            ],
+            "variance_over_unmodified_prefix": 1.0070654122537828,
+            "fraction_of_excess_removed": 0.5313755871274596
+          },
+          "global_sah": {
+            "variance": 0.0031063034638398462,
+            "null_probability": 0.0,
+            "children": [
+              {
+                "compact_node": 1,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  -40.0,
+                  46.0,
+                  270.0,
+                  44.0
+                ],
+                "mass": 1442.0443115234375,
+                "existing_root_probability": 0.07157129955604437,
+                "conditional_second_moment": 4.1745873453219225e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.036244222100655185
+              },
+              {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  68.0,
+                  69.0,
+                  -48.0,
+                  240.0,
+                  237.0,
+                  59.0
+                ],
+                "mass": 797.4356689453125,
+                "existing_root_probability": 0.05986124109521545,
+                "conditional_second_moment": 9.827887977249667e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.055611179401471554
+              },
+              {
+                "compact_node": 3,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  112.0,
+                  67.0,
+                  104.0,
+                  221.0,
+                  208.0
+                ],
+                "mass": 2944.396728515625,
+                "existing_root_probability": 0.17835505864940623,
+                "conditional_second_moment": 2.3029088352173233e-05,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.08512759811621275
+              },
+              {
+                "compact_node": 4,
+                "depth": 1,
+                "bounds": [
+                  104.0,
+                  97.0,
+                  64.0,
+                  227.0,
+                  225.0,
+                  208.0
+                ],
+                "mass": 1966.212890625,
+                "existing_root_probability": 0.6902124006993339,
+                "conditional_second_moment": 0.0021525517365175405,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.8230170003816605
+              }
+            ],
+            "variance_over_unmodified_prefix": 2.397716078554259,
+            "fraction_of_excess_removed": 0.1390424919593624
+          }
+        }
+      },
+      {
+        "cohort": "new/1",
+        "point": "yellow-candidate-ceiling",
+        "window": 1,
+        "previous_label": null,
+        "methods": {
+          "prefix": {
+            "variance": 0.01510559711784197,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 3122,
+            "measured_positive_mass": 0.41273224763115984,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.017602226423549642,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 3122,
+            "measured_positive_mass": 0.26907117234002487,
+            "variance_over_prefix": 1.1652784253565704
+          },
+          "inner_only": {
+            "variance": 0.015310579090249512,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 3122,
+            "measured_positive_mass": 0.41263155778941535,
+            "variance_over_prefix": 1.013569935091505
+          },
+          "global_sah": {
+            "variance": 0.011143878514460909,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 3122,
+            "measured_positive_mass": 0.37335925298654576,
+            "variance_over_prefix": 0.7377317445662788
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.44111661588179674,
+        "inner_pinned_mass_variance_over_prefix": 1.0135699212071394,
+        "inner_rounding_max_leaf_pmf_delta": 2.790182071499281e-09
+      },
+      {
+        "cohort": "new/1",
+        "point": "left-red-pillar",
+        "window": 2,
+        "previous_label": null,
+        "methods": {
+          "prefix": {
+            "variance": 0.0012980981403692686,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2026,
+            "measured_positive_mass": 0.2101538128097113,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.001272321551195019,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2026,
+            "measured_positive_mass": 0.2286474487792388,
+            "variance_over_prefix": 0.9801428040202592
+          },
+          "inner_only": {
+            "variance": 0.0013166337880283967,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2026,
+            "measured_positive_mass": 0.20825668596071203,
+            "variance_over_prefix": 1.0142790803581732
+          },
+          "global_sah": {
+            "variance": 0.0033946242212407806,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2026,
+            "measured_positive_mass": 0.3443707659656497,
+            "variance_over_prefix": 2.6150751747284033
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 1.620653290349971,
+        "inner_pinned_mass_variance_over_prefix": 1.0142790744500754,
+        "inner_rounding_max_leaf_pmf_delta": 2.996033074409432e-10,
+        "root_only_oracle": {
+          "prefix": {
+            "variance": 0.0012881882708799762,
+            "null_probability": 0.0,
+            "children": [
+              {
+                "compact_node": 1,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  -48.0,
+                  240.0,
+                  252.0,
+                  0.0
+                ],
+                "mass": 1357.978515625,
+                "existing_root_probability": 0.09837290404052591,
+                "conditional_second_moment": 7.236031801194671e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.07294847646693103
+              },
+              {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  0.0,
+                  237.0,
+                  270.0,
+                  208.0
+                ],
+                "mass": 5792.11083984375,
+                "existing_root_probability": 0.9016270959594741,
+                "conditional_second_moment": 0.0011686265765184,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.9270515235330689
+              }
+            ],
+            "variance_over_unmodified_prefix": 0.9923658549526361
+          },
+          "upper_only": {
+            "variance": 0.0012239650477531504,
+            "null_probability": 0.0,
+            "children": [
+              {
+                "compact_node": 1,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  -40.0,
+                  46.0,
+                  270.0,
+                  44.0
+                ],
+                "mass": 1442.0443115234375,
+                "existing_root_probability": 0.07166979876720175,
+                "conditional_second_moment": 4.433020176043465e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.05849543321709314
+              },
+              {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  68.0,
+                  69.0,
+                  -48.0,
+                  240.0,
+                  237.0,
+                  59.0
+                ],
+                "mass": 797.435546875,
+                "existing_root_probability": 0.05994361529156327,
+                "conditional_second_moment": 1.2524164974815878e-05,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.0983210476801308
+              },
+              {
+                "compact_node": 3,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  112.0,
+                  67.0,
+                  107.0,
+                  221.0,
+                  208.0
+                ],
+                "mass": 2963.39697265625,
+                "existing_root_probability": 0.1797530301294456,
+                "conditional_second_moment": 2.450862452974948e-05,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.13754080979758448
+              },
+              {
+                "compact_node": 4,
+                "depth": 1,
+                "bounds": [
+                  113.0,
+                  97.0,
+                  64.0,
+                  227.0,
+                  225.0,
+                  208.0
+                ],
+                "mass": 1947.212646484375,
+                "existing_root_probability": 0.6886335558117893,
+                "conditional_second_moment": 0.0006450977126959428,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.7056427093051916
+              }
+            ],
+            "variance_over_unmodified_prefix": 0.9428909954412001
+          },
+          "inner_only": {
+            "variance": 0.0013062233996240567,
+            "null_probability": 0.0,
+            "children": [
+              {
+                "compact_node": 1,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  -48.0,
+                  240.0,
+                  252.0,
+                  0.0
+                ],
+                "mass": 1357.9786376953125,
+                "existing_root_probability": 0.09837291114358851,
+                "conditional_second_moment": 7.239222797483836e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.07248544508280545
+              },
+              {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  0.0,
+                  237.0,
+                  270.0,
+                  208.0
+                ],
+                "mass": 5792.11083984375,
+                "existing_root_probability": 0.9016270888564115,
+                "conditional_second_moment": 0.0011853095673819358,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.9275145549171945
+              }
+            ],
+            "variance_over_unmodified_prefix": 1.0062593566711964,
+            "fraction_of_excess_removed": 0.5616414703056382
+          },
+          "global_sah": {
+            "variance": 0.0031026398057441714,
+            "null_probability": 0.0,
+            "children": [
+              {
+                "compact_node": 1,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  -40.0,
+                  46.0,
+                  270.0,
+                  44.0
+                ],
+                "mass": 1442.0443115234375,
+                "existing_root_probability": 0.07157129955604437,
+                "conditional_second_moment": 4.1713037622968385e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.03625072890728694
+              },
+              {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  68.0,
+                  69.0,
+                  -48.0,
+                  240.0,
+                  237.0,
+                  59.0
+                ],
+                "mass": 797.4356689453125,
+                "existing_root_probability": 0.05986124109521545,
+                "conditional_second_moment": 9.892916096772354e-06,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.05582683381940316
+              },
+              {
+                "compact_node": 3,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  112.0,
+                  67.0,
+                  104.0,
+                  221.0,
+                  208.0
+                ],
+                "mass": 2944.396728515625,
+                "existing_root_probability": 0.17835505864940623,
+                "conditional_second_moment": 2.2970634320643786e-05,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.08506821676092835
+              },
+              {
+                "compact_node": 4,
+                "depth": 1,
+                "bounds": [
+                  104.0,
+                  97.0,
+                  64.0,
+                  227.0,
+                  225.0,
+                  208.0
+                ],
+                "mass": 1966.212890625,
+                "existing_root_probability": 0.6902124006993339,
+                "conditional_second_moment": 0.002149236127244823,
+                "conditional_null": 0.0,
+                "missing_positive_support": 0,
+                "optimal_root_probability": 0.8228542205123816
+              }
+            ],
+            "variance_over_unmodified_prefix": 2.390142708980052,
+            "fraction_of_excess_removed": 0.1392705858327473
+          }
+        }
+      },
+      {
+        "cohort": "new/1",
+        "point": "yellow-candidate-ceiling",
+        "window": 2,
+        "previous_label": null,
+        "methods": {
+          "prefix": {
+            "variance": 0.015122567804762167,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 3122,
+            "measured_positive_mass": 0.4128774127157471,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.01760782665767715,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 3122,
+            "measured_positive_mass": 0.2692673644849965,
+            "variance_over_prefix": 1.1643410619810455
+          },
+          "inner_only": {
+            "variance": 0.015323312066671141,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 3122,
+            "measured_positive_mass": 0.4127389387254975,
+            "variance_over_prefix": 1.0132744825151823
+          },
+          "global_sah": {
+            "variance": 0.011171974958371658,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 3122,
+            "measured_positive_mass": 0.3737211499992177,
+            "variance_over_prefix": 0.7387617699987135
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.4388537744975143,
+        "inner_pinned_mass_variance_over_prefix": 1.0132744686546442,
+        "inner_rounding_max_leaf_pmf_delta": 2.790182071499281e-09
+      },
+      {
+        "cohort": "new/5",
+        "point": "reviewed-vertical-face",
+        "window": 1,
+        "previous_label": null,
+        "methods": {
+          "prefix": {
+            "variance": 0.015058013258100553,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.12973503358448032,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.012612838069997277,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.15440469122141448,
+            "variance_over_prefix": 0.837616347774971
+          },
+          "inner_only": {
+            "variance": 0.01502931330054055,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.12973503004983505,
+            "variance_over_prefix": 0.9980940408891881
+          },
+          "global_sah": {
+            "variance": 0.009358600450167117,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.20641888220045013,
+            "variance_over_prefix": 0.6215030024052209
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.2142073862589382,
+        "inner_pinned_mass_variance_over_prefix": 0.9980940132507794,
+        "inner_rounding_max_leaf_pmf_delta": 1.227648670221182e-09
+      },
+      {
+        "cohort": "new/5",
+        "point": "reviewed-vertical-face-rng2",
+        "window": 1,
+        "previous_label": null,
+        "methods": {
+          "prefix": {
+            "variance": 0.01489440061570911,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.12973503358448032,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.01247617404495574,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.15440469122141448,
+            "variance_over_prefix": 0.8376419009300133
+          },
+          "inner_only": {
+            "variance": 0.014869333921369372,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.12973503004983505,
+            "variance_over_prefix": 0.9983170390681381
+          },
+          "global_sah": {
+            "variance": 0.009261691358599028,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.20641888220045013,
+            "variance_over_prefix": 0.6218237039247306
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.21413523607342078,
+        "inner_pinned_mass_variance_over_prefix": 0.998317011428011,
+        "inner_rounding_max_leaf_pmf_delta": 1.227648670221182e-09
+      },
+      {
+        "cohort": "new/5",
+        "point": "reviewed-vertical-face",
+        "window": 2,
+        "previous_label": null,
+        "methods": {
+          "prefix": {
+            "variance": 0.01551903264038484,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.12973503358448032,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.012997858023742403,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.15440469122141448,
+            "variance_over_prefix": 0.8375430559968255
+          },
+          "inner_only": {
+            "variance": 0.015510416278482394,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.12973503004983505,
+            "variance_over_prefix": 0.9994447874360401
+          },
+          "global_sah": {
+            "variance": 0.009662857546211977,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.20641888220045013,
+            "variance_over_prefix": 0.6226456100792348
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.2143422333536309,
+        "inner_pinned_mass_variance_over_prefix": 0.999444759748332,
+        "inner_rounding_max_leaf_pmf_delta": 1.227648670221182e-09
+      },
+      {
+        "cohort": "new/5",
+        "point": "reviewed-vertical-face-rng2",
+        "window": 2,
+        "previous_label": null,
+        "methods": {
+          "prefix": {
+            "variance": 0.015142450269758356,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.12973503358448032,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.012683101171860979,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.15440469122141448,
+            "variance_over_prefix": 0.8375857900085661
+          },
+          "inner_only": {
+            "variance": 0.01512343947564038,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.12973503004983505,
+            "variance_over_prefix": 0.998744536466734
+          },
+          "global_sah": {
+            "variance": 0.009419101560557376,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 275,
+            "measured_positive_mass": 0.20641888220045013,
+            "variance_over_prefix": 0.622032854178737
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.21429747229656315,
+        "inner_pinned_mass_variance_over_prefix": 0.9987445088053916,
+        "inner_rounding_max_leaf_pmf_delta": 1.227648670221182e-09
+      },
+      {
+        "cohort": "previous/sides",
+        "point": "side-26",
+        "window": 1,
+        "previous_label": "sides/side-26/1",
+        "methods": {
+          "prefix": {
+            "variance": 0.00059331922125145,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.21161223551278457,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.0003885449752207561,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.3204474937823393,
+            "variance_over_prefix": 0.6548666574482842
+          },
+          "inner_only": {
+            "variance": 0.00059331922125145,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.21161223551278457,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0006380658736550865,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.19699224542409557,
+            "variance_over_prefix": 1.0754175000588304
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.4205508426105462,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 2.3085869760991473e-10
+      },
+      {
+        "cohort": "previous/sides",
+        "point": "side-27",
+        "window": 1,
+        "previous_label": "sides/side-27/1",
+        "methods": {
+          "prefix": {
+            "variance": 0.0024151050759559888,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.0014227716249316997,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.4651622848290441,
+            "variance_over_prefix": 0.5891137570354008
+          },
+          "inner_only": {
+            "variance": 0.0024151050759559888,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.002692071438655087,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.281709965717556,
+            "variance_over_prefix": 1.1146808747397727
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.5255671177043719,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 2.3582132080424145e-10
+      },
+      {
+        "cohort": "previous/sides",
+        "point": "side-26",
+        "window": 2,
+        "previous_label": "sides/side-26/2",
+        "methods": {
+          "prefix": {
+            "variance": 0.0005730525524460456,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.21161223551278457,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.00037545467866940903,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.3204474937823393,
+            "variance_over_prefix": 0.6551836774250457
+          },
+          "inner_only": {
+            "variance": 0.0005730525524460456,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.21161223551278457,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0006162310455669797,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2219,
+            "measured_positive_mass": 0.19699224542409557,
+            "variance_over_prefix": 1.0753482258069158
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.4201645483818701,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 2.3085869760991473e-10
+      },
+      {
+        "cohort": "previous/sides",
+        "point": "side-27",
+        "window": 2,
+        "previous_label": "sides/side-27/2",
+        "methods": {
+          "prefix": {
+            "variance": 0.002383390459817856,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.0014043786221333504,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.4651622848290441,
+            "variance_over_prefix": 0.5892356480442891
+          },
+          "inner_only": {
+            "variance": 0.002383390459817856,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0026566386783909096,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.281709965717556,
+            "variance_over_prefix": 1.1146468542103403
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.5254112061660512,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 2.3582132080424145e-10
+      },
+      {
+        "cohort": "previous/sides",
+        "point": "side-a",
+        "window": 1,
+        "previous_label": "sides/side-a/window1",
+        "methods": {
+          "prefix": {
+            "variance": 0.13706813524836264,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2641897667122643,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.08169171175904955,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.39623014804798884,
+            "variance_over_prefix": 0.5959934569112437
+          },
+          "inner_only": {
+            "variance": 0.13706813524836264,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2641897667122643,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.15295228969627722,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2411399431489627,
+            "variance_over_prefix": 1.115885099181754
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.5198916422705102,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 2.345653246291213e-10
+      },
+      {
+        "cohort": "previous/sides",
+        "point": "side-b",
+        "window": 1,
+        "previous_label": "sides/side-b/window1",
+        "methods": {
+          "prefix": {
+            "variance": 0.0004279665402071525,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.00027992089686231284,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.14466667786212287,
+            "variance_over_prefix": 0.654071920498318
+          },
+          "inner_only": {
+            "variance": 0.0004279665402071525,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0004273636460010232,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09639053805381265,
+            "variance_over_prefix": 0.998591258545966
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.344519338047648,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 1.7680962076382922e-10
+      },
+      {
+        "cohort": "previous/sides",
+        "point": "side-a",
+        "window": 2,
+        "previous_label": "sides/side-a/window2",
+        "methods": {
+          "prefix": {
+            "variance": 0.1359996496836093,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2641897667122643,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.08106318070152,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.39623014804798884,
+            "variance_over_prefix": 0.5960543346259055
+          },
+          "inner_only": {
+            "variance": 0.1359996496836093,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2641897667122643,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.15175760773055652,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2240,
+            "measured_positive_mass": 0.2411399431489627,
+            "variance_over_prefix": 1.1158676370388207
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.5198133024129152,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 2.345653246291213e-10
+      },
+      {
+        "cohort": "previous/sides",
+        "point": "side-b",
+        "window": 2,
+        "previous_label": "sides/side-b/window2",
+        "methods": {
+          "prefix": {
+            "variance": 0.0004334154808464522,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.0002833654552152047,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.14466667786212287,
+            "variance_over_prefix": 0.653796340319449
+          },
+          "inner_only": {
+            "variance": 0.0004334154808464522,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0004328044240869371,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09639053805381265,
+            "variance_over_prefix": 0.9985901362860372
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.3447937959665882,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 1.7680962076382922e-10
+      },
+      {
+        "cohort": "previous/side-top",
+        "point": "side-27",
+        "window": 1,
+        "previous_label": "side-top/side-27/1",
+        "methods": {
+          "prefix": {
+            "variance": 0.0024605337665443558,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.0014484620516140544,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.4651622848290441,
+            "variance_over_prefix": 0.5886779817081381
+          },
+          "inner_only": {
+            "variance": 0.0024605337665443558,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0027430091999639866,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.281709965717556,
+            "variance_over_prefix": 1.1148025023108492
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.5261245206027111,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 2.3582132080424145e-10
+      },
+      {
+        "cohort": "previous/side-top",
+        "point": "top-28",
+        "window": 1,
+        "previous_label": "side-top/top-28/1",
+        "methods": {
+          "prefix": {
+            "variance": 0.03729657722963353,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7079705486909253,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.03586348553141469,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7201723129844367,
+            "variance_over_prefix": 0.9615757851076963
+          },
+          "inner_only": {
+            "variance": 0.03729657722963353,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7079705486909253,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.03424080534184541,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7345300349667652,
+            "variance_over_prefix": 0.9180683023813726
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.043507482726323765,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 0.0
+      },
+      {
+        "cohort": "previous/side-top",
+        "point": "side-27",
+        "window": 2,
+        "previous_label": "side-top/side-27/2",
+        "methods": {
+          "prefix": {
+            "variance": 0.0024728133355991417,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.001454505624737977,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.4651622848290441,
+            "variance_over_prefix": 0.5881987143140195
+          },
+          "inner_only": {
+            "variance": 0.0024728133355991417,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.30823550253136994,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.002757029273794657,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 2256,
+            "measured_positive_mass": 0.281709965717556,
+            "variance_over_prefix": 1.1149362687849838
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.5267375544709643,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 2.3582132080424145e-10
+      },
+      {
+        "cohort": "previous/side-top",
+        "point": "top-28",
+        "window": 2,
+        "previous_label": "side-top/top-28/2",
+        "methods": {
+          "prefix": {
+            "variance": 0.0375455325678635,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7079705486909253,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.03610387592930847,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7201723129844367,
+            "variance_over_prefix": 0.9616024453522071
+          },
+          "inner_only": {
+            "variance": 0.0375455325678635,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7079705486909253,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.034471499518301474,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7345300349667652,
+            "variance_over_prefix": 0.9181251978779176
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.04347724747428949,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 0.0
+      },
+      {
+        "cohort": "previous/side-top",
+        "point": "side-b",
+        "window": 1,
+        "previous_label": "side-top/side-b/window1",
+        "methods": {
+          "prefix": {
+            "variance": 0.0004028966619367075,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.00026351414236550573,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.14466667786212287,
+            "variance_over_prefix": 0.6540489591023272
+          },
+          "inner_only": {
+            "variance": 0.0004028966619367075,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0004023290470337181,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09639053805381265,
+            "variance_over_prefix": 0.9985911650390428
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.3445422059367156,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 1.7680962076382922e-10
+      },
+      {
+        "cohort": "previous/side-top",
+        "point": "top",
+        "window": 1,
+        "previous_label": "side-top/top/window1",
+        "methods": {
+          "prefix": {
+            "variance": 0.0063472069608336715,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7117189824545008,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.006223877791593728,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.718823403158009,
+            "variance_over_prefix": 0.9805695371206637
+          },
+          "inner_only": {
+            "variance": 0.0063472069608336715,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7117189824545008,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0059491228374738735,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7352905305840307,
+            "variance_over_prefix": 0.9372820004426778
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.043287536677985905,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 0.0
+      },
+      {
+        "cohort": "previous/side-top",
+        "point": "side-b",
+        "window": 2,
+        "previous_label": "side-top/side-b/window2",
+        "methods": {
+          "prefix": {
+            "variance": 0.000411469149051185,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.00026907731884192226,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.14466667786212287,
+            "variance_over_prefix": 0.6539428763065058
+          },
+          "inner_only": {
+            "variance": 0.000411469149051185,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09625918991574872,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0004108892791712362,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 1640,
+            "measured_positive_mass": 0.09639053805381265,
+            "variance_over_prefix": 0.9985907330323891
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.3446478567258833,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 1.7680962076382922e-10
+      },
+      {
+        "cohort": "previous/side-top",
+        "point": "top",
+        "window": 2,
+        "previous_label": "side-top/top/window2",
+        "methods": {
+          "prefix": {
+            "variance": 0.006350346096014264,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7117189824545008,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.0062253741613101255,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.718823403158009,
+            "variance_over_prefix": 0.9803204529619928
+          },
+          "inner_only": {
+            "variance": 0.006350346096014264,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7117189824545008,
+            "variance_over_prefix": 1.0
+          },
+          "global_sah": {
+            "variance": 0.0059469677549751025,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 4110,
+            "measured_positive_mass": 0.7352905305840307,
+            "variance_over_prefix": 0.9364793138924604
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.04384113906953235,
+        "inner_pinned_mass_variance_over_prefix": 1.0,
+        "inner_rounding_max_leaf_pmf_delta": 0.0
+      },
+      {
+        "cohort": "previous/ls1",
+        "point": "ls1-pillar",
+        "window": 1,
+        "previous_label": "ls1/ls1-pillar/1",
+        "methods": {
+          "prefix": {
+            "variance": 0.0032980692987209068,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.29159663450751094,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.0014795866178592674,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.25624000535300295,
+            "variance_over_prefix": 0.44862205243325143
+          },
+          "inner_only": {
+            "variance": 0.003259844403367524,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.29089971950191407,
+            "variance_over_prefix": 0.9884099174725626
+          },
+          "global_sah": {
+            "variance": 0.00191914359708426,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.2508309522644918,
+            "variance_over_prefix": 0.581899112255938
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.144867142350124,
+        "inner_pinned_mass_variance_over_prefix": 0.9884099097911394,
+        "inner_rounding_max_leaf_pmf_delta": 1.5076926096480037e-09
+      },
+      {
+        "cohort": "previous/ls1",
+        "point": "ls1-wall",
+        "window": 1,
+        "previous_label": "ls1/ls1-wall/1",
+        "methods": {
+          "prefix": {
+            "variance": 0.0052038458590681225,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.24157906781031446,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.0031686634070070253,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.25167890693200595,
+            "variance_over_prefix": 0.6089080062748924
+          },
+          "inner_only": {
+            "variance": 0.005257921761585304,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.23825155792275898,
+            "variance_over_prefix": 1.0103915265712473
+          },
+          "global_sah": {
+            "variance": 0.002497539601044687,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.2911072170272167,
+            "variance_over_prefix": 0.4799411182966771
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.13935841454946263,
+        "inner_pinned_mass_variance_over_prefix": 1.010391522820292,
+        "inner_rounding_max_leaf_pmf_delta": 5.042193268814388e-10
+      },
+      {
+        "cohort": "previous/ls1",
+        "point": "ls1-pillar",
+        "window": 2,
+        "previous_label": "ls1/ls1-pillar/2",
+        "methods": {
+          "prefix": {
+            "variance": 0.0032907475514697714,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.2915657363352362,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.0014774886875250865,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.25620480199509554,
+            "variance_over_prefix": 0.4489826899256324
+          },
+          "inner_only": {
+            "variance": 0.0032502156439832017,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.2908650743394103,
+            "variance_over_prefix": 0.9876830699248058
+          },
+          "global_sah": {
+            "variance": 0.0019026473218068508,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 5957,
+            "measured_positive_mass": 0.2507978114898727,
+            "variance_over_prefix": 0.5781808820178433
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": 0.14151512216740514,
+        "inner_pinned_mass_variance_over_prefix": 0.9876830622508505,
+        "inner_rounding_max_leaf_pmf_delta": 1.5076926096480037e-09
+      },
+      {
+        "cohort": "previous/ls1",
+        "point": "ls1-wall",
+        "window": 2,
+        "previous_label": "ls1/ls1-wall/2",
+        "methods": {
+          "prefix": {
+            "variance": 0.0051965495383336354,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.2416637255426407,
+            "variance_over_prefix": 1.0
+          },
+          "upper_only": {
+            "variance": 0.003157220467279986,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.25175533111680426,
+            "variance_over_prefix": 0.6075609294186396
+          },
+          "inner_only": {
+            "variance": 0.005248751238202085,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.238335776150096,
+            "variance_over_prefix": 1.010045454100528
+          },
+          "global_sah": {
+            "variance": 0.002441656896282153,
+            "missing_positive_support": 0,
+            "null_probability": 0.0,
+            "zero_probability_leaves": 6203,
+            "measured_positive_mass": 0.2911959855559119,
+            "variance_over_prefix": 0.4698611796675209
+          }
+        },
+        "global_nonadditive_remainder_over_prefix": -0.1477452038516467,
+        "inner_pinned_mass_variance_over_prefix": 1.0100454503396388,
+        "inner_rounding_max_leaf_pmf_delta": 5.042193268814388e-10
+      }
+    ],
+    "residual_scope": "Global - upper-only - inner-only + prefix is a nonadditive remainder. Global crosses the brick boundary and is not the composition of the two controlled substitutions.",
+    "replay_script": "scripts/light_sampling_clustering_hierarchy.py",
+    "validation": {
+      "point_windows": 28,
+      "methods_per_window": 4,
+      "missing_positive_support": 0,
+      "maximum_null_probability": 0,
+      "root_oracle_cross_check": "Both red-pillar windows and all four trees, A_j reconstructed from marginal leaf PMF times existing root probability."
+    },
+    "interpretation": [
+      "Neither controlled substitution reproduces the red-pillar penalty. The full repartition across brick boundaries changes the conditional proposals below the root. The nonadditive remainder does not identify a pure interaction between two independently combined edits.",
+      "Optimizing only the root of the global candidate removes about 14% of its excess conditional variance over World Prefix. Around 2.39–2.40 times the prefix variance remains.",
+      "Upper-only preserves the red pillar, improves ls5 and all moving-4 sampled faces, and improves the older ls1 points. It loses the global candidate improvement on the new central ceiling, where variance rises above World Prefix.",
+      "This is a finite fixed-receiver diagnostic with intact bricks as an experimental control. It does not establish a runtime fix or limit future cross-brick clustering."
+    ]
   }
 }
