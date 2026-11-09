@@ -100,8 +100,13 @@ def build_primitives(keys, primitives, light_sah, *, aspect_correction=None, par
         binary.extend([None, None])
         binary[i] = (j, j+1)
         stack.extend([(j+1, right), (j, left)])
-    wide = {0: None}
-    order = [0]
+    return widen_binary(binary, 0)
+
+
+def widen_binary(binary, root):
+    """Expand one binary level per child, preserving any opaque input subtree."""
+    wide = {root: None}
+    order = [root]
     for i in order:
         pair = binary[i]
         if isinstance(pair, tuple):
@@ -113,7 +118,7 @@ def build_primitives(keys, primitives, light_sah, *, aspect_correction=None, par
     for i in reversed(order):
         if isinstance(wide[i], tuple):
             wide[i] = merged(wide[j] for j in wide[i])
-    return wide[0]
+    return wide[root]
 
 
 def control_root(data, prefix):
