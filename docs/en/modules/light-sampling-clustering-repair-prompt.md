@@ -2,6 +2,16 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-clustering-repair-prompt.md)
 
+## Execution status: batch completed and stopped (2026-11-09)
+
+Feasible frozen-candidate trials, necessary follow-up measurements, the 76-image page, and discussion-side independent review are complete. Task text below remains a historical contract, **not an instruction to continue**. Add no candidates or new matrices and do not run merely to reach the original eight hours. Close the persistent goal after this documentation commit to prevent automatic restart.
+
+Final delivery is `c3dee240b`; every item in `stage12_closeout.candidate_inventory` of the [candidate index](../../../experiments/light-sampling/20261108-eight-hour-exploration.json) has a recorded outcome. Wrong-source G32 timings were excluded and replaced by correctly sourced forward/reverse pairs. Near/coarse gates, actual-seed CDF blocks and native-UV images, the frozen 8B summary, K2/K4, fast-cull, and both far samplers are closed. Limited offline results retain their scope without becoming GPU acceptance. No new default is accepted across scenes. See the [bilingual closeout and independent evidence](light-sampling-design.md#closeout-frozen-candidate-set-completed-2026-11-09).
+
+Visual delivery: [76-image candidate comparison](../../../builds/light-sampling/20261108-eight-hour-exploration/closeout-candidate-viewer/comparison.html) and [11-preset baseline comparison](../../../builds/light-sampling/20261108-eight-hour-exploration/all-preset-baseline-viewer/comparison.html). Raw row orientation, display transform, all images, and current-FOV markers were verified, and the static preview was inspected. The user disabled the browser; interactive acceptance was not performed.
+
+The experiment queue is empty and LS5/Camera/G16/model 6 is restored. Physical Escape stopped the operation to exit Minecraft; PID 70844 remains running and the GPU was not handed back to Fornax, whose owner was informed. **Do not automatically retry closing, kill the process, or use another tool.** Closing this goal does not mean the JVM exited or renew cleanup authorization. The experiment owner has no continuing work package; discussion ends after recording closure.
+
 ## Current task: finish the frozen candidate set (2026-11-09)
 
 At about `10:12 UTC`, the user replaced the open eight-hour exploration with complete closeout of directions already proposed. **Freeze the candidate set now; do not introduce new candidates, combinations, parameter sweeps, or research directions.** Finish the feasible work already undertaken, then stop. This instruction supersedes the continuing-exploration language and the previous 13:10/13:49 schedule below; do not wait merely to fill the original duration.

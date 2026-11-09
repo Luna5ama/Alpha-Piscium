@@ -2,6 +2,16 @@
 
 语言：简体中文 | [English](../../en/modules/light-sampling-clustering-repair-prompt.md)
 
+## 执行状态：本批次完成并停止（2026-11-09）
+
+冻结候选的可行尝试、必要补测、76 图页面和讨论侧独立复查已经完成。下方任务正文保留为历史契约，**不再是继续执行指令**；不新增候选、不补开新矩阵、不为达到原八小时而续跑。完成本次文档提交后关闭持续 goal，避免自动重启。
+
+最终交付提交 `c3dee240b`；[候选清单](../../../experiments/light-sampling/20261108-eight-hour-exploration.json)的 `stage12_closeout.candidate_inventory` 各项已有结论。G32 的错误来源计时已排除并用正确来源正反序补齐；Near gate／coarse gate、实际种子 CDF 帧块与 native UV 画面、8B 固定摘要、K2／K4、fast-cull、两种 far 采样均已收结。有限离线结果保留其范围，不当作 GPU 验收；未接受跨场景的新默认。详见[双语结案与独立证据](light-sampling-design.md#本轮结案冻结候选已完成2026-11-09)。
+
+交付画面：[76 图候选对比页](../../../builds/light-sampling/20261108-eight-hour-exploration/closeout-candidate-viewer/comparison.html)、[11 preset 基础对照页](../../../builds/light-sampling/20261108-eight-hour-exploration/all-preset-baseline-viewer/comparison.html)。已核对 raw 行向、显示变换、全部图片及当前 FOV 标记，查看静态预览；浏览器被用户禁用，未做交互验收。
+
+实验队列为空，已恢复 LS5／Camera／G16／model 6。退出 Minecraft 的操作被物理 Esc 停止，PID 70844 仍运行，GPU 未交还 Fornax；这项保留状态已通知对方。**不自动重试关闭、杀进程或改用其他工具。** 关闭本轮 goal 不表示 JVM 已退出，也不重新授权清理。实验端无继续执行工作包，讨论端在完成记录后结束。
+
 ## 当前任务：完成冻结候选集后结束（2026-11-09）
 
 约 `10:12 UTC`，用户将开放式八小时探索改为完整收尾已提出的方向。**立即冻结候选集，不新增候选、组合、参数扫或研究方向。** 将已展开且能够完成的工作做完，然后停止。本指令取代下方继续探索的措辞及原 13:10／13:49 时间安排；不为凑够原时长空等。

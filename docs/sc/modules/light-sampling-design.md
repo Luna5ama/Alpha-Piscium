@@ -6,6 +6,42 @@
 2026-10-29 的初始设计与 CPU 实验保留在后文；其中的实现状态和下一步建议描述当时情况，
 与下面的当前决定冲突时，以当前决定为准。
 
+## 本轮结案：冻结候选已完成（2026-11-09）
+
+用户将开放式探索改为完成已有方向后停止。本轮冻结清单的可行尝试、必要补测、对比页及独立复查已经完成，**不增加方向、不继续自动探索，也未接受一个跨场景的新默认**。下方各阶段的“当前执行”“下一轮”和待补状态是历史记录，以本节为准；无关旧 backlog 不因此重启。实验交付提交为 `c3dee240b`，清单与来源见[实验索引](../../../experiments/light-sampling/20261108-eight-hour-exploration.json)的 `stage12_closeout`。
+
+画面入口是[最终 76 图候选对比页](../../../builds/light-sampling/20261108-eight-hour-exploration/closeout-candidate-viewer/comparison.html)及[11 个 preset 的基础对照页](../../../builds/light-sampling/20261108-eight-hour-exploration/all-preset-baseline-viewer/comparison.html)，后者保留独立 Cosine BRDF。候选页包含原始 1 spp、两个 32 帧窗口及区域标记；不同输入组分别展示，不能将跨组图像拼成同输入比较。
+
+性能参照保持 **Camera grouping + Half-space A + Near/Far**，硬上限使用完整 raygen 的实际**均值** `1.25` 倍。下表的尾部 V 指共同完整像素中最差 5% 的平均 RGB 方差；完整绝对分布、零观测与区域结果留在对应原件，不能只靠比值选默认。独立样本效率使用 `V*T`；相关的 CDF 帧块另算实际块均值噪声。
+
+| 已提出方向 | 最终证据与取舍 | 本轮结论 |
+|---|---|---|
+| 世界锚定分组，G16／G32 | moving-4 G32 两窗尾部 V 从 Camera 的 `0.04155 / 0.04163` 降至 `0.02189 / 0.02196`；正确来源的正反序平均时间比 `1.00981 / 0.97983`，尾部 `V*T` 比 `0.516–0.533` | 保留特定场景收益与 G16 同输入跨界稳定证据；G16 的 ls3／ls5 仍有反例，G64 仅布局检查 |
+| Anchor + Near 包含细化 | ls5 尾部 V `0.34686 / 0.34715 → 0.32948 / 0.33109`，正反序平均时间比 `1.04382 / 1.03085`，尾部 `V*T` 比 `0.979–0.996`；砂岩墙明显优于自身未加 gate 的 Anchor，但仍差于 Camera | 完成；整体效率接近 Camera，未成为通用修复 |
+| 并行 coarse SAH + 同一细化 | ls5 尾部 V `0.34639 / 0.34862 → 0.23509 / 0.23698`；平均时间比 `0.90955 / 0.96652`，尾部 `V*T` 比 `0.617–0.657` | 保留困难尾部收益，砂岩墙／柱下地面仍退化，不能称全区域改善 |
+| Guarded CDF／32 帧分层 | 相同 Anchor 树的两组实际种子块实验，像素尾部块噪声比 `0.61480 / 0.61147`；native UV 时间对同树 iid 为 `1.00657 / 0.99141`，对 Camera 为 `1.08191 / 1.03973` | 完成统计、计时及 native UV 画面对照；仅静态 moving-4，不外推连续移动或所有场景 |
+| 六方向 8B 软摘要 | ls1 同拓扑对照中红柱连通面尾部 V 约 `0.0396 → 0.0196`，整图却约 `0.613 → 0.637–0.641`；同拓扑首轮时间比 `1.058`，另有对 Camera 配对均值比 `1.025` | 固定摘要实机取舍已完成；无动态构建验收，也没有同输入 Camera 质量结论 |
+| 一层前瞻／cut2／fast-cull | 原前瞻、cut2 与已有 CDF/cube 快路径有均值超限证据；独立 fast-cull 正反序为 `1.24760 / 1.26784`，sentinel 比 `1.203 / 1.061` | 未稳定满足上限；保留漂移限制，不用 sentinel 归一化强行判通过 |
+| K1／K2／K4 | K1 的 ls5 尾部 `V*T` 约 `1.544`；补齐 native K2／K4 的 ls1 均值时间比 `1.643 / 3.132` | 按实测效率／成本收结；K2／K4 各自与 Camera 配对，不将不同输入组互相比 |
+| Far silhouette plane／entry faces | ls3 前者均值比 `2.246 / 2.479`、尾部 V 基本不变；较廉价 entry faces 均值比 `1.359`，尾部 `V*T` 比 `1.364–1.368` | 边界／PDF 检查与质量成本分开记录；两条实现均按成本及无效率收益收结 |
+| 其余既有筛查 | 全局／upper／权重、叉数／压紧，以及两树混合、距离 gate、BRDF-MIS 潜在收益和离线方向摘要已有实测或有限离线结果 | 保留各自负结果及范围；离线节点读取不是 GPU 耗时，不追加新矩阵 |
+
+**正确来源的 G32 计时已经补齐。** 候选必须为 `13518eb004eca5ae5d878305db9ce14c52f775ba`。讨论端独立遍历 56,260 个有效节点，保留 bounds／flux／叶材质位模式和孩子顺序，将内部物理地址规范化；四份计时树与质量树逐位一致。规范树 SHA 为 `19efa6a09b61a9c8743dc3bd5d13ca4efd9d3ea724f4c4e3f3d23cc7dc155c46`，见[G32 最终配对复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-g32-correct-paired-review.json)。此前误用 G16-only 来源 `15df1311` 的计时仍排除，旧 `1.131 / 1.083` 及其 `V*T` 不能复用。G32 保留区域为 `256×128×128` 世界块，不是 G16 的 64³。
+
+**ls5 的 gate 只细化 Near 分支。** 接收点位于跨 brick AABB 内且前向跨度不足 `1/8` 时展开一层，Far 分支不变，PDF 仍取完整混合。这是几何估权修正，不是可见性证明。并行 coarse gate 第一窗砂岩墙尾部 V `0.00490 → 0.01513`，柱下地面 `0.000440 → 0.001017`；柱面蓝光 `0.02975 → 0.002218`、右侧地面 `0.001751 → 0.000928` 改善，必须一起看。构建各 pass 中位数之和约 `0.331 ms`，Camera 约 `0.204 ms`；它不是整段构建耗时的中位数，且未并入 raygen 上限。
+
+ls5 质量测量固定 face UV；native 计时去掉额外固定表读取，核心建树／选灯／灯内算法逐文件相同。已核对 38 种材质、207 个有数据面的 UV 记录，但仅 33 面有匹配的 base-level color／specular 首尾裁块；主蓝光材质 4440 的 304 盏灯覆盖六面。**不声称完整图集或每帧发光输入全冻结。** 见[配对计时与区域复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-ls5-gate-paired-review.json)及[固定 UV／图集覆盖复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-fixed-uv-gate-atlas-review.json)。
+
+**CDF 收益来自实际独立帧块的比较。** 两种采集顺序各保留每方法四个 32 帧块，使用实际 Iris 种子，前后两组种子不重合；每块覆盖全部 32 个 strata。独立重算 `0.5*||meanA-meanB||²`，并检查 16／64 像素块聚合，见[帧块复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-cdf-block-review.json)及[质量／计时源码配对](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-cdf-source-pair-review.json)。非有限／不完整像素明确排除；不得把相关帧的样本方差除以 32 当作均值方差。补齐的 Camera 与 Anchor+CDF native UV 画面是视觉对照，不能单独分离聚类和 CDF 的收益。
+
+其余最终独立复查入口：[K 成本](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-k-closeout-timing-review.json)、[fast-cull](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-fast-cull-closeout-review.json)、[8B 质量](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-ls1-directional8b-first-review.json)／[计时](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-directional8b-timing-review.json)、[far-plane](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-far-closeout-review.json)、[entry faces](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-entry-faces-paired-review.json)。没有把单点回退作为唯一淘汰理由，也没有把未测动态构建说成通过。
+
+**对比页已经独立核对。** 76 张图中，40 张与此前逐原件检查的 SHA 一致，新增 36 张重新从 raw 核对。全部使用 `raw[height-1-display_y]` 与统一 `sqrt(clamp(linearRGB/0.20,0,1))` 显示变换；不完整像素标紫。复查发现并修正了沿用旧 FOV 的点位，最终标记与当前投影相符。HTML SHA 为 `f633754d41df86321101d9431736ad3f834b6c447b073b5708c758383032564d`，见[最终图片复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-closeout-viewer-final-review.json)。已查看静态预览；浏览器被用户禁用，未做交互浏览器验收。
+
+**执行已结束，运行时保留状态明确。** [恢复回执](../../../builds/light-sampling/20261108-eight-hour-exploration/receipts/finish-after-bloom-ls5-safe-snapshot/result.json)对应作业 `8c18d5f8-44f9-4d6c-bf3e-24be6a0d7359`：LS5、Camera `24e7ca13`、G16、model 6，活动／排队实验均为 0。退出 Minecraft 的桌面操作被物理 Esc 停止；PID 70844 仍运行，GPU 未交给 Fornax，对方已获通知。不自动重试退出、杀进程或换工具操作。关闭本轮持续 goal，保留该明确的用户停止状态；这不代表 JVM 已退出。
+
+候选实现与诊断保存在实验 refs／原件中；相对本轮起点 `253baf30c`，共享分支的 shader 和选项来源未改变。本轮结案不删除旧 shader 或切换默认。保留本轮索引、可复算来源和对比原件供人工查看；已有清理暂停／拒绝继续有效，不把关闭 goal 当作删除授权。双语结案记录、链接和 diff 检查完成后结束，不再派发实验。
+
 ## 讨论与实验分工（2026-10-30）
 
 - 当前讨论维护本文及其英文版本，记录已确认决定、理由、待验证假说与后续实验要回答的问题。
