@@ -21,7 +21,7 @@ def area(lo, hi):
     return 2 * (x*y + y*z + z*x)
 
 
-def split(centers2, lower, upper, flux, ids, light_sah, aspect_correction):
+def split(centers2, lower, upper, flux, ids, light_sah, aspect_correction, size=area):
     p = centers2[ids]
     lo, hi = p.min(axis=0), p.max(axis=0)
     bounds_lo, bounds_hi = lower[ids], upper[ids]
@@ -42,12 +42,12 @@ def split(centers2, lower, upper, flux, ids, light_sah, aspect_correction):
         slots = np.flatnonzero(nonempty)
         l = slots
         r = slots + 1
-        left_area = area(np.minimum.accumulate(aabb_lo)[l], np.maximum.accumulate(aabb_hi)[l])
-        right_area = area(np.minimum.accumulate(aabb_lo[::-1])[::-1][r], np.maximum.accumulate(aabb_hi[::-1])[::-1][r])
+        left_size = size(np.minimum.accumulate(aabb_lo)[l], np.maximum.accumulate(aabb_hi)[l])
+        right_size = size(np.minimum.accumulate(aabb_lo[::-1])[::-1][r], np.maximum.accumulate(aabb_hi[::-1])[::-1][r])
         left = np.cumsum(flux_bins)[l]
         right = np.cumsum(flux_bins[::-1])[::-1][r]
         factor = diag.max() / diag[axis] if aspect_correction else 1
-        cost = factor * (left * left_area + right * right_area)
+        cost = factor * (left * left_size + right * right_size)
         i = int(np.argmin(cost))
         value = (float(cost[i]), axis, int(slots[i]))
         if best is None or value < best[0]:
@@ -60,14 +60,14 @@ def split(centers2, lower, upper, flux, ids, light_sah, aspect_correction):
     return ids[mask], ids[~mask]
 
 
-def build(keys, flux, light_sah, *, aspect_correction=None):
+def build(keys, flux, light_sah, *, aspect_correction=None, partition=None):
     positions = keys[:, :3].astype(np.int64)
     leaves = [Node(np.array([*p, m, *(p + 1)], float), int(key[3]), ())
               for p, key, m in zip(positions, keys, flux, strict=True)]
-    return build_primitives(keys, leaves, light_sah, aspect_correction=aspect_correction)
+    return build_primitives(keys, leaves, light_sah, aspect_correction=aspect_correction, partition=partition)
 
 
-def build_primitives(keys, primitives, light_sah, *, aspect_correction=None):
+def build_primitives(keys, primitives, light_sah, *, aspect_correction=None, partition=None):
     if aspect_correction is None:
         aspect_correction = light_sah
     assert len(keys) == len(primitives) and len(keys)
@@ -83,6 +83,9 @@ def build_primitives(keys, primitives, light_sah, *, aspect_correction=None):
     assert np.all(upper > lower) and np.all(np.isfinite(flux) & (flux > 0))
     # Doubled integer centers keep bucket boundaries exact for odd-sized bounds.
     centers2 = lower + upper
+    if partition is None:
+        def partition(centers, lo, hi, mass, ids):
+            return split(centers, lo, hi, mass, ids, light_sah, aspect_correction)
     # Build depth-first with an explicit worklist so unbalanced inputs cannot
     # consume the Python recursion limit. Children retain low/high split order.
     binary = [None]
@@ -92,7 +95,7 @@ def build_primitives(keys, primitives, light_sah, *, aspect_correction=None):
         if len(indices) == 1:
             binary[i] = primitives[int(indices[0])]
             continue
-        left, right = split(centers2, lower, upper, flux, indices, light_sah, aspect_correction)
+        left, right = partition(centers2, lower, upper, flux, indices)
         j = len(binary)
         binary.extend([None, None])
         binary[i] = (j, j+1)
