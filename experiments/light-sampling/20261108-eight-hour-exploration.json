@@ -49,10 +49,10 @@
     "historical_local_originals_untouched": true
   },
   "next": [
-    "Complete broad native Camera/Prefix/independent Cosine coverage and extend shortlist without pooling scenes.",
-    "Validate dynamic coarse upper topology against offline 64-cube reconstruction and time all build stages separately.",
-    "Keep frozen lookup results scoped to matching atlas pairs; native LS1 and LS5 measurements are candidate screens.",
-    "Run bounded optimization ABBA, arity/stress and real camera boundary motion."
+    "Complete remaining live controls with one scoped readiness recovery on terrain failures.",
+    "Measure optimized lookahead in ls1 under ordered Camera baseline; run in-place and parallel coarse build on moving-4.",
+    "Validate actual camera motion across x=112 with a continuous framebuffer and diagnostic traversal evidence.",
+    "Extend narrow, measurable candidates to 720p fixtures and G32 stress; record per-scene hard negatives."
   ],
   "results": [
     {
@@ -2889,6 +2889,609 @@
         }
       ],
       "scope": "Point windows only for coarse topology and adaptive near. Atlas crops record the coordinates of the explicit animated-material check."
+    },
+    {
+      "id": "moving4-dynamic-coarse-validated",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-camera-prefix-paired-coarse-dynamic-coarse-upper-outer-near-cosine-brdf.json",
+        "sha256": "8ad7a1881fb2afad9dad4f7824cfb5835e1c8122b37236b22b1303903cc3934b"
+      },
+      "scene": "light-sampling-failure-moving-4",
+      "base": "camera",
+      "pixels": 2022171,
+      "median_raygen": {
+        "camera": 1.0,
+        "prefix-paired-coarse": 1.1263223397635345,
+        "dynamic-coarse-upper": 0.9728686994399502,
+        "outer-near": 0.9588052271313006,
+        "cosine-brdf": 0.464965774735532
+      },
+      "mean_raygen": {
+        "camera": 1.0,
+        "prefix-paired-coarse": 1.1164858469763037,
+        "dynamic-coarse-upper": 0.9864989242858293,
+        "outer-near": 1.0094954306116422,
+        "cosine-brdf": 0.5086651556813432
+      },
+      "median_build_ns": {
+        "camera": 400384.0,
+        "prefix-paired-coarse": 497664.0,
+        "dynamic-coarse-upper": 1170432.0,
+        "outer-near": 498688.0,
+        "cosine-brdf": 401408.0
+      },
+      "tail_v_times_mean_ratio": [
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix-paired-coarse": 1.947546,
+            "dynamic-coarse-upper": 0.728525,
+            "outer-near": 0.84933,
+            "cosine-brdf": 2.765557
+          },
+          "side-a connected plane": {
+            "camera": 1.0,
+            "prefix-paired-coarse": 2.481176,
+            "dynamic-coarse-upper": 0.717102,
+            "outer-near": 0.834495,
+            "cosine-brdf": 1.367866
+          },
+          "side-b connected plane": {
+            "camera": 1.0,
+            "prefix-paired-coarse": 1.613934,
+            "dynamic-coarse-upper": 0.375658,
+            "outer-near": 0.54336,
+            "cosine-brdf": 11.904305
+          },
+          "top connected plane": {
+            "camera": 1.0,
+            "prefix-paired-coarse": 1.483251,
+            "dynamic-coarse-upper": 0.753727,
+            "outer-near": 0.854839,
+            "cosine-brdf": 2.230065
+          }
+        },
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix-paired-coarse": 1.959389,
+            "dynamic-coarse-upper": 0.727541,
+            "outer-near": 0.849643,
+            "cosine-brdf": 2.768058
+          },
+          "side-a connected plane": {
+            "camera": 1.0,
+            "prefix-paired-coarse": 2.48219,
+            "dynamic-coarse-upper": 0.7078,
+            "outer-near": 0.829353,
+            "cosine-brdf": 1.311201
+          },
+          "side-b connected plane": {
+            "camera": 1.0,
+            "prefix-paired-coarse": 1.560813,
+            "dynamic-coarse-upper": 0.417881,
+            "outer-near": 0.623148,
+            "cosine-brdf": 12.656393
+          },
+          "top connected plane": {
+            "camera": 1.0,
+            "prefix-paired-coarse": 1.490501,
+            "dynamic-coarse-upper": 0.754897,
+            "outer-near": 0.85607,
+            "cosine-brdf": 2.240678
+          }
+        }
+      ]
+    },
+    {
+      "id": "ls1-dynamic-coarse-validated",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-surfaces-camera-paired-outer-prefix-paired-coarse-dynamic-coarse-upper-outer-near-paired-cosine-brdf.json",
+        "sha256": "97ec38f5256a96a2e5fdf18ae0a3848a5de4ee34e31ee1d75bc57fa2c88041a4"
+      },
+      "scene": "light-sampling-1",
+      "base": "camera-paired-outer",
+      "pixels": 2017694,
+      "median_raygen": {
+        "camera-paired-outer": 1.0,
+        "prefix-paired-coarse": 1.170115815454718,
+        "dynamic-coarse-upper": 0.9269033605468008,
+        "outer-near-paired": 0.9400037972280235,
+        "cosine-brdf": 0.5606607176760965
+      },
+      "mean_raygen": {
+        "camera-paired-outer": 1.0,
+        "prefix-paired-coarse": 1.1840191496865833,
+        "dynamic-coarse-upper": 0.9266827115763823,
+        "outer-near-paired": 0.9628579043557721,
+        "cosine-brdf": 0.5962343892780994
+      },
+      "median_build_ns": {
+        "camera-paired-outer": 296960.0,
+        "prefix-paired-coarse": 327168.0,
+        "dynamic-coarse-upper": 876544.0,
+        "outer-near-paired": 328704.0,
+        "cosine-brdf": 296960.0
+      },
+      "tail_v_times_mean_ratio": [
+        {
+          "whole": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 1.59376,
+            "dynamic-coarse-upper": 1.578151,
+            "outer-near-paired": 1.715076,
+            "cosine-brdf": 0.992065
+          },
+          "red-pillar": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 0.279834,
+            "dynamic-coarse-upper": 0.998454,
+            "outer-near-paired": 0.713136,
+            "cosine-brdf": 1.521085
+          },
+          "central-ceiling": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 8.155449,
+            "dynamic-coarse-upper": 8.27956,
+            "outer-near-paired": 7.407219,
+            "cosine-brdf": 3.573291
+          },
+          "red-pillar connected plane": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 0.188642,
+            "dynamic-coarse-upper": 0.302702,
+            "outer-near-paired": 0.302278,
+            "cosine-brdf": 0.726677
+          },
+          "central-ceiling connected plane": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 2.201553,
+            "dynamic-coarse-upper": 1.947161,
+            "outer-near-paired": 1.962791,
+            "cosine-brdf": 0.747288
+          }
+        },
+        {
+          "whole": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 1.58045,
+            "dynamic-coarse-upper": 1.574329,
+            "outer-near-paired": 1.651316,
+            "cosine-brdf": 0.987477
+          },
+          "red-pillar": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 0.496135,
+            "dynamic-coarse-upper": 1.014371,
+            "outer-near-paired": 0.669029,
+            "cosine-brdf": 2.408728
+          },
+          "central-ceiling": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 5.451411,
+            "dynamic-coarse-upper": 10.936889,
+            "outer-near-paired": 4.37656,
+            "cosine-brdf": 3.127073
+          },
+          "red-pillar connected plane": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 0.178995,
+            "dynamic-coarse-upper": 0.291343,
+            "outer-near-paired": 0.28692,
+            "cosine-brdf": 0.697359
+          },
+          "central-ceiling connected plane": {
+            "camera-paired-outer": 1.0,
+            "prefix-paired-coarse": 2.188774,
+            "dynamic-coarse-upper": 1.921807,
+            "outer-near-paired": 1.891413,
+            "cosine-brdf": 0.742081
+          }
+        }
+      ]
+    },
+    {
+      "id": "ls5-dynamic-coarse-validated",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-prefix-dynamic-coarse-upper-upper-outer-near-global-face-outer-face-cosine-brdf.json",
+        "sha256": "0325e8c2217b9d538a8e0e5c0011a458871ea2ce1d33ede30d2f63679c2ed080"
+      },
+      "scene": "light-sampling-5",
+      "base": "camera",
+      "pixels": 2066954,
+      "median_raygen": {
+        "camera": 1.0,
+        "prefix": 1.1324285714285713,
+        "dynamic-coarse-upper": 0.8902857142857142,
+        "upper-outer-near": 0.8698571428571429,
+        "global-face": 0.8694285714285714,
+        "outer-face": 1.2367142857142857,
+        "cosine-brdf": 0.2797142857142857
+      },
+      "mean_raygen": {
+        "camera": 1.0,
+        "prefix": 1.0786933219146808,
+        "dynamic-coarse-upper": 0.8650461379857578,
+        "upper-outer-near": 1.0007102834842856,
+        "global-face": 0.8261631906745867,
+        "outer-face": 1.1310128033671496,
+        "cosine-brdf": 0.2676611988367586
+      },
+      "median_build_ns": {
+        "camera": 196608.0,
+        "prefix": 192512.0,
+        "dynamic-coarse-upper": 450560.0,
+        "upper-outer-near": 184320.0,
+        "global-face": 183808.0,
+        "outer-face": 193024.0,
+        "cosine-brdf": 195584.0
+      },
+      "tail_v_times_mean_ratio": [
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.572881,
+            "dynamic-coarse-upper": 0.681637,
+            "upper-outer-near": 1.152678,
+            "global-face": 0.813969,
+            "outer-face": 0.915534,
+            "cosine-brdf": 1.480908
+          },
+          "A: left sandstone wall": {
+            "camera": 1.0,
+            "prefix": 31.812024,
+            "dynamic-coarse-upper": 32.315459,
+            "upper-outer-near": 0.675437,
+            "global-face": 2.506607,
+            "outer-face": 23.47215,
+            "cosine-brdf": 52.814218
+          },
+          "B: blue-lit pillar": {
+            "camera": 1.0,
+            "prefix": 0.306519,
+            "dynamic-coarse-upper": 0.060417,
+            "upper-outer-near": 1.198019,
+            "global-face": 0.026966,
+            "outer-face": 0.057377,
+            "cosine-brdf": 1.938653
+          },
+          "C: blue floor below pillar": {
+            "camera": 1.0,
+            "prefix": 4.863154,
+            "dynamic-coarse-upper": 2.111592,
+            "upper-outer-near": 1.087944,
+            "global-face": 7.531097,
+            "outer-face": 1.842582,
+            "cosine-brdf": 9.234216
+          },
+          "D: blue floor in right shadow": {
+            "camera": 1.0,
+            "prefix": 2.209056,
+            "dynamic-coarse-upper": 0.468539,
+            "upper-outer-near": 1.437855,
+            "global-face": 4.359495,
+            "outer-face": 0.623227,
+            "cosine-brdf": 16.676388
+          }
+        },
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.551297,
+            "dynamic-coarse-upper": 0.682426,
+            "upper-outer-near": 1.142476,
+            "global-face": 0.817478,
+            "outer-face": 0.909764,
+            "cosine-brdf": 1.485756
+          },
+          "A: left sandstone wall": {
+            "camera": 1.0,
+            "prefix": 34.292999,
+            "dynamic-coarse-upper": 34.273865,
+            "upper-outer-near": 0.713411,
+            "global-face": 2.669924,
+            "outer-face": 24.414854,
+            "cosine-brdf": 55.92374
+          },
+          "B: blue-lit pillar": {
+            "camera": 1.0,
+            "prefix": 0.30992,
+            "dynamic-coarse-upper": 0.058749,
+            "upper-outer-near": 1.168999,
+            "global-face": 0.027725,
+            "outer-face": 0.055044,
+            "cosine-brdf": 1.977782
+          },
+          "C: blue floor below pillar": {
+            "camera": 1.0,
+            "prefix": 6.709618,
+            "dynamic-coarse-upper": 1.892037,
+            "upper-outer-near": 1.049191,
+            "global-face": 9.281164,
+            "outer-face": 1.823666,
+            "cosine-brdf": 25.225049
+          },
+          "D: blue floor in right shadow": {
+            "camera": 1.0,
+            "prefix": 2.147199,
+            "dynamic-coarse-upper": 0.478641,
+            "upper-outer-near": 1.455949,
+            "global-face": 4.551939,
+            "outer-face": 0.601241,
+            "cosine-brdf": 14.630723
+          }
+        }
+      ]
+    },
+    {
+      "id": "moving4-sphere-bound-native",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-camera-prefix-sphere-bound-cosine-brdf.json",
+        "sha256": "95f41158227f13e23ec9377d0497ad74caa79eabd7ad9230a24a08086c94c64e"
+      },
+      "scene": "light-sampling-failure-moving-4",
+      "base": "camera",
+      "pixels": 2022174,
+      "median_raygen": {
+        "camera": 1.0,
+        "prefix": 1.0976975731176104,
+        "sphere-bound": 1.0065961418792782,
+        "cosine-brdf": 0.464965774735532
+      },
+      "mean_raygen": {
+        "camera": 1.0,
+        "prefix": 1.101282036532097,
+        "sphere-bound": 1.0785424744110417,
+        "cosine-brdf": 0.5086651556813432
+      },
+      "median_build_ns": {
+        "camera": 400384.0,
+        "prefix": 497664.0,
+        "sphere-bound": 497664.0,
+        "cosine-brdf": 401408.0
+      },
+      "tail_v_times_mean_ratio": [
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.903887,
+            "sphere-bound": 1.571479,
+            "cosine-brdf": 2.765557
+          },
+          "side-a connected plane": {
+            "camera": 1.0,
+            "prefix": 2.41678,
+            "sphere-bound": 1.796738,
+            "cosine-brdf": 1.367866
+          },
+          "side-b connected plane": {
+            "camera": 1.0,
+            "prefix": 1.553972,
+            "sphere-bound": 1.482317,
+            "cosine-brdf": 11.904305
+          },
+          "top connected plane": {
+            "camera": 1.0,
+            "prefix": 1.454302,
+            "sphere-bound": 1.311652,
+            "cosine-brdf": 2.230065
+          }
+        },
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.915456,
+            "sphere-bound": 1.578223,
+            "cosine-brdf": 2.768058
+          },
+          "side-a connected plane": {
+            "camera": 1.0,
+            "prefix": 2.366394,
+            "sphere-bound": 1.78639,
+            "cosine-brdf": 1.311201
+          },
+          "side-b connected plane": {
+            "camera": 1.0,
+            "prefix": 1.539177,
+            "sphere-bound": 1.459289,
+            "cosine-brdf": 12.656393
+          },
+          "top connected plane": {
+            "camera": 1.0,
+            "prefix": 1.460235,
+            "sphere-bound": 1.318271,
+            "cosine-brdf": 2.240678
+          }
+        }
+      ]
+    },
+    {
+      "id": "ls3-native-controls",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-3-camera-prefix-cosine-brdf.json",
+        "sha256": "8df61ae06316dc1cbc7d3379260a75a99ea6d012961eeba2966f901565c1ab7d"
+      },
+      "scene": "light-sampling-3",
+      "base": "camera",
+      "pixels": 1866633,
+      "median_raygen": {
+        "camera": 1.0,
+        "prefix": 1.0449069003285871,
+        "cosine-brdf": 0.6573932092004381
+      },
+      "mean_raygen": {
+        "camera": 1.0,
+        "prefix": 1.059897873218369,
+        "cosine-brdf": 0.6660027852758627
+      },
+      "median_build_ns": {
+        "camera": 306176.0,
+        "prefix": 303104.0,
+        "cosine-brdf": 305152.0
+      },
+      "tail_v_times_mean_ratio": [
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.327411,
+            "cosine-brdf": 0.914537
+          }
+        },
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 1.352204,
+            "cosine-brdf": 0.921172
+          }
+        }
+      ]
+    },
+    {
+      "id": "ls4-native-controls",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-4-camera-prefix-cosine-brdf.json",
+        "sha256": "c94795c03bd86f5929fea890b6985408edf56515eff035fc740c944a246adbcf"
+      },
+      "scene": "light-sampling-4",
+      "base": "camera",
+      "pixels": 2060322,
+      "median_raygen": {
+        "camera": 1.0,
+        "prefix": 0.9648856017142462,
+        "cosine-brdf": 0.31872537499135967
+      },
+      "mean_raygen": {
+        "camera": 1.0,
+        "prefix": 0.9307034632599873,
+        "cosine-brdf": 0.3064611656316754
+      },
+      "median_build_ns": {
+        "camera": 546816.0,
+        "prefix": 596992.0,
+        "cosine-brdf": 544768.0
+      },
+      "tail_v_times_mean_ratio": [
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 0.692934,
+            "cosine-brdf": 1.401116
+          }
+        },
+        {
+          "whole": {
+            "camera": 1.0,
+            "prefix": 0.682436,
+            "cosine-brdf": 1.400835
+          }
+        }
+      ]
+    },
+    {
+      "id": "ls1-independent-cosine-pair",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-surfaces-camera-paired-brdf-cosine-brdf.json",
+        "sha256": "3c87bde5f6fc7db940b0176c03dff3366276ef2349ccb8e642d2f78a2b468a39"
+      },
+      "scene": "light-sampling-1",
+      "base": "camera-paired-brdf",
+      "pixels": 2022468,
+      "median_raygen": {
+        "camera-paired-brdf": 1.0,
+        "cosine-brdf": 0.527698355968549
+      },
+      "mean_raygen": {
+        "camera-paired-brdf": 1.0,
+        "cosine-brdf": 0.5568244236522253
+      },
+      "median_build_ns": {
+        "camera-paired-brdf": 296960.0,
+        "cosine-brdf": 296960.0
+      },
+      "tail_v_times_mean_ratio": [
+        {
+          "whole": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 0.935636
+          },
+          "red-pillar": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 1.415931
+          },
+          "central-ceiling": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 3.300489
+          },
+          "red-pillar connected plane": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 0.677684
+          },
+          "central-ceiling connected plane": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 0.69807
+          }
+        },
+        {
+          "whole": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 0.936022
+          },
+          "red-pillar": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 2.486577
+          },
+          "central-ceiling": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 2.799149
+          },
+          "red-pillar connected plane": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 0.677252
+          },
+          "central-ceiling connected plane": {
+            "camera-paired-brdf": 1.0,
+            "cosine-brdf": 0.702235
+          }
+        }
+      ]
+    },
+    {
+      "id": "dynamic-coarse-fp32-structural-replay",
+      "evidence": [
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-dynamic-coarse-fp32-replay.json",
+          "sha256": "69ac15dcbf68d4153993e73ffda10ab37427a847bbcf3a3aedbf1b04f2aa6f32"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ls1-dynamic-coarse-fp32-replay.json",
+          "sha256": "0d9aba011bfb01a580ea1fbcae1e8ff8b0172be7258c5d34b65e98714261718c"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-dynamic-coarse-fp32-replay.json",
+          "sha256": "fdaf6c4341ca84c11e477b7e453b6367cb1715045f5567ccde58f76bb49eafbc"
+        }
+      ],
+      "scope": "All leaves/mass, retained 64-cube subtrees and ordered shape match independent float32 replay with fused left cost term in all three tested scenes."
+    },
+    {
+      "id": "cdf4-float32-oracle",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cdf4-float32-offline.json",
+        "sha256": "ec8912c546ce98ff9dc5810cf39bb89c09a8065663ed03923a44b8f202e3d0b0"
+      }
+    },
+    {
+      "id": "second-viewer",
+      "page": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/stage2-viewer/comparison.html",
+        "sha256": "1bdd862bcd055b9774c02c2c0ebc40e2464788a172858c623ea2f3e22f956b77"
+      },
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/stage2-viewer/evidence.json",
+        "sha256": "c60d2e290d6545f2f3b02502be20444722f83ba23f413fe01df63f87fcb80796"
+      },
+      "verified_lossless_images": 70,
+      "agent": "Pyxis GPT-6.1 Terra medium, priority; Windows Idle; browser GPU disabled"
     }
   ],
   "frozen_candidate_refs": {
@@ -3000,6 +3603,34 @@
     "dynamic-coarse-upper": {
       "ref": "experiment/light-sampling-eight-hour-dynamic-coarse-upper",
       "source": "11cb4137c4108a256a8a0ab1c1d2bb5b28bb1b50"
+    },
+    "dynamic-coarse-inplace": {
+      "ref": "experiment/light-sampling-eight-hour-dynamic-coarse-inplace",
+      "source": "c8e7c7b30c418d486cef936cce62c5ff63def668"
+    },
+    "dynamic-coarse-50": {
+      "ref": "experiment/light-sampling-eight-hour-dynamic-coarse-50",
+      "source": "92b80803077a81eceafe9303f48f57dc16e5fdca"
+    },
+    "dynamic-coarse-parallel": {
+      "ref": "experiment/light-sampling-eight-hour-dynamic-coarse-parallel",
+      "source": "11482bf26ae73fe27c0736771adf7757e7cbbfc5"
+    },
+    "lookahead-fast-cdf-cube": {
+      "ref": "experiment/light-sampling-eight-hour-lookahead-fast-cdf-cube",
+      "source": "f779d073aff202dac97550701432094871e82e6d"
+    },
+    "motion-camera": {
+      "ref": "experiment/light-sampling-eight-hour-motion-camera",
+      "source": "33aa1c2d2b528664cfa57f71f9197a756c9f3e1e"
+    },
+    "motion-prefix": {
+      "ref": "experiment/light-sampling-eight-hour-motion-prefix",
+      "source": "bb2351c3fc9110c3c39c824ef17f38ef371aac7e"
+    },
+    "motion-coarse": {
+      "ref": "experiment/light-sampling-eight-hour-motion-coarse",
+      "source": "6aa8e10380c0e615115fc1dc1e2938a25a0d2fdc"
     }
   },
   "runtime_scene_recovery": {
@@ -3013,6 +3644,22 @@
     "ls5-readiness": {
       "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/ls5-readiness/result.json",
       "sha256": "e4b92b80af53ec9c5d52ca5670de4cefc5bc6e53580732e636a7f9f19fe4e314"
+    },
+    "ls2-camera-chunks": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/ls2-camera-chunks/result.json",
+      "sha256": "cf861235b3cf960e4f7b482c8f291b8258e2d6ae65b5f3301c609c6afe031a8e"
+    },
+    "ls2-camera-chunks-retry": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/ls2-camera-chunks-retry/result.json",
+      "sha256": "baa70ca164827ce7fb9aff4880f55db4a075013700f0203d82c620de35a7268e"
+    },
+    "moving1-camera-chunks": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/moving1-camera-chunks/result.json",
+      "sha256": "65956ea4f6233bd93360b70314d5976be6982ba069c63e8e4dac4ee82e66bfe6"
+    },
+    "moving2-camera-chunks": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/moving2-camera-chunks/result.json",
+      "sha256": "5e02f3df7a955dcc77afca677107d9bbb4d992e285111daa1c05d9322c8114ca"
     }
   }
 }

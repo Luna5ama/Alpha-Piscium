@@ -38,7 +38,37 @@ def coarse_tree(root, size, rule='flux-diagonal'):
     return result, len(atoms)
 
 
-def main(output):
+def adaptive_tree(root):
+    """Spend 128 atoms on the largest diagonal-cost reduction per added root."""
+    atoms = list(cell_roots(root, (64,64,64)).values())
+    assert len(atoms)<=128
+    def key(node):
+        return tuple(int(node.data[i]) for i in (0,1,2,4,5,6))
+    def cost(node):
+        d = node.data[4:7]-node.data[:3]
+        return node.data[3]*float(d@d)
+    while len(atoms)<128:
+        choices = []
+        for i,n in enumerate(atoms):
+            if not n.children or (n.data[:3]//16 == (n.data[4:7]-1)//16).all():
+                continue
+            extra = len(n.children)-1
+            assert extra>0
+            if len(atoms)+extra>128:
+                continue
+            gain = (cost(n)-sum(cost(c) for c in n.children))/extra
+            choices.append((-gain,key(n),i))
+        if not choices or min(choices)[0]<=0.:
+            break
+        i = min(choices)[2]
+        atoms[i:i+1] = atoms[i].children
+    keys = np.asarray([key(n) for n in atoms])
+    result = build_primitives(keys,atoms,True,partition=RULES['flux-diagonal'])
+    assert sorted(leaves(result)) == sorted(leaves(root))
+    return result,len(atoms)
+
+
+def main(output, adaptive_only=False):
     refs = [EVIDENCE/f'20261108-{tag}-reference.npz' for tag in
             ('clustering-repair', 'cluster-summaries', 'nearfar-combination')]
     combination = EVIDENCE/'20261108-nearfar-combination.json'
@@ -52,7 +82,12 @@ def main(output):
             # A four-way Morton level consumes two bits. A 2-brick cube
             # (three bits) does not align with a native subtree.
             cells = [(16,16,16), (32,32,16), (64,32,32), (64,64,64)]
-            for cell, rule in [(c,'flux-diagonal') for c in cells] + [(c,'count-median') for c in cells[1:]]:
+            definitions = [(c,'flux-diagonal') for c in cells] + [(c,'count-median') for c in cells[1:]]
+            if adaptive_only:
+                definitions = [((16,16,16),'flux-diagonal'),((64,64,64),'flux-diagonal')]
+                variants['adaptive-128'], count = adaptive_tree(root)
+                trees[group]['adaptive-128'] = dict(coarse_roots=count, ordered_sha256=ordered_signature(variants['adaptive-128']))
+            for cell, rule in definitions:
                 name = f'{"x".join(map(str,cell))}/{rule}'
                 variants[name], count = coarse_tree(root, cell, rule)
                 trees[group][name] = dict(coarse_roots=count, ordered_sha256=ordered_signature(variants[name]))
@@ -80,7 +115,8 @@ def main(output):
                     stats['ratio_vs_prefix'] = None if stats['variance'] is None else stats['variance']/base
                 rows.append(dict(cohort=group, point=point, window=window, label=label, methods=methods))
     assert len(rows)==28
-    report = dict(scope='Point-window screen. Preserve subtrees of actual 4-way Morton levels 0 through 3.',
+    report = dict(scope=('Point-window screen. Start from level 3 and refine at most to single bricks, with a 128-root budget.'
+                         if adaptive_only else 'Point-window screen. Preserve subtrees of actual 4-way Morton levels 0 through 3.'),
                   input_sha256={p.name:sha(p) for p in [*refs, combination]}, trees=trees, rows=rows)
     output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n',encoding='utf8')
 
@@ -88,4 +124,6 @@ def main(output):
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('output',type=Path)
-    main(parser.parse_args().output)
+    parser.add_argument('--adaptive-only',action='store_true')
+    a = parser.parse_args()
+    main(a.output,a.adaptive_only)

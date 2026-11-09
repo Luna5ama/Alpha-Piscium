@@ -236,6 +236,56 @@ def archive_ordered(job_id, name):
     return {key:report[key] for key in ('job','path','same_input','time_ratio','mean_time_ratio','paired_time_ratios',
                                        'manifest_id','manifest_sha256')}
 
+def archive_motion(job_id, name):
+    job = ROOT/'.vibris/jobs'/job_id
+    request = read(job/'request.json')['arguments']
+    saved = read(job/'result.json')
+    assert saved['success']
+    result = saved['result']
+    assert result['restoration']['status']=='RECEIPT_STATUS_OK'
+    assert all(r['status']=='RECEIPT_STATUS_OK' for r in result['action_receipts'])
+    folder = RUN/'motion'/request['preset_id']/name
+    manifest, ref = retain_manifest(job,result,folder)
+    sources = {r['id']:r for r in request['sources']}
+    configs = {r['id']:r['values'] for r in request['configs']}
+    methods = {}
+    for action,r in zip(request['actions'],result['action_receipts'],strict=True):
+        if action['type']=='load_shader':
+            method = action['config_id']
+            m = r['runtime_mutation']
+            source = sources[action['source_id']]
+            assert m['source_sha256']==source['snapshot_sha256']
+            effective = {v['name']:v['value'] for v in m['effective_settings']['settings']}
+            assert all(effective[k]==v for k,v in configs[method].items())
+            methods[method] = dict(source=source['resolved_revision'], scene_sha256=m['scene_sha256'],
+                                   effective_settings=configs[method])
+        elif action['type']=='camera_motion':
+            frames = r['camera_motion']['frames']
+            assert len(frames)==action['keyframes'][-1]['frame_offset']+1
+            ids = [int(row['rendered_frame_id']) for row in frames]
+            assert all(b==a+1 for a,b in zip(ids,ids[1:]))
+            poses = [[row['actual_pose'].get(k,0.) for k in ('x','y','z','yaw_degrees','pitch_degrees')]
+                     for row in frames]
+            brick = np.floor(np.asarray(poses)[:,:3]/16).astype(int)
+            crossings = (np.flatnonzero((brick[1:]!=brick[:-1]).any(axis=1))+1).tolist()
+            paths = [item['relative_path'] for item in manifest['files'] if
+                     item['relative_path'].startswith(action['artifact_prefix']+'-') and
+                     item['relative_path'].endswith('.png')]
+            assert len(paths)==len(frames) and crossings
+            methods[method].update(frames=ids, poses=poses, crossing_frame_offsets=crossings,
+                                   first_brick=brick[0].tolist(), screenshots=sorted(paths))
+    assert len(methods)>=2 and len({r['scene_sha256'] for r in methods.values()})==1
+    first = next(iter(methods.values()))
+    for case in methods.values():
+        np.testing.assert_allclose(case['poses'],first['poses'],rtol=0,atol=1e-4)
+        assert case['crossing_frame_offsets']==first['crossing_frame_offsets']
+    accepted = dict(job=job_id, scene=request['preset_id'],path=folder.relative_to(ROOT).as_posix(),
+                    manifest_id=manifest['manifest_id'],manifest_sha256=ref['sha256'],methods=methods,
+                    scope='Consecutive final framebuffer and actual camera poses. No per-frame raw tree or linear radiance evidence.')
+    (folder/'accepted.json').write_text(json.dumps(accepted,indent=2,allow_nan=False)+'\n',encoding='utf8')
+    return accepted
+
+
 def input_identity(folder, context, settings):
     preset = context['camera_preset_id']
     fixture_dirs = sorted((EARLIER/'cases'/preset).glob('m2-*'))
@@ -513,6 +563,9 @@ if __name__=='__main__':
     grouped=ops.add_parser('group')
     grouped.add_argument('job_id')
     grouped.add_argument('name')
+    motion=ops.add_parser('motion')
+    motion.add_argument('job_id')
+    motion.add_argument('name')
     report=ops.add_parser('compare')
     report.add_argument('scene')
     report.add_argument('names',nargs='+')
@@ -528,6 +581,8 @@ if __name__=='__main__':
         print(json.dumps(archive_ordered(args.job_id,args.name)))
     elif args.op=='group':
         print(json.dumps(archive_group(args.job_id,args.name)))
+    elif args.op=='motion':
+        print(json.dumps(archive_motion(args.job_id,args.name)))
     else:
         result=compare(args.scene,args.names,args.full_receiver,args.proposal_mass_variant,args.surface_regions)
         print(result['time_ratios'],result['joint_complete_pixels'])
