@@ -60,6 +60,42 @@ For ls5 SAH versus Prefix, the whole-image absolute change is `−0.007074019`. 
 
 Noise maps show the square root of tile-mean RGB variance; difference maps subtract Prefix tile variance without dividing by it. Both scenes/all methods share logarithmic/symmetric-log color scales, with saturation fractions reported and excluded pixels gray. Original ls1 images use voxel cohort `023bcd36…`, distinct from new-point M2 cohort `4dfca2b6…`; keep them separate. Sources and metrics are in the [compact record](../../../experiments/light-sampling/20261108-whole-image-review.json), reproduced by the [generator](../../../scripts/light_sampling_whole_image_review.py). Every pixel in all 14 original images matches the display transform and `raw[1079-display_y]`; all 28 PNG/AVIF pairs match. Full-frame previews and difference maps were inspected directly and JavaScript syntax passed. Work settings disable local browser use, so interaction was not tested. No GPU capture or shader modification occurred.
 
+#### Spatial noise distributions and blue-lit region feedback (2026-11-08)
+
+The user clarified that this local comparison is **Global area Light-SAH versus Camera grouping**, and selected the quality priority: keep the overall average reasonable, but prioritize difficult cases and the noise tail. A candidate with a slightly worse average can remain worthwhile if its tail improves substantially. Do not introduce an unselected weighted score or a zero-regression gate at every point. Report matched absolute spatial distributions separately by scene so easier scenes cannot hide difficult ones.
+
+For each pixel, define `V=Var(R)+Var(G)+Var(B)`. The main table reports V's P5/median/P95/P99, mean, spatial standard deviation, and worst-5%-pixel mean across all common complete receivers. The latter uses each method's own largest `ceil(0.05*N)` values. Spatial standard deviation measures variation of V across pixels; it is neither `sqrt(mean(V))` nor temporal brightness standard deviation. Prioritize P99 together with the worst-5% mean; use the mean for aggregate cost and the median for typical cases. P95 is only the threshold entering the worst 5%, not its severity. Median, P5, and standard deviation are not individual acceptance criteria either. Retain zero-observation rates and original images; do not remove missed contributions with a brightness filter.
+
+The [updated viewer](../../../builds/light-sampling/20261108-whole-image-review/distribution-review.html) retains the original 28 entries and adds seven absolute-difference maps against Camera, totaling 35. The original page and captures remain unchanged. Tables switch between the full image/fixed regions and RGB/B-channel statistics, retaining Prefix and Cosine BRDF controls. See the [distribution plot](../../../builds/light-sampling/20261108-whole-image-review/ls5-variance-distribution.png) and [region map](../../../builds/light-sampling/20261108-whole-image-review/ls5-review-regions.png). B-channel statistics do not isolate contributions from blue emitters. Current upper still lacks a whole-image capture; the earlier SAH is not a substitute.
+
+The matched ls5 input and common pixel mask give the following results. This tail sorts pixels directly and **differs from the earlier table that averages 16×16 tiles before sorting**:
+
+| Absolute metric | Camera | Global area SAH |
+|---|---:|---:|
+| Mean V | 0.01602190 | 0.01699366 |
+| P5 | 0 | 0 |
+| Median V | 0.0000009417 | 0.0000003064 |
+| P95 | 0.04444344 | 0.05122942 |
+| P99 | 0.20201320 | 0.22814517 |
+| Worst-5%-pixel mean | 0.26961108 | 0.28166369 |
+| Spatial standard deviation of V | 0.17431567 | 0.17862437 |
+| Zero 32-frame RGB mean | 42.74% | 44.95% |
+
+Four interior polygons were selected from the user's description before inspecting their statistics. Each has a single geometric-normal encoding among its valid receivers. They diagnose local behavior rather than exhaustively accepting an entire surface or restoring point vetoes:
+
+| Region | Complete receiver pixels | Worst-5% mean: Camera → SAH | Zero mean: Camera → SAH |
+|---|---:|---:|---:|
+| A: left sandstone wall | 18,955 | 0.00397086 → 0.02244277 | 0.29% → 21.68% |
+| B: blue-lit pillar | 3,170 | 0.02954616 → 0.00177294 | 40.91% → 0.38% |
+| C: blue floor below pillar | 3,217 | 0.00043922 → 0.00592599 | 38.64% → 88.44% |
+| D: blue floor in right shadow | 9,025 | 0.00167924 → 0.01125571 | 12.18% → 57.46% |
+
+C's P95 actually decreases from `0.000220860` to `0.000062741`, while P99, the worst-5% mean, and zero observations worsen. This directly demonstrates how a single percentile can miss sparse bright events. The four regions support the user's observed pattern. In this window, global area SAH also has a slightly worse whole-image tail than Camera, so it does not yet demonstrate a slightly worse average buying a better overall tail. This neither rejects all world-stable clustering nor dismisses the pillar improvement.
+
+[LightSampling](../../../shaders/techniques/debug/LightSampling.glsl) estimates weights from receiver position/normal and each sibling AABB/mass, then multiplies branch probabilities. Regrouping can therefore affect pillar and floor differently. The pattern is consistent with receiver-dependent probability mismatch, but no new per-light/ancestor-branch evidence was collected here, so it does not uniquely identify visibility, emission color, or Near/Far as the cause. Retain upper for whole-image evaluation; lookahead, K, probes, and the baseline remain unchanged. Do not continue blind clustering-parameter scans.
+
+The [generator](../../../scripts/light_sampling_distribution_review.py) and [compact record](../../../experiments/light-sampling/20261108-noise-distribution-review.json) retain definitions, region coordinates, raw-data hashes, and all metrics. These remain existing finite 32-frame observations, not high-sample truth or continuous-motion acceptance; no GPU capture was added. All 35 lossless pixel pairs, the unchanged original-page hash, and script syntax passed checks. Distribution and region figures were inspected. Local browser access remains disabled in Work settings, so interaction was not tested.
+
 #### Original clustering experiment: starting point and measurements
 
 After inspecting the latest runtime comparison, the user prioritizes clustering over lookahead/moment summaries. Under matched inputs, World Prefix + A + Near/Far has **1.333 times** the whole-image RGB variance of original camera grouping + A + Near/Far in ls1 and **1.502 times** in ls5, while fixed ls1 pillar/wall ROIs improve to **0.567/0.096 times**. Grouping changes alone can therefore redistribute improvements and regressions; a few improved points cannot represent the image. The user additionally identifies improvements on some left red-pillar faces and a darkened yellow-lit ceiling near the upper middle. Locate these through actual receiver geometry rather than equating them with the old two points. See the [independently reviewed grouping record](../../../experiments/light-sampling/20261108-grouping-control.json).

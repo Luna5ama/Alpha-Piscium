@@ -1,0 +1,148 @@
+{
+  "scope": "Existing matched 32-frame captures only. Spatial-tail priorities follow user feedback; no new GPU work, shader changes, or accepted baseline.",
+  "definition": "Per-pixel V = Var(R)+Var(G)+Var(B) from 32-frame samples in linear sRGB. Spatial statistics use the same complete receiver mask; no brightness filter. Worst 5% = largest ceil(N*0.05) pixel variances, independently sorted for each method. Spatial standard deviation is population std of V, not sqrt(mean(V)). Zero observed contribution can hide rare light; none of these statistics is error against truth.",
+  "quality_priority": "Tail/difficult-region quality first; keep mean cost reasonable. No per-point veto, unselected score, or automatic percentile-only acceptance.",
+  "replay": "python scripts/light_sampling_distribution_review.py",
+  "script_sha256": "1d0af15c54d95f267c68be6ffe8ddbe1e1f5a7c295c1a91b35364fc32549dd43",
+  "source_record": "experiments/light-sampling/20261108-whole-image-review.json",
+  "source_statistics_sha256": "1abcd3acddfa2bfdb7bbcf1ef4980b8bc69b2d98460a86cee6cb2259d088373f",
+  "original_page_sha256": "b0b606e8253ab5e5c9a2a21c268c79e4d739f93bb73496d6e9d96a826016d6da",
+  "artifacts": {
+    "builds/light-sampling/20261108-whole-image-review/distribution-review.html": "16d32991670d8cf142d1741fc2c3aec84bec2e39858f077749ad2aae571b7774",
+    "builds/light-sampling/20261108-whole-image-review/distribution-statistics.json": "6f8ad1448526804dca2fb1a8c90ec3c6a43dee6775f29207b37794b1ab7dd715",
+    "builds/light-sampling/20261108-whole-image-review/ls5-variance-distribution.png": "88a7a0637f143df35d087e6ef1a856d2596485c368e088b67ab9465a41d269f0",
+    "builds/light-sampling/20261108-whole-image-review/ls5-review-regions.png": "2f32497ee27de4bee25b398e1c8ac9f508cb027032ff89f3a84249d72bc8070a"
+  },
+  "regions_display_xy": {
+    "A: left sandstone wall": [
+      [
+        25,
+        225
+      ],
+      [
+        175,
+        245
+      ],
+      [
+        175,
+        360
+      ],
+      [
+        25,
+        360
+      ]
+    ],
+    "B: blue-lit pillar": [
+      [
+        1118,
+        440
+      ],
+      [
+        1157,
+        431
+      ],
+      [
+        1121,
+        599
+      ],
+      [
+        1089,
+        630
+      ]
+    ],
+    "C: blue floor below pillar": [
+      [
+        1005,
+        678
+      ],
+      [
+        1032,
+        697
+      ],
+      [
+        969,
+        725
+      ],
+      [
+        919,
+        733
+      ],
+      [
+        894,
+        721
+      ]
+    ],
+    "D: blue floor in right shadow": [
+      [
+        1330,
+        735
+      ],
+      [
+        1410,
+        779
+      ],
+      [
+        1371,
+        888
+      ],
+      [
+        1326,
+        840
+      ],
+      [
+        1302,
+        800
+      ]
+    ]
+  },
+  "regions_selection": "Fixed interior polygons from the user description, chosen before inspecting their statistics. Nonreceiver pixels remain excluded.",
+  "validation": {
+    "lossless_pairs": 35,
+    "original_page_unchanged": true,
+    "javascript_syntax": "passed",
+    "spatial_plots_inspected": true,
+    "browser": "Unavailable: local browser use disabled in Work settings.",
+    "new_runtime_jobs": 0
+  },
+  "columns": [
+    "scene",
+    "region",
+    "method",
+    "pixels",
+    "mean",
+    "p05",
+    "p50",
+    "p95",
+    "p99",
+    "worst05_mean",
+    "spatial_std",
+    "zero_mean_fraction",
+    "blue_mean_variance",
+    "blue_worst05_mean"
+  ],
+  "rows": [
+    ["light-sampling-1", "Whole image", "Camera grouping + A + Near/Far", 2022469, 0.021097490394163733, 1.4607037468472583e-08, 0.0009640055213822052, 0.06108576173428438, 0.34474095254285486, 0.3279441896434438, 0.17456508532709106, 0.03825373837621244, 0.003696740416277864, 0.06163734501575643],
+    ["light-sampling-1", "Whole image", "World Prefix + A + Near/Far", 2022469, 0.02812204453405653, 0.0, 0.0010859442975288403, 0.08064791280776241, 0.48538102120161064, 0.45367921560030605, 0.2663858840298124, 0.05335508232759068, 0.004559330109940515, 0.07780675560913516],
+    ["light-sampling-1", "Whole image", "Cosine BRDF-only", 2022469, 0.03935054723266651, 0.0, 0.0006965148344460839, 0.150545846670866, 0.8706452620029449, 0.5555537594719662, 0.18840855620587163, 0.43652634477957386, 0.00793781804208073, 0.125898517202457],
+    ["light-sampling-5", "Whole image", "Camera grouping + A + Near/Far", 2066954, 0.01602189572980952, 0.0, 9.417309149960251e-07, 0.04444343644954637, 0.20201319503597875, 0.2696110817740498, 0.1743156727875423, 0.427414930375809, 0.0009357582150879222, 0.01672931639592868],
+    ["light-sampling-5", "Whole image", "World Prefix + A + Near/Far", 2066954, 0.024067677882529042, 0.0, 0.0, 0.08897304219426586, 0.33267150336876405, 0.39193956016497944, 0.2403062819253351, 0.527108005306359, 0.0014284163928938618, 0.026062761156453496],
+    ["light-sampling-5", "Whole image", "Cosine BRDF-only", 2066954, 0.07684409065668855, 0.0, 0.0, 0.41153058083727956, 2.0073265095800163, 1.4999393435859774, 0.38419294738553394, 0.8487566728625794, 0.004520076218064866, 0.09039644784292843],
+    ["light-sampling-5", "Whole image", "Global area Light-SAH + A + Near/Far", 2066954, 0.016993658923580214, 0.0, 3.0642584559212663e-07, 0.051229421450989306, 0.22814516764354265, 0.28166369328447, 0.17862436606522583, 0.4495116969221376, 0.001050183569676462, 0.018817402378413613],
+    ["light-sampling-5", "A: left sandstone wall", "Camera grouping + A + Near/Far", 18955, 0.0008635325619945554, 4.4354479176964307e-07, 0.000649656885798322, 0.0021772733263787807, 0.003737223630887446, 0.003970858704629797, 0.0012371817145356387, 0.0029016090741229225, 5.515187142656265e-05, 0.0006020424066398554],
+    ["light-sampling-5", "A: left sandstone wall", "World Prefix + A + Near/Far", 18955, 0.010278417194036743, 0.0, 0.0, 0.07737302700897997, 0.13805716419592468, 0.11830446671611482, 0.03003696629900973, 0.5874439461883408, 0.0004958567971121667, 0.009308783504728795],
+    ["light-sampling-5", "A: left sandstone wall", "Cosine BRDF-only", 18955, 0.04131006361311539, 0.0, 0.0, 0.025609770073765505, 1.4504092523455616, 0.8239732221772702, 0.24044951994497565, 0.8732260617251385, 0.0019097888533842135, 0.038185638209549885],
+    ["light-sampling-5", "A: left sandstone wall", "Global area Light-SAH + A + Near/Far", 18955, 0.0035989750056002632, 0.0, 7.373244272912416e-06, 0.016575126507413527, 0.025828830203972693, 0.022442768586831648, 0.006170722805711741, 0.21682933262991294, 0.0001718307233814211, 0.0023377707109193194],
+    ["light-sampling-5", "B: blue-lit pillar", "Camera grouping + A + Near/Far", 3170, 0.0020208448323630664, 0.0, 5.183031335717625e-08, 0.01607077136068255, 0.03859881790354845, 0.029546163350963488, 0.007215880510971301, 0.40914826498422713, 0.00038201479125057663, 0.005653705989719374],
+    ["light-sampling-5", "B: blue-lit pillar", "World Prefix + A + Near/Far", 3170, 0.000836813481963019, 0.0, 1.0277997748026069e-05, 0.005425757128978117, 0.009625257272273303, 0.008214403399203244, 0.0020415585148127312, 0.1082018927444795, 0.00015439640562118776, 0.0014749215648556422],
+    ["light-sampling-5", "B: blue-lit pillar", "Cosine BRDF-only", 3170, 0.010776731588053793, 0.0, 0.0, 0.0020802344499514904, 0.43002958750352266, 0.21397125769904987, 0.08699360859862378, 0.8296529968454258, 0.0021912791981926094, 0.04368760105162058],
+    ["light-sampling-5", "B: blue-lit pillar", "Global area Light-SAH + A + Near/Far", 3170, 0.0003062627784181826, 6.10066042230776e-08, 7.374663999826225e-05, 0.0012933747006172776, 0.0020833713849424383, 0.0017729369404625697, 0.0004737265075018894, 0.0037854889589905363, 5.685166107014475e-05, 0.0003542290828791125],
+    ["light-sampling-5", "C: blue floor below pillar", "Camera grouping + A + Near/Far", 3217, 3.207844166834208e-05, 0.0, 1.999432073206131e-08, 0.00022086027038312707, 0.0006598180549917744, 0.0004392210009005181, 0.00011098960444714188, 0.3863848305875039, 6.894768893113578e-06, 8.788539861547269e-05],
+    ["light-sampling-5", "C: blue floor below pillar", "World Prefix + A + Near/Far", 3217, 0.0001338154952102373, 0.0, 0.0, 7.595816815673019e-05, 0.004231375873787331, 0.0026378308843735005, 0.0009121794516097939, 0.7575380789555487, 2.6623862945393893e-05, 0.0005313674374005843],
+    ["light-sampling-5", "C: blue floor below pillar", "Cosine BRDF-only", 3217, 0.0010473463951913245, 0.0, 0.0, 0.0, 0.0011007740497393878, 0.020927412132487524, 0.026293822485503656, 0.9763755051290022, 0.00024534380188694397, 0.004902304414101235],
+    ["light-sampling-5", "C: blue floor below pillar", "Global area Light-SAH + A + Near/Far", 3217, 0.0002974241648658244, 0.0, 0.0, 6.274130380994335e-05, 0.009504286792289447, 0.005925993251917933, 0.003066592893780185, 0.8843643145788002, 6.213262934288483e-05, 0.001241490149907587],
+    ["light-sampling-5", "D: blue floor in right shadow", "Camera grouping + A + Near/Far", 9025, 0.00015306956060260192, 0.0, 2.7414201326791954e-06, 0.0008911540469853205, 0.0019822421589924507, 0.0016792364104742017, 0.00043915386295488167, 0.12177285318559557, 3.135456939134753e-05, 0.0003101206503396924],
+    ["light-sampling-5", "D: blue floor in right shadow", "World Prefix + A + Near/Far", 9025, 0.00024533515567435666, 0.0, 1.2524188067186692e-06, 0.0014754390756934264, 0.004472716606542237, 0.0034369202557629442, 0.0009451416723021336, 0.268808864265928, 5.079481476161221e-05, 0.0006731058715196713],
+    ["light-sampling-5", "D: blue floor in right shadow", "Cosine BRDF-only", 9025, 0.004418935549339416, 0.0, 0.0, 3.3494963687985545e-06, 0.004810278886689048, 0.08823149466304113, 0.054576555452412114, 0.9269806094182825, 0.0009509436317135936, 0.01898731093252205],
+    ["light-sampling-5", "D: blue floor in right shadow", "Global area Light-SAH + A + Near/Far", 9025, 0.0006177913078968417, 0.0, 0.0, 0.003308899881449166, 0.016252996949478984, 0.011255706035846472, 0.003245171518289809, 0.5746260387811635, 0.00012790656022066568, 0.00229161014508423]
+  ]
+}
