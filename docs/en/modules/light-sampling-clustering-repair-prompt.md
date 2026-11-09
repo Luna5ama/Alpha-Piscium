@@ -4,6 +4,8 @@ Language: English | [简体中文](../../sc/modules/light-sampling-clustering-re
 
 ## Offline follow-up after review (2026-11-08)
 
+This follow-up is complete and independently reviewed. The [design record](light-sampling-design.md#review-of-layer-isolation-and-controlled-composition) reports four-tree isolation and the reviewer's additional controlled composition. The specification below remains for provenance and does not restart earlier GPU stages; no new clustering baseline is accepted.
+
 This diagnosis follows result commit `e426ff265` and supersedes the unexecuted GPU candidate expansion/dynamic construction in this prompt. The red-pillar stop remains effective. Use retained references offline only: no new GPU jobs, runtime/weight/default changes, or lookahead/K work.
 
 The original World Prefix/Camera comparison changed only the cross-brick hierarchy; global SAH also rebuilt brick interiors. Its red-pillar regression therefore cannot yet be attributed entirely to the upper hierarchy. With fixed 12-bin flux light-SAH + Kr, identical deterministic four-way conversion, and A + Near/Far, compare four logical trees:

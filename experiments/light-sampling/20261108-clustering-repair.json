@@ -9202,5 +9202,108 @@
       "Upper-only preserves the red pillar, improves ls5 and all moving-4 sampled faces, and improves the older ls1 points. It loses the global candidate improvement on the new central ceiling, where variance rises above World Prefix.",
       "This is a finite fixed-receiver diagnostic with intact bricks as an experimental control. It does not establish a runtime fix or limit future cross-brick clustering."
     ]
+  },
+  "hierarchy_independent_review": {
+    "reviewed_result_commit": "c184404e1dd867ad903197bde63a488fd539f126",
+    "decision": "Accept scoped layer-isolation findings; no tested construction is selected as the clustering repair baseline. GPU candidate expansion and dynamic construction remain stopped; lookahead and K work remain deferred.",
+    "scope": "Candidate constructors reused; independent scalar PMF and root-oracle aggregation; subtree cut identity; additional joint control fixes the upper and brick-root masses.",
+    "point_windows": 28,
+    "original_methods_per_window": 4,
+    "max_variance_relative_error": 4.0038677283782275e-16,
+    "max_inner_mass_relative_difference": 1.375844734270724e-07,
+    "pinned_interface_mass_max_variance_ratio_difference_bound": 2.77e-08,
+    "controlled_composition": "Preserve upper-only topology and every upper/brick-root node record; transplant inner-only descendants while retaining complete brick boundaries. This is a diagnostic control, not a constraint on future global cross-brick clustering.",
+    "new_ls1_red_pillar": [
+      {
+        "window": 1,
+        "ratios": {
+          "prefix": 1.0,
+          "upper_only": 0.9790840504924374,
+          "inner_only": 1.0150769188708582,
+          "global_sah": 2.623443741997411,
+          "both_preserve_bricks": 0.9999976073892378
+        },
+        "root_optimum_ratios": {
+          "prefix": 0.9923950539274844,
+          "upper_only": 0.9423695517942929,
+          "inner_only": 1.0070654122537825,
+          "global_sah": 2.397716078554259
+        },
+        "controlled_joint_remainder": 0.0058366380259422534,
+        "global_minus_joint": 1.6234461346081732
+      },
+      {
+        "window": 2,
+        "ratios": {
+          "prefix": 1.0,
+          "upper_only": 0.9801428040202589,
+          "inner_only": 1.0142790803581732,
+          "global_sah": 2.615075174728403,
+          "both_preserve_bricks": 1.0002885525964857
+        },
+        "root_optimum_ratios": {
+          "prefix": 0.9923658549526359,
+          "upper_only": 0.9428909954412003,
+          "inner_only": 1.0062593566711964,
+          "global_sah": 2.3901427089800507
+        },
+        "controlled_joint_remainder": 0.0058666682180537055,
+        "global_minus_joint": 1.6147866221319171
+      }
+    ],
+    "new_ls1_ceiling": [
+      {
+        "window": 1,
+        "ratios": {
+          "prefix": 1.0,
+          "upper_only": 1.1652784253565702,
+          "inner_only": 1.0135699350915053,
+          "global_sah": 0.7377317445662784,
+          "both_preserve_bricks": 1.1914907349916708
+        }
+      },
+      {
+        "window": 2,
+        "ratios": {
+          "prefix": 1.0,
+          "upper_only": 1.1643410619810457,
+          "inner_only": 1.0132744825151823,
+          "global_sah": 0.7387617699987133,
+          "both_preserve_bricks": 1.1900744748754932
+        }
+      }
+    ],
+    "composition_cross_check": {
+      "scope": "Experiment author independently assembled Nodes from the three source NPZ references; same SAH constructors reused. Compared exact tree arrays and independently evaluated the 28 variance ratios against the review scalar PMF result.",
+      "cohorts": 5,
+      "all_tree_arrays_exact": true,
+      "maximum_absolute_ratio_difference": 4.440892098500626e-16,
+      "missing_positive_support": 0,
+      "maximum_null_probability": 0
+    },
+    "interpretation": "The large new red-pillar penalty occurs in the global construction that breaks existing small clusters and repartitions across bricks; the brick-preserving composition stays near baseline. This does not identify a specific bad merge or imply every cross-brick partition regresses. Upper-only improves several retained points but regresses the central ceiling. Optimizing only root probabilities cannot remove the global counterexample.",
+    "limits": [
+      "Finite fixed-receiver M2 windows, not new whole-image or continuous-movement acceptance.",
+      "No new GPU measurements or runtime/default changes in this follow-up.",
+      "Candidate SAH builders reused; independent review covers contracts, composition, scalar PMFs, and oracle aggregation."
+    ],
+    "artifacts": [
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/hierarchy_review.py",
+        "sha256": "d216b0d545d3b89ae5c323ebe4fba0ba23af2c7b6cdfd2117ca640139b40e7f9"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/hierarchy-review.json",
+        "sha256": "c21b7efff651910148cbe27aba24030da3b122d2e95c029e67309c844d23e63f"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/joint_node_check.py",
+        "sha256": "888563cec55d40b184ab8b2c79eb47c6217ccc2d834f615dc18392c62aeca5f9"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/joint-node-check.json",
+        "sha256": "64dd84ae509e45c0c81c879745d8dc13b6483c494d1c8dd82362680e5ed4e708"
+      }
+    ]
   }
 }
