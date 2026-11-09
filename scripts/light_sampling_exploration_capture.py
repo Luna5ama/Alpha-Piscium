@@ -465,8 +465,29 @@ def spatial_noise_statistics(first, second, common, mean_ms):
                 mean_delta_rgb=delta[common].mean(axis=0).tolist(),tiles=metrics)
 
 
+def reproject_regions(reference, current, receipt):
+    """Map reference screen coordinates to the new lens at the same preset pose."""
+    old_receipt = read(reference/'accepted.json')
+    assert old_receipt['context'] == receipt['context']
+    assert old_receipt['scene_sha256'] == receipt['scene_sha256']
+    old, new = [np.fromfile(p/'before_camera.bin','<f4') for p in (reference,current)]
+    np.testing.assert_allclose(old[16:32],new[16:32],rtol=0,atol=2e-6)
+    new_proj = new[80:96].reshape(4,4).T.astype(float)
+    old_inv = old[96:112].reshape(4,4).T.astype(float)
+    transform = new_proj @ old_inv
+    scale = np.array([1920.,1080.])
+    orient = np.array([1.,-1.])
+
+    def project(points):
+        ndc = (np.asarray(points,dtype=float)*2./scale-1.)*orient
+        clip = np.column_stack((ndc,np.full(len(ndc),.5),np.ones(len(ndc)))) @ transform.T
+        assert np.isfinite(clip).all() and (clip[:,3]>0).all()
+        return ((clip[:,:2]/clip[:,3,None])*orient+1.)*scale*.5
+
+    return project
+
 def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surface_regions=False,
-            spatial_noise=False):
+            spatial_noise=False, projection_reference=None):
     folder = RUN/'cases'/scene
     cases = {n:read(folder/n/'accepted.json') for n in names}
     base = cases[names[0]]
@@ -485,21 +506,26 @@ def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surfa
     dim = base['resolution']
     points = {}
     height,width = dim['height'],dim['width']
+    project = (reproject_regions(folder/projection_reference,folder/names[0],base)
+               if projection_reference else None)
     if scene=='light-sampling-5':
         yy,xx = np.indices((height,width))
         coordinates = np.column_stack((xx.ravel()*1920/width,yy.ravel()*1080/height))
-        points = {name:Polygon(vertices).contains_points(coordinates).reshape(height,width)
+        points = {name:Polygon(project(vertices) if project else vertices).contains_points(coordinates).reshape(height,width)
                   for name,vertices in REGIONS.items()}
     elif scene in ('light-sampling-1','light-sampling-failure-moving-4'):
         xx,yy = np.meshgrid(np.arange(width)*1920/width,np.arange(height)*1080/height)
         centers = ([('red-pillar',(250,400)),('central-ceiling',(1000,170))]
                    if scene=='light-sampling-1' else [('side-a',(700,583)),('side-b',(1312,515)),('top',(1000,631))])
+        if project:
+            centers = [(name,tuple(project([center])[0])) for name,center in centers]
         for name,(x,y) in centers:
             points[name] = (abs(xx-x)<=4) & (abs(yy-y)<=4)
         if surface_regions:
             axes = [0,1] if scene=='light-sampling-1' else [2,0,1]
             points.update({name+' connected plane':connected_surface(folder/names[0],dim,center,axis)
-                           for (name,center),axis in zip(centers,axes,strict=True)})
+                           for (name,center),axis in zip(centers,axes,strict=True)
+                           if 0 <= round(center[0]*width/1920) < width and 0 <= round(center[1]*height/1080) < height})
     windows = []
     previous_end = {}
     common = np.ones((height,width),dtype=bool)
@@ -582,14 +608,14 @@ def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surfa
                   receiver_data_compared=[field for field,_,_ in input_payloads],
                   receiver_mismatches=mismatches, full_receiver=full_receiver, proposal_mass_change=mass_change,
                   emitting_uv_matched=emitting_uv_matched, frozen_face_uv_sha256=next(iter(fixed_uv.values())),
-                  atlas_probe_matched=probe_matched)
+                  atlas_probe_matched=probe_matched, projection_reference=projection_reference)
     if spatial_noise:
         result['spatial_noise'] = dict(scope='For each common >=95%-covered full tile, square the RGB difference of '
               'two independent 32-frame means pooled over the same pixels and divide by two. This '
               'estimates noise at that spatial scale if the emission and other inputs are stationary.',
               methods={n:spatial_noise_statistics(data[1][n],data[2][n],common,cases[n]['timings']['initial']['mean_ns']/1e6)
                        for n in names})
-    tag = ('spatial-noise-' if spatial_noise else '') + ('full-gbuffer-' if full_receiver else '') + (
+    tag = ('reprojected-' if projection_reference else '') + ('spatial-noise-' if spatial_noise else '') + ('full-gbuffer-' if full_receiver else '') + (
           'surfaces-' if surface_regions else '') + '-'.join(names)
     out = RUN/f'{scene}-{tag}.json'
     out.write_text(json.dumps(result,indent=2,allow_nan=False)+'\n',encoding='utf8')
@@ -617,6 +643,7 @@ if __name__=='__main__':
     report.add_argument('--full-receiver',action='store_true')
     report.add_argument('--surface-regions',action='store_true')
     report.add_argument('--spatial-noise',action='store_true')
+    report.add_argument('--projection-reference',help='accepted case defining the physical screen regions')
     report.add_argument('--proposal-mass-variant',choices=('texture-mass','local-escape'))
     args=parser.parse_args()
     if args.op=='archive':
@@ -631,5 +658,5 @@ if __name__=='__main__':
         print(json.dumps(archive_motion(args.job_id,args.name)))
     else:
         result=compare(args.scene,args.names,args.full_receiver,args.proposal_mass_variant,args.surface_regions,
-                       args.spatial_noise)
+                       args.spatial_noise,args.projection_reference)
         print(result['time_ratios'],result['joint_complete_pixels'])
