@@ -9,7 +9,7 @@ from light_sampling_clustering_hierarchy import cohorts
 from light_sampling_clustering_repair import EVIDENCE, build_primitives, key_order, scores
 from light_sampling_clustering_rule_screen import RULES
 from light_sampling_exploration_outer_mix import outer_mix
-from light_sampling_moving_analysis import leaves, ordered_signature
+from light_sampling_moving_analysis import leaves, merged, morton_encode, ordered_signature
 from light_sampling_point_moments import sha
 from light_sampling_point_screening import Tree
 
@@ -58,7 +58,7 @@ def adaptive_tree(root):
                 continue
             gain = (cost(n)-sum(cost(c) for c in n.children))/extra
             choices.append((-gain,key(n),i))
-        if not choices or min(choices)[0]<=0.:
+        if not choices or min(choices)[0]>=0.:
             break
         i = min(choices)[2]
         atoms[i:i+1] = atoms[i].children
@@ -68,7 +68,29 @@ def adaptive_tree(root):
     return result,len(atoms)
 
 
-def main(output, adaptive_only=False):
+def anchored_tree(root):
+    """Canonical Morton layout above the 64-block groups, anchored at the lamps."""
+    atoms = cell_roots(root, (64,64,64))
+    cells = np.array(list(atoms),dtype=np.int64)
+    rel = cells-cells.min(axis=0)
+    assert (rel<1024).all()
+    codes = morton_encode(rel)
+    nodes = list(atoms.values())
+    ids = np.argsort(codes,kind='stable')
+    def tree(indices, shift):
+        if len(indices)==1:
+            return nodes[indices[0]]
+        assert shift>=0
+        siblings = (codes[indices]>>shift)&3
+        children = [tree(indices[siblings==k],shift-2) for k in range(4) if (siblings==k).any()]
+        return children[0] if len(children)==1 else merged(children)
+    high = (max(int(codes.max()).bit_length()-1,0)//2)*2
+    result = tree(ids,high)
+    assert sorted(leaves(result))==sorted(leaves(root))
+    return result,len(atoms)
+
+
+def main(output, variant=None):
     refs = [EVIDENCE/f'20261108-{tag}-reference.npz' for tag in
             ('clustering-repair', 'cluster-summaries', 'nearfar-combination')]
     combination = EVIDENCE/'20261108-nearfar-combination.json'
@@ -83,10 +105,11 @@ def main(output, adaptive_only=False):
             # (three bits) does not align with a native subtree.
             cells = [(16,16,16), (32,32,16), (64,32,32), (64,64,64)]
             definitions = [(c,'flux-diagonal') for c in cells] + [(c,'count-median') for c in cells[1:]]
-            if adaptive_only:
+            if variant is not None:
                 definitions = [((16,16,16),'flux-diagonal'),((64,64,64),'flux-diagonal')]
-                variants['adaptive-128'], count = adaptive_tree(root)
-                trees[group]['adaptive-128'] = dict(coarse_roots=count, ordered_sha256=ordered_signature(variants['adaptive-128']))
+                n,f = ('adaptive-128',adaptive_tree) if variant=='adaptive' else ('anchored-64',anchored_tree)
+                variants[n], count = f(root)
+                trees[group][n] = dict(coarse_roots=count, ordered_sha256=ordered_signature(variants[n]))
             for cell, rule in definitions:
                 name = f'{"x".join(map(str,cell))}/{rule}'
                 variants[name], count = coarse_tree(root, cell, rule)
@@ -115,8 +138,9 @@ def main(output, adaptive_only=False):
                     stats['ratio_vs_prefix'] = None if stats['variance'] is None else stats['variance']/base
                 rows.append(dict(cohort=group, point=point, window=window, label=label, methods=methods))
     assert len(rows)==28
-    report = dict(scope=('Point-window screen. Start from level 3 and refine at most to single bricks, with a 128-root budget.'
-                         if adaptive_only else 'Point-window screen. Preserve subtrees of actual 4-way Morton levels 0 through 3.'),
+    scopes = dict(adaptive='Start from level 3 and refine at most to single bricks, with a 128-root budget.',
+                  anchor='Only above retained 64-block groups, use Morton order anchored at the minimum emitting group coordinates.')
+    report = dict(scope='Point-window screen. '+scopes.get(variant,'Preserve subtrees of actual 4-way Morton levels 0 through 3.'),
                   input_sha256={p.name:sha(p) for p in [*refs, combination]}, trees=trees, rows=rows)
     output.write_text(json.dumps(report,indent=2,allow_nan=False)+'\n',encoding='utf8')
 
@@ -124,6 +148,7 @@ def main(output, adaptive_only=False):
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('output',type=Path)
-    parser.add_argument('--adaptive-only',action='store_true')
+    parser.add_argument('--variant',choices=('adaptive','anchor'))
+    parser.add_argument('--adaptive-only',dest='variant',action='store_const',const='adaptive',help=argparse.SUPPRESS)
     a = parser.parse_args()
-    main(a.output,a.adaptive_only)
+    main(a.output,a.variant)

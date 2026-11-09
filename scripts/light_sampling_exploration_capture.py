@@ -428,7 +428,42 @@ def connected_surface(folder, dim, center, axis):
     return labels==labels[y,x]
 
 
-def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surface_regions=False):
+def spatial_noise_statistics(first, second, common, mean_ms):
+    """Compare spatially pooled differences between the two disjoint windows."""
+    mean1, var1, _ = first
+    mean2, var2, _ = second
+    delta = np.zeros((*common.shape,3),dtype=np.float64)
+    delta[common] = mean1[common,:3].astype(float)-mean2[common,:3]
+    point_mse = float(np.square(delta[common]).sum(axis=1).mean()/2.)
+    iid = np.zeros(common.shape,dtype=np.float64)
+    iid[common] = (var1[common,:3].sum(axis=1,dtype=float)+var2[common,:3].sum(axis=1,dtype=float))/64.
+    predicted = float(iid[common].mean())
+    metrics = {}
+    for size in (16,64):
+        ny,nx = (s//size for s in common.shape)
+        counts = common[:ny*size,:nx*size].reshape(ny,size,nx,size).sum(axis=(1,3))
+        tiles = counts >= int(np.ceil(.95*size*size))
+        if not tiles.any():
+            continue
+        pooled = delta[:ny*size,:nx*size].reshape(ny,size,nx,size,3).sum(axis=(1,3))
+        rgb = pooled[tiles]/counts[tiles,None]
+        mse = np.square(rgb).sum(axis=1)/2.
+        tile_iid = iid[:ny*size,:nx*size].reshape(ny,size,nx,size).sum(axis=(1,3))[tiles]/counts[tiles]**2
+        tail = np.partition(mse, len(mse)-int(np.ceil(.05*len(mse))))[-int(np.ceil(.05*len(mse))):]
+        stats = dict(tiles=int(tiles.sum()),all_tiles=int(tiles.size),mean=float(mse.mean()),
+                     p95=float(np.quantile(mse,.95)),worst05_mean=float(tail.mean()),
+                     predicted_iid_mean=float(tile_iid.mean()))
+        stats['measured_over_iid_prediction'] = stats['mean']/stats['predicted_iid_mean'] if stats['predicted_iid_mean']>0. else None
+        stats['mean_times_mean_ms'] = stats['mean']*mean_ms
+        stats['worst05_mean_times_mean_ms'] = stats['worst05_mean']*mean_ms
+        metrics[str(size)] = stats
+    return dict(single_pixel_delta2_over2=point_mse,predicted_single_pixel_delta2_over2=predicted,
+                measured_over_iid_prediction=point_mse/predicted if predicted>0. else None,
+                mean_delta_rgb=delta[common].mean(axis=0).tolist(),tiles=metrics)
+
+
+def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surface_regions=False,
+            spatial_noise=False):
     folder = RUN/'cases'/scene
     cases = {n:read(folder/n/'accepted.json') for n in names}
     base = cases[names[0]]
@@ -545,7 +580,14 @@ def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surfa
                   receiver_mismatches=mismatches, full_receiver=full_receiver, proposal_mass_change=mass_change,
                   emitting_uv_matched=emitting_uv_matched, frozen_face_uv_sha256=next(iter(fixed_uv.values())),
                   atlas_probe_matched=probe_matched)
-    tag = ('full-gbuffer-' if full_receiver else '') + ('surfaces-' if surface_regions else '') + '-'.join(names)
+    if spatial_noise:
+        result['spatial_noise'] = dict(scope='For each common >=95%-covered full tile, square the RGB difference of '
+              'two independent 32-frame means pooled over the same pixels and divide by two. This '
+              'estimates noise at that spatial scale if the emission and other inputs are stationary.',
+              methods={n:spatial_noise_statistics(data[1][n],data[2][n],common,cases[n]['timings']['initial']['mean_ns']/1e6)
+                       for n in names})
+    tag = ('spatial-noise-' if spatial_noise else '') + ('full-gbuffer-' if full_receiver else '') + (
+          'surfaces-' if surface_regions else '') + '-'.join(names)
     out = RUN/f'{scene}-{tag}.json'
     out.write_text(json.dumps(result,indent=2,allow_nan=False)+'\n',encoding='utf8')
     return result
@@ -571,6 +613,7 @@ if __name__=='__main__':
     report.add_argument('names',nargs='+')
     report.add_argument('--full-receiver',action='store_true')
     report.add_argument('--surface-regions',action='store_true')
+    report.add_argument('--spatial-noise',action='store_true')
     report.add_argument('--proposal-mass-variant',choices=('texture-mass','local-escape'))
     args=parser.parse_args()
     if args.op=='archive':
@@ -584,5 +627,6 @@ if __name__=='__main__':
     elif args.op=='motion':
         print(json.dumps(archive_motion(args.job_id,args.name)))
     else:
-        result=compare(args.scene,args.names,args.full_receiver,args.proposal_mass_variant,args.surface_regions)
+        result=compare(args.scene,args.names,args.full_receiver,args.proposal_mass_variant,args.surface_regions,
+                       args.spatial_noise)
         print(result['time_ratios'],result['joint_complete_pixels'])

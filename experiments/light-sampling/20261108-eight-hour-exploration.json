@@ -49,6 +49,7 @@
     "historical_local_originals_untouched": true
   },
   "next": [
+    "For finalists only, verify 64x64 pooled noise with more disjoint windows if the original pair contradicts pixel-tail ranking.",
     "Complete remaining live controls with one scoped readiness recovery on terrain failures.",
     "Measure optimized lookahead in ls1 under ordered Camera baseline; run in-place and parallel coarse build on moving-4.",
     "Validate actual camera motion across x=112 with a continuous framebuffer and diagnostic traversal evidence.",
@@ -3492,6 +3493,386 @@
       },
       "verified_lossless_images": 70,
       "agent": "Pyxis GPT-6.1 Terra medium, priority; Windows Idle; browser GPU disabled"
+    },
+    {
+      "id": "pooled-window-differences",
+      "comparisons": [
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-spatial-noise-uv-camera-uv-diagonal.json",
+            "sha256": "6e661420a6a96e0935f89ee0593613545481adb9ff2a32d308723721cc8b2838"
+          },
+          "scene": "light-sampling-failure-moving-4",
+          "base": "uv-camera",
+          "methods": {
+            "uv-camera": {
+              "16": {
+                "covered_tiles": 7781,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": 0.9616054803513066
+              },
+              "64": {
+                "covered_tiles": 458,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": 0.7111895845895422
+              }
+            },
+            "uv-diagonal": {
+              "16": {
+                "covered_tiles": 7781,
+                "tail_times_mean_ms_ratio": 0.6981897957961481,
+                "measured_over_iid_prediction": 0.9047083579949914
+              },
+              "64": {
+                "covered_tiles": 458,
+                "tail_times_mean_ms_ratio": 2.1080694109745863,
+                "measured_over_iid_prediction": 1.6704835854564994
+              }
+            }
+          }
+        },
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-spatial-noise-uv-camera-b-uv-outer-near.json",
+            "sha256": "dd66c9aab6f747306d16aa25ee74329f1f526ad93da49a68d1955f8b84236b41"
+          },
+          "scene": "light-sampling-failure-moving-4",
+          "base": "uv-camera-b",
+          "methods": {
+            "uv-camera-b": {
+              "16": {
+                "covered_tiles": 7781,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": 0.980410698836439
+              },
+              "64": {
+                "covered_tiles": 458,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": 0.7072881742393785
+              }
+            },
+            "uv-outer-near": {
+              "16": {
+                "covered_tiles": 7781,
+                "tail_times_mean_ms_ratio": 0.9467648937721523,
+                "measured_over_iid_prediction": 1.0460958799791913
+              },
+              "64": {
+                "covered_tiles": 458,
+                "tail_times_mean_ms_ratio": 0.9181509203354428,
+                "measured_over_iid_prediction": 0.7190415383126371
+              }
+            }
+          }
+        },
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-spatial-noise-camera-prefix-paired-coarse-dynamic-coarse-upper-outer-near-cosine-brdf.json",
+            "sha256": "f3c4e93ee0ad9cf46d375187c0f870ac01c592065f300c14c7e7dab428b1a4b5"
+          },
+          "scene": "light-sampling-failure-moving-4",
+          "base": "camera",
+          "methods": {
+            "camera": {
+              "16": {
+                "covered_tiles": 7781,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 458,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "prefix-paired-coarse": {
+              "16": {
+                "covered_tiles": 7781,
+                "tail_times_mean_ms_ratio": 1.7786873020002418,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 458,
+                "tail_times_mean_ms_ratio": 2.956336298225352,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "dynamic-coarse-upper": {
+              "16": {
+                "covered_tiles": 7781,
+                "tail_times_mean_ms_ratio": 0.8944680461824106,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 458,
+                "tail_times_mean_ms_ratio": 1.0553891426116448,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "outer-near": {
+              "16": {
+                "covered_tiles": 7781,
+                "tail_times_mean_ms_ratio": 0.8773740536769981,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 458,
+                "tail_times_mean_ms_ratio": 1.3553401062688417,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "cosine-brdf": {
+              "16": {
+                "covered_tiles": 7781,
+                "tail_times_mean_ms_ratio": 3.4832957831094804,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 458,
+                "tail_times_mean_ms_ratio": 8.254060229280345,
+                "measured_over_iid_prediction": null
+              }
+            }
+          }
+        },
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-spatial-noise-camera-paired-outer-prefix-paired-coarse-dynamic-coarse-upper-outer-near-paired-cosine-brdf.json",
+            "sha256": "cc708b3f9d785619face668667a43e58e30ddf7cc51b6a223f13276ff6a17eb0"
+          },
+          "scene": "light-sampling-1",
+          "base": "camera-paired-outer",
+          "methods": {
+            "camera-paired-outer": {
+              "16": {
+                "covered_tiles": 7520,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 415,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "prefix-paired-coarse": {
+              "16": {
+                "covered_tiles": 7520,
+                "tail_times_mean_ms_ratio": 1.7513672441126886,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 415,
+                "tail_times_mean_ms_ratio": 1.1970671177669732,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "dynamic-coarse-upper": {
+              "16": {
+                "covered_tiles": 7520,
+                "tail_times_mean_ms_ratio": 1.6428763851056845,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 415,
+                "tail_times_mean_ms_ratio": 1.3076952065920973,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "outer-near-paired": {
+              "16": {
+                "covered_tiles": 7520,
+                "tail_times_mean_ms_ratio": 1.844673456602319,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 415,
+                "tail_times_mean_ms_ratio": 1.4453099371883553,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "cosine-brdf": {
+              "16": {
+                "covered_tiles": 7520,
+                "tail_times_mean_ms_ratio": 1.1906355899536791,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 415,
+                "tail_times_mean_ms_ratio": 0.9055383569309873,
+                "measured_over_iid_prediction": null
+              }
+            }
+          }
+        },
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-spatial-noise-camera-prefix-global-face-upper-outer-near-outer-near-outer-face-cosine-brdf.json",
+            "sha256": "e6c3b4c587b1a498df7dc36f626be8def199a3f263b03d898c031e5d7387ce74"
+          },
+          "scene": "light-sampling-5",
+          "base": "camera",
+          "methods": {
+            "camera": {
+              "16": {
+                "covered_tiles": 7997,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 473,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "prefix": {
+              "16": {
+                "covered_tiles": 7997,
+                "tail_times_mean_ms_ratio": 1.5300166650954483,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 473,
+                "tail_times_mean_ms_ratio": 1.9463323043607752,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "global-face": {
+              "16": {
+                "covered_tiles": 7997,
+                "tail_times_mean_ms_ratio": 0.6917742375671662,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 473,
+                "tail_times_mean_ms_ratio": 1.1937018866828675,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "upper-outer-near": {
+              "16": {
+                "covered_tiles": 7997,
+                "tail_times_mean_ms_ratio": 0.9182104904060168,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 473,
+                "tail_times_mean_ms_ratio": 1.048353045313211,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "outer-near": {
+              "16": {
+                "covered_tiles": 7997,
+                "tail_times_mean_ms_ratio": 1.0002146228756268,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 473,
+                "tail_times_mean_ms_ratio": 1.7273813120052592,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "outer-face": {
+              "16": {
+                "covered_tiles": 7997,
+                "tail_times_mean_ms_ratio": 0.9163409085020197,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 473,
+                "tail_times_mean_ms_ratio": 1.6630698058397775,
+                "measured_over_iid_prediction": null
+              }
+            },
+            "cosine-brdf": {
+              "16": {
+                "covered_tiles": 7997,
+                "tail_times_mean_ms_ratio": 0.9154078827535745,
+                "measured_over_iid_prediction": null
+              },
+              "64": {
+                "covered_tiles": 473,
+                "tail_times_mean_ms_ratio": 1.3646256588427679,
+                "measured_over_iid_prediction": null
+              }
+            }
+          }
+        },
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/flatroom-light-sampling-1-720p-spatial-noise-camera-prefix-cosine-brdf.json",
+            "sha256": "517674c0ecca43ef044ca6683951a661bdec1e1b7e87aef39706a14ddf61df17"
+          },
+          "scene": "flatroom-light-sampling-1-720p",
+          "base": "camera",
+          "methods": {
+            "camera": {
+              "16": {
+                "covered_tiles": 3573,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": 1.0502810083410863
+              },
+              "64": {
+                "covered_tiles": 216,
+                "tail_times_mean_ms_ratio": 1.0,
+                "measured_over_iid_prediction": 0.8345545830758854
+              }
+            },
+            "prefix": {
+              "16": {
+                "covered_tiles": 3573,
+                "tail_times_mean_ms_ratio": 0.7566311083477225,
+                "measured_over_iid_prediction": 0.8218383640846817
+              },
+              "64": {
+                "covered_tiles": 216,
+                "tail_times_mean_ms_ratio": 0.9341478978277873,
+                "measured_over_iid_prediction": 0.8385176136445378
+              }
+            },
+            "cosine-brdf": {
+              "16": {
+                "covered_tiles": 3573,
+                "tail_times_mean_ms_ratio": 0.44445858022620005,
+                "measured_over_iid_prediction": 0.9151586551535706
+              },
+              "64": {
+                "covered_tiles": 216,
+                "tail_times_mean_ms_ratio": 0.4345921166486545,
+                "measured_over_iid_prediction": 0.7522753191038104
+              }
+            }
+          }
+        }
+      ],
+      "scope": "One pair of disjoint 32f windows per case, >=95% coverage of the same complete pixels in a tile. Large tiles have few tail observations; the estimate may contain emission drift or noise covariance. Fixed UV methods may still have time-varying atlas pixels."
+    },
+    {
+      "id": "adaptive-128-cut-negative",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/adaptive-cut-offline.json",
+        "sha256": "6bac703100b848b6ba402ee24226ff92935eb44bc4de4be788acc500ecd14059"
+      },
+      "scope": "Existing 28 point windows only. Splitting by gain in mass times squared diagonal does not repair the LS1 ceiling; no native trial."
+    },
+    {
+      "id": "moving3-native-controls",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-3-camera-prefix-cosine-brdf.json",
+        "sha256": "27f428642f1695b42c8a207c7e17b7e1fe6d6cb5689e65ac725bbd7244cadf51"
+      },
+      "matched_pixels": 2020780,
+      "p50_raygen": {
+        "camera": 1.0,
+        "prefix": 1.0814431778117288,
+        "cosine-brdf": 0.48525091080032906
+      },
+      "mean_raygen": {
+        "camera": 1.0,
+        "prefix": 1.0676769272390871,
+        "cosine-brdf": 0.49717566441337163
+      }
     }
   ],
   "frozen_candidate_refs": {
