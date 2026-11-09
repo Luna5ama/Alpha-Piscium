@@ -15466,5 +15466,786 @@
       "Expected traversed nodes/records are work proxies, not GPU timing.",
       "No runtime weight/default, lookahead, or K changes."
     ]
+  },
+  "red_pillar_factor_diagnosis": {
+    "scope": "Existing 2x32-frame Mode 3 moments plus independent deterministic area quadrature over archived cubes and block models.",
+    "fixture_revision": "6a8ec6234c93538baa648a2ddb5bb8edbdbe2afc",
+    "fixture": {
+      "resolved_revision": "6a8ec6234c93538baa648a2ddb5bb8edbdbe2afc",
+      "source_snapshot_sha256": "b4053367d15c87f9e7ea76bfca3abd3e9d05684be988b07d9c5235f55b8c2e3d",
+      "preset_sha256": "d8eac2ed16f4268e6597ae5897f58dac236efb76b5b53afdc140ad86c02ed32a",
+      "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+      "config_sha256": "04da402d60366094e3de98d8b6b695df8aa4eaa7f1476115ca6608833d04d269"
+    },
+    "identities": {
+      "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+      "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+      "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+      "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+    },
+    "original_sha256": {
+      "before_voxel-materials.bin": "6b5626bd53ac350e33812b1dc26eaa7ced65404cf9b31c4b9f5cb3903aab7a57",
+      "before_voxel-meta.bin": "1aa892ff03d1ee379b7b84cc2c9381d70ca63ddbf405362d151224cacb8cec9e",
+      "before_tree.bin": "8392ca0d05a1be1a9fd046ff18c2ad6fabcf9196aca5e3dcd0a47a820ab139b4",
+      "audit.bin": "3662a53aa30bacc4b4067712ad3f442aa012d6193576af3ac001309f51906396",
+      "single.bin": "c21b3f6b72fcce25e7026e2fe3bdcd3bab50d28e1873be0df5d3be49f8487fca",
+      "single.json": "203c1dfe748ef57b4fd5096658e14e85f5a01af479d561d804cb6961f017874f"
+    },
+    "source_sha256": "3317ac116bc89c055528f9fb8038fbf7bd791ffe27821aced8bd75a9d92167e0",
+    "moment_file_sha256": {
+      "left-red-pillar-window1.npz": "51c6fdaca2acdf137dfb67d069313baae3f771bfa7b8a1d09c799021c117a6c4",
+      "left-red-pillar-window2.npz": "a449419cd62658709e19393b1b7ff760476a366b29b49987bbe555b53665b9cc",
+      "yellow-candidate-ceiling-window1.npz": "9a3ef0f08640af5087ba591d80e6f9f16b8139d230efae694e5b14f805c79f7f",
+      "yellow-candidate-ceiling-window2.npz": "61921ce1a8cfd6113626056a1c3ac80a3058c4d27238138a69770c116caef0d5"
+    },
+    "fixture_source_file_sha256": {
+      "pass/composite/LightSamplingInitial.comp.glsl": "0c4212c0bbb7a6eaf2705e12d4179ca56fbfa4b2966378518bedbbf8584d14ff",
+      "pass/prepare/LightSamplingBuild.comp.glsl": "95af836e587fe9631334f9d900caffdc6339dfc2aa9c1eea11f9a265d685469b",
+      "techniques/debug/LightSamplingCube.glsl": "df94a70626c3454701b12436df88931e6f358d48d5aedff76e9c5c63fe1fb008",
+      "techniques/voxel/VoxelTrace.glsl": "45866fe847a9a9f548c32c011092e0a88ee6ac589a6b9f84504ad149cd704310",
+      "techniques/voxel/BlockModels.glsl": "877b8042a5c7e96e445e71a806a619e510a41099eb21567ebd3eefcc8e7a9d07",
+      "techniques/voxel/SurfaceData.glsl": "3a05e735599be41ad9f0cb05d8e281829c9cef3a10d9ffbd8bdca763a0602696",
+      "util/Material.glsl": "1c99159c482ef21cfc814138c19a9bdd1df426e5e27ba2b53a51c8bd548f9654",
+      "shaders.properties": "fc4b1e3e7809d91b2961701abd7f15a46d863261e8a43c08d79ff14914d81ebb"
+    },
+    "model_resource_sha256": {
+      "pbr_lut_2.bin": "b46c1bd5f08c7b46f7616bb05bcbdf33706002c90867311396846cf4ecb53f6a",
+      "block_model_quads.bin": "cccea5d9e33658256209f95992bad689ffd6c54e35d633f72d53ecdf3460c3fc"
+    },
+    "color_source_sha256": "168fac28f2c2ad81aa4e91fa35c6aa5d9399dea9e961e29c792a17fad39f73fe",
+    "script_sha256": "bcc498f3defbbeb8398cc80f8dead9495002d25ac4fd00a49515545a03b26e30",
+    "arrays_sha256": "bb85281e66f5642c025aea69f9c27d6fd722af84bcfce0f5a266715fdd627f58",
+    "single_frame_id": 147309,
+    "neutral_reference": "Achromatic (1,1,1) in working space times mass * 0.5 * 2^EMISSIVE_STRENGTH, with audited receiver albedo and the original linear sRGB output transform.",
+    "coverage": "Selected lights are shared across both receivers. Geometry/visibility fractions bound sampled quadrature rays only; The CPU DDA tests packed partial-model quads and marks out-of-grid/out-of-table/beyond-target cases unknown. Quadrature and GPU float/trace differences remain.",
+    "limits": "Cube texture/specular atlas, hit reason, original per-sample direction and executed PDF were unavailable. There is no paired 2x2 capture. Effective output RGB includes receiving albedo and color conversion; conditional estimates only.",
+    "replay": "python scripts/light_sampling_red_pillar_diagnosis.py builds/light-sampling/20261108-clustering-repair/red-pillar-factors",
+    "artifacts": {
+      "builds/light-sampling/20261108-clustering-repair/red-pillar-factors/result.json": "654ece428b49de960e79538a897f9147a09082c47d9f2846996c38d88c08c9f3",
+      "builds/light-sampling/20261108-clustering-repair/red-pillar-factors/per-lamp-moments.npz": "bb85281e66f5642c025aea69f9c27d6fd722af84bcfce0f5a266715fdd627f58"
+    },
+    "runtime": {
+      "status": "Offline evidence with paired Iris acquisition blocked on the verified archival budget.",
+      "at_start_active_source": "8013afd5-bba8-4367-bfb7-8aa9510e992e",
+      "at_end_active_source": "a1818489-0837-496e-b0b9-89eb324d111b",
+      "at_end_settings_sha256": "c30bca4f43d6d65eddb9f06b165a4512815591f8fc3cbe8ba5d99c5314a082d3",
+      "at_end_shader_generation": 53,
+      "at_end_queued_or_active_jobs_reported": 0,
+      "current_scene_and_freeze_receipt": "Unavailable in the read-only runtime endpoints used.",
+      "submitted_mutating_jobs": 0,
+      "artifact_cap_bytes": 3221225472,
+      "artifact_used_at_end_bytes": 3220161342,
+      "artifact_available_at_end_bytes": 1064130,
+      "voxel_material_buffer_bytes": 268435456,
+      "compile_validate": "No newly compiled diagnostic source. Existing Mode 3 source and model resource blobs matched the archived fixture commit."
+    },
+    "points": {
+      "left-red-pillar": {
+        "receiver": [
+          [
+            158.9969940185547,
+            151.34194946289062,
+            83.52908325195312,
+            10938.0
+          ],
+          [
+            -1.0,
+            -4.075713100348821e-10,
+            -2.3417310757167797e-08,
+            101.0
+          ],
+          [
+            0.13819491863250732,
+            0.04102246090769768,
+            0.03470442444086075,
+            1.0
+          ],
+          [
+            250.0,
+            679.0,
+            10235.0,
+            3.0
+          ]
+        ],
+        "windows": [
+          {
+            "window": 1,
+            "methods": {
+              "prefix": {
+                "variance": 0.0012955259764170415,
+                "mean_only_variance": 0.0006575574860144664,
+                "within_lamp_variance": 0.0006379684904025749,
+                "variance_over_prefix": 1.0,
+                "delta": {
+                  "mean": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "within": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "total": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "cross_mean": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "cross_within": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  }
+                }
+              },
+              "upper/flux-diagonal": {
+                "variance": 0.0013687796602688865,
+                "mean_only_variance": 0.0007308119055159723,
+                "within_lamp_variance": 0.0006379677547529143,
+                "variance_over_prefix": 1.0565435855284342,
+                "delta": {
+                  "mean": {
+                    "positive": 0.00011513352086374364,
+                    "negative": -4.187910136223773e-05,
+                    "net": 7.325441950150591e-05
+                  },
+                  "within": {
+                    "positive": 6.07696894400236e-05,
+                    "negative": -6.07704250896843e-05,
+                    "net": -7.356496607050596e-10
+                  },
+                  "total": {
+                    "positive": 0.00017590321030376723,
+                    "negative": -0.00010264952645192203,
+                    "net": 7.325368385184521e-05
+                  },
+                  "cross_mean": {
+                    "positive": 0.00011497126853340567,
+                    "negative": -4.1829987654890335e-05,
+                    "net": 7.314128087851535e-05
+                  },
+                  "cross_within": {
+                    "positive": 6.093194177036157e-05,
+                    "negative": -6.0819538797031705e-05,
+                    "net": 1.1240297332986053e-07
+                  }
+                }
+              },
+              "flat": {
+                "variance": 0.0016168291577015252,
+                "mean_only_variance": 0.0007752224901095711,
+                "within_lamp_variance": 0.0008416066675919539,
+                "variance_over_prefix": 1.248009833174548,
+                "delta": {
+                  "mean": {
+                    "positive": 0.00016937420869090426,
+                    "negative": -5.1709204595799655e-05,
+                    "net": 0.00011766500409510465
+                  },
+                  "within": {
+                    "positive": 0.0002407151425538199,
+                    "negative": -3.707696536444112e-05,
+                    "net": 0.00020363817718937875
+                  },
+                  "total": {
+                    "positive": 0.0004100893512447241,
+                    "negative": -8.878616996024077e-05,
+                    "net": 0.00032130318128448346
+                  },
+                  "cross_mean": {
+                    "positive": 0.00016944659070153572,
+                    "negative": -5.150075220516017e-05,
+                    "net": 0.00011794583849637549
+                  },
+                  "cross_within": {
+                    "positive": 0.00024064276054318844,
+                    "negative": -3.728541775508059e-05,
+                    "net": 0.00020335734278810786
+                  }
+                }
+              }
+            },
+            "samples_per_light": 3232,
+            "selected_lamp_coverage": {
+              "upper/flux-diagonal": {
+                "selected": {
+                  "positive": 7.641653289460848e-05,
+                  "negative": -3.8087290663832755e-05,
+                  "net": 3.832924223077572e-05
+                },
+                "unselected": {
+                  "positive": 9.948667740915877e-05,
+                  "negative": -6.456223578808929e-05,
+                  "net": 3.4924441621069486e-05
+                },
+                "cumulative_share_of_positive_delta": [
+                  0.19905967708310512,
+                  0.33654091544231823,
+                  0.44853230698381064,
+                  0.5464151451651174,
+                  0.5527886394270587,
+                  0.5591594545895208,
+                  0.5654973893943622,
+                  0.5717809691009766
+                ]
+              },
+              "flat": {
+                "selected": {
+                  "positive": 0.0002461219324189701,
+                  "negative": -4.003831236468505e-05,
+                  "net": 0.00020608362005428507
+                },
+                "unselected": {
+                  "positive": 0.00016396741882575402,
+                  "negative": -4.874785759555571e-05,
+                  "net": 0.00011521956123019832
+                },
+                "cumulative_share_of_positive_delta": [
+                  0.37851356417168885,
+                  0.48935395625130046,
+                  0.5658574012493988,
+                  0.6219371619109072,
+                  0.6668643270799381,
+                  0.7056468890334705,
+                  0.7392633369799355,
+                  0.7717850915740189
+                ]
+              }
+            }
+          },
+          {
+            "window": 2,
+            "methods": {
+              "prefix": {
+                "variance": 0.0012980981403692686,
+                "mean_only_variance": 0.0006548779673263671,
+                "within_lamp_variance": 0.0006432201730429015,
+                "variance_over_prefix": 1.0,
+                "delta": {
+                  "mean": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "within": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "total": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "cross_mean": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "cross_within": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  }
+                }
+              },
+              "upper/flux-diagonal": {
+                "variance": 0.0013700528939934577,
+                "mean_only_variance": 0.0007279109115668121,
+                "within_lamp_variance": 0.0006421419824266458,
+                "variance_over_prefix": 1.055430904171637,
+                "delta": {
+                  "mean": {
+                    "positive": 0.00011484574973199196,
+                    "negative": -4.18128054915472e-05,
+                    "net": 7.303294424044477e-05
+                  },
+                  "within": {
+                    "positive": 6.0593381113963746e-05,
+                    "negative": -6.167157173021943e-05,
+                    "net": -1.0781906162556785e-06
+                  },
+                  "total": {
+                    "positive": 0.0001754391308459557,
+                    "negative": -0.00010348437722176663,
+                    "net": 7.195475362418909e-05
+                  },
+                  "cross_mean": {
+                    "positive": 0.00011497126853340567,
+                    "negative": -4.1829987654890335e-05,
+                    "net": 7.314128087851535e-05
+                  },
+                  "cross_within": {
+                    "positive": 6.046786231255005e-05,
+                    "negative": -6.16543895668763e-05,
+                    "net": -1.1865272543262504e-06
+                  }
+                }
+              },
+              "flat": {
+                "variance": 0.001624427827232299,
+                "mean_only_variance": 0.0007731791264439744,
+                "within_lamp_variance": 0.0008512487007883245,
+                "variance_over_prefix": 1.2513906127083734,
+                "delta": {
+                  "mean": {
+                    "positive": 0.00016961675762067508,
+                    "negative": -5.131559850306794e-05,
+                    "net": 0.0001183011591176071
+                  },
+                  "within": {
+                    "positive": 0.00024527934466460187,
+                    "negative": -3.7250816919178866e-05,
+                    "net": 0.000208028527745423
+                  },
+                  "total": {
+                    "positive": 0.00041489610228527687,
+                    "negative": -8.856641542224682e-05,
+                    "net": 0.00032632968686303014
+                  },
+                  "cross_mean": {
+                    "positive": 0.00016944659070153572,
+                    "negative": -5.150075220516017e-05,
+                    "net": 0.00011794583849637549
+                  },
+                  "cross_within": {
+                    "positive": 0.00024544951158374126,
+                    "negative": -3.706566321708663e-05,
+                    "net": 0.0002083838483666546
+                  }
+                }
+              }
+            },
+            "samples_per_light": 3232,
+            "selected_lamp_coverage": {
+              "upper/flux-diagonal": {
+                "selected": {
+                  "positive": 7.611530190528448e-05,
+                  "negative": -3.9250803878647905e-05,
+                  "net": 3.6864498026636584e-05
+                },
+                "unselected": {
+                  "positive": 9.932382894067124e-05,
+                  "negative": -6.42335733431187e-05,
+                  "net": 3.509025559755252e-05
+                },
+                "cumulative_share_of_positive_delta": [
+                  0.20249309653109265,
+                  0.3350518520617242,
+                  0.44574602537195707,
+                  0.544550072722534,
+                  0.5509434562053349,
+                  0.5573313248775115,
+                  0.5636351630733495,
+                  0.569848868756682
+                ]
+              },
+              "flat": {
+                "selected": {
+                  "positive": 0.000252186310130032,
+                  "negative": -3.989497360807669e-05,
+                  "net": 0.0002122913365219553
+                },
+                "unselected": {
+                  "positive": 0.00016270979215524497,
+                  "negative": -4.867144181417013e-05,
+                  "net": 0.0001140383503410748
+                },
+                "cumulative_share_of_positive_delta": [
+                  0.38013060812389116,
+                  0.5012766063398522,
+                  0.5766534502990759,
+                  0.6315488454690732,
+                  0.6753073937361345,
+                  0.7129827159156596,
+                  0.7456619771232307,
+                  0.7761470680141498
+                ]
+              }
+            }
+          }
+        ],
+        "covered_neutral_deltas": {
+          "upper/flux-diagonal": {
+            "no_blockers_m2_over_q_delta": -0.0004901308321441688,
+            "with_blockers_m2_over_q_delta_interval": [
+              0.00043913843820777177,
+              0.00043913843820777177
+            ]
+          },
+          "flat": {
+            "no_blockers_m2_over_q_delta": 0.0023533715631417866,
+            "with_blockers_m2_over_q_delta_interval": [
+              0.0007591196957322835,
+              0.0007591196957322835
+            ]
+          }
+        },
+        "selected_lights": 13
+      },
+      "yellow-candidate-ceiling": {
+        "receiver": [
+          [
+            152.4615478515625,
+            164.9970245361328,
+            94.4711685180664,
+            8401.0
+          ],
+          [
+            3.3836529134134707e-09,
+            -0.9999999403953552,
+            -1.3838716839131848e-08,
+            101.0
+          ],
+          [
+            0.1102130115032196,
+            0.12168031930923462,
+            0.11301778256893158,
+            1.0
+          ],
+          [
+            1000.0,
+            909.0,
+            10235.0,
+            3.0
+          ]
+        ],
+        "windows": [
+          {
+            "window": 1,
+            "methods": {
+              "prefix": {
+                "variance": 0.015105597117841972,
+                "mean_only_variance": 0.006618653901557187,
+                "within_lamp_variance": 0.008486943216284784,
+                "variance_over_prefix": 1.0,
+                "delta": {
+                  "mean": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "within": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "total": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "cross_mean": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "cross_within": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  }
+                }
+              },
+              "upper/flux-diagonal": {
+                "variance": 0.012207626065772472,
+                "mean_only_variance": 0.0052165431848607835,
+                "within_lamp_variance": 0.0069910828809116865,
+                "variance_over_prefix": 0.8081524994039089,
+                "delta": {
+                  "mean": {
+                    "positive": 6.28309499896062e-05,
+                    "negative": -0.0014649416666860102,
+                    "net": -0.0014021107166964043
+                  },
+                  "within": {
+                    "positive": 6.197966539137044e-05,
+                    "negative": -0.0015578400007644675,
+                    "net": -0.0014958603353730975
+                  },
+                  "total": {
+                    "positive": 0.00012481061538097666,
+                    "negative": -0.003022781667450478,
+                    "net": -0.002897971052069501
+                  },
+                  "cross_mean": {
+                    "positive": 6.305885921222461e-05,
+                    "negative": -0.001468042961850687,
+                    "net": -0.0014049841026384624
+                  },
+                  "cross_within": {
+                    "positive": 6.175175616875204e-05,
+                    "negative": -0.0015547387055997912,
+                    "net": -0.0014929869494310394
+                  }
+                }
+              },
+              "flat": {
+                "variance": 0.004373896747444694,
+                "mean_only_variance": 0.0019463348689249557,
+                "within_lamp_variance": 0.002427561878519738,
+                "variance_over_prefix": 0.28955470699522806,
+                "delta": {
+                  "mean": {
+                    "positive": 0.0001833365680940518,
+                    "negative": -0.004855655600726284,
+                    "net": -0.0046723190326322305
+                  },
+                  "within": {
+                    "positive": 7.249938347214687e-05,
+                    "negative": -0.006131880721237194,
+                    "net": -0.006059381337765047
+                  },
+                  "total": {
+                    "positive": 0.0002558359515661986,
+                    "negative": -0.010987536321963476,
+                    "net": -0.010731700370397277
+                  },
+                  "cross_mean": {
+                    "positive": 0.000183888418724763,
+                    "negative": -0.004849905245355724,
+                    "net": -0.004666016826630962
+                  },
+                  "cross_within": {
+                    "positive": 7.194753284143557e-05,
+                    "negative": -0.006137631076607751,
+                    "net": -0.006065683543766316
+                  }
+                }
+              }
+            },
+            "samples_per_light": 3232,
+            "selected_lamp_coverage": {
+              "upper/flux-diagonal": {
+                "selected": {
+                  "positive": 3.629207338879462e-05,
+                  "negative": -0.00036311238846581904,
+                  "net": -0.00032682031507702444
+                },
+                "unselected": {
+                  "positive": 8.851854199218202e-05,
+                  "negative": -0.002659669278984659,
+                  "net": -0.0025711507369924765
+                },
+                "cumulative_share_of_positive_delta": [
+                  0.14564740394125975,
+                  0.23837968728268505,
+                  0.2989294239622629,
+                  0.3567070221956947,
+                  0.40910447176162884,
+                  0.44423323143358656,
+                  0.47551956779807747,
+                  0.5029217415881754
+                ]
+              },
+              "flat": {
+                "selected": {
+                  "positive": 0.00010603683761341999,
+                  "negative": -0.001507103655065156,
+                  "net": -0.0014010668174517361
+                },
+                "unselected": {
+                  "positive": 0.00014979911395277863,
+                  "negative": -0.00948043266689832,
+                  "net": -0.009330633552945541
+                },
+                "cumulative_share_of_positive_delta": [
+                  0.4144719964659952,
+                  0.5884245517803107,
+                  0.6647985560720965,
+                  0.7377290637552137,
+                  0.8082347663303648,
+                  0.8453721190032293,
+                  0.876317771350557,
+                  0.8925577071333812
+                ]
+              }
+            }
+          },
+          {
+            "window": 2,
+            "methods": {
+              "prefix": {
+                "variance": 0.015122567804762163,
+                "mean_only_variance": 0.00661569306357005,
+                "within_lamp_variance": 0.008506874741192117,
+                "variance_over_prefix": 1.0,
+                "delta": {
+                  "mean": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "within": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "total": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "cross_mean": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  },
+                  "cross_within": {
+                    "positive": 0.0,
+                    "negative": 0.0,
+                    "net": 0.0
+                  }
+                }
+              },
+              "upper/flux-diagonal": {
+                "variance": 0.012215806366177712,
+                "mean_only_variance": 0.005206620821587668,
+                "within_lamp_variance": 0.007009185544590046,
+                "variance_over_prefix": 0.8077865164096604,
+                "delta": {
+                  "mean": {
+                    "positive": 6.332015447707604e-05,
+                    "negative": -0.0014723923964594574,
+                    "net": -0.0014090722419823813
+                  },
+                  "within": {
+                    "positive": 6.178393482257371e-05,
+                    "negative": -0.0015594731314246453,
+                    "net": -0.0014976891966020714
+                  },
+                  "total": {
+                    "positive": 0.00012510408929964977,
+                    "negative": -0.0030318655278841027,
+                    "net": -0.0029067614385844525
+                  },
+                  "cross_mean": {
+                    "positive": 6.305885921222461e-05,
+                    "negative": -0.001468042961850687,
+                    "net": -0.0014049841026384624
+                  },
+                  "cross_within": {
+                    "positive": 6.204523008742513e-05,
+                    "negative": -0.0015638225660334158,
+                    "net": -0.0015017773359459906
+                  }
+                }
+              },
+              "flat": {
+                "variance": 0.004384207847707502,
+                "mean_only_variance": 0.001951364991857287,
+                "within_lamp_variance": 0.0024328428558502146,
+                "variance_over_prefix": 0.28991160127758825,
+                "delta": {
+                  "mean": {
+                    "positive": 0.00018450276267690095,
+                    "negative": -0.004848830834389664,
+                    "net": -0.004664328071712762
+                  },
+                  "within": {
+                    "positive": 7.144461791155275e-05,
+                    "negative": -0.006145476503253454,
+                    "net": -0.006074031885341903
+                  },
+                  "total": {
+                    "positive": 0.0002559473805884536,
+                    "negative": -0.01099430733764312,
+                    "net": -0.010738359957054666
+                  },
+                  "cross_mean": {
+                    "positive": 0.000183888418724763,
+                    "negative": -0.004849905245355724,
+                    "net": -0.004666016826630962
+                  },
+                  "cross_within": {
+                    "positive": 7.205896186369069e-05,
+                    "negative": -0.006144402092287394,
+                    "net": -0.006072343130423703
+                  }
+                }
+              }
+            },
+            "samples_per_light": 3232,
+            "selected_lamp_coverage": {
+              "upper/flux-diagonal": {
+                "selected": {
+                  "positive": 3.6862975934613844e-05,
+                  "negative": -0.00036531786246636475,
+                  "net": -0.00032845488653175095
+                },
+                "unselected": {
+                  "positive": 8.824111336503588e-05,
+                  "negative": -0.002666547665417738,
+                  "net": -0.002578306552052702
+                },
+                "cumulative_share_of_positive_delta": [
+                  0.14942067444657803,
+                  0.2419247634152917,
+                  0.301609525598466,
+                  0.35950929362539025,
+                  0.4122429713608071,
+                  0.44549836157946227,
+                  0.4763605781968354,
+                  0.5044719827871179
+                ]
+              },
+              "flat": {
+                "selected": {
+                  "positive": 0.00010696819336913102,
+                  "negative": -0.0015357680095943853,
+                  "net": -0.0014287998162252544
+                },
+                "unselected": {
+                  "positive": 0.0001489791872193227,
+                  "negative": -0.009458539328048732,
+                  "net": -0.00930956014082941
+                },
+                "cumulative_share_of_positive_delta": [
+                  0.4179304086769646,
+                  0.5870685235598172,
+                  0.662495662787715,
+                  0.7371381289423304,
+                  0.81036280211883,
+                  0.8487748000467299,
+                  0.8793310359366826,
+                  0.8951454502216902
+                ]
+              }
+            }
+          }
+        ],
+        "covered_neutral_deltas": {
+          "upper/flux-diagonal": {
+            "no_blockers_m2_over_q_delta": -0.0028495049706334322,
+            "with_blockers_m2_over_q_delta_interval": [
+              -0.001176430514153013,
+              -0.001176430514153013
+            ]
+          },
+          "flat": {
+            "no_blockers_m2_over_q_delta": -0.018245396879035935,
+            "with_blockers_m2_over_q_delta_interval": [
+              -0.00694401968957343,
+              -0.00694401968957343
+            ]
+          }
+        },
+        "selected_lights": 13
+      }
+    },
+    "findings": {
+      "mean_and_within": "For the red pillar, the upper rule increases variance by 5.54\u20135.65% and almost all of the net increase is in the per-lamp mean term. Flat increases variance by 24.80\u201325.14%, with 63.38\u201363.75% of its net increase in the within-lamp term. Cross-window products reproduce this separation without clipping.",
+      "visibility": "CPU projected visibility for the red-pillar flat penalty leaders [154,146,78,10254], [150,146,78,10254], [157,145,76,682] is about 36.6%, 18.1%, and 93.0%. For the upper penalty leader [146,153,88,682] it is 91.35%. The two largest probability gains among red-pillar zero-observed-M2 lamps are covered by blockers on every replayed quadrature ray.",
+      "emission": "Normalized nonzero RGB varies within each named lamp at a fixed receiver. Binary visibility and a scalar PDF cannot cause this chromaticity change. The archived PBR setting selects built-in emissive amplitude; texture color/luma then enters the actual emission. Receiver albedo is held fixed within each point. Unoccluded textured emission is missing for rays that hit blockers.",
+      "proposal": "Independent area quadrature matches the cube integral; all four red-pillar target lamps use ordinary projected faces for which the ideal geometry factor is constant. The selected controls also cover the area fallback and its face-selection factor and Jacobian. This audits the nominal PDF, with no archived actual direction/PDF pairs for a runtime check.",
+      "partial_neutral": "On the 13 selected red-pillar lamps, neutral mass control yields an upper-rule delta of about -4.90e-4 without blockers and +4.39e-4 with modeled blockers; flat remains positive in both cases. Coverage is approximately 51\u201352% of upper and 64\u201365% of flat measured net excess. These are covered M2/q differences for the neutral target, with no global 2x2 causal attribution.",
+      "remaining": "For exact paired attribution the remaining operation is a same-cohort hit/target emission/PDF diagnostic for these two fixed receivers. Evaluate the target texture even when a blocker is hit. Its evidence would separate texture, blocker interaction and executed sampler behavior."
+    }
   }
 }
