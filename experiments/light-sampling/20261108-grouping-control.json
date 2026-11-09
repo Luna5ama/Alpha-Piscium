@@ -1,0 +1,1349 @@
+{
+  "schema": 1,
+  "status": "completed_live_iris_same_input_grouping_control_pending_independent_review",
+  "task_commit": "a003371ad",
+  "source": {
+    "camera": {
+      "ref": "experiment/light-sampling-grouping-camera",
+      "commit": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+      "legacy_outer_reference": "78823b540d1164190cd86566f783707ee63c2c8f",
+      "g16_buffer_bytes": 8650784
+    },
+    "world_prefix": {
+      "ref": "experiment/light-sampling-grouping-prefix",
+      "commit": "e9132607ec1540820fc0d7f53772579a0598e50f",
+      "g16_buffer_bytes": 8632480
+    },
+    "delta": "Camera-window brick Morton outer builder, addressing/SSBO capacity and generated dispatch/property branches. Brick-local trees, model 6 scores, PDF, cube sampling, emitter classification and initial evaluation use the same source. The older ls5 Cosine capture has the same active cosine/evaluation source and effective settings after ignoring inactive weight-model macros."
+  },
+  "runtime": {
+    "iris": "1.10.6-vibris.3+mc1.21.11",
+    "gpu": "NVIDIA GeForce RTX 3080 Ti",
+    "client_options": {
+      "renderDistance": 32,
+      "simulationDistance": 8
+    },
+    "client_options_evidence": "I:/PCL/.minecraft/versions/1.21.11-Vibris/options.txt read at start and handback. Integrated saves. Vibris gates loaded scene readiness; no separate server effective view/simulation counters were exported.",
+    "acquisition": "1920x1080 native, grid 16, arity 4, 32-byte nodes, cube, diffuse initial direct only, TAA/jitter/denoising/RC/path guiding/spatial reuse off, 256 warmup, 1 spp and consecutive 32 frames in 8 batches of 4.",
+    "display": "+4 EV, Reinhard, sRGB; bottom-up OpenGL raw rows.",
+    "start_snapshot_rejected_job": "4a96512e-8167-4ef3-b672-41928cae6456",
+    "first_safe_snapshot_job": "25c20279-755f-461f-81c5-12268a44fe0a",
+    "handoff": {
+      "job": "9901a02b-ea4a-4208-9eb5-bf36fd6d4c14",
+      "preset": "light-sampling-1",
+      "revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+      "active_source_uuid": "6041fefd-a436-44b3-a6ac-2bbf025b4c96",
+      "settings_sha256": "27d71798d4d291bbd87cf573ac03d89108504b994886aa99610cdad1198fb715",
+      "rendered_depth_pixels": 2049215,
+      "queue_empty": true,
+      "ticks": "Default freeze restored after scoped initialization."
+    }
+  },
+  "identity_checks": {
+    "receiver": "Bit-exact depth, packed geometric normal, material ID and RGB albedo used by ls_loadReceiver. Camera/view and projection compared separately. Hash counts include geometric samples rejected later as emitters. Animated lightmap bits are not read by this estimator.",
+    "voxel": "Canonical signed world position and full packed uint material across all nonempty blocks, independent of allocation ordering. Before/after for each individual job; ls1 two light proposals bracketed with full voxel buffers at the start and end of one frozen lease, plus separate before/after cameras, trees and receiver inputs for each window.",
+    "reuse": "ls5 World Prefix and Cosine reuse already-accepted same-environment cases. Both original windows had bracketed world voxels/camera/tree and recorded their actual receiver G-buffer once. The actual receiver input equals the new camera case on both of its endpoints. ls1 recaptured all three due to old receiver differences.",
+    "pdf": "Both light proposals passed native-tree reconstruction and model 6 PMF replay from real Iris audit records. Cosine is the separate mode-1 estimator and does not consume the light-tree PDF."
+  },
+  "scenes": {
+    "light-sampling-1": {
+      "shared_input": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+      },
+      "emitter_count": 10235,
+      "matched_brick_local_trees": 453,
+      "receiver_input": {
+        "pixels": 2049215,
+        "sha256": "fedca470656e07227d078893fe4e1520465a92ebb31577cdbfa00a28b16e00bf"
+      },
+      "preset_sha256": "d8eac2ed16f4268e6597ae5897f58dac236efb76b5b53afdc140ad86c02ed32a",
+      "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+      "cases": [
+        {
+          "path": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-1/pair-7323686a/camera",
+          "job": "7323686a-eb9c-4c4c-bcb0-57ee5ac1f974",
+          "manifest_id": "6c6351c2-4886-391b-9a9a-9fb2a742dead",
+          "manifest_sha256": "2fbe19ece146d6cf6c7cc375c1a5a7286109d2a80d84a98f9c75f5fd00266ea1",
+          "identity": {
+            "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+            "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+            "ordered_topology_sha256": "7508cda23bf06f92c6c200b5e4f1555ac26edef5c477de3874eb463265a74e3b",
+            "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+          },
+          "pdf_audit": {
+            "max_pdf_relative_error": 5.735472572432343e-07,
+            "max_cube_relative_error": 5.819682034702289e-05,
+            "cube_sample_count": 63
+          },
+          "receiver_post_window_matches": true,
+          "method": "camera",
+          "reused": false,
+          "provenance": {
+            "preset_sha256": "d8eac2ed16f4268e6597ae5897f58dac236efb76b5b53afdc140ad86c02ed32a",
+            "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+            "config_sha256": "27d71798d4d291bbd87cf573ac03d89108504b994886aa99610cdad1198fb715",
+            "resolved_revision": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+            "source_snapshot_sha256": "2c7ce3c1e768ae580e9904dfacb94bced6e2e1236c4773b80c18b2cc291f8899"
+          },
+          "window": {
+            "frames": 32,
+            "batches": 8,
+            "batch_lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "start_frame": 17292,
+            "end_frame": 17323,
+            "screen_batch_nonfinite_samples": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                2,
+                2,
+                2,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                1,
+                0
+              ],
+              [
+                1,
+                1,
+                1,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          "effective_settings": {
+            "SETTING_DEBUG_LIGHT_ARITY": "4",
+            "SETTING_DEBUG_LIGHT_AUDIT": "true",
+            "SETTING_DEBUG_LIGHT_CLUSTER_SCENE": "1",
+            "SETTING_DEBUG_LIGHT_CUBE": "true",
+            "SETTING_DEBUG_LIGHT_SAMPLING": "2",
+            "SETTING_DEBUG_LIGHT_WEIGHT_MODEL": "6",
+            "SETTING_DENOISER_ACCUM": "false",
+            "SETTING_DENOISER_ANTI_FIREFLY": "false",
+            "SETTING_DENOISER_SPATIAL": "false",
+            "SETTING_GI_PATH_GUIDING": "false",
+            "SETTING_GI_SPATIAL_REUSE": "false",
+            "SETTING_RC_ENABLE": "false",
+            "SETTING_TAA": "false",
+            "SETTING_TAA_JITTER": "false",
+            "SETTING_VOXEL_GRID_SIZE": "16"
+          }
+        },
+        {
+          "path": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-1/pair-7323686a/prefix",
+          "job": "7323686a-eb9c-4c4c-bcb0-57ee5ac1f974",
+          "manifest_id": "6c6351c2-4886-391b-9a9a-9fb2a742dead",
+          "manifest_sha256": "2fbe19ece146d6cf6c7cc375c1a5a7286109d2a80d84a98f9c75f5fd00266ea1",
+          "identity": {
+            "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+            "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+            "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+            "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+          },
+          "pdf_audit": {
+            "max_pdf_relative_error": 6.729571597752226e-07,
+            "max_cube_relative_error": 7.291418384769432e-05,
+            "cube_sample_count": 63
+          },
+          "receiver_post_window_matches": true,
+          "method": "prefix",
+          "reused": false,
+          "provenance": {
+            "preset_sha256": "d8eac2ed16f4268e6597ae5897f58dac236efb76b5b53afdc140ad86c02ed32a",
+            "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+            "config_sha256": "27d71798d4d291bbd87cf573ac03d89108504b994886aa99610cdad1198fb715",
+            "resolved_revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+            "source_snapshot_sha256": "73b38b52c964008f5b8144fadf81e14a8ecaa2f820e0283694f17f5927a613d8"
+          },
+          "window": {
+            "frames": 32,
+            "batches": 8,
+            "batch_lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "start_frame": 17657,
+            "end_frame": 17688,
+            "screen_batch_nonfinite_samples": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                1,
+                0
+              ]
+            ]
+          },
+          "effective_settings": {
+            "SETTING_DEBUG_LIGHT_ARITY": "4",
+            "SETTING_DEBUG_LIGHT_AUDIT": "true",
+            "SETTING_DEBUG_LIGHT_CLUSTER_SCENE": "1",
+            "SETTING_DEBUG_LIGHT_CUBE": "true",
+            "SETTING_DEBUG_LIGHT_SAMPLING": "2",
+            "SETTING_DEBUG_LIGHT_WEIGHT_MODEL": "6",
+            "SETTING_DENOISER_ACCUM": "false",
+            "SETTING_DENOISER_ANTI_FIREFLY": "false",
+            "SETTING_DENOISER_SPATIAL": "false",
+            "SETTING_GI_PATH_GUIDING": "false",
+            "SETTING_GI_SPATIAL_REUSE": "false",
+            "SETTING_RC_ENABLE": "false",
+            "SETTING_TAA": "false",
+            "SETTING_TAA_JITTER": "false",
+            "SETTING_VOXEL_GRID_SIZE": "16"
+          }
+        },
+        {
+          "path": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-1/brdf-56b028e8",
+          "job": "56b028e8-cf81-40c3-9df0-bec96c636467",
+          "manifest_id": "133ca92e-c102-3327-bff8-42c4bb26a67c",
+          "manifest_sha256": "8cef3e6dd72e3b78edbb165ad8be711a08b995d84069b537bc45c964b685d3f5",
+          "identity": {
+            "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+            "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+            "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+            "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+          },
+          "pdf_audit": null,
+          "receiver_post_window_matches": true,
+          "method": "brdf",
+          "reused": false,
+          "provenance": {
+            "resolved_revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+            "source_snapshot_sha256": "73b38b52c964008f5b8144fadf81e14a8ecaa2f820e0283694f17f5927a613d8",
+            "preset_sha256": "d8eac2ed16f4268e6597ae5897f58dac236efb76b5b53afdc140ad86c02ed32a",
+            "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+            "config_sha256": "bd531d8cb75a4bb2a108ab6aa06a70c36b671403a84585a23168715046c37c30"
+          },
+          "window": {
+            "frames": 32,
+            "batches": 8,
+            "batch_lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "start_frame": 20828,
+            "end_frame": 20859,
+            "screen_batch_nonfinite_samples": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          "effective_settings": {
+            "SETTING_DEBUG_LIGHT_ARITY": "4",
+            "SETTING_DEBUG_LIGHT_AUDIT": "true",
+            "SETTING_DEBUG_LIGHT_CLUSTER_SCENE": "1",
+            "SETTING_DEBUG_LIGHT_CUBE": "true",
+            "SETTING_DEBUG_LIGHT_SAMPLING": "1",
+            "SETTING_DEBUG_LIGHT_WEIGHT_MODEL": "1",
+            "SETTING_DENOISER_ACCUM": "false",
+            "SETTING_DENOISER_ANTI_FIREFLY": "false",
+            "SETTING_DENOISER_SPATIAL": "false",
+            "SETTING_GI_PATH_GUIDING": "false",
+            "SETTING_GI_SPATIAL_REUSE": "false",
+            "SETTING_RC_ENABLE": "false",
+            "SETTING_TAA": "false",
+            "SETTING_TAA_JITTER": "false",
+            "SETTING_VOXEL_GRID_SIZE": "16"
+          }
+        }
+      ],
+      "rois": [
+        {
+          "scene": 1,
+          "name": "pillar",
+          "anchor_raw_xy": [
+            1400,
+            550
+          ],
+          "raw_xy": [
+            1400,
+            550
+          ],
+          "raw_roi_inclusive": [
+            1396,
+            546,
+            1404,
+            554
+          ],
+          "display_xy": [
+            1400,
+            529
+          ],
+          "normal_code": 33153,
+          "material": 3328,
+          "inverse_depth_plane": [
+            -8.036961750153373e-05,
+            5.954678310338135e-05,
+            -0.171270054538024
+          ],
+          "inverse_depth_residual": 1.7536429586240132e-08,
+          "inverse_depth_tolerance": 0.0001712700563157524,
+          "evidence": "builds\\light-sampling\\20261108-grouping-control\\cases\\light-sampling-1\\pair-7323686a\\camera",
+          "selection": "nearest 11x11 fixed anchor plane; 9x9 statistics ROI"
+        },
+        {
+          "scene": 1,
+          "name": "wall",
+          "anchor_raw_xy": [
+            120,
+            700
+          ],
+          "raw_xy": [
+            120,
+            700
+          ],
+          "raw_roi_inclusive": [
+            116,
+            696,
+            124,
+            704
+          ],
+          "display_xy": [
+            120,
+            379
+          ],
+          "normal_code": 33153,
+          "material": 10938,
+          "inverse_depth_plane": [
+            -0.00028743178199978203,
+            0.00021296638424853076,
+            -0.21267200702552985
+          ],
+          "inverse_depth_residual": 2.5008674298110378e-08,
+          "inverse_depth_tolerance": 0.00021267200008437303,
+          "evidence": "builds\\light-sampling\\20261108-grouping-control\\cases\\light-sampling-1\\pair-7323686a\\camera",
+          "selection": "nearest 11x11 fixed anchor plane; 9x9 statistics ROI"
+        }
+      ],
+      "statistics": {
+        "whole_scene": {
+          "pixels": 2073600,
+          "common_receivers": 2022474,
+          "excluded_nonreceivers": 51126,
+          "common_complete_finite": 2022469,
+          "excluded_from_common": 5,
+          "methods": {
+            "camera": {
+              "mean_rgb": [
+                0.014740819890780164,
+                0.01089366718920775,
+                0.00805667400206705
+              ],
+              "variance_rgb_sum": 0.021097490394164135,
+              "zero_mean_direct_pixels": 77367,
+              "zero_mean_direct_fraction": 0.03825373837621244,
+              "nonfinite_pixels_on_common_receivers": 4,
+              "excluded_method_pixels": 4
+            },
+            "prefix": {
+              "mean_rgb": [
+                0.014740356701677823,
+                0.010881805567628728,
+                0.008052957182317928
+              ],
+              "variance_rgb_sum": 0.02812204453405628,
+              "zero_mean_direct_pixels": 107909,
+              "zero_mean_direct_fraction": 0.05335508232759068,
+              "nonfinite_pixels_on_common_receivers": 1,
+              "excluded_method_pixels": 1
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.014716158395715396,
+                0.010869553943441452,
+                0.008041652834058414
+              ],
+              "variance_rgb_sum": 0.039350547232664394,
+              "zero_mean_direct_pixels": 882861,
+              "zero_mean_direct_fraction": 0.43652634477957386,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            }
+          },
+          "variance_ratios": {
+            "prefix_over_camera": 1.3329568592592054,
+            "camera_over_cosine": 0.536142236330868,
+            "prefix_over_cosine": 0.7146544714558004
+          }
+        },
+        "pillar": {
+          "pixels": 81,
+          "common_receivers": 81,
+          "excluded_nonreceivers": 0,
+          "common_complete_finite": 81,
+          "excluded_from_common": 0,
+          "methods": {
+            "camera": {
+              "mean_rgb": [
+                0.006098364776379988,
+                0.0030180576548131575,
+                0.0024541857396629726
+              ],
+              "variance_rgb_sum": 0.008800611422557197,
+              "zero_mean_direct_pixels": 0,
+              "zero_mean_direct_fraction": 0.0,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "prefix": {
+              "mean_rgb": [
+                0.008373144009067206,
+                0.005811902578707416,
+                0.004811606011324689
+              ],
+              "variance_rgb_sum": 0.004986934769969291,
+              "zero_mean_direct_pixels": 0,
+              "zero_mean_direct_fraction": 0.0,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.0075421988645016595,
+                0.005283694115366225,
+                0.004481072381400542
+              ],
+              "variance_rgb_sum": 0.008263899607122958,
+              "zero_mean_direct_pixels": 39,
+              "zero_mean_direct_fraction": 0.48148148148148145,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            }
+          },
+          "variance_ratios": {
+            "prefix_over_camera": 0.5666577616626818,
+            "camera_over_cosine": 1.0649465556154176,
+            "prefix_over_cosine": 0.6034602314954152
+          }
+        },
+        "wall": {
+          "pixels": 81,
+          "common_receivers": 81,
+          "excluded_nonreceivers": 0,
+          "common_complete_finite": 81,
+          "excluded_from_common": 0,
+          "methods": {
+            "camera": {
+              "mean_rgb": [
+                0.026663482759959375,
+                0.004689014220505747,
+                0.002583251909555533
+              ],
+              "variance_rgb_sum": 0.04920040363756789,
+              "zero_mean_direct_pixels": 15,
+              "zero_mean_direct_fraction": 0.18518518518518517,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "prefix": {
+              "mean_rgb": [
+                0.015850230134135387,
+                0.0030676625209045236,
+                0.001770944328772775
+              ],
+              "variance_rgb_sum": 0.004736748513089449,
+              "zero_mean_direct_pixels": 0,
+              "zero_mean_direct_fraction": 0.0,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.018389491847267857,
+                0.003372702500829617,
+                0.001964674410564727
+              ],
+              "variance_rgb_sum": 0.006933079674178949,
+              "zero_mean_direct_pixels": 11,
+              "zero_mean_direct_fraction": 0.13580246913580246,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            }
+          },
+          "variance_ratios": {
+            "prefix_over_camera": 0.09627458644409609,
+            "camera_over_cosine": 7.096471690756165,
+            "prefix_over_cosine": 0.6832098772397851
+          }
+        }
+      }
+    },
+    "light-sampling-5": {
+      "shared_input": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      },
+      "emitter_count": 2172,
+      "matched_brick_local_trees": 118,
+      "receiver_input": {
+        "pixels": 2073600,
+        "sha256": "fe5dcbde1c343cc0d3985fa4d721107c6f1995087db0981a4b439d777a080012"
+      },
+      "preset_sha256": "21ab84808d11e8bc016f2ee3536864ff46aee9ce405ca4d89e30ae279112757e",
+      "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+      "cases": [
+        {
+          "path": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-5/camera-ebe05a06",
+          "job": "ebe05a06-cb0b-4885-9fe7-3c4b07054a96",
+          "manifest_id": "2aced7a6-348c-3b49-8d3e-bbbb2977be64",
+          "manifest_sha256": "6c0a33ba4eef097a99f65fa250da8c3ff58cff6b94dcf8218e9c910af00ea9c8",
+          "identity": {
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "e87c6e3be358fbe354784b0a3594441b6ef5efb0330fc2a88cbecb2e1e805983",
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+          },
+          "pdf_audit": {
+            "max_pdf_relative_error": 4.89628236843842e-07,
+            "max_cube_relative_error": 5.271371986648177e-05,
+            "cube_sample_count": 64
+          },
+          "receiver_post_window_matches": true,
+          "method": "camera",
+          "reused": false,
+          "provenance": {
+            "resolved_revision": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+            "source_snapshot_sha256": "2c7ce3c1e768ae580e9904dfacb94bced6e2e1236c4773b80c18b2cc291f8899",
+            "preset_sha256": "21ab84808d11e8bc016f2ee3536864ff46aee9ce405ca4d89e30ae279112757e",
+            "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+            "config_sha256": "c81da5b6d37efbe9b28f65295fd9e215ca83e56f2e45417a4355bb2ef80be93f"
+          },
+          "window": {
+            "frames": 32,
+            "batches": 8,
+            "batch_lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "start_frame": 23136,
+            "end_frame": 23167,
+            "screen_batch_nonfinite_samples": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          "effective_settings": {
+            "SETTING_DEBUG_LIGHT_ARITY": "4",
+            "SETTING_DEBUG_LIGHT_AUDIT": "true",
+            "SETTING_DEBUG_LIGHT_CLUSTER_SCENE": "5",
+            "SETTING_DEBUG_LIGHT_CUBE": "true",
+            "SETTING_DEBUG_LIGHT_SAMPLING": "2",
+            "SETTING_DEBUG_LIGHT_WEIGHT_MODEL": "6",
+            "SETTING_DENOISER_ACCUM": "false",
+            "SETTING_DENOISER_ANTI_FIREFLY": "false",
+            "SETTING_DENOISER_SPATIAL": "false",
+            "SETTING_GI_PATH_GUIDING": "false",
+            "SETTING_GI_SPATIAL_REUSE": "false",
+            "SETTING_RC_ENABLE": "false",
+            "SETTING_TAA": "false",
+            "SETTING_TAA_JITTER": "false",
+            "SETTING_VOXEL_GRID_SIZE": "16"
+          }
+        },
+        {
+          "path": "builds/light-sampling/20261108-nearfar-combination/cases/light-sampling-5/prefix-nearfar",
+          "job": "d247bb5d-1c1e-4b7c-aa48-38460b452a05",
+          "manifest_id": "f74d3dbd-19a4-3292-99b3-ec85a055cff7",
+          "manifest_sha256": "209f99d99c9923426892fddac850a099b0459914093c0c1e2861687a460414a1",
+          "identity": {
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+          },
+          "pdf_audit": {
+            "max_pdf_relative_error": 6.027053207624533e-07,
+            "max_cube_relative_error": 0.00013230083364712542,
+            "cube_sample_count": 64
+          },
+          "receiver_post_window_matches": null,
+          "method": "prefix",
+          "reused": true,
+          "provenance": {
+            "resolved_revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+            "source_snapshot_sha256": "73b38b52c964008f5b8144fadf81e14a8ecaa2f820e0283694f17f5927a613d8",
+            "preset_sha256": "21ab84808d11e8bc016f2ee3536864ff46aee9ce405ca4d89e30ae279112757e",
+            "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+            "config_sha256": "6c719ca39cebfc3efd5a7d115b75becee751c411ce6098efbf6613d69dbeee6e"
+          },
+          "window": {
+            "frames": 32,
+            "batches": 8,
+            "batch_lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "start_frame": 1016375,
+            "end_frame": 1016406,
+            "screen_batch_nonfinite_samples": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          "effective_settings": {
+            "SETTING_DEBUG_LIGHT_ARITY": "4",
+            "SETTING_DEBUG_LIGHT_AUDIT": "true",
+            "SETTING_DEBUG_LIGHT_CLUSTER_SCENE": "5",
+            "SETTING_DEBUG_LIGHT_CUBE": "true",
+            "SETTING_DEBUG_LIGHT_SAMPLING": "2",
+            "SETTING_DEBUG_LIGHT_WEIGHT_MODEL": "6",
+            "SETTING_DENOISER_ACCUM": "false",
+            "SETTING_DENOISER_ANTI_FIREFLY": "false",
+            "SETTING_DENOISER_SPATIAL": "false",
+            "SETTING_GI_PATH_GUIDING": "false",
+            "SETTING_GI_SPATIAL_REUSE": "false",
+            "SETTING_RC_ENABLE": "false",
+            "SETTING_TAA": "false",
+            "SETTING_TAA_JITTER": "false",
+            "SETTING_VOXEL_GRID_SIZE": "16"
+          }
+        },
+        {
+          "path": "builds/light-sampling/20261108-cluster-iris/cases/light-sampling-5/brdf",
+          "job": "21d87be8-c639-41f5-b243-adb148e264cc",
+          "manifest_id": "7f2bc0dd-e253-330c-be65-622322ab3a11",
+          "manifest_sha256": "e37aa52e60f7bf2ace4ed1188e326099dbc712083fc1af34d37ada2265fa7056",
+          "identity": {
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+          },
+          "pdf_audit": null,
+          "receiver_post_window_matches": null,
+          "method": "brdf",
+          "reused": true,
+          "provenance": {
+            "resolved_revision": "cd7e3b334a6f75442ddb913f40423cb19600f2de",
+            "source_snapshot_sha256": "84cf7f9e6d05a19020ab471360aed421b0f025d44a190436cace8fed6a6f7822",
+            "preset_sha256": "21ab84808d11e8bc016f2ee3536864ff46aee9ce405ca4d89e30ae279112757e",
+            "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+            "config_sha256": "6db0c8398569f7857e7f167177b9fa23613ecf0daa725bf2278c5b1476a1417a"
+          },
+          "window": {
+            "frames": 32,
+            "batches": 8,
+            "batch_lengths": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ],
+            "start_frame": 73834,
+            "end_frame": 73865,
+            "screen_batch_nonfinite_samples": [
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                0,
+                0,
+                0
+              ]
+            ]
+          },
+          "effective_settings": {
+            "SETTING_DEBUG_LIGHT_ARITY": "4",
+            "SETTING_DEBUG_LIGHT_AUDIT": "true",
+            "SETTING_DEBUG_LIGHT_CLUSTER_SCENE": "5",
+            "SETTING_DEBUG_LIGHT_CUBE": "true",
+            "SETTING_DEBUG_LIGHT_SAMPLING": "1",
+            "SETTING_DEBUG_LIGHT_WEIGHT_MODEL": "1",
+            "SETTING_DENOISER_ACCUM": "false",
+            "SETTING_DENOISER_ANTI_FIREFLY": "false",
+            "SETTING_DENOISER_SPATIAL": "false",
+            "SETTING_GI_PATH_GUIDING": "false",
+            "SETTING_GI_SPATIAL_REUSE": "false",
+            "SETTING_RC_ENABLE": "false",
+            "SETTING_TAA": "false",
+            "SETTING_TAA_JITTER": "false",
+            "SETTING_VOXEL_GRID_SIZE": "16"
+          }
+        }
+      ],
+      "rois": [
+        {
+          "scene": 5,
+          "name": "old-floor-roi-vertical-face",
+          "anchor_raw_xy": [
+            490,
+            469
+          ],
+          "raw_xy": [
+            490,
+            469
+          ],
+          "raw_roi_inclusive": [
+            486,
+            465,
+            494,
+            473
+          ],
+          "display_xy": [
+            490,
+            610
+          ],
+          "normal_code": 33151,
+          "material": 9965,
+          "inverse_depth_plane": [
+            0.0002493079076123047,
+            -7.039588681879982e-05,
+            -0.20010162195984477
+          ],
+          "inverse_depth_residual": 2.723094280621119e-08,
+          "inverse_depth_tolerance": 0.00020010161791948522,
+          "evidence": "builds\\light-sampling\\20261108-grouping-control\\cases\\light-sampling-5\\camera-ebe05a06",
+          "selection": "nearest 11x11 fixed anchor plane; 9x9 statistics ROI"
+        },
+        {
+          "scene": 5,
+          "name": "old-wall-roi-face",
+          "anchor_raw_xy": [
+            1100,
+            694
+          ],
+          "raw_xy": [
+            1096,
+            695
+          ],
+          "raw_roi_inclusive": [
+            1092,
+            691,
+            1100,
+            699
+          ],
+          "display_xy": [
+            1096,
+            384
+          ],
+          "normal_code": 127,
+          "material": 1738,
+          "inverse_depth_plane": [
+            -0.0003335697753455192,
+            -0.00014150331009271655,
+            -0.24562657180134254
+          ],
+          "inverse_depth_residual": 3.587054620002306e-08,
+          "inverse_depth_tolerance": 0.0002456265652873652,
+          "evidence": "builds\\light-sampling\\20261108-grouping-control\\cases\\light-sampling-5\\camera-ebe05a06",
+          "selection": "nearest 11x11 fixed anchor plane; 9x9 statistics ROI"
+        }
+      ],
+      "statistics": {
+        "whole_scene": {
+          "pixels": 2073600,
+          "common_receivers": 2066956,
+          "excluded_nonreceivers": 6644,
+          "common_complete_finite": 2066956,
+          "excluded_from_common": 0,
+          "methods": {
+            "camera": {
+              "mean_rgb": [
+                0.010997165785068335,
+                0.006904613861914749,
+                0.0021314034180850696
+              ],
+              "variance_rgb_sum": 0.016021880228814043,
+              "zero_mean_direct_pixels": 883447,
+              "zero_mean_direct_fraction": 0.4274145168063568,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "prefix": {
+              "mean_rgb": [
+                0.010989598849148024,
+                0.006897709427420208,
+                0.0021305569895621332
+              ],
+              "variance_rgb_sum": 0.02406765460304082,
+              "zero_mean_direct_pixels": 1089509,
+              "zero_mean_direct_fraction": 0.5271079790764777,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.010993065545686175,
+                0.006906069619592518,
+                0.0021353394492018554
+              ],
+              "variance_rgb_sum": 0.07684401630185708,
+              "zero_mean_direct_pixels": 1754343,
+              "zero_mean_direct_fraction": 0.8487568192066014,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            }
+          },
+          "variance_ratios": {
+            "prefix_over_camera": 1.5021741680328573,
+            "camera_over_cosine": 0.20849873548874934,
+            "prefix_over_cosine": 0.3132014145187148
+          }
+        },
+        "old-floor-roi-vertical-face": {
+          "pixels": 81,
+          "common_receivers": 81,
+          "excluded_nonreceivers": 0,
+          "common_complete_finite": 81,
+          "excluded_from_common": 0,
+          "methods": {
+            "camera": {
+              "mean_rgb": [
+                0.012389892779785082,
+                0.007151516626761827,
+                0.0019377958155745894
+              ],
+              "variance_rgb_sum": 0.002613872785725346,
+              "zero_mean_direct_pixels": 0,
+              "zero_mean_direct_fraction": 0.0,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "prefix": {
+              "mean_rgb": [
+                0.013473240636723161,
+                0.007742511143055989,
+                0.0020725124196707087
+              ],
+              "variance_rgb_sum": 0.01347140577863655,
+              "zero_mean_direct_pixels": 13,
+              "zero_mean_direct_fraction": 0.16049382716049382,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.010269392809951332,
+                0.0051983396656003515,
+                0.0003726496630058395
+              ],
+              "variance_rgb_sum": 0.06286593645885434,
+              "zero_mean_direct_pixels": 70,
+              "zero_mean_direct_fraction": 0.8641975308641975,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            }
+          },
+          "variance_ratios": {
+            "prefix_over_camera": 5.153810794544178,
+            "camera_over_cosine": 0.04157852301199906,
+            "prefix_over_cosine": 0.21428784072044427
+          }
+        },
+        "old-wall-roi-face": {
+          "pixels": 81,
+          "common_receivers": 81,
+          "excluded_nonreceivers": 0,
+          "common_complete_finite": 81,
+          "excluded_from_common": 0,
+          "methods": {
+            "camera": {
+              "mean_rgb": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "variance_rgb_sum": 0.0,
+              "zero_mean_direct_pixels": 81,
+              "zero_mean_direct_fraction": 1.0,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "prefix": {
+              "mean_rgb": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "variance_rgb_sum": 0.0,
+              "zero_mean_direct_pixels": 81,
+              "zero_mean_direct_fraction": 1.0,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.0,
+                0.0,
+                0.0
+              ],
+              "variance_rgb_sum": 0.0,
+              "zero_mean_direct_pixels": 81,
+              "zero_mean_direct_fraction": 1.0,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            }
+          },
+          "variance_ratios": {
+            "prefix_over_camera": null,
+            "camera_over_cosine": null,
+            "prefix_over_cosine": null
+          }
+        }
+      }
+    }
+  },
+  "rejected_and_recovered": [
+    {
+      "job": "cd395118-7139-41cb-bec1-f0469a981790",
+      "reason": "Frozen scene was cold after runtime startup. Camera tree had 10235 emitters, but all receiver depth was sentinel and light samples were zero."
+    },
+    {
+      "job": "0fb2b2a6-e594-47d5-a525-705ffe7c23b0",
+      "reason": "The frozen World Prefix probe reproduced empty receiver depth. A scoped tick opt-in restored normal rendered geometry in probe 1a242965-69a8-4d01-8be3-f407a53f6e2a. The accepted capture windows were frozen."
+    },
+    {
+      "jobs": [
+        "4198f5dc-c686-4073-92df-d78b9e8fe9f9",
+        "a3783104-dd09-4d15-8e43-f47135cde9df"
+      ],
+      "reason": "Standalone ls1 controls differed in receiver geometry and one packed world voxel at (146,192,80), 0 versus 9588. Superseded by the matched frozen pair plus fresh Cosine."
+    }
+  ],
+  "viewer": {
+    "path": "builds/light-sampling/20261108-grouping-control/viewer/comparison.html",
+    "sha256": "71eef1c6a7694f4373397fd4d72cf5621ffc84a58e53cad2103fd4ec17601df0",
+    "assets": "builds/light-sampling/20261108-grouping-control/viewer/comparison.assets",
+    "verification": {
+      "matrix": 12,
+      "avif_png_equal": true,
+      "raw_reinhard_srgb_all_rows_equal": true,
+      "browser_all_combinations": true,
+      "browser_native_pixel_1_to_1": true,
+      "hashes": [
+        {
+          "values": [
+            "light-sampling-1",
+            "Cosine BRDF-only",
+            "1 spp"
+          ],
+          "png_sha256": "97059ec64d4a6f0fbf8ec8069f206efb3ab58abfdcc78a752489cb271092dae7",
+          "avif_sha256": "f736b13b021943e10f8f241710971ad3395e3e85dfc88702124e48a4a293a612"
+        },
+        {
+          "values": [
+            "light-sampling-1",
+            "Cosine BRDF-only",
+            "32 frame mean"
+          ],
+          "png_sha256": "dfc9e256c1695bfc21f02465910bbef2a3a3311f297c9a65cfcb52a1042f9bd3",
+          "avif_sha256": "7b269fa7522bc7712704bd4eedb6d7f82935c8cc7dd48416eae5b5864be8c2f3"
+        },
+        {
+          "values": [
+            "light-sampling-1",
+            "Camera Grouping + Near/Far",
+            "1 spp"
+          ],
+          "png_sha256": "87f67117e2dc4a6ffe464689ced7959e532613bb4dace8aa3af9bccc8557fb53",
+          "avif_sha256": "7bd8e0ec1e0c85b316ff8f3b18cd8a827f87b6bc5a5f8ee74294b980ffe41c9e"
+        },
+        {
+          "values": [
+            "light-sampling-1",
+            "Camera Grouping + Near/Far",
+            "32 frame mean"
+          ],
+          "png_sha256": "c3bcbff27ecb5f47f81555a3f3b0e11dea58e2fe297917da93a46d8f3f3b406b",
+          "avif_sha256": "281799b59162604972d1aba4bffaa9f6d446320dc65ce5c0a13739ed569a1703"
+        },
+        {
+          "values": [
+            "light-sampling-1",
+            "World Prefix + Near/Far",
+            "1 spp"
+          ],
+          "png_sha256": "8d005ba24d7f2934ed150c6ec658ab54ae3fea865634a0bb140c317834d91b6a",
+          "avif_sha256": "2290a0d81f67f09244e4e40af88c98f65c4d9f042dcef7d58d3c77af7f4942df"
+        },
+        {
+          "values": [
+            "light-sampling-1",
+            "World Prefix + Near/Far",
+            "32 frame mean"
+          ],
+          "png_sha256": "238be9ee18f969757c43dc4a31a9e1968e93f0a4f34bc0a9462bbf96a8e14f3a",
+          "avif_sha256": "feab29a212f18bd95f067da16d39af77ea8994d685c0a1391dd195a319621d43"
+        },
+        {
+          "values": [
+            "light-sampling-5",
+            "Cosine BRDF-only",
+            "1 spp"
+          ],
+          "png_sha256": "534c0f9c27c13655b09625ff32f030a4ec628af95318a1c72e9f95a46dda4263",
+          "avif_sha256": "6fbbe887afa33fef1fa4d2dd77a843abb5534d949f2307e329305b9f71886fa5"
+        },
+        {
+          "values": [
+            "light-sampling-5",
+            "Cosine BRDF-only",
+            "32 frame mean"
+          ],
+          "png_sha256": "ec56dbc35159f8622270917dabfc50528ea981dbcfb1b04a306f7992a18056a8",
+          "avif_sha256": "02daabc1ea14746fcabefd7890359c4376beab62187cd4ac76c4995ac76a52b3"
+        },
+        {
+          "values": [
+            "light-sampling-5",
+            "Camera Grouping + Near/Far",
+            "1 spp"
+          ],
+          "png_sha256": "f2e4fb1a29aaa31220299e29b56cce42ce35341007529ae676f5ad7b80ddd864",
+          "avif_sha256": "8b4ab953535ad34b75082cae39bf2c8840696b00b56be7f5c286a4f6aa0836e7"
+        },
+        {
+          "values": [
+            "light-sampling-5",
+            "Camera Grouping + Near/Far",
+            "32 frame mean"
+          ],
+          "png_sha256": "d36dd91f665a0d53e28132aba6ddca42a421ee2d2440df3942319e894f609d88",
+          "avif_sha256": "633d65c6e56cfeec3d6f4fddc7334f6fd1e4b6c9480b88c07008ba47692561d9"
+        },
+        {
+          "values": [
+            "light-sampling-5",
+            "World Prefix + Near/Far",
+            "1 spp"
+          ],
+          "png_sha256": "337369f8385a4482b2d4dac70fbb87b0ac73f3062c92f432712299b05da5fc24",
+          "avif_sha256": "e90a2421e166bc516381d43bffa8d13f84aa65d4c8bd9ac318ce275e747417e9"
+        },
+        {
+          "values": [
+            "light-sampling-5",
+            "World Prefix + Near/Far",
+            "32 frame mean"
+          ],
+          "png_sha256": "6bfaa419c577d11358107c76a09e53b8b2e96e70826c086a874cdd3f2b131cb0",
+          "avif_sha256": "777d431afe5c6d3f828b2c02076a66e0b4783ff7666968ec990b9935b378e9bf"
+        }
+      ]
+    },
+    "verification_file": {
+      "path": "builds/light-sampling/20261108-grouping-control/viewer/verification.json",
+      "sha256": "e3bf7bd2cef013de90465e2401660d33f242c6d82f2d86b822c30bce677b3ce4"
+    },
+    "statistics_file": {
+      "path": "builds/light-sampling/20261108-grouping-control/viewer/statistics.json",
+      "sha256": "5d7a8bf96fc24ba82ef673fea93906acf4d7a79ad4db6ce20290f2f782bdd745"
+    },
+    "previous_pages": [
+      {
+        "path": "builds/light-sampling/20261108-cluster-iris/comparison.html",
+        "sha256": "88312e89b80b09bfe9ccbda108fd7e546738360f50b9c05d922a3067ed2ab023"
+      },
+      {
+        "path": "builds/light-sampling/20261108-cluster-iris/comparison-original-72.html",
+        "sha256": "f886c8ea9b8da5f27070dda44b288a41e0244174ad0903caaabed45f515c51c7"
+      }
+    ],
+    "producer": {
+      "harness": "codex",
+      "model": "gpt-6.1-terra",
+      "reasoning": "medium",
+      "service_tier": "priority"
+    }
+  },
+  "retention": {
+    "root": "builds/light-sampling/20261108-grouping-control",
+    "scope": "Accepted and rejected local captures, source setup and viewer verification until the discussion chat completes independent review. For reused captures retain the existing ls5 source directories cited above.",
+    "owner": "Light Sampling experiment chat. Local originals were hash-verified before removing only exact duplicate managed Vibris manifests from this run. Historical raw cleanup remains paused."
+  },
+  "limits": [
+    "Finite 32-frame variance, mean and zero-coverage statistics; whole-image ratios do not establish asymptotic variance or bias.",
+    "No claim about historical render distance, the cause of emitter drift, or the fraction of the cross-date image difference caused by grouping.",
+    "No performance test, continuous motion test, render-distance scan or default change."
+  ]
+}

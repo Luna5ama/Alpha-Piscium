@@ -719,3 +719,18 @@ The offline implementation does not establish a runtime sampler, GPU benefit, or
   the richer node-summary alternative discussed.
 - [Variance-Aware Path Guiding](https://graphics.cg.uni-saarland.de/papers/rath-2020-siggraph-guiding-paper.pdf):
   accounting for the second moment of nested sampling.
+
+### Same-input live grouping control (2026-11-08)
+
+The comparison holds emitter keys and flux, full world voxels, receiver geometry and camera fixed within each scene, with 10,235 emitters in ls1 and 2,172 in ls5. The model-6 variants change only the outer quaternary grouping. The client render distance was 32 chunks and its simulation distance setting was 8.
+
+| Scene or fixed surface | World Prefix / camera grouping, 32-frame RGB variance |
+|---|---:|
+| ls1 whole image | 1.333× |
+| ls1 pillar / wall | 0.567× / 0.096× |
+| ls5 whole image | 1.502× |
+| ls5 vertical face within the old floor region | 5.154× |
+
+Both light-sampling variants had lower whole-image variance than Cosine BRDF. World Prefix raised the whole-image fraction of zero-mean pixels from 3.83% / 42.74% to 5.34% / 52.71% (ls1 / ls5), while reducing variance on both fixed ls1 surfaces. All three methods were zero on the selected face in the old ls5 wall region, so that variance ratio is unavailable. Under matched inputs, World Prefix had higher measured whole-image variance in the 32-frame windows of both scenes. The historical render distance and attribution of the cross-date gap remain unresolved.
+
+The [local 12-image comparison](../../../builds/light-sampling/20261108-grouping-control/viewer/comparison.html) contains 1 spp and 32-frame means for all three methods in both scenes. The [experiment record](../../../experiments/light-sampling/20261108-grouping-control.json) retains the source refs, input and tree identities, regional means and variances, raw paths, and image verification for independent review.

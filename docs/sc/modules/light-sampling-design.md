@@ -661,3 +661,18 @@ python scripts/light_sampling_diagnostics.py --inputs builds/light-sampling/2026
   讨论过的更丰富节点统计方案。
 - [Variance-Aware Path Guiding](https://graphics.cg.uni-saarland.de/papers/rath-2020-siggraph-guiding-paper.pdf)：
   对嵌套采样的二阶矩进行补偿。
+
+### 同输入实机分组对照（2026-11-08）
+
+在当前 ls1 的 10,235 盏灯和 ls5 的 2,172 盏灯上，固定各景灯键与通量、完整世界体素、接收几何和相机。两种 model 6 仅切换外层四叉分组。客户端渲染距离为 32 chunks，模拟距离配置为 8。
+
+| 场景或固定面 | World Prefix／相机分组的 32 帧 RGB 方差 |
+|---|---:|
+| ls1 整图 | 1.333× |
+| ls1 柱子／墙 | 0.567×／0.096× |
+| ls5 整图 | 1.502× |
+| ls5 旧地面区域内的垂直面 | 5.154× |
+
+两种 light sampling 的整图方差均低于 Cosine BRDF。World Prefix 的整图零均值像素比例从相机组的 3.83%／42.74% 增至 5.34%／52.71%（ls1／ls5），同时改善了 ls1 两个固定面的方差。ls5 旧墙区域内选中的面三种方法均为零，方差比不可用。在匹配输入的两景里，World Prefix 的 32 帧整图方差均较高。历史渲染距离和跨日期差额的归因仍待验证。
+
+[本地 12 图对比页](../../../builds/light-sampling/20261108-grouping-control/viewer/comparison.html)包含两景三方法的 1 spp 和 32 帧均值。[实验记录](../../../experiments/light-sampling/20261108-grouping-control.json)保留来源 refs、输入与树身份、各区域均值与方差、原件路径和图像验收结果，供独立复查。
