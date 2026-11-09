@@ -176,6 +176,9 @@ void main() {
         ls_nodes[ls_worldAddress(cell << ls_worldShift(uint(LS_WORLD_LEVEL)), uint(LS_WORLD_LEVEL))] = merged;
     }
     #else
+    #ifdef LS_COARSE_UPPER
+    ls_initCoarseAnchor();
+    #endif
     if (gl_GlobalInvocationID.x != 0u) return;
     #ifdef LS_COARSE_UPPER
     if (ls_buildCoarseUpper()) return;
