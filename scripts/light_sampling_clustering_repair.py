@@ -21,7 +21,7 @@ def area(lo, hi):
     return 2 * (x*y + y*z + z*x)
 
 
-def split(positions, flux, ids, light_sah):
+def split(positions, flux, ids, light_sah, aspect_correction):
     p = positions[ids]
     lo, hi = p.min(axis=0), p.max(axis=0)
     diag = hi - lo + 1
@@ -45,7 +45,7 @@ def split(positions, flux, ids, light_sah):
         right_area = area(np.minimum.accumulate(aabb_lo[::-1])[::-1][r], np.maximum.accumulate(aabb_hi[::-1])[::-1][r])
         left = np.cumsum(flux_bins)[l]
         right = np.cumsum(flux_bins[::-1])[::-1][r]
-        factor = diag.max() / diag[axis] if light_sah else 1
+        factor = diag.max() / diag[axis] if aspect_correction else 1
         cost = factor * (left * left_area + right * right_area)
         i = int(np.argmin(cost))
         value = (float(cost[i]), axis, int(slots[i]))
@@ -59,7 +59,9 @@ def split(positions, flux, ids, light_sah):
     return ids[mask], ids[~mask]
 
 
-def build(keys, flux, light_sah):
+def build(keys, flux, light_sah, *, aspect_correction=None):
+    if aspect_correction is None:
+        aspect_correction = light_sah
     order = np.lexsort(keys.T[::-1])
     keys, flux = keys[order], flux[order]
     assert len(keys) and np.all(np.isfinite(flux) & (flux > 0))
@@ -76,7 +78,7 @@ def build(keys, flux, light_sah):
         if len(indices) == 1:
             binary[i] = leaves[int(indices[0])]
             continue
-        left, right = split(positions, flux, indices, light_sah)
+        left, right = split(positions, flux, indices, light_sah, aspect_correction)
         j = len(binary)
         binary.extend([None, None])
         binary[i] = (j, j+1)
@@ -99,6 +101,7 @@ def build(keys, flux, light_sah):
 
 def control(data, prefix):
     nodes, materials, children = (data[prefix+k] for k in ('nodes','materials','children'))
+    nodes = nodes.astype(float, copy=False)
     out = [None] * len(nodes)
     for i in reversed(range(len(nodes))):
         child = tuple(out[j] for j in children[i] if j >= 0)

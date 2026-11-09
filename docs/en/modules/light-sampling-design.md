@@ -60,6 +60,22 @@ The discussion-side [independent recomputation](../../../builds/light-sampling/2
 
 The user authorized arranging the next experiments. The [current clustering task prompt](light-sampling-clustering-repair-prompt.md) defines implementation, captures, return notification, and review. It supersedes further lookahead/K1/K2/K4 selection and mandatory prefix-parent preservation in older tasks without relabeling their results. The November 1 route and later summary discussions below remain historical evidence.
 
+#### Red-pillar counterexample for Light-SAH and Near/Far cost
+
+The new ls1 left red pillar and upper central ceiling each have two fixed-receiver M2 windows. Both retain support for every measured positive-M2 light. Light-SAH's conditional variance was **2.615–2.623×** World Prefix on the pillar and **0.738–0.739×** on the ceiling. The pillar diverged at the root. The branch containing the worst affected emitter received 0.690, versus 0.902 for the prefix branch containing the same light. Its leaf PMF fell from 0.00858 to 0.00287. Removing Kr, using counts, or adding Kr to counts still gave **1.927–2.125×** the pillar variance. The M2 voxel identity is `4dfca2b6…`. The preceding ls1 image comparison used `023bcd36…`.
+
+The matched-input frozen prototype on ls5 passed native tree readback and PDF verification for its 2,172 lights. Whole-image and vertical-face 32-frame variances were **0.706× / 0.616×** World Prefix and **1.061× / 3.176×** camera grouping. The red-pillar counterexample triggered the stop condition. Frozen quality coverage is limited to ls5, with dynamic construction and live crossing pending. Offline readdressing of the same 3,617 lights across four moving camera windows yielded identical compact nodes and fixed-receiver PMFs.
+
+| World Prefix, audit off, ABBA with 128 warmup / 128 measured frames | A initial | A + Near/Far initial | Full build A / A + Near/Far |
+|---|---:|---:|---:|
+| ls1 | 7.306 ms | 7.514 ms (+2.84%) | 0.327 / 0.327 ms |
+| ls5 | 3.078 ms | 3.632 ms (+18.02%) | 0.192 / 0.192 ms |
+
+Full voxel materials were checked at the enclosing frozen ABBA endpoints in both scenes. ls5 had matching endpoint depth, and ls1 timing did not capture depth. Initial includes light selection, cube sampling, and tracing. In matched ls5 windows, Near/Far's whole-image and vertical-face variances were 0.259× and 0.409× A. Its conditional variances at the two new ls1 receivers were about 0.111× and 0.329× A. The ls5 frozen tree took 0.255 s to bake on the CPU and 0.0109 ms per frame to check and copy from the loaded atlas into the SSBO. Iris texture upload during reload and dynamic GPU construction remain unmeasured.
+
+The [ls5 eight-image comparison](../../../builds/light-sampling/20261108-clustering-repair/viewer/comparison.html) shows 1 spp and 32-frame means for four methods and marks the vertical face. The [experiment record](../../../experiments/light-sampling/20261108-clustering-repair.json) and [replayable M2 reference](../../../experiments/light-sampling/20261108-clustering-repair-reference.npz) retain input identities, the root diagnosis, timing, and review evidence.
+
+
 ### Previous route and evidence (2026-11-01)
 
 Continue motion repair with **complete-world-prefix A (World Prefix A, `d29c5d178`) plus importance correction for coarse cross-brick clusters**.

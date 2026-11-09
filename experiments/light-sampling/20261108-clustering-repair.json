@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "offline_screen_and_ls5_frozen_prototype_verified",
+  "status": "stopped_gpu_at_reproduced_ls1_red_pillar_counterexample",
   "offline_screen": {
     "scope": "Conditional RGB M2 on captured receivers and inputs, with no brightness cutoff. Candidate uses no receiver or moments.",
     "source": {
@@ -4590,7 +4590,9 @@
           "b_late_over_early": 0.99580008399832
         }
       },
-      "scope": "GPU stage times, unaltered clocks. Initial includes proposal, cube sampling and tracing. Tree build is sum of all nine active stages per frame."
+      "scope": "GPU stage times, unaltered clocks. Initial includes proposal, cube sampling and tracing. Tree build is sum of all nine active stages per frame.",
+      "identity_bracket": "Each metric window is bracketed by camera, tree and voxel metadata. The full packed world material buffers bracket the enclosing frozen ABBA sequence.",
+      "receiver_depth_bracket": "No receiver depth buffer was captured in this ABBA sequence."
     },
     {
       "scene": 5,
@@ -4907,7 +4909,9 @@
           "b_late_over_early": 0.9937833037300179
         }
       },
-      "scope": "GPU stage times, unaltered clocks. Initial includes proposal, cube sampling and tracing. Tree build is sum of all nine active stages per frame."
+      "scope": "GPU stage times, unaltered clocks. Initial includes proposal, cube sampling and tracing. Tree build is sum of all nine active stages per frame.",
+      "identity_bracket": "Each metric window is bracketed by camera, tree and voxel metadata. The full packed world material buffers bracket the enclosing frozen ABBA sequence.",
+      "receiver_depth_bracket": "Full depth at enclosing endpoints is bit-exact (2,073,600 valid depth pixels)."
     }
   ],
   "nearfar_ls5_quality": {
@@ -5194,18 +5198,750 @@
   },
   "new_point_windows": [
     {
-      "scene": 5,
-      "point": "reviewed-vertical-face",
+      "scene": 1,
+      "identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+        "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+      },
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-1/m2-1f1d84ea",
+      "point": "left-red-pillar",
       "window": 1,
-      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
-      "moments_sha256": "ba995589e83ee512d4f1ead8f97200af4d48a642790f3718f58018b76a5c7004",
+      "receiver_audit": [
+        [
+          158.9969940185547,
+          151.34194946289062,
+          83.52908325195312,
+          10938.0
+        ],
+        [
+          -1.0,
+          -4.075713100348821e-10,
+          -2.3417310757167797e-08,
+          101.0
+        ],
+        [
+          0.13819491863250732,
+          0.04102246090769768,
+          0.03470442444086075,
+          1.0
+        ],
+        [
+          250.0,
+          679.0,
+          10235.0,
+          3.0
+        ]
+      ],
+      "missing_pixel_groups": 0,
+      "nonfinite_rgb_samples": 0,
+      "second_moment_identity_max_relative_error": 3.747239851371732e-07,
+      "moment_source_sha256": "51c6fdaca2acdf137dfb67d069313baae3f771bfa7b8a1d09c799021c117a6c4",
+      "methods": {
+        "prefix": {
+          "variance": 0.0012955259764170415,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.20342928534654306,
+          "variance_over_prefix": 1.0
+        },
+        "camera": {
+          "variance": 0.002768586943153562,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.41685805034829304,
+          "variance_over_prefix": 2.1370369977532038
+        },
+        "light-sah": {
+          "variance": 0.0033987395154263735,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.34200087346293495,
+          "dominant_excess_second_moment_leaf": {
+            "key": [
+              146,
+              153,
+              88,
+              682
+            ],
+            "m2": 1.516683193522743e-06,
+            "excess_second_moment": 0.0003518644462636435,
+            "candidate_pmf": 0.002868875864530431,
+            "prefix_pmf": 0.008578346875866222,
+            "candidate_path": {
+              "first_underallocated": {
+                "compact_node": 4,
+                "depth": 1,
+                "bounds": [
+                  104.0,
+                  97.0,
+                  64.0,
+                  227.0,
+                  225.0,
+                  208.0
+                ],
+                "mass": 1966.212890625,
+                "parent": {
+                  "compact_node": 0,
+                  "depth": 0,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    -48.0,
+                    240.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 7150.08984375
+                },
+                "path_probability": 0.6902124006993339,
+                "near_half": 0.5,
+                "far_half": 0.1902124006993339,
+                "moment_optimal_conditional": 0.9069106191638024,
+                "below_moment_optimal": true
+              }
+            },
+            "prefix_path": {
+              "first_underallocated": {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  0.0,
+                  237.0,
+                  270.0,
+                  208.0
+                ],
+                "mass": 5792.11083984375,
+                "parent": {
+                  "compact_node": 0,
+                  "depth": 0,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    -48.0,
+                    240.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 7150.08935546875
+                },
+                "path_probability": 0.9016270959594741,
+                "near_half": 0.5,
+                "far_half": 0.4016270959594741,
+                "moment_optimal_conditional": 0.9675542968951188,
+                "below_moment_optimal": true
+              }
+            }
+          },
+          "variance_over_prefix": 2.6234437419974115
+        },
+        "geometry-sah": {
+          "variance": 0.0027507489597101372,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.2846886978777653,
+          "dominant_excess_second_moment_leaf": {
+            "key": [
+              142,
+              153,
+              81,
+              682
+            ],
+            "m2": 6.246532044621412e-07,
+            "excess_second_moment": 0.00021435447570617667,
+            "candidate_pmf": 0.0019305853513849414,
+            "prefix_pmf": 0.005720167772944547,
+            "candidate_path": {
+              "first_underallocated": {
+                "compact_node": 4,
+                "depth": 1,
+                "bounds": [
+                  104.0,
+                  97.0,
+                  64.0,
+                  227.0,
+                  225.0,
+                  208.0
+                ],
+                "mass": 1966.212646484375,
+                "parent": {
+                  "compact_node": 0,
+                  "depth": 0,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    -48.0,
+                    240.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 7150.08984375
+                },
+                "path_probability": 0.690212379878228,
+                "near_half": 0.5,
+                "far_half": 0.19021237987822806,
+                "moment_optimal_conditional": 0.9069106191638024,
+                "below_moment_optimal": true
+              }
+            },
+            "prefix_path": {
+              "first_underallocated": {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  0.0,
+                  237.0,
+                  270.0,
+                  208.0
+                ],
+                "mass": 5792.11083984375,
+                "parent": {
+                  "compact_node": 0,
+                  "depth": 0,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    -48.0,
+                    240.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 7150.08935546875
+                },
+                "path_probability": 0.9016270959594741,
+                "near_half": 0.5,
+                "far_half": 0.4016270959594741,
+                "moment_optimal_conditional": 0.9675542968951188,
+                "below_moment_optimal": true
+              }
+            }
+          },
+          "variance_over_prefix": 2.1232680855367474
+        },
+        "flux-no-Kr": {
+          "variance": 0.002496457213773472,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.25710747855743793,
+          "variance_over_prefix": 1.92698352577829
+        },
+        "count-with-Kr": {
+          "variance": 0.0025698425120915204,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.34649863178440976,
+          "variance_over_prefix": 1.9836287028368043
+        },
+        "prefix-A": {
+          "variance": 0.01167368704546605,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "variance_over_prefix": 9.01077034190489
+        }
+      }
+    },
+    {
+      "scene": 1,
+      "identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+        "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+      },
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-1/m2-1f1d84ea",
+      "point": "yellow-candidate-ceiling",
+      "window": 1,
+      "receiver_audit": [
+        [
+          152.4615478515625,
+          164.9970245361328,
+          94.4711685180664,
+          8401.0
+        ],
+        [
+          3.3836529134134707e-09,
+          -0.9999999403953552,
+          -1.3838716839131848e-08,
+          101.0
+        ],
+        [
+          0.1102130115032196,
+          0.12168031930923462,
+          0.11301778256893158,
+          1.0
+        ],
+        [
+          1000.0,
+          909.0,
+          10235.0,
+          3.0
+        ]
+      ],
+      "missing_pixel_groups": 0,
+      "nonfinite_rgb_samples": 0,
+      "second_moment_identity_max_relative_error": 3.0455322778748597e-07,
+      "moment_source_sha256": "9a3ef0f08640af5087ba591d80e6f9f16b8139d230efae694e5b14f805c79f7f",
+      "methods": {
+        "prefix": {
+          "variance": 0.01510559711784197,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.41273224763115984,
+          "variance_over_prefix": 1.0
+        },
+        "camera": {
+          "variance": 0.0039366562975751244,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.4271038385326965,
+          "variance_over_prefix": 0.2606091150759836
+        },
+        "light-sah": {
+          "variance": 0.011143878514460909,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.37335925298654576,
+          "variance_over_prefix": 0.7377317445662788
+        },
+        "geometry-sah": {
+          "variance": 0.013263309352712848,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.32754066322039066,
+          "variance_over_prefix": 0.878039394884092
+        },
+        "flux-no-Kr": {
+          "variance": 0.013896907169332897,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.3453117627649974,
+          "variance_over_prefix": 0.9199839675929506
+        },
+        "count-with-Kr": {
+          "variance": 0.012657829540754012,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.3897691392660698,
+          "variance_over_prefix": 0.8379562517130303
+        },
+        "prefix-A": {
+          "variance": 0.04591085409513763,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "variance_over_prefix": 3.0393273259558895
+        }
+      }
+    },
+    {
+      "scene": 1,
+      "identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+        "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+      },
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-1/m2-1f1d84ea",
+      "point": "left-red-pillar",
+      "window": 2,
+      "receiver_audit": [
+        [
+          158.9969940185547,
+          151.34194946289062,
+          83.52908325195312,
+          10938.0
+        ],
+        [
+          -1.0,
+          -4.075713100348821e-10,
+          -2.3417310757167797e-08,
+          101.0
+        ],
+        [
+          0.13819491863250732,
+          0.04102246090769768,
+          0.03470442444086075,
+          1.0
+        ],
+        [
+          250.0,
+          679.0,
+          10235.0,
+          3.0
+        ]
+      ],
+      "missing_pixel_groups": 0,
+      "nonfinite_rgb_samples": 0,
+      "second_moment_identity_max_relative_error": 4.0586112651781995e-07,
+      "moment_source_sha256": "a449419cd62658709e19393b1b7ff760476a366b29b49987bbe555b53665b9cc",
+      "methods": {
+        "prefix": {
+          "variance": 0.0012980981403692686,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.2101538128097113,
+          "variance_over_prefix": 1.0
+        },
+        "camera": {
+          "variance": 0.002817049108736775,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.41724992391848653,
+          "variance_over_prefix": 2.1701356940049323
+        },
+        "light-sah": {
+          "variance": 0.0033946242212407806,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.3443707659656497,
+          "dominant_excess_second_moment_leaf": {
+            "key": [
+              146,
+              153,
+              88,
+              682
+            ],
+            "m2": 1.5387728049828714e-06,
+            "excess_second_moment": 0.0003569891479401644,
+            "candidate_pmf": 0.002868875864530431,
+            "prefix_pmf": 0.008578346875866222,
+            "candidate_path": {
+              "first_underallocated": {
+                "compact_node": 4,
+                "depth": 1,
+                "bounds": [
+                  104.0,
+                  97.0,
+                  64.0,
+                  227.0,
+                  225.0,
+                  208.0
+                ],
+                "mass": 1966.212890625,
+                "parent": {
+                  "compact_node": 0,
+                  "depth": 0,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    -48.0,
+                    240.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 7150.08984375
+                },
+                "path_probability": 0.6902124006993339,
+                "near_half": 0.5,
+                "far_half": 0.1902124006993339,
+                "moment_optimal_conditional": 0.9069679166723027,
+                "below_moment_optimal": true
+              }
+            },
+            "prefix_path": {
+              "first_underallocated": {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  0.0,
+                  237.0,
+                  270.0,
+                  208.0
+                ],
+                "mass": 5792.11083984375,
+                "parent": {
+                  "compact_node": 0,
+                  "depth": 0,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    -48.0,
+                    240.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 7150.08935546875
+                },
+                "path_probability": 0.9016270959594741,
+                "near_half": 0.5,
+                "far_half": 0.4016270959594741,
+                "moment_optimal_conditional": 0.9676696124566121,
+                "below_moment_optimal": true
+              }
+            }
+          },
+          "variance_over_prefix": 2.6150751747284033
+        },
+        "geometry-sah": {
+          "variance": 0.0027583100124717445,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.28719173891791927,
+          "dominant_excess_second_moment_leaf": {
+            "key": [
+              142,
+              153,
+              81,
+              682
+            ],
+            "m2": 6.157888118186838e-07,
+            "excess_second_moment": 0.00021131259226754432,
+            "candidate_pmf": 0.0019305853513849414,
+            "prefix_pmf": 0.005720167772944547,
+            "candidate_path": {
+              "first_underallocated": {
+                "compact_node": 4,
+                "depth": 1,
+                "bounds": [
+                  104.0,
+                  97.0,
+                  64.0,
+                  227.0,
+                  225.0,
+                  208.0
+                ],
+                "mass": 1966.212646484375,
+                "parent": {
+                  "compact_node": 0,
+                  "depth": 0,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    -48.0,
+                    240.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 7150.08984375
+                },
+                "path_probability": 0.690212379878228,
+                "near_half": 0.5,
+                "far_half": 0.19021237987822806,
+                "moment_optimal_conditional": 0.9069679166723027,
+                "below_moment_optimal": true
+              }
+            },
+            "prefix_path": {
+              "first_underallocated": {
+                "compact_node": 2,
+                "depth": 1,
+                "bounds": [
+                  16.0,
+                  69.0,
+                  0.0,
+                  237.0,
+                  270.0,
+                  208.0
+                ],
+                "mass": 5792.11083984375,
+                "parent": {
+                  "compact_node": 0,
+                  "depth": 0,
+                  "bounds": [
+                    16.0,
+                    69.0,
+                    -48.0,
+                    240.0,
+                    270.0,
+                    208.0
+                  ],
+                  "mass": 7150.08935546875
+                },
+                "path_probability": 0.9016270959594741,
+                "near_half": 0.5,
+                "far_half": 0.4016270959594741,
+                "moment_optimal_conditional": 0.9676696124566121,
+                "below_moment_optimal": true
+              }
+            }
+          },
+          "variance_over_prefix": 2.1248855742810715
+        },
+        "flux-no-Kr": {
+          "variance": 0.002504820710067767,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.2597286310640626,
+          "variance_over_prefix": 1.9296081183470635
+        },
+        "count-with-Kr": {
+          "variance": 0.0025552642502486484,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 2026,
+          "measured_positive_mass": 0.34936820055346596,
+          "variance_over_prefix": 1.9684676919125352
+        },
+        "prefix-A": {
+          "variance": 0.011787417715270879,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "variance_over_prefix": 9.080528928203936
+        }
+      }
+    },
+    {
+      "scene": 1,
+      "identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+        "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+      },
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-1/m2-1f1d84ea",
+      "point": "yellow-candidate-ceiling",
+      "window": 2,
+      "receiver_audit": [
+        [
+          152.4615478515625,
+          164.9970245361328,
+          94.4711685180664,
+          8401.0
+        ],
+        [
+          3.3836529134134707e-09,
+          -0.9999999403953552,
+          -1.3838716839131848e-08,
+          101.0
+        ],
+        [
+          0.1102130115032196,
+          0.12168031930923462,
+          0.11301778256893158,
+          1.0
+        ],
+        [
+          1000.0,
+          909.0,
+          10235.0,
+          3.0
+        ]
+      ],
+      "missing_pixel_groups": 0,
+      "nonfinite_rgb_samples": 0,
+      "second_moment_identity_max_relative_error": 2.528747837595849e-07,
+      "moment_source_sha256": "61921ce1a8cfd6113626056a1c3ac80a3058c4d27238138a69770c116caef0d5",
+      "methods": {
+        "prefix": {
+          "variance": 0.015122567804762167,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.4128774127157471,
+          "variance_over_prefix": 1.0
+        },
+        "camera": {
+          "variance": 0.003952674035548494,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.4285606854631967,
+          "variance_over_prefix": 0.26137585141484887
+        },
+        "light-sah": {
+          "variance": 0.011171974958371658,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.3737211499992177,
+          "variance_over_prefix": 0.7387617699987135
+        },
+        "geometry-sah": {
+          "variance": 0.013290761454167188,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.32784249777374597,
+          "variance_over_prefix": 0.8788693577543005
+        },
+        "flux-no-Kr": {
+          "variance": 0.013940512089776187,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.3455466663171274,
+          "variance_over_prefix": 0.9218349866076484
+        },
+        "count-with-Kr": {
+          "variance": 0.012666293881687834,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 3122,
+          "measured_positive_mass": 0.390587512687781,
+          "variance_over_prefix": 0.8375756052288394
+        },
+        "prefix-A": {
+          "variance": 0.04600928312423872,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "variance_over_prefix": 3.0424253154778507
+        }
+      }
+    },
+    {
+      "scene": 5,
       "identity": {
         "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
         "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
         "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
         "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
       },
-      "grouping_control_input_match": true,
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
+      "point": "reviewed-vertical-face",
+      "window": 1,
+      "receiver_audit": [
+        [
+          312.8975524902344,
+          12.595565795898438,
+          259.99700927734375,
+          9965.0
+        ],
+        [
+          4.660473962303513e-08,
+          -1.4625683775193465e-08,
+          -1.0,
+          477.0
+        ],
+        [
+          0.7722654938697815,
+          0.7727500796318054,
+          0.5361912250518799,
+          1.0
+        ],
+        [
+          490.0,
+          469.0,
+          2172.0,
+          3.0
+        ]
+      ],
+      "missing_pixel_groups": 0,
+      "nonfinite_rgb_samples": 0,
+      "second_moment_identity_max_relative_error": 2.278121222662927e-07,
+      "moment_source_sha256": "ba995589e83ee512d4f1ead8f97200af4d48a642790f3718f58018b76a5c7004",
       "methods": {
         "prefix": {
           "variance": 0.015058013258100553,
@@ -5239,29 +5975,71 @@
           "measured_positive_mass": 0.17236353515885217,
           "variance_over_prefix": 0.7475274368615543
         },
+        "flux-no-Kr": {
+          "variance": 0.011256278055055208,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.17236353515885217,
+          "variance_over_prefix": 0.7475274368615543
+        },
+        "count-with-Kr": {
+          "variance": 0.009358600457211515,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.2064188820490554,
+          "variance_over_prefix": 0.6215030028730382
+        },
         "prefix-A": {
           "variance": 0.05099798981726788,
           "missing_positive_support": 0,
           "null_probability": 0.0,
-          "zero_probability_leaves": 275,
-          "measured_positive_mass": 0.03877011158275934,
           "variance_over_prefix": 3.3867674933698964
         }
       }
     },
     {
       "scene": 5,
-      "point": "reviewed-vertical-face-rng2",
-      "window": 1,
-      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
-      "moments_sha256": "0b3202b9da3e5b9194b9d03569ff9fd2328729e2857defac1dee6cc78d08913a",
       "identity": {
         "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
         "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
         "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
         "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
       },
-      "grouping_control_input_match": true,
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
+      "point": "reviewed-vertical-face-rng2",
+      "window": 1,
+      "receiver_audit": [
+        [
+          312.8975524902344,
+          12.595565795898438,
+          259.99700927734375,
+          9965.0
+        ],
+        [
+          4.660473962303513e-08,
+          -1.4625683775193465e-08,
+          -1.0,
+          477.0
+        ],
+        [
+          0.7722654938697815,
+          0.7727500796318054,
+          0.5361912250518799,
+          1.0
+        ],
+        [
+          490.0,
+          469.0,
+          2172.0,
+          3.0
+        ]
+      ],
+      "missing_pixel_groups": 0,
+      "nonfinite_rgb_samples": 0,
+      "second_moment_identity_max_relative_error": 2.2594593771625944e-07,
+      "moment_source_sha256": "0b3202b9da3e5b9194b9d03569ff9fd2328729e2857defac1dee6cc78d08913a",
       "methods": {
         "prefix": {
           "variance": 0.01489440061570911,
@@ -5295,29 +6073,71 @@
           "measured_positive_mass": 0.17236353515885217,
           "variance_over_prefix": 0.7478799025234898
         },
+        "flux-no-Kr": {
+          "variance": 0.011139222880622336,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.17236353515885217,
+          "variance_over_prefix": 0.7478799025234898
+        },
+        "count-with-Kr": {
+          "variance": 0.009261691365568642,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.2064188820490554,
+          "variance_over_prefix": 0.6218237043926659
+        },
         "prefix-A": {
           "variance": 0.05043573770737944,
           "missing_positive_support": 0,
           "null_probability": 0.0,
-          "zero_probability_leaves": 275,
-          "measured_positive_mass": 0.03877011158275934,
           "variance_over_prefix": 3.3862213732981585
         }
       }
     },
     {
       "scene": 5,
-      "point": "reviewed-vertical-face",
-      "window": 2,
-      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
-      "moments_sha256": "deb1b377ac3918383508082edd1db1081638d6d5f37719468dfce9a77e26a400",
       "identity": {
         "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
         "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
         "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
         "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
       },
-      "grouping_control_input_match": true,
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
+      "point": "reviewed-vertical-face",
+      "window": 2,
+      "receiver_audit": [
+        [
+          312.8975524902344,
+          12.595565795898438,
+          259.99700927734375,
+          9965.0
+        ],
+        [
+          4.660473962303513e-08,
+          -1.4625683775193465e-08,
+          -1.0,
+          477.0
+        ],
+        [
+          0.7722654938697815,
+          0.7727500796318054,
+          0.5361912250518799,
+          1.0
+        ],
+        [
+          490.0,
+          469.0,
+          2172.0,
+          3.0
+        ]
+      ],
+      "missing_pixel_groups": 0,
+      "nonfinite_rgb_samples": 0,
+      "second_moment_identity_max_relative_error": 2.1911921640626184e-07,
+      "moment_source_sha256": "deb1b377ac3918383508082edd1db1081638d6d5f37719468dfce9a77e26a400",
       "methods": {
         "prefix": {
           "variance": 0.01551903264038484,
@@ -5351,29 +6171,71 @@
           "measured_positive_mass": 0.17236353515885217,
           "variance_over_prefix": 0.7489864336588542
         },
+        "flux-no-Kr": {
+          "variance": 0.011623544911157193,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.17236353515885217,
+          "variance_over_prefix": 0.7489864336588542
+        },
+        "count-with-Kr": {
+          "variance": 0.009662857553490273,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.2064188820490554,
+          "variance_over_prefix": 0.6226456105482264
+        },
         "prefix-A": {
           "variance": 0.05256033734828201,
           "missing_positive_support": 0,
           "null_probability": 0.0,
-          "zero_probability_leaves": 275,
-          "measured_positive_mass": 0.03877011158275934,
           "variance_over_prefix": 3.3868307752317883
         }
       }
     },
     {
       "scene": 5,
-      "point": "reviewed-vertical-face-rng2",
-      "window": 2,
-      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
-      "moments_sha256": "a2a282aa73fe80d577eebf6972103beb0b6d21908dd10e760f777735c5eb5082",
       "identity": {
         "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
         "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
         "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
         "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
       },
-      "grouping_control_input_match": true,
+      "source": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
+      "point": "reviewed-vertical-face-rng2",
+      "window": 2,
+      "receiver_audit": [
+        [
+          312.8975524902344,
+          12.595565795898438,
+          259.99700927734375,
+          9965.0
+        ],
+        [
+          4.660473962303513e-08,
+          -1.4625683775193465e-08,
+          -1.0,
+          477.0
+        ],
+        [
+          0.7722654938697815,
+          0.7727500796318054,
+          0.5361912250518799,
+          1.0
+        ],
+        [
+          490.0,
+          469.0,
+          2172.0,
+          3.0
+        ]
+      ],
+      "missing_pixel_groups": 0,
+      "nonfinite_rgb_samples": 0,
+      "second_moment_identity_max_relative_error": 2.140860653070912e-07,
+      "moment_source_sha256": "a2a282aa73fe80d577eebf6972103beb0b6d21908dd10e760f777735c5eb5082",
       "methods": {
         "prefix": {
           "variance": 0.015142450269758356,
@@ -5407,12 +6269,26 @@
           "measured_positive_mass": 0.17236353515885217,
           "variance_over_prefix": 0.748199764443845
         },
+        "flux-no-Kr": {
+          "variance": 0.01132957772493584,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.17236353515885217,
+          "variance_over_prefix": 0.748199764443845
+        },
+        "count-with-Kr": {
+          "variance": 0.009419101567649283,
+          "missing_positive_support": 0,
+          "null_probability": 0.0,
+          "zero_probability_leaves": 275,
+          "measured_positive_mass": 0.2064188820490554,
+          "variance_over_prefix": 0.622032854647083
+        },
         "prefix-A": {
           "variance": 0.051283402657412665,
           "missing_positive_support": 0,
           "null_probability": 0.0,
-          "zero_probability_leaves": 275,
-          "measured_positive_mass": 0.03877011158275934,
           "variance_over_prefix": 3.386730796127029
         }
       }
@@ -5422,5 +6298,810 @@
     "client_render_distance": 32,
     "client_simulation_distance": 8,
     "integrated_server": "The live integrated server logged changing view distance to 32 and simulation distance to 8 after scene load."
+  },
+  "new_point_reference": {
+    "path": "experiments/light-sampling/20261108-clustering-repair-reference.npz",
+    "sha256": "3317ac116bc89c055528f9fb8038fbf7bd791ffe27821aced8bd75a9d92167e0",
+    "bytes": 501428,
+    "replay_script": "scripts/light_sampling_clustering_m2_replay.py",
+    "raw_to_compact_max_absolute_variance_ratio_difference": 0.0,
+    "scope": "Actual fixed-receiver moments on separately checked inputs. The camera tree is reconstructed from the same M2 capture brick roots. The ls1 4dfca2b6 voxel cohort differs from the grouping-control 023bcd36 cohort."
+  },
+  "fixed_receiver_geometry": [
+    {
+      "scene": "light-sampling-1",
+      "id": "left-red-pillar",
+      "raw_xy": [
+        250,
+        679
+      ],
+      "display_xy": [
+        250,
+        400
+      ],
+      "raw_roi_inclusive": [
+        246,
+        675,
+        254,
+        683
+      ],
+      "world_surface": [
+        158.9999968574863,
+        151.3419498377738,
+        83.52908147405398
+      ],
+      "ls_offset_origin": [
+        158.99699685748632,
+        151.3419498377738,
+        83.52908147405398
+      ],
+      "world_normal": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "normal_code": 129,
+      "material": 10938,
+      "rgb_bytes": [
+        122,
+        55,
+        49
+      ],
+      "view_z": -5.000280380249023,
+      "edge_margin_pixels_at_least": 57,
+      "edge_margin_definition": "largest tested axis-aligned square through 100 px with matching material and packed normal, finite depth, and sampled boundary within 0.01 world units of center plane; not a distance to block edges",
+      "camera_reconstruction_spread": [
+        2.2077791783203793e-05,
+        2.731828206492537e-05,
+        1.745233556960102e-05
+      ],
+      "source_path": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-grouping-control\\cases\\light-sampling-1\\pair-7323686a\\camera",
+      "identity": {
+        "job": "7323686a-eb9c-4c4c-bcb0-57ee5ac1f974",
+        "manifest_sha256": "2fbe19ece146d6cf6c7cc375c1a5a7286109d2a80d84a98f9c75f5fd00266ea1",
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7508cda23bf06f92c6c200b5e4f1555ac26edef5c477de3874eb463265a74e3b",
+        "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21",
+        "receiver_sha256": "fedca470656e07227d078893fe4e1520465a92ebb31577cdbfa00a28b16e00bf"
+      }
+    },
+    {
+      "scene": "light-sampling-5",
+      "id": "reviewed-vertical-face",
+      "raw_xy": [
+        490,
+        469
+      ],
+      "display_xy": [
+        490,
+        610
+      ],
+      "raw_roi_inclusive": [
+        486,
+        465,
+        494,
+        473
+      ],
+      "world_surface": [
+        312.8975483734312,
+        12.595566210237006,
+        260.000007640533
+      ],
+      "ls_offset_origin": [
+        312.8975483734312,
+        12.595566210237006,
+        259.997007640533
+      ],
+      "world_normal": [
+        0.0,
+        0.0,
+        -1.0
+      ],
+      "normal_code": 33151,
+      "material": 9965,
+      "rgb_bytes": [
+        231,
+        228,
+        187
+      ],
+      "view_z": -4.997460842132568,
+      "edge_margin_pixels_at_least": 30,
+      "edge_margin_definition": "largest tested axis-aligned square through 100 px with matching material and packed normal, finite depth, and sampled boundary within 0.01 world units of center plane; not a distance to block edges",
+      "camera_reconstruction_spread": [
+        3.609162195061799e-05,
+        2.4236168201241526e-06,
+        4.017987333782003e-05
+      ],
+      "source_path": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-grouping-control\\cases\\light-sampling-5\\camera-ebe05a06",
+      "identity": {
+        "job": "ebe05a06-cb0b-4885-9fe7-3c4b07054a96",
+        "manifest_sha256": "6c0a33ba4eef097a99f65fa250da8c3ff58cff6b94dcf8218e9c910af00ea9c8",
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "e87c6e3be358fbe354784b0a3594441b6ef5efb0330fc2a88cbecb2e1e805983",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a",
+        "receiver_sha256": "fe5dcbde1c343cc0d3985fa4d721107c6f1995087db0981a4b439d777a080012"
+      }
+    },
+    {
+      "scene": "light-sampling-1",
+      "id": "yellow-candidate-ceiling",
+      "raw_xy": [
+        1000,
+        909
+      ],
+      "display_xy": [
+        1000,
+        170
+      ],
+      "raw_roi_inclusive": [
+        996,
+        905,
+        1004,
+        913
+      ],
+      "world_surface": [
+        152.46154879249818,
+        165.0000312847559,
+        94.47116648809413
+      ],
+      "ls_offset_origin": [
+        152.46154879249818,
+        164.9970312847559,
+        94.47116648809413
+      ],
+      "world_normal": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "normal_code": 33024,
+      "material": 8401,
+      "rgb_bytes": [
+        91,
+        98,
+        94
+      ],
+      "view_z": -16.411378860473633,
+      "edge_margin_pixels_at_least": 100,
+      "edge_margin_definition": "largest tested axis-aligned square through 100 px with matching material and packed normal, finite depth, and sampled boundary within 0.01 world units of center plane; not a distance to block edges",
+      "camera_reconstruction_spread": [
+        2.2077791783203793e-05,
+        2.731828206492537e-05,
+        1.745233556960102e-05
+      ],
+      "source_path": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-grouping-control\\cases\\light-sampling-1\\pair-7323686a\\camera",
+      "identity": {
+        "job": "7323686a-eb9c-4c4c-bcb0-57ee5ac1f974",
+        "manifest_sha256": "2fbe19ece146d6cf6c7cc375c1a5a7286109d2a80d84a98f9c75f5fd00266ea1",
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7508cda23bf06f92c6c200b5e4f1555ac26edef5c477de3874eb463265a74e3b",
+        "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21",
+        "receiver_sha256": "fedca470656e07227d078893fe4e1520465a92ebb31577cdbfa00a28b16e00bf"
+      }
+    },
+    {
+      "scene": "moving-4",
+      "id": "side-a",
+      "raw_xy": [
+        700,
+        496
+      ],
+      "display_xy": [
+        700,
+        583
+      ],
+      "raw_roi_inclusive": [
+        696,
+        492,
+        704,
+        500
+      ],
+      "world_surface": [
+        110.73225681887638,
+        76.83383187677452,
+        362.99997999017415
+      ],
+      "ls_offset_origin": [
+        110.73225681887638,
+        76.83383187677452,
+        363.00297999017414
+      ],
+      "world_normal": [
+        0.0,
+        0.0,
+        1.0
+      ],
+      "normal_code": 0,
+      "material": 4651,
+      "rgb_bytes": [
+        68,
+        135,
+        43
+      ],
+      "view_z": -6.5382184982299805,
+      "edge_margin_pixels_at_least": 7,
+      "edge_margin_definition": "largest tested axis-aligned square through 100 px with matching material and packed normal, finite depth, and sampled boundary within 0.01 world units of center plane; not a distance to block edges",
+      "camera_reconstruction_spread": null,
+      "source_path": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-nearfar-combination\\m2\\captures\\sides",
+      "identity": {
+        "reference_phase1": "builds/light-sampling/20261108-nearfar-combination/viewer/phase1.json",
+        "camera_sha256": "0bf5930f52ff7c9079b696cf9ddb763068633847041f8a62d792db52ef900b5a"
+      },
+      "world_delta_to_reference": 0.0
+    },
+    {
+      "scene": "moving-4",
+      "id": "side-b",
+      "raw_xy": [
+        1312,
+        564
+      ],
+      "display_xy": [
+        1312,
+        515
+      ],
+      "raw_roi_inclusive": [
+        1308,
+        560,
+        1316,
+        568
+      ],
+      "world_surface": [
+        120.99999527567773,
+        76.16069325459385,
+        365.7829642310483
+      ],
+      "ls_offset_origin": [
+        120.99699527567773,
+        76.16069325459385,
+        365.7829642310483
+      ],
+      "world_normal": [
+        -1.0,
+        0.0,
+        0.0
+      ],
+      "normal_code": 129,
+      "material": 4651,
+      "rgb_bytes": [
+        121,
+        85,
+        58
+      ],
+      "view_z": -8.754892349243164,
+      "edge_margin_pixels_at_least": 5,
+      "edge_margin_definition": "largest tested axis-aligned square through 100 px with matching material and packed normal, finite depth, and sampled boundary within 0.01 world units of center plane; not a distance to block edges",
+      "camera_reconstruction_spread": null,
+      "source_path": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-nearfar-combination\\m2\\captures\\side-top",
+      "identity": {
+        "reference_phase1": "builds/light-sampling/20261108-nearfar-combination/viewer/phase1.json",
+        "camera_sha256": "fa9825a1073f2981c441c55793db5fe15a1d2e4754814ac07e7f26de56d54f35"
+      },
+      "world_delta_to_reference": 0.0
+    },
+    {
+      "scene": "moving-4",
+      "id": "top",
+      "raw_xy": [
+        1000,
+        448
+      ],
+      "display_xy": [
+        1000,
+        631
+      ],
+      "raw_roi_inclusive": [
+        996,
+        444,
+        1004,
+        452
+      ],
+      "world_surface": [
+        114.41864203390932,
+        75.99999799232039,
+        365.2004863190513
+      ],
+      "ls_offset_origin": [
+        114.41864203390932,
+        76.00299799232039,
+        365.2004863190513
+      ],
+      "world_normal": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "normal_code": 32512,
+      "material": 4651,
+      "rgb_bytes": [
+        57,
+        113,
+        36
+      ],
+      "view_z": -6.939410209655762,
+      "edge_margin_pixels_at_least": 24,
+      "edge_margin_definition": "largest tested axis-aligned square through 100 px with matching material and packed normal, finite depth, and sampled boundary within 0.01 world units of center plane; not a distance to block edges",
+      "camera_reconstruction_spread": null,
+      "source_path": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-nearfar-combination\\m2\\captures\\side-top",
+      "identity": {
+        "reference_phase1": "builds/light-sampling/20261108-nearfar-combination/viewer/phase1.json",
+        "camera_sha256": "fa9825a1073f2981c441c55793db5fe15a1d2e4754814ac07e7f26de56d54f35"
+      },
+      "world_delta_to_reference": 0.0
+    }
+  ],
+  "fixed_receiver_choice": "Used upper-middle ceiling display (1000,170) as the best geometric fit to the user description. The opening candidate remains documented locally.",
+  "movement_address_replay": {
+    "scope": "Offline address replay across the four preset camera bricks. Uses the common subset of the retained moving-4 lamp list; the original moving-1/2/3 raw captures are not present and dynamic GPU construction is unverified.",
+    "observations": [
+      {
+        "preset": "light-sampling-failure-moving-1",
+        "camera_brick": [
+          7,
+          4,
+          22
+        ],
+        "retained_lights": 3617,
+        "actual_moving4_reference_lights_inside_window": 3617,
+        "semantic_topology_sha256": "738ffd275b1fcee05233d77366bbfb275906db61c28843bce4b6d3f5c5233a2d",
+        "physical_order_sha256": "3a2aa5410c6664202e759ebcac6d08b46923cadce287144dae7085240329ca76",
+        "compact_node_words_sha256": "52459012773e6109d12f883c21dc15fc03c669f4de3b093315a1e7b9ef34af77",
+        "fixed_world_receiver_pmf_bit_identical": true
+      },
+      {
+        "preset": "light-sampling-failure-moving-2",
+        "camera_brick": [
+          6,
+          4,
+          22
+        ],
+        "retained_lights": 3617,
+        "actual_moving4_reference_lights_inside_window": 3813,
+        "semantic_topology_sha256": "738ffd275b1fcee05233d77366bbfb275906db61c28843bce4b6d3f5c5233a2d",
+        "physical_order_sha256": "d958bfdaae04733773e8129ed28c223853bafc724e1949a444c7ddd6410da4e8",
+        "compact_node_words_sha256": "52459012773e6109d12f883c21dc15fc03c669f4de3b093315a1e7b9ef34af77",
+        "fixed_world_receiver_pmf_bit_identical": true
+      },
+      {
+        "preset": "light-sampling-failure-moving-3",
+        "camera_brick": [
+          6,
+          5,
+          22
+        ],
+        "retained_lights": 3617,
+        "actual_moving4_reference_lights_inside_window": 3813,
+        "semantic_topology_sha256": "738ffd275b1fcee05233d77366bbfb275906db61c28843bce4b6d3f5c5233a2d",
+        "physical_order_sha256": "52e0bbcc347065e060b32ccccedd498a4d00d29b0959de91c46e1e6e3e80a41e",
+        "compact_node_words_sha256": "52459012773e6109d12f883c21dc15fc03c669f4de3b093315a1e7b9ef34af77",
+        "fixed_world_receiver_pmf_bit_identical": true
+      },
+      {
+        "preset": "light-sampling-failure-moving-4",
+        "camera_brick": [
+          6,
+          5,
+          23
+        ],
+        "retained_lights": 3617,
+        "actual_moving4_reference_lights_inside_window": 4243,
+        "semantic_topology_sha256": "738ffd275b1fcee05233d77366bbfb275906db61c28843bce4b6d3f5c5233a2d",
+        "physical_order_sha256": "44346a94b8833a95634292eefb94777d6bfe31f52c47acec584db29d97474101",
+        "compact_node_words_sha256": "52459012773e6109d12f883c21dc15fc03c669f4de3b093315a1e7b9ef34af77",
+        "fixed_world_receiver_pmf_bit_identical": true
+      }
+    ]
+  },
+  "nearfar_quality_provenance": {
+    "ls1": "New same-input M2 at the red pillar and central ceiling. Previously retained A and A+Near/Far images differ in receiver G-buffer.",
+    "ls5": {
+      "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a",
+      "receiver_sha256": "fe5dcbde1c343cc0d3985fa4d721107c6f1995087db0981a4b439d777a080012",
+      "model1": {
+        "path": "builds/light-sampling/20261108-cluster-iris/pilot/light-sampling-5",
+        "job": "ab740c20-607b-488a-8d4c-6b94a7338336",
+        "revision": "45d1211d11270bece29672091f2e21c7daf156b2"
+      },
+      "model6": {
+        "path": "builds/light-sampling/20261108-nearfar-combination/cases/light-sampling-5/prefix-nearfar",
+        "job": "d247bb5d-1c1e-4b7c-aa48-38460b452a05",
+        "revision": "e9132607ec1540820fc0d7f53772579a0598e50f"
+      }
+    }
+  },
+  "ls5_viewer": {
+    "path": "builds/light-sampling/20261108-clustering-repair/viewer/comparison.html",
+    "sha256": "f303aa7c89873383e3f688cd2049de801290eca479dc522f65d32e1c7cb9b8a9",
+    "bytes": 18385,
+    "assets": "builds/light-sampling/20261108-clustering-repair/viewer/comparison.assets",
+    "statistics": {
+      "scope": "Linear RGB, 32-frame finite-window sample variance. Common receivers and complete finite pixels across all four methods; zero means all RGB components exactly zero. No brightness filter.",
+      "regions": {
+        "whole_scene": {
+          "pixels": 2073600,
+          "common_receivers": 2066956,
+          "excluded_nonreceivers": 6644,
+          "common_complete_finite": 2066954,
+          "excluded_from_common": 2,
+          "methods": {
+            "camera": {
+              "mean_rgb": [
+                0.010997176123664817,
+                0.0069046203829240555,
+                0.0021314054403408786
+              ],
+              "variance_rgb": [
+                0.010288944281840073,
+                0.00479719323288153,
+                0.0009357582150878901
+              ],
+              "zero_mean_rgb_pixels": 883447,
+              "zero_mean_rgb_fraction": 0.427414930375809,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "prefix": {
+              "mean_rgb": [
+                0.010989609149399816,
+                0.0068977159292125095,
+                0.0021305590518916873
+              ],
+              "variance_rgb": [
+                0.015419949413712707,
+                0.007219312075922245,
+                0.0014284163928938163
+              ],
+              "zero_mean_rgb_pixels": 1089508,
+              "zero_mean_rgb_fraction": 0.527108005306359,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "sah": {
+              "mean_rgb": [
+                0.011031416989740233,
+                0.006927770036909199,
+                0.0021400235640330312
+              ],
+              "variance_rgb": [
+                0.010778175954409705,
+                0.005165299399493942,
+                0.001050183569676454
+              ],
+              "zero_mean_rgb_pixels": 929120,
+              "zero_mean_rgb_fraction": 0.4495116969221376,
+              "nonfinite_pixels_on_common_receivers": 2,
+              "excluded_method_pixels": 2
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.010993076182657822,
+                0.006906076301956634,
+                0.0021353415153721224
+              ],
+              "variance_rgb": [
+                0.049292718218338666,
+                0.023031296220293818,
+                0.0045200762180639485
+              ],
+              "zero_mean_rgb_pixels": 1754341,
+              "zero_mean_rgb_fraction": 0.8487566728625794,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            }
+          },
+          "frozen_over_prefix": 0.706078044027511,
+          "frozen_over_camera": 1.0606521981017887
+        },
+        "reviewed-vertical-face": {
+          "pixels": 81,
+          "common_receivers": 81,
+          "excluded_nonreceivers": 0,
+          "common_complete_finite": 81,
+          "excluded_from_common": 0,
+          "methods": {
+            "camera": {
+              "mean_rgb": [
+                0.012389892779785082,
+                0.007151516626761827,
+                0.0019377958155745894
+              ],
+              "variance_rgb": [
+                0.00170156963583625,
+                0.000774771591514177,
+                0.00013753155837491887
+              ],
+              "zero_mean_rgb_pixels": 0,
+              "zero_mean_rgb_fraction": 0.0,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "prefix": {
+              "mean_rgb": [
+                0.013473240636723161,
+                0.007742511143055989,
+                0.0020725124196707087
+              ],
+              "variance_rgb": [
+                0.008802640015892675,
+                0.003954076507777292,
+                0.000714689254966584
+              ],
+              "zero_mean_rgb_pixels": 13,
+              "zero_mean_rgb_fraction": 0.16049382716049382,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "sah": {
+              "mean_rgb": [
+                0.012635867033684828,
+                0.0075332732492510626,
+                0.002131241465447624
+              ],
+              "variance_rgb": [
+                0.005354157138376538,
+                0.0024700970521982146,
+                0.0004778531598054981
+              ],
+              "zero_mean_rgb_pixels": 6,
+              "zero_mean_rgb_fraction": 0.07407407407407407,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            },
+            "brdf": {
+              "mean_rgb": [
+                0.010269392809951332,
+                0.0051983396656003515,
+                0.0003726496630058395
+              ],
+              "variance_rgb": [
+                0.04852382289559669,
+                0.013865879232844517,
+                0.0004762343304131385
+              ],
+              "zero_mean_rgb_pixels": 70,
+              "zero_mean_rgb_fraction": 0.8641975308641975,
+              "nonfinite_pixels_on_common_receivers": 0,
+              "excluded_method_pixels": 0
+            }
+          },
+          "frozen_over_prefix": 0.6162762436824549,
+          "frozen_over_camera": 3.1761711571117752
+        }
+      }
+    },
+    "statistics_file": {
+      "path": "builds/light-sampling/20261108-clustering-repair/viewer/statistics.json",
+      "sha256": "bd39c1b55173d9ffecfacb2e2303adf25168b896c907ec65c320b0eb18b3d900",
+      "bytes": 4790
+    },
+    "verification": {
+      "matrix": 8,
+      "lossless_avif_png_equal": true,
+      "raw_reverse_rows_display_all_equal": true,
+      "browser_all_combinations": true,
+      "browser_native_pixel_1_to_1": true,
+      "browser_roi_toggle": true,
+      "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+      "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a",
+      "source_cases": {
+        "camera": {
+          "path": "builds/light-sampling/20261108-grouping-control/cases/light-sampling-5/camera-ebe05a06",
+          "identity": {
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "e87c6e3be358fbe354784b0a3594441b6ef5efb0330fc2a88cbecb2e1e805983",
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+          },
+          "job": "ebe05a06-cb0b-4885-9fe7-3c4b07054a96"
+        },
+        "prefix": {
+          "path": "builds/light-sampling/20261108-nearfar-combination/cases/light-sampling-5/prefix-nearfar",
+          "identity": {
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+          },
+          "job": "d247bb5d-1c1e-4b7c-aa48-38460b452a05"
+        },
+        "brdf": {
+          "path": "builds/light-sampling/20261108-cluster-iris/cases/light-sampling-5/brdf",
+          "identity": {
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+          },
+          "job": "21d87be8-c639-41f5-b243-adb148e264cc"
+        },
+        "sah": {
+          "path": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/sah-6a254ce1",
+          "identity": {
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "185cdbff80e219f1a9eb19456164fbef19065ea1e3fa59abcc05f2ba060b1d13",
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+          },
+          "job": "6a254ce1-e13a-4f74-a711-9be6cd4209cc"
+        }
+      },
+      "html_sha256": "f303aa7c89873383e3f688cd2049de801290eca479dc522f65d32e1c7cb9b8a9",
+      "statistics_sha256": "bd39c1b55173d9ffecfacb2e2303adf25168b896c907ec65c320b0eb18b3d900",
+      "hashes": [
+        {
+          "method": "Camera Grouping + Near/Far",
+          "frames": "1 spp",
+          "raw": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-grouping-control\\cases\\light-sampling-5\\camera-ebe05a06\\single.bin",
+          "raw_sha256": "aacde2394a79c47f48bd6a6a9a2a06f0d57886dafed938e922b29d6156a0fca3",
+          "png_sha256": "f2e4fb1a29aaa31220299e29b56cce42ce35341007529ae676f5ad7b80ddd864",
+          "avif": "comparison.assets/8b4ab953535ad34b75082cae39bf2c8840696b00b56be7f5c286a4f6aa0836e7.avif",
+          "avif_sha256": "8b4ab953535ad34b75082cae39bf2c8840696b00b56be7f5c286a4f6aa0836e7"
+        },
+        {
+          "method": "Camera Grouping + Near/Far",
+          "frames": "32 frame mean",
+          "raw": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-grouping-control\\cases\\light-sampling-5\\camera-ebe05a06\\quality.mean.bin",
+          "raw_sha256": "601823dc6ad8834bcdf8ec9fc075d8040a46e3d307e5afbe1b1914390a1fc31a",
+          "png_sha256": "d36dd91f665a0d53e28132aba6ddca42a421ee2d2440df3942319e894f609d88",
+          "avif": "comparison.assets/633d65c6e56cfeec3d6f4fddc7334f6fd1e4b6c9480b88c07008ba47692561d9.avif",
+          "avif_sha256": "633d65c6e56cfeec3d6f4fddc7334f6fd1e4b6c9480b88c07008ba47692561d9"
+        },
+        {
+          "method": "World Prefix + Near/Far",
+          "frames": "1 spp",
+          "raw": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-nearfar-combination\\cases\\light-sampling-5\\prefix-nearfar\\single.bin",
+          "raw_sha256": "b8f1ddb3081371f683cf74ae00a75e56f0258666df52e226d71844bd0f79f9ca",
+          "png_sha256": "337369f8385a4482b2d4dac70fbb87b0ac73f3062c92f432712299b05da5fc24",
+          "avif": "comparison.assets/e90a2421e166bc516381d43bffa8d13f84aa65d4c8bd9ac318ce275e747417e9.avif",
+          "avif_sha256": "e90a2421e166bc516381d43bffa8d13f84aa65d4c8bd9ac318ce275e747417e9"
+        },
+        {
+          "method": "World Prefix + Near/Far",
+          "frames": "32 frame mean",
+          "raw": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-nearfar-combination\\cases\\light-sampling-5\\prefix-nearfar\\quality.mean.bin",
+          "raw_sha256": "b9fbb7b42280812cc6135e89e6e3fc9f9847b75f976cadb29c8e40b6c68b3589",
+          "png_sha256": "6bfaa419c577d11358107c76a09e53b8b2e96e70826c086a874cdd3f2b131cb0",
+          "avif": "comparison.assets/777d431afe5c6d3f828b2c02076a66e0b4783ff7666968ec990b9935b378e9bf.avif",
+          "avif_sha256": "777d431afe5c6d3f828b2c02076a66e0b4783ff7666968ec990b9935b378e9bf"
+        },
+        {
+          "method": "Frozen Light-SAH + Near/Far",
+          "frames": "1 spp",
+          "raw": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-clustering-repair\\cases\\light-sampling-5\\sah-6a254ce1\\single.bin",
+          "raw_sha256": "06135386f529653dff137e1140d0809a1fca6ceac9e4d1fbc1827f15a86c6089",
+          "png_sha256": "e8c28c095cf811d9a747ad2cc974ed3659b27a59f4efe72bb5b691d7315187e7",
+          "avif": "comparison.assets/d5e4e15f4b334315bee595e3c1655aa91703997452fddc1ef634004ede7b408a.avif",
+          "avif_sha256": "d5e4e15f4b334315bee595e3c1655aa91703997452fddc1ef634004ede7b408a"
+        },
+        {
+          "method": "Frozen Light-SAH + Near/Far",
+          "frames": "32 frame mean",
+          "raw": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-clustering-repair\\cases\\light-sampling-5\\sah-6a254ce1\\quality.mean.bin",
+          "raw_sha256": "6386959b103d5819040779378c43f4147dc52a65434b43786e1d1f5709a053aa",
+          "png_sha256": "ff1200b195553b5e4fe7a2f3008a562a7120136306a60d342d7b22e9073af84a",
+          "avif": "comparison.assets/8129d43bc12acb2eb03cc30754671a665508f9e4eec55be4ef2193ba3a60bdee.avif",
+          "avif_sha256": "8129d43bc12acb2eb03cc30754671a665508f9e4eec55be4ef2193ba3a60bdee"
+        },
+        {
+          "method": "Cosine BRDF-only",
+          "frames": "1 spp",
+          "raw": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-cluster-iris\\cases\\light-sampling-5\\brdf\\single.bin",
+          "raw_sha256": "aae66c17c754fa041c3adf91112c0ad357ee1adb5d62517f5405fc08ce7f94fe",
+          "png_sha256": "534c0f9c27c13655b09625ff32f030a4ec628af95318a1c72e9f95a46dda4263",
+          "avif": "comparison.assets/6fbbe887afa33fef1fa4d2dd77a843abb5534d949f2307e329305b9f71886fa5.avif",
+          "avif_sha256": "6fbbe887afa33fef1fa4d2dd77a843abb5534d949f2307e329305b9f71886fa5"
+        },
+        {
+          "method": "Cosine BRDF-only",
+          "frames": "32 frame mean",
+          "raw": "I:\\code\\mcshaders\\Alpha-Piscium-4\\builds\\light-sampling\\20261108-cluster-iris\\cases\\light-sampling-5\\brdf\\quality.mean.bin",
+          "raw_sha256": "7685c8a33b8a83f5dc9ad5ace8f0418bd442ae22b18467cad942d46712125ba9",
+          "png_sha256": "ec56dbc35159f8622270917dabfc50528ea981dbcfb1b04a306f7992a18056a8",
+          "avif": "comparison.assets/02daabc1ea14746fcabefd7890359c4376beab62187cd4ac76c4995ac76a52b3.avif",
+          "avif_sha256": "02daabc1ea14746fcabefd7890359c4376beab62187cd4ac76c4995ac76a52b3"
+        }
+      ]
+    },
+    "verification_file": {
+      "path": "builds/light-sampling/20261108-clustering-repair/viewer/verification.json",
+      "sha256": "6bc0ef91d70b10ff43881acc2b9c9f856a4e9f950ae9dcbd2260cf36253787dd",
+      "bytes": 7965
+    },
+    "producer": {
+      "model": "gpt-6.1-terra",
+      "effort": "medium",
+      "service_tier": "priority"
+    },
+    "previous_pages": [
+      {
+        "path": "builds/light-sampling/20261108-cluster-iris/comparison.html",
+        "sha256": "88312e89b80b09bfe9ccbda108fd7e546738360f50b9c05d922a3067ed2ab023",
+        "bytes": 59867
+      },
+      {
+        "path": "builds/light-sampling/20261108-cluster-iris/comparison-original-72.html",
+        "sha256": "f886c8ea9b8da5f27070dda44b288a41e0244174ad0903caaabed45f515c51c7",
+        "bytes": 38207
+      }
+    ]
+  },
+  "m2_captures": {
+    "1": {
+      "job": "1f1d84ea-72d5-4ffd-a4da-b605f2fd41d7",
+      "path": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-1/m2-1f1d84ea",
+      "manifest_id": "339c6820-e0ea-3c7d-bf60-748cc312ac9e",
+      "manifest_sha256": "f52c41009bb3f9e5890de39b61461bef5d15e6b1b3eb3510dc6c797204a03b5a",
+      "provenance": {
+        "resolved_revision": "6a8ec6234c93538baa648a2ddb5bb8edbdbe2afc",
+        "source_snapshot_sha256": "b4053367d15c87f9e7ea76bfca3abd3e9d05684be988b07d9c5235f55b8c2e3d",
+        "preset_sha256": "d8eac2ed16f4268e6597ae5897f58dac236efb76b5b53afdc140ad86c02ed32a",
+        "scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+        "config_sha256": "04da402d60366094e3de98d8b6b695df8aa4eaa7f1476115ca6608833d04d269"
+      },
+      "emitters": 10235,
+      "identity": {
+        "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26",
+        "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+        "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+        "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+      }
+    },
+    "5": {
+      "job": "8e4c41ec-d7d2-4550-9404-32e536858b23",
+      "path": "builds/light-sampling/20261108-clustering-repair/cases/light-sampling-5/m2-8e4c41ec",
+      "manifest_id": "aedf519b-5e62-3ef5-8734-f3bdb83d3160",
+      "manifest_sha256": "8c5a16c4553a495c496868088efa1be530e4aa70d2a6822f5d057caf93a54a70",
+      "provenance": {
+        "resolved_revision": "6a8ec6234c93538baa648a2ddb5bb8edbdbe2afc",
+        "source_snapshot_sha256": "b4053367d15c87f9e7ea76bfca3abd3e9d05684be988b07d9c5235f55b8c2e3d",
+        "preset_sha256": "21ab84808d11e8bc016f2ee3536864ff46aee9ce405ca4d89e30ae279112757e",
+        "scene_sha256": "e8230fd7888850c12ba491886f7ec43dbcb9ca537da5cf9c69a44942bdff8134",
+        "config_sha256": "779cf3f315a62a6f635ead02b4cd1f1e8408b8e3b08e737b6eef349b7ae3949e"
+      },
+      "emitters": 2172,
+      "identity": {
+        "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b",
+        "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+        "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+        "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a"
+      }
+    }
+  },
+  "runtime_handoff": {
+    "scene": "light-sampling-1",
+    "revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+    "model": 6,
+    "restore": {
+      "actual_scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+      "actual_settings_sha256": "27d71798d4d291bbd87cf573ac03d89108504b994886aa99610cdad1198fb715",
+      "actual_source_sha256": "73b38b52c964008f5b8144fadf81e14a8ecaa2f820e0283694f17f5927a613d8",
+      "actual_source_uuid": "f2e40930-e45e-4911-ab77-1c575b4acadb",
+      "expected_scene_sha256": "9b18557e846b28cf751b0178d952467fee0508445b29826950aa7ae914cba7fd",
+      "expected_settings_sha256": "27d71798d4d291bbd87cf573ac03d89108504b994886aa99610cdad1198fb715",
+      "expected_source_sha256": "73b38b52c964008f5b8144fadf81e14a8ecaa2f820e0283694f17f5927a613d8",
+      "expected_source_uuid": "f2e40930-e45e-4911-ab77-1c575b4acadb",
+      "status": "RECEIPT_STATUS_OK",
+      "temporal_state_reset": true,
+      "verified_at_unix_ms": 1794186476479
+    },
+    "queue_empty": true,
+    "active_jobs": 0,
+    "frozen": true
+  },
+  "limits": [
+    "The red pillar has repeated conditional variance regression across all four split-cost variants. The prompt stops further GPU work at this counterexample.",
+    "Only ls5 has frozen SAH quality frames. Dynamic global GPU construction and live motion remain unverified.",
+    "The offline address replay used the common subset of moving-4 lamps across four preset camera bricks. Original per-preset raw inputs for moving-1/2/3 were unavailable.",
+    "Both ABBA sequences compare full voxel material at the enclosing frozen sequence endpoints. Only ls5 captured receiver depth at those endpoints; ls1 timing has no receiver-depth bracket.",
+    "Initial GPU timings include proposal, cube sampling and real tracing. The texture upload during Iris reload was not isolated.",
+    "Finite M2 and 32-frame results do not determine estimator bias or authorize changing the default."
+  ],
+  "retention": {
+    "path": "builds/light-sampling/20261108-clustering-repair",
+    "purpose": "Keep accepted M2, ABBA, ls5 prototype captures, image verification and source setup through independent review.",
+    "owner": "Light Sampling experiment chat after independent review. Historical paused and denied cleanup items remain untouched."
   }
 }
