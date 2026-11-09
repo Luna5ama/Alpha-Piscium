@@ -2,6 +2,8 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-grouping-control-prompt.md)
 
+This round is complete and independently reviewed within the same-input diagnostic scope; result commit `416e050f2`. See the [results and review](light-sampling-design.md#same-input-live-grouping-control-2026-11-08) and [experiment record](../../../experiments/light-sampling/20261108-grouping-control.json). The original specification remains below; completion does not accept World Prefix quality.
+
 ## Task and authorization (2026-11-08)
 
 Complete a same-input live quality comparison of original camera-relative and World Prefix grouping in ls1/ls5, separating grouping changes from historical emitter-population changes. The user recalls increasing render distance from perhaps 16 or 24 to the current 32 chunks, then authorized proceeding at our discretion. This is a user-reported causal candidate, not verified historical settings. Do not expand this round into a 16/24/32 distance sweep.

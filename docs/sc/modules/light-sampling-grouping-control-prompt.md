@@ -2,6 +2,8 @@
 
 语言：简体中文 | [English](../../en/modules/light-sampling-grouping-control-prompt.md)
 
+本轮已完成并通过同输入诊断范围的独立复查；结果提交为 `416e050f2`。见[结果与复查](light-sampling-design.md#同输入实机分组对照2026-11-08)及[实验记录](../../../experiments/light-sampling/20261108-grouping-control.json)。以下保留原始任务规格，不代表 World Prefix 已通过质量验收。
+
 ## 本轮任务与授权（2026-11-08）
 
 完成 ls1／ls5 同输入的原始相机分组与 World Prefix 实机质量对照，分离分组变化与跨日期灯集合变化。用户补充：渲染距离可能从 16、24 增至当前 32 chunks，随后授权“你看着搞吧”。这是用户回忆的原因候选，不是已核实的历史设置；当前不安排 16／24／32 距离扫描。

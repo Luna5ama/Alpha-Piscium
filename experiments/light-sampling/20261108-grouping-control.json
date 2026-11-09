@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "completed_live_iris_same_input_grouping_control_pending_independent_review",
+  "status": "completed_live_iris_same_input_grouping_control_independently_reviewed",
   "task_commit": "a003371ad",
   "source": {
     "camera": {
@@ -1345,5 +1345,424 @@
     "Finite 32-frame variance, mean and zero-coverage statistics; whole-image ratios do not establish asymptotic variance or bias.",
     "No claim about historical render distance, the cause of emitter drift, or the fraction of the cross-date image difference caused by grouping.",
     "No performance test, continuous motion test, render-distance scan or default change."
-  ]
+  ],
+  "independent_review": {
+    "reviewed_result_commit": "416e050f28c9cf7c0f2fc053e0d6e790028f6ba7",
+    "acceptance": "Accept the same-input six-case diagnostic and finite 32-frame statistics. World Prefix retains a quality regression versus camera grouping; no default or production acceptance.",
+    "source_delta": "Only outer builder/layout capacity and generated contract differ between camera and prefix. The camera build and program generator exactly match the historical reference; active selection/evaluation code is shared. Reused ls5 BRDF initial evaluation, voxel helpers and RNG source match current code.",
+    "input_checks": {
+      "case_count": 6,
+      "matched_brick_local_trees": {
+        "light-sampling-1": 453,
+        "light-sampling-5": 118
+      },
+      "cases": [
+        {
+          "scene": 1,
+          "method": "camera",
+          "tree_identity": {
+            "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+            "ordered_topology_sha256": "7508cda23bf06f92c6c200b5e4f1555ac26edef5c477de3874eb463265a74e3b",
+            "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26"
+          },
+          "global_pair_endpoint_voxel": {
+            "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21",
+            "nonempty_voxels": 328095
+          },
+          "receiver": {
+            "pixels": 2049215,
+            "sha256": "fedca470656e07227d078893fe4e1520465a92ebb31577cdbfa00a28b16e00bf"
+          },
+          "pdf": {
+            "records": 63,
+            "maximum_relative_error": 5.735472571572399e-07
+          }
+        },
+        {
+          "scene": 1,
+          "method": "prefix",
+          "tree_identity": {
+            "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+            "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+            "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26"
+          },
+          "global_pair_endpoint_voxel": {
+            "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21",
+            "nonempty_voxels": 328095
+          },
+          "receiver": {
+            "pixels": 2049215,
+            "sha256": "fedca470656e07227d078893fe4e1520465a92ebb31577cdbfa00a28b16e00bf"
+          },
+          "pdf": {
+            "records": 63,
+            "maximum_relative_error": 6.72957159612023e-07
+          }
+        },
+        {
+          "scene": 1,
+          "method": "brdf",
+          "tree_identity": {
+            "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+            "ordered_topology_sha256": "7e54bf517ebe40d0b3e9860e7bf3f2dec688c459fc69f0feb03562fcaa8f55a0",
+            "camera_sha256": "e070f78df730fd581fc99e4e801e665aef0f0693309c8b6520750f446c47ee26"
+          },
+          "voxel": {
+            "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21",
+            "nonempty_voxels": 328095
+          },
+          "receiver": {
+            "pixels": 2049215,
+            "sha256": "fedca470656e07227d078893fe4e1520465a92ebb31577cdbfa00a28b16e00bf"
+          }
+        },
+        {
+          "scene": 5,
+          "method": "camera",
+          "tree_identity": {
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "e87c6e3be358fbe354784b0a3594441b6ef5efb0330fc2a88cbecb2e1e805983",
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b"
+          },
+          "voxel": {
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a",
+            "nonempty_voxels": 211841
+          },
+          "receiver": {
+            "pixels": 2073600,
+            "sha256": "fe5dcbde1c343cc0d3985fa4d721107c6f1995087db0981a4b439d777a080012"
+          },
+          "pdf": {
+            "records": 64,
+            "maximum_relative_error": 4.896282365480954e-07
+          }
+        },
+        {
+          "scene": 5,
+          "method": "prefix",
+          "tree_identity": {
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b"
+          },
+          "voxel": {
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a",
+            "nonempty_voxels": 211841
+          },
+          "receiver": {
+            "pixels": 2073600,
+            "sha256": "fe5dcbde1c343cc0d3985fa4d721107c6f1995087db0981a4b439d777a080012"
+          },
+          "pdf": {
+            "records": 64,
+            "maximum_relative_error": 6.027053208235012e-07
+          }
+        },
+        {
+          "scene": 5,
+          "method": "brdf",
+          "tree_identity": {
+            "leaf_sha256": "a50dcaaf25fd547e9a9ad34993f60f5757f88a992c698cf6a0dc93d548cf2697",
+            "ordered_topology_sha256": "b7cb60ad20202169636ebd1e98c19c1a23f4e38e2445fb88c1a7315fe818a761",
+            "camera_sha256": "9bf914d05c11d2922a273acadad0df39d6e3f11bb939270b9d174c4c3405f55b"
+          },
+          "voxel": {
+            "world_voxel_sha256": "42579f903ecd24cb275d386732159f7530f9c4268cbc258f98615eb521ea096a",
+            "nonempty_voxels": 211841
+          },
+          "receiver": {
+            "pixels": 2073600,
+            "sha256": "fe5dcbde1c343cc0d3985fa4d721107c6f1995087db0981a4b439d777a080012"
+          }
+        }
+      ],
+      "ls1_scope": "One frozen ordered source-switch job, global full-voxel snapshots before camera and after prefix. Each quality window has its own camera/tree/receiver endpoints. New BRDF has full before/after inputs. Global pair snapshots must not be mislabeled as separate per-window material captures.",
+      "ls5_reuse_scope": "Recomputed both endpoints of all emitter/voxel/camera inputs. Existing prefix/BRDF captures have one saved receiver snapshot each, identical to both new camera endpoints; no retroactive claim of old receiver end snapshots.",
+      "current_options": "Independently read renderDistance=32 and simulationDistance=8 from the client options file; historical distance remains unverified."
+    },
+    "pdf_audit": {
+      "valid_records": 254,
+      "max_relative_error": 6.72957159612023e-07
+    },
+    "raw_integrity": {
+      "manifests": 5,
+      "verified_files": 270,
+      "frozen_ls1_request_verified": true,
+      "source_load_receipts_and_effective_settings": true
+    },
+    "statistics": {
+      "max_absolute_difference": 7.896461262646426e-15,
+      "recomputed": {
+        "light-sampling-1": {
+          "whole_scene": {
+            "receivers": 2022474,
+            "complete_pixels": 2022469,
+            "excluded": 5,
+            "methods": {
+              "camera": {
+                "mean_rgb": [
+                  0.014740819890780164,
+                  0.01089366718920775,
+                  0.00805667400206705
+                ],
+                "variance_rgb_sum": 0.021097490394163736,
+                "zero_pixels": 77367
+              },
+              "prefix": {
+                "mean_rgb": [
+                  0.014740356701677823,
+                  0.010881805567628728,
+                  0.008052957182317928
+                ],
+                "variance_rgb_sum": 0.028122044534056534,
+                "zero_pixels": 107909
+              },
+              "brdf": {
+                "mean_rgb": [
+                  0.014716158395715396,
+                  0.010869553943441452,
+                  0.008041652834058414
+                ],
+                "variance_rgb_sum": 0.03935054723266652,
+                "zero_pixels": 882861
+              }
+            },
+            "world_over_camera": 1.3329568592592427
+          },
+          "pillar": {
+            "receivers": 81,
+            "complete_pixels": 81,
+            "excluded": 0,
+            "methods": {
+              "camera": {
+                "mean_rgb": [
+                  0.006098364776379988,
+                  0.0030180576548131575,
+                  0.0024541857396629726
+                ],
+                "variance_rgb_sum": 0.008800611422557197,
+                "zero_pixels": 0
+              },
+              "prefix": {
+                "mean_rgb": [
+                  0.008373144009067206,
+                  0.005811902578707416,
+                  0.004811606011324689
+                ],
+                "variance_rgb_sum": 0.004986934769969291,
+                "zero_pixels": 0
+              },
+              "brdf": {
+                "mean_rgb": [
+                  0.0075421988645016595,
+                  0.005283694115366225,
+                  0.004481072381400542
+                ],
+                "variance_rgb_sum": 0.00826389960712296,
+                "zero_pixels": 39
+              }
+            },
+            "world_over_camera": 0.5666577616626818
+          },
+          "wall": {
+            "receivers": 81,
+            "complete_pixels": 81,
+            "excluded": 0,
+            "methods": {
+              "camera": {
+                "mean_rgb": [
+                  0.026663482759959375,
+                  0.004689014220505747,
+                  0.002583251909555533
+                ],
+                "variance_rgb_sum": 0.04920040363756789,
+                "zero_pixels": 15
+              },
+              "prefix": {
+                "mean_rgb": [
+                  0.015850230134135387,
+                  0.0030676625209045236,
+                  0.001770944328772775
+                ],
+                "variance_rgb_sum": 0.004736748513089449,
+                "zero_pixels": 0
+              },
+              "brdf": {
+                "mean_rgb": [
+                  0.018389491847267857,
+                  0.003372702500829617,
+                  0.001964674410564727
+                ],
+                "variance_rgb_sum": 0.006933079674178949,
+                "zero_pixels": 11
+              }
+            },
+            "world_over_camera": 0.09627458644409609
+          }
+        },
+        "light-sampling-5": {
+          "whole_scene": {
+            "receivers": 2066956,
+            "complete_pixels": 2066956,
+            "excluded": 0,
+            "methods": {
+              "camera": {
+                "mean_rgb": [
+                  0.010997165785068335,
+                  0.006904613861914749,
+                  0.0021314034180850696
+                ],
+                "variance_rgb_sum": 0.01602188022881407,
+                "zero_pixels": 883447
+              },
+              "prefix": {
+                "mean_rgb": [
+                  0.010989598849148024,
+                  0.006897709427420208,
+                  0.0021305569895621332
+                ],
+                "variance_rgb_sum": 0.02406765460304109,
+                "zero_pixels": 1089509
+              },
+              "brdf": {
+                "mean_rgb": [
+                  0.010993065545686175,
+                  0.006906069619592518,
+                  0.0021353394492018554
+                ],
+                "variance_rgb_sum": 0.07684401630184919,
+                "zero_pixels": 1754343
+              }
+            },
+            "world_over_camera": 1.5021741680328715
+          },
+          "old-floor-roi-vertical-face": {
+            "receivers": 81,
+            "complete_pixels": 81,
+            "excluded": 0,
+            "methods": {
+              "camera": {
+                "mean_rgb": [
+                  0.012389892779785082,
+                  0.007151516626761827,
+                  0.0019377958155745894
+                ],
+                "variance_rgb_sum": 0.0026138727857253456,
+                "zero_pixels": 0
+              },
+              "prefix": {
+                "mean_rgb": [
+                  0.013473240636723161,
+                  0.007742511143055989,
+                  0.0020725124196707087
+                ],
+                "variance_rgb_sum": 0.013471405778636552,
+                "zero_pixels": 13
+              },
+              "brdf": {
+                "mean_rgb": [
+                  0.010269392809951332,
+                  0.0051983396656003515,
+                  0.0003726496630058395
+                ],
+                "variance_rgb_sum": 0.06286593645885434,
+                "zero_pixels": 70
+              }
+            },
+            "world_over_camera": 5.15381079454418
+          },
+          "old-wall-roi-face": {
+            "receivers": 81,
+            "complete_pixels": 81,
+            "excluded": 0,
+            "methods": {
+              "camera": {
+                "mean_rgb": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "variance_rgb_sum": 0.0,
+                "zero_pixels": 81
+              },
+              "prefix": {
+                "mean_rgb": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "variance_rgb_sum": 0.0,
+                "zero_pixels": 81
+              },
+              "brdf": {
+                "mean_rgb": [
+                  0.0,
+                  0.0,
+                  0.0
+                ],
+                "variance_rgb_sum": 0.0,
+                "zero_pixels": 81
+              }
+            },
+            "world_over_camera": null
+          }
+        }
+      }
+    },
+    "roi_geometry": [
+      {
+        "scene": 1,
+        "name": "pillar",
+        "pixels": 121,
+        "max_inverse_depth_fit_error": 1.2748794436800992e-08
+      },
+      {
+        "scene": 1,
+        "name": "wall",
+        "pixels": 121,
+        "max_inverse_depth_fit_error": 2.1595578048039243e-08
+      },
+      {
+        "scene": 5,
+        "name": "old-floor-roi-vertical-face",
+        "pixels": 121,
+        "max_inverse_depth_fit_error": 1.742296112938746e-08
+      },
+      {
+        "scene": 5,
+        "name": "old-wall-roi-face",
+        "pixels": 121,
+        "max_inverse_depth_fit_error": 2.4495189099305037e-08
+      }
+    ],
+    "images": {
+      "raw_to_display_png_avif_verified": 12,
+      "orientation": "All rows satisfy display_y -> raw[1079-display_y].",
+      "previous_pages_unchanged": true,
+      "browser": "Reused experiment-side actual browser verification; independent review inspected saved mean images and rechecked all 12 raw/display/AVIF payloads."
+    },
+    "scope_limits": [
+      "32-frame empirical variance is not an asymptotic or bias proof. Whole-image mean channels differ by at most 0.109% between light-tree methods in these windows.",
+      "ls1 has the same emitter set as the preceding Near/Far run but a different voxel/receiver cohort. Do not multiply this ratio by candidate gains from the older cohort.",
+      "Historical render-distance causality, continuous motion and GPU performance remain outside this review. No new GPU work, shader edit or default change."
+    ],
+    "local_reproduction": [
+      {
+        "path": "builds/light-sampling/20261108-grouping-control/review/independent.py",
+        "sha256": "b2b34056216b123451aa2ad09311e665fa813010013e5e2a6ae8364b15a6fe43"
+      },
+      {
+        "path": "builds/light-sampling/20261108-grouping-control/review/independent.json",
+        "sha256": "c536351e1e8dd371033666d9b65773500b79f6e4432095c66faf01c8d64125d4"
+      },
+      {
+        "path": "builds/light-sampling/20261108-grouping-control/review/provenance_images.py",
+        "sha256": "eb55e8972a9f75af02cc8801117e102fe7124cb6c7d75dae03f8f24ac0fba793"
+      },
+      {
+        "path": "builds/light-sampling/20261108-grouping-control/review/provenance-images.json",
+        "sha256": "31cc53b688493894e332e5383c1670711d762e92e849e1063bf1a9e4def09ea3"
+      }
+    ]
+  }
 }

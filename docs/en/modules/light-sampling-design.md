@@ -230,6 +230,29 @@ The [investigation record](../../../experiments/light-sampling/20261108-historic
 
 The user subsequently recalled increasing render distance from 16/24 to the current 32 chunks and authorized proceeding. This supplies a plausible emitter-growth explanation, without verifying old settings. Execution now moves to the [same-input grouping control](light-sampling-grouping-control-prompt.md): fix the actual live render distance and compare original camera model 6, World Prefix model 6 and Cosine BRDF in ls1/ls5, retaining 1-spp/32-frame outputs. Isolate whole-image grouping effects before considering a distance matrix. The experiment chat owns source/runtime operations and returns results to this chat for independent review; no default is switched.
 
+### Same-input live grouping control (2026-11-08)
+
+The comparison holds emitter keys and flux, full world voxels, receiver geometry and camera fixed within each scene, with 10,235 emitters in ls1 and 2,172 in ls5. The model-6 variants change only the outer quaternary grouping. The client render distance was 32 chunks and its simulation distance setting was 8.
+
+| Scene or fixed surface | World Prefix / camera grouping, 32-frame RGB variance |
+|---|---:|
+| ls1 whole image | 1.333× |
+| ls1 pillar / wall | 0.567× / 0.096× |
+| ls5 whole image | 1.502× |
+| ls5 vertical face within the old floor region | 5.154× |
+
+Both light-sampling variants had lower whole-image variance than Cosine BRDF. World Prefix raised the whole-image fraction of zero-mean pixels from 3.83% / 42.74% to 5.34% / 52.71% (ls1 / ls5), while reducing variance on both fixed ls1 surfaces. All three methods were zero on the selected face in the old ls5 wall region, so that variance ratio is unavailable. Under matched inputs, World Prefix had higher measured whole-image variance in the 32-frame windows of both scenes. The historical render distance and attribution of the cross-date gap remain unresolved.
+
+The [local 12-image comparison](../../../builds/light-sampling/20261108-grouping-control/viewer/comparison.html) contains 1 spp and 32-frame means for all three methods in both scenes. The [experiment record](../../../experiments/light-sampling/20261108-grouping-control.json) retains the source refs, input and tree identities, regional means and variances, raw paths, and image verification.
+
+Independent review accepts the same-input diagnostic scope of result commit `416e050f2`. Raw-buffer reconstruction of all six cases confirms emitter keys/masses, ordered trees, complete world voxels and receiver inputs, with 453/118 identical brick-local subtrees in the two scenes. The maximum full-path PDF relative difference over 254 valid GPU selection records is 6.73×10⁻⁷. All 270 files in five manifests and the source-load receipts pass verification. Independently recomputed whole-image and four fixed-surface means, variances and zero coverage match the report. Common complete pixel counts are 2,022,469/2,066,956, excluding 5/0 incomplete or nonfinite receiver pixels.
+
+The ls1 light proposals switch sources within one frozen job. Full voxel materials are captured only at the pair's start/end; each method additionally has its own camera, tree and receiver endpoints. The global material pair must not be described as separate material endpoints for each window. New BRDF full input endpoints also match. Old ls5 Prefix/BRDF emitter/voxel/camera endpoints and their single receiver snapshots match both endpoints of the new camera case, permitting reuse; the old windows have no additional receiver-end snapshots. The two tree sources change only outer layout/construction and share model 6 and evaluation. This review finds no additional weight or PDF implementation error.
+
+Each of the four fixed surfaces has a 121-pixel neighborhood with matching normal/material and maximum inverse-depth plane-fit error below 3.59×10⁻⁸. All twelve images match the display transform and AVIF/PNG pixels, with every row satisfying `raw[1079-display_y]`. The mean images for both trees/scenes were inspected directly; browser interaction verification reuses the experiment-side check. Whole-image mean RGB channels differ by at most 0.109% between tree methods, without establishing unbiasedness or convergence.
+
+The result distinguishes historical emitter-population growth from grouping regressions under fixed inputs. Retain world-stable ownership, continue repairing coarse-cluster weights in regressing regions, and require same-input whole-image comparisons; five-point improvements cannot establish whole-image improvements. Current ls1 shares the preceding emitter set but has different voxel/receiver inputs, so its 1.333 ratio must not be multiplied by older lookahead or Ward gains. Historical view distance, continuous movement and performance remain unverified. This review ran no new GPU work and changed no shader or default.
+
 ## Weight experiment status (2026-10-31)
 
 The latest [targeted iteration](../../../experiments/light-sampling/20261031-nearfar-iteration.json) compares A, original near/far and A + near/far in ls1/2/4/5,
@@ -719,18 +742,3 @@ The offline implementation does not establish a runtime sampler, GPU benefit, or
   the richer node-summary alternative discussed.
 - [Variance-Aware Path Guiding](https://graphics.cg.uni-saarland.de/papers/rath-2020-siggraph-guiding-paper.pdf):
   accounting for the second moment of nested sampling.
-
-### Same-input live grouping control (2026-11-08)
-
-The comparison holds emitter keys and flux, full world voxels, receiver geometry and camera fixed within each scene, with 10,235 emitters in ls1 and 2,172 in ls5. The model-6 variants change only the outer quaternary grouping. The client render distance was 32 chunks and its simulation distance setting was 8.
-
-| Scene or fixed surface | World Prefix / camera grouping, 32-frame RGB variance |
-|---|---:|
-| ls1 whole image | 1.333× |
-| ls1 pillar / wall | 0.567× / 0.096× |
-| ls5 whole image | 1.502× |
-| ls5 vertical face within the old floor region | 5.154× |
-
-Both light-sampling variants had lower whole-image variance than Cosine BRDF. World Prefix raised the whole-image fraction of zero-mean pixels from 3.83% / 42.74% to 5.34% / 52.71% (ls1 / ls5), while reducing variance on both fixed ls1 surfaces. All three methods were zero on the selected face in the old ls5 wall region, so that variance ratio is unavailable. Under matched inputs, World Prefix had higher measured whole-image variance in the 32-frame windows of both scenes. The historical render distance and attribution of the cross-date gap remain unresolved.
-
-The [local 12-image comparison](../../../builds/light-sampling/20261108-grouping-control/viewer/comparison.html) contains 1 spp and 32-frame means for all three methods in both scenes. The [experiment record](../../../experiments/light-sampling/20261108-grouping-control.json) retains the source refs, input and tree identities, regional means and variances, raw paths, and image verification for independent review.
