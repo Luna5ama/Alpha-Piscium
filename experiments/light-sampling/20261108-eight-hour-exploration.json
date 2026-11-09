@@ -4526,5 +4526,160 @@
       "tool": "scripts/light_sampling_exploration_lowfreq.py",
       "decision": "Prepared 4 disjoint 32-frame windows per method and a separate reverse-order batch; not yet run."
     }
+  },
+  "stage8_anchor_motion_and_timing": {
+    "moving4": {
+      "ordered": [
+        {
+          "order": "ABBA",
+          "report": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/anchor-ordered-abba/accepted.json",
+            "sha256": "7c117f29ae1eae9cc5dddbbaf705be0bce9b73f8d8f9f2481ac1787f8baf4cc2"
+          },
+          "ratio": 0.9579485285063416,
+          "pair_median_ratios": [
+            0.9169036725609002,
+            0.9986511342734519
+          ],
+          "mean_ratio": 1.0018216917262568,
+          "pair_mean_ratios": [
+            1.0050776249262372,
+            0.9986262124060331
+          ]
+        },
+        {
+          "order": "BAAB",
+          "report": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/anchor-ordered-baab/accepted.json",
+            "sha256": "e03f3e1816471e9de752854a3cc9644383dfb4b4b4339e0e3aaaba4b0b6f1927"
+          },
+          "ratio": 0.9574935400516796,
+          "pair_median_ratios": [
+            1.0051546391752577,
+            0.9141588554514061
+          ],
+          "mean_ratio": 1.0067123162925689,
+          "pair_mean_ratios": [
+            1.0223612012508112,
+            0.9911951746046604
+          ]
+        }
+      ],
+      "motion_receipt": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/motion/light-sampling-failure-moving-4/boundary-anchor-prefix/accepted.json",
+        "sha256": "390e38c3c44f6190f3abcecbce4597ffaefe26a8ed4a67bb495f229a9b86aa1a"
+      },
+      "motion_trace": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-boundary-anchor-prefix-trace.json",
+        "sha256": "3ebbf157602b482216cdd2225d450a6ff84bb924495b78e5629835df26b68aba"
+      },
+      "independent_motion_review": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-anchor-motion.json",
+        "sha256": "b416d00537c04afb6263df52f7921fb936bfb12d947e03683c52405058396c2c"
+      },
+      "comparison": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/boundary-anchor-viewer/comparison.html",
+        "sha256": "e5e630f4ab29f51cd7ca5fa241468c0b923ac42109f63be29a86428a10dcbd90"
+      },
+      "comparison_provenance": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/boundary-anchor-viewer/evidence.json",
+        "sha256": "50d7d00ac861f4116b4f11f760514ef84abdcdd231d889c2dfa10e815d4ace1c"
+      },
+      "decision": "Meets the moving4 per-scene raygen cap in both orders. Across offset 8/24 the 4042-light fingerprint repeats and the ordered tree fingerprint stays stable. The 4243/4301-light cohorts are real input transitions."
+    },
+    "cube_far_plane": {
+      "source": {
+        "ref": "experiment/light-sampling-eight-hour-cube-far-plane",
+        "source": "480550f3094ff699436c0a8162984600545143c2",
+        "parent": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9"
+      },
+      "cpu": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cube-far-plane-cpu.json",
+        "sha256": "2557d271b2e0e22ba10780f0f04e853a3e2ae2f9637ff90f710196370ca338ec"
+      },
+      "independent_integral": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-far-plane-integral.json",
+        "sha256": "001f28eaf0d8c2be14bc939320dc3216ebd4d029339b2eac690121d2d6555675"
+      },
+      "paired_audit_sources": {
+        "far": {
+          "ref": "experiment/light-sampling-eight-hour-cube-far-plane-count-audit",
+          "source": "c7e221dacd9a7fd52c2e996e0354d81371d14399",
+          "parent": "0f1ac073cc09ad24f56e14a5edc266bf41cb32d1"
+        },
+        "legacy": {
+          "ref": "experiment/light-sampling-eight-hour-cube-legacy-count-audit",
+          "source": "bfb77e25e62ccb0efb7eace190e3890e43385088",
+          "parent": "c7e221dacd9a7fd52c2e996e0354d81371d14399"
+        }
+      },
+      "ellipse_independent_double": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-silhouette-witness.json",
+        "sha256": "f34e100453740d4824360258a38eb30b6ad6ffb04c51168cff2a7aab6fc9a029"
+      },
+      "ellipse_float32_replay": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/silhouette-f32-sectors.json",
+        "sha256": "ee32dea6c2ee26bf6eee63abedd87e1c4903456b23b74b29e3249041fb39b49a"
+      },
+      "decision": "CPU passed all 26 regions. GPU sampled PDFs, full-frame failures versus legacy, speed and image tails require native data. No default change."
+    },
+    "g32_and_g64": {
+      "source": {
+        "ref": "experiment/light-sampling-eight-hour-dynamic-coarse-anchor-grid",
+        "source": "13518eb004eca5ae5d878305db9ce14c52f775ba",
+        "parent": "15df1311d5c1fe2e87d47f64bf724e853f84fb42"
+      },
+      "g16_regression": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-anchor-coarse-topology-g16-regression.json",
+        "sha256": "7436474928230f7b62af2a4918c39977a5b7d51307193fdcd1da1b9efee5962a"
+      },
+      "max_coarse_roots": [
+        125,
+        75,
+        125
+      ],
+      "available_tail_nodes": [
+        284,
+        188,
+        284
+      ],
+      "max_required_tail_nodes": [
+        248,
+        148,
+        248
+      ],
+      "decision": "Address layout and compact-tree capacity are proved; larger grids are not yet runtime qualified."
+    },
+    "root_stratification": {
+      "sources": {
+        "control": {
+          "ref": "experiment/light-sampling-eight-hour-uv-anchor",
+          "source": "b706ee9583ff41d9256236de755e5cdfd790317f",
+          "parent": "15df1311d5c1fe2e87d47f64bf724e853f84fb42"
+        },
+        "trial": {
+          "ref": "experiment/light-sampling-eight-hour-uv-anchor-root-strata",
+          "source": "a6be83d969482c20bcc07b4e10c7212f07c0857d",
+          "parent": "b706ee9583ff41d9256236de755e5cdfd790317f"
+        },
+        "scope": "No temporal reuse; same one-frame marginal under randomized per-pixel permutation and jitter, unchanged selection PDF/support. Cross-frame independence is not assumed."
+      },
+      "decision": "Prepared moving4 ablation with a fixed UV control. Keep PDFs and within-light samples; no reuse and no independence assumption across frames."
+    },
+    "runtime_readiness": {
+      "ls2": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/ls2-paired-brdf-readiness/result.json",
+        "sha256": "35fc295eb95b015b8e1c08c7dc022d761d4794e62280a848d08619176f20c41b"
+      },
+      "moving4_initial": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/moving4-anchor-motion-readiness/result.json",
+        "sha256": "380ec73a77be276d1e65ae47dcd190fddf5066db401438f14d517ce6c7e368d0"
+      },
+      "moving4_success": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/moving4-anchor-scoped-readiness/result.json",
+        "sha256": "3ca3f46bec877392e6ce7d561469e3d54a39f744350ff45b777953c0db02a623"
+      },
+      "decision": "Readiness failures occurred before sampling and restored exactly. Scoped unfreeze readiness followed by normal frozen motion recovered moving4."
+    }
   }
 }
