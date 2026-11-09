@@ -5467,8 +5467,8 @@
     "instruction": "Finish the existing experimental lines and close. No added candidates, parameter sweeps or new research directions. Do not spend the remaining eight-hour allocation once the closeout is complete.",
     "candidate_inventory": {
       "coarse_anchor_g16_g32": {
-        "state": "measured",
-        "closure": "G16 motion and holdouts, G32 same-grid quality and ABBA/BAAB. G64 remains a layout calculation only."
+        "state": "paired_g32_timing_pending",
+        "closure": "G16 motion and holdouts and G32 same-grid quality complete. Repeat G32 ABBA/BAAB with 13518eb0; reject earlier G16-source Prefix fallback. G64 remains layout-only."
       },
       "parallel_coarse_sah": {
         "state": "measured",
@@ -5530,6 +5530,13 @@
           4.97
         ],
         "scope": "Vibris idle still registers on the GPU. Fornax was advised that the retained runtime does not meet a zero-contention condition."
+      },
+      "graceful_shutdown": {
+        "at_utc": "2026-11-09 10:25:46 UTC",
+        "exited_pid": 58524,
+        "saved": "Minecraft logged saved players, worlds, and all dimensions before JVM exit.",
+        "restore_entry": "I:/PCL/1.21.11-Vibris.bat",
+        "scope": "User explicitly authorized the graceful shutdown via the Fornax chat, to remove Minecraft GPU load. Restore the LS5 Camera G16 preset with its recorded source and settings after Fornax returns the GPU."
       }
     },
     "moving4_g32": {
@@ -5542,7 +5549,122 @@
       "pixels": 2018294,
       "native_emitters": 31994,
       "emitting_uv_brackets_match": true,
-      "timing": [
+      "regions": {
+        "whole": [
+          {
+            "pixels": 2018294,
+            "camera_v": 0.041554440240747205,
+            "anchor_v": 0.021885428852824466,
+            "ratio_v": 0.5266688403460716,
+            "first_screen_vt_ratio": 0.5390963020974899
+          },
+          {
+            "pixels": 2018294,
+            "camera_v": 0.04163329786233933,
+            "anchor_v": 0.021960490804372245,
+            "ratio_v": 0.5274742077119304,
+            "first_screen_vt_ratio": 0.5399206731927672
+          }
+        ],
+        "side-a": [
+          {
+            "pixels": 64,
+            "camera_v": 0.1975390671432251,
+            "anchor_v": 0.07747164154716302,
+            "ratio_v": 0.392183898949935,
+            "first_screen_vt_ratio": 0.4014380070921973
+          },
+          {
+            "pixels": 64,
+            "camera_v": 0.17184386002190877,
+            "anchor_v": 0.07469359809329035,
+            "ratio_v": 0.4346596851570227,
+            "first_screen_vt_ratio": 0.4449160667736435
+          }
+        ],
+        "side-b": [
+          {
+            "pixels": 64,
+            "camera_v": 0.007000304518442135,
+            "anchor_v": 0.001809158876312722,
+            "ratio_v": 0.25844002522269366,
+            "first_screen_vt_ratio": 0.2645382662471298
+          },
+          {
+            "pixels": 64,
+            "camera_v": 0.0071364231771440245,
+            "anchor_v": 0.003230051939681289,
+            "ratio_v": 0.4526149668402857,
+            "first_screen_vt_ratio": 0.4632950275494612
+          }
+        ],
+        "top": [
+          {
+            "pixels": 64,
+            "camera_v": 0.017464628128436743,
+            "anchor_v": 0.011290050084426184,
+            "ratio_v": 0.6464523608174161,
+            "first_screen_vt_ratio": 0.6617062763194108
+          },
+          {
+            "pixels": 64,
+            "camera_v": 0.017808489086746704,
+            "anchor_v": 0.011629453071691387,
+            "ratio_v": 0.6530286210718554,
+            "first_screen_vt_ratio": 0.6684377123057688
+          }
+        ],
+        "side-a connected plane": [
+          {
+            "pixels": 10217,
+            "camera_v": 0.5696369015562499,
+            "anchor_v": 0.2578485761732665,
+            "ratio_v": 0.45265427058679547,
+            "first_screen_vt_ratio": 0.4633352587208897
+          },
+          {
+            "pixels": 10217,
+            "camera_v": 0.5874390732879712,
+            "anchor_v": 0.2622906546265164,
+            "ratio_v": 0.44649848223142913,
+            "first_screen_vt_ratio": 0.45703421623526974
+          }
+        ],
+        "side-b connected plane": [
+          {
+            "pixels": 2142,
+            "camera_v": 0.00763071458156143,
+            "anchor_v": 0.002721747599800303,
+            "ratio_v": 0.3566831874929552,
+            "first_screen_vt_ratio": 0.36509960845879397
+          },
+          {
+            "pixels": 2142,
+            "camera_v": 0.00697637693946052,
+            "anchor_v": 0.0025839230249605155,
+            "ratio_v": 0.37038179665222176,
+            "first_screen_vt_ratio": 0.37912145478026393
+          }
+        ],
+        "top connected plane": [
+          {
+            "pixels": 90888,
+            "camera_v": 0.08572609630956032,
+            "anchor_v": 0.052111258951531056,
+            "ratio_v": 0.6078809276857218,
+            "first_screen_vt_ratio": 0.6222246981910492
+          },
+          {
+            "pixels": 90888,
+            "camera_v": 0.08565185734947026,
+            "anchor_v": 0.052177665201305845,
+            "ratio_v": 0.6091831142483515,
+            "first_screen_vt_ratio": 0.6235576116022422
+          }
+        ]
+      },
+      "scope": "All quality ratios compare the same G32 world. Candidate and Camera timing attached to the image job is an initial screen. Qualified repeat timing needs matching source and native ordered topology.",
+      "excluded_prefix_fallback_timing": [
         {
           "evidence": {
             "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/camera-anchor-g32-abba/accepted.json",
@@ -5614,163 +5736,8 @@
           }
         }
       ],
-      "regions": {
-        "whole": [
-          {
-            "pixels": 2018294,
-            "camera_v": 0.041554440240747205,
-            "anchor_v": 0.021885428852824466,
-            "ratio_v": 0.5266688403460716,
-            "ratio_vt_by_timer": [
-              0.595743498837859,
-              0.5701532969132187
-            ]
-          },
-          {
-            "pixels": 2018294,
-            "camera_v": 0.04163329786233933,
-            "anchor_v": 0.021960490804372245,
-            "ratio_v": 0.5274742077119304,
-            "ratio_vt_by_timer": [
-              0.5966544932533845,
-              0.5710251595025623
-            ]
-          }
-        ],
-        "side-a": [
-          {
-            "pixels": 64,
-            "camera_v": 0.1975390671432251,
-            "anchor_v": 0.07747164154716302,
-            "ratio_v": 0.392183898949935,
-            "ratio_vt_by_timer": [
-              0.44362033644288357,
-              0.424564595155575
-            ]
-          },
-          {
-            "pixels": 64,
-            "camera_v": 0.17184386002190877,
-            "anchor_v": 0.07469359809329035,
-            "ratio_v": 0.4346596851570227,
-            "ratio_vt_by_timer": [
-              0.49166698654329904,
-              0.4705473981804107
-            ]
-          }
-        ],
-        "side-b": [
-          {
-            "pixels": 64,
-            "camera_v": 0.007000304518442135,
-            "anchor_v": 0.001809158876312722,
-            "ratio_v": 0.25844002522269366,
-            "ratio_vt_by_timer": [
-              0.2923354356121449,
-              0.2797781473804885
-            ]
-          },
-          {
-            "pixels": 64,
-            "camera_v": 0.0071364231771440245,
-            "anchor_v": 0.003230051939681289,
-            "ratio_v": 0.4526149668402857,
-            "ratio_vt_by_timer": [
-              0.5119771729700823,
-              0.48998515918786095
-            ]
-          }
-        ],
-        "top": [
-          {
-            "pixels": 64,
-            "camera_v": 0.017464628128436743,
-            "anchor_v": 0.011290050084426184,
-            "ratio_v": 0.6464523608174161,
-            "ratio_vt_by_timer": [
-              0.7312370920070023,
-              0.6998267537057883
-            ]
-          },
-          {
-            "pixels": 64,
-            "camera_v": 0.017808489086746704,
-            "anchor_v": 0.011629453071691387,
-            "ratio_v": 0.6530286210718554,
-            "ratio_vt_by_timer": [
-              0.7386758542673131,
-              0.7069459834345951
-            ]
-          }
-        ],
-        "side-a connected plane": [
-          {
-            "pixels": 10217,
-            "camera_v": 0.5696369015562499,
-            "anchor_v": 0.2578485761732665,
-            "ratio_v": 0.45265427058679547,
-            "ratio_vt_by_timer": [
-              0.512021631555192,
-              0.4900277080514673
-            ]
-          },
-          {
-            "pixels": 10217,
-            "camera_v": 0.5874390732879712,
-            "anchor_v": 0.2622906546265164,
-            "ratio_v": 0.44649848223142913,
-            "ratio_vt_by_timer": [
-              0.5050584877122384,
-              0.4833636665190199
-            ]
-          }
-        ],
-        "side-b connected plane": [
-          {
-            "pixels": 2142,
-            "camera_v": 0.00763071458156143,
-            "anchor_v": 0.002721747599800303,
-            "ratio_v": 0.3566831874929552,
-            "ratio_vt_by_timer": [
-              0.40346356916438403,
-              0.38613276450718925
-            ]
-          },
-          {
-            "pixels": 2142,
-            "camera_v": 0.00697637693946052,
-            "anchor_v": 0.0025839230249605155,
-            "ratio_v": 0.37038179665222176,
-            "ratio_vt_by_timer": [
-              0.4189588039771961,
-              0.4009624004699877
-            ]
-          }
-        ],
-        "top connected plane": [
-          {
-            "pixels": 90888,
-            "camera_v": 0.08572609630956032,
-            "anchor_v": 0.052111258951531056,
-            "ratio_v": 0.6078809276857218,
-            "ratio_vt_by_timer": [
-              0.687606866011542,
-              0.6580706669924512
-            ]
-          },
-          {
-            "pixels": 90888,
-            "camera_v": 0.08565185734947026,
-            "anchor_v": 0.052177665201305845,
-            "ratio_v": 0.6091831142483515,
-            "ratio_vt_by_timer": [
-              0.6890798393859511,
-              0.6594803686968307
-            ]
-          }
-        ]
-      },
-      "scope": "All ratios compare the same G32 world. Timing uses the full composite41_compute pass mean. These are not absolute G16 to G32 comparisons."
+      "excluded_prefix_fallback_reason": "ABBA/BAAB candidate revision 15df1311 has a G16-only upper builder. At G32 it produced Prefix topology c951b315…, not the G32 Anchor 13518eb0 topology 5670ec70…. Do not pair these time samples with the Anchor image.",
+      "first_screen_mean_raygen_ratio": 1.0235963489756719
     },
     "guarded_cdf_stratification": {
       "quality": {
