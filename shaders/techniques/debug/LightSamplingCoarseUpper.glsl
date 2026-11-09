@@ -1,6 +1,13 @@
-// Only above native 64-block groups: stable Morton phase from the active lights.
-const uint LS_COARSE_LEVEL = 3u;
-const uint LS_COARSE_MAX = 128u; // 16 consecutive bricks intersect at most 5^3 groups.
+// Rebuild only the native coarse roots; their own descendants stay in place.
+// Four-way levels consume two Morton bits, so G32 level 5 has one wider axis.
+#if VOXEL_GRID_SIZE == 64
+const uint LS_COARSE_LEVEL = 6u; // 256^3 blocks, at most 5^3 roots.
+#elif VOXEL_GRID_SIZE == 32
+const uint LS_COARSE_LEVEL = 5u; // 256x128x128 blocks, at most 3x5x5 roots.
+#else
+const uint LS_COARSE_LEVEL = 3u; // 64^3 blocks, at most 5^3 roots.
+#endif
+const uint LS_COARSE_MAX = 128u;
 const uint LS_COARSE_KEYS = 512u; // Three bits per group coordinate.
 shared LightSamplingNode ls_coarseAtom[LS_COARSE_MAX];
 shared uvec3 ls_coarseCells[LS_COARSE_MAX];
