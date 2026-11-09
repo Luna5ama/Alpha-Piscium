@@ -1,5 +1,5 @@
 {
-  "status": "active",
+  "status": "closeout",
   "started_utc": "2026-11-09 05:49:07",
   "target_closeout_utc": "2026-11-09 13:49:07",
   "user_decisions": {
@@ -49,10 +49,9 @@
     "historical_local_originals_untouched": true
   },
   "next": [
-    "Fast lookahead did not pass the cap after reversed order; test the two smaller proposal-equivalent variants and the silhouette separately.",
-    "Run exact GPU shape/slot verification for coarse parallel and coarse anchor; benchmark final-pass cost.",
-    "Gate the cube silhouette on audited directions/PDF and absence of new numeric/miss failures before timing or combining.",
-    "Broaden matched shortlist coverage, test 720p and G32, and extend low-frequency windows for conflicting finalists."
+    "Complete the frozen closeout list once the shared GPU is returned.",
+    "Finish the additive real Iris candidate comparator and preserve the compact indexed conclusions.",
+    "Restore the verified runtime state, release owned resources, and hand the complete package to the research chat."
   ],
   "results": [
     {
@@ -5462,5 +5461,709 @@
       "sha256": "d328bd353acd2bbf364f9095e05149589cad9fc3ad691aea0d6caebce558e5a8"
     },
     "cdf_status": "Corrected compile and the frozen 90-degree native per-draw PDF check passed. Independent pooled block-quality measurements follow."
+  },
+  "stage12_closeout": {
+    "scope_frozen_utc": "2026-11-09 10:12 UTC",
+    "instruction": "Finish the existing experimental lines and close. No added candidates, parameter sweeps or new research directions. Do not spend the remaining eight-hour allocation once the closeout is complete.",
+    "candidate_inventory": {
+      "coarse_anchor_g16_g32": {
+        "state": "measured",
+        "closure": "G16 motion and holdouts, G32 same-grid quality and ABBA/BAAB. G64 remains a layout calculation only."
+      },
+      "parallel_coarse_sah": {
+        "state": "measured",
+        "closure": "Existing native topology, build and moving4 quality remain separately reported. The already prepared selective-gate version has an LS5 comparison remaining."
+      },
+      "near_containment_gate": {
+        "state": "pending_gpu",
+        "closure": "Verify LS5 same-emitter-input before declaring a quality effect. Keep camera, Anchor and already prepared coarse-SAH gate as distinct controls."
+      },
+      "guarded_cdf_strata": {
+        "state": "paired_statistics_and_timing_complete",
+        "closure": "Two non-overlapping native seed cohorts and ordinary UV timing complete. One-spp visual comparison split into a two-method job after the first three-method reservation was rejected."
+      },
+      "far_silhouette_plane": {
+        "state": "pending_gpu",
+        "closure": "Native selected-event/PDF check completed. Same-context reverse timing closes the costly LS3 image result."
+      },
+      "far_entry_faces": {
+        "state": "pending_gpu",
+        "closure": "Pre-freeze cheaper isolated follow-up. Confirm native sampled PDFs and event counts, then one matched LS3 quality and timed comparison."
+      },
+      "directional_8b": {
+        "state": "pending_gpu",
+        "closure": "Existing frozen LS1 sidecar only. Evaluate it against its exact topology control when source identity matches. Report offline Anchor+gate L1 directional screen separately from native fixed L2."
+      },
+      "lookahead": {
+        "state": "partly_closed",
+        "closure": "Original and CDF/cube fast path exceed the 1.25 mean cap in at least one qualified order. The distinct fast-cull source gets one paired retest to resolve its severe mixed-pass timing screen."
+      },
+      "k": {
+        "state": "partly_closed",
+        "closure": "Prefix cut2 native PDF and quality exist; matched Ward K1 exists. Narrow matched K4 check replaces the excluded mismatched capture."
+      },
+      "other_archived_screens": {
+        "state": "measured_or_negative",
+        "closure": "Keep source refs and existing evidence for global/upper/weight/visibility-independent alternatives, width and compaction, without expanding the matrix."
+      }
+    },
+    "gpu_handoff": {
+      "job": "cbe71040-d602-4cf4-93b8-703390d31825",
+      "source_uuid": "ba935739-9e6f-4972-82ab-db826258b237",
+      "receipt": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/gpu-handoff-ls5-safe-snapshot/result.json",
+        "sha256": "158f627d285c80aec89c04907c8ba00c90960d94a5fb0a5644068a172e862571"
+      },
+      "scene": "light-sampling-5",
+      "grid": 16,
+      "operational": true,
+      "active_jobs": 0,
+      "queued_jobs": 0,
+      "next_owner": "Fornax validation. No native jobs during the loan.",
+      "throttle": {
+        "source": "Vibris 137b020",
+        "minimized": true,
+        "unfocused_idle_frames_per_second": 5,
+        "process_gpu_observed_percent": [
+          4.1,
+          5.7,
+          4.97
+        ],
+        "scope": "Vibris idle still registers on the GPU. Fornax was advised that the retained runtime does not meet a zero-contention condition."
+      }
+    },
+    "moving4_g32": {
+      "quality": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-reprojected-surfaces-camera-g32-fixed-fov-anchor-g32-fixed-fov.json",
+        "sha256": "48b502243cf8a12a5737a30385d8fe34106c324e5fa1b3d08e678e2c49f6b301"
+      },
+      "source": "13518eb004eca5ae5d878305db9ce14c52f775ba",
+      "camera": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+      "pixels": 2018294,
+      "native_emitters": 31994,
+      "emitting_uv_brackets_match": true,
+      "timing": [
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/camera-anchor-g32-abba/accepted.json",
+            "sha256": "c8489586bb6fe185f8cdd00ebab3df517c20876dd27d72ccb4dcde51022052ff"
+          },
+          "job": "435966bc-3f24-42e5-89cb-08fa55aed4da",
+          "order": [
+            "camera",
+            "candidate",
+            "candidate",
+            "camera"
+          ],
+          "mean_raygen_ratio": 1.131153873554393,
+          "median_raygen_ratio": 1.1691431006018,
+          "paired_median_ratios": [
+            1.245480386583286,
+            1.1018833901021838
+          ],
+          "mean_pass_cap": true,
+          "build_block_medians_ms": {
+            "camera": [
+              1.399296,
+              1.40032
+            ],
+            "candidate": [
+              1.494528,
+              1.485824
+            ]
+          },
+          "identity": {
+            "camera_sha256": "3f26ff6395dd1ccf78cfe8d26e6a52acf0783a1818e4aadb8006fec7027c2492",
+            "leaf_sha256": "7c231312e2a3f8c2fd5e39f044d404c59761ea36f0e6ea6af5db6087aaf67714",
+            "world_voxel_sha256": "dc76ec258481bdc4122b824b19e7d221d994d65aef5632e57c77056d9d81603f"
+          }
+        },
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/camera-anchor-g32-baab/accepted.json",
+            "sha256": "6fb9dc1bf5ca055ab634447720878582591e1b501b9239c924943ce10daaf751"
+          },
+          "job": "2471e879-faae-432f-81e9-2f452aec089e",
+          "order": [
+            "candidate",
+            "camera",
+            "camera",
+            "candidate"
+          ],
+          "mean_raygen_ratio": 1.0825650830958096,
+          "median_raygen_ratio": 1.0674064940402794,
+          "paired_median_ratios": [
+            1.1755469486025332,
+            0.9631722328725658
+          ],
+          "mean_pass_cap": true,
+          "build_block_medians_ms": {
+            "camera": [
+              1.395712,
+              1.398784
+            ],
+            "candidate": [
+              1.799168,
+              1.48224
+            ]
+          },
+          "identity": {
+            "camera_sha256": "3f26ff6395dd1ccf78cfe8d26e6a52acf0783a1818e4aadb8006fec7027c2492",
+            "leaf_sha256": "7c231312e2a3f8c2fd5e39f044d404c59761ea36f0e6ea6af5db6087aaf67714",
+            "world_voxel_sha256": "dc76ec258481bdc4122b824b19e7d221d994d65aef5632e57c77056d9d81603f"
+          }
+        }
+      ],
+      "regions": {
+        "whole": [
+          {
+            "pixels": 2018294,
+            "camera_v": 0.041554440240747205,
+            "anchor_v": 0.021885428852824466,
+            "ratio_v": 0.5266688403460716,
+            "ratio_vt_by_timer": [
+              0.595743498837859,
+              0.5701532969132187
+            ]
+          },
+          {
+            "pixels": 2018294,
+            "camera_v": 0.04163329786233933,
+            "anchor_v": 0.021960490804372245,
+            "ratio_v": 0.5274742077119304,
+            "ratio_vt_by_timer": [
+              0.5966544932533845,
+              0.5710251595025623
+            ]
+          }
+        ],
+        "side-a": [
+          {
+            "pixels": 64,
+            "camera_v": 0.1975390671432251,
+            "anchor_v": 0.07747164154716302,
+            "ratio_v": 0.392183898949935,
+            "ratio_vt_by_timer": [
+              0.44362033644288357,
+              0.424564595155575
+            ]
+          },
+          {
+            "pixels": 64,
+            "camera_v": 0.17184386002190877,
+            "anchor_v": 0.07469359809329035,
+            "ratio_v": 0.4346596851570227,
+            "ratio_vt_by_timer": [
+              0.49166698654329904,
+              0.4705473981804107
+            ]
+          }
+        ],
+        "side-b": [
+          {
+            "pixels": 64,
+            "camera_v": 0.007000304518442135,
+            "anchor_v": 0.001809158876312722,
+            "ratio_v": 0.25844002522269366,
+            "ratio_vt_by_timer": [
+              0.2923354356121449,
+              0.2797781473804885
+            ]
+          },
+          {
+            "pixels": 64,
+            "camera_v": 0.0071364231771440245,
+            "anchor_v": 0.003230051939681289,
+            "ratio_v": 0.4526149668402857,
+            "ratio_vt_by_timer": [
+              0.5119771729700823,
+              0.48998515918786095
+            ]
+          }
+        ],
+        "top": [
+          {
+            "pixels": 64,
+            "camera_v": 0.017464628128436743,
+            "anchor_v": 0.011290050084426184,
+            "ratio_v": 0.6464523608174161,
+            "ratio_vt_by_timer": [
+              0.7312370920070023,
+              0.6998267537057883
+            ]
+          },
+          {
+            "pixels": 64,
+            "camera_v": 0.017808489086746704,
+            "anchor_v": 0.011629453071691387,
+            "ratio_v": 0.6530286210718554,
+            "ratio_vt_by_timer": [
+              0.7386758542673131,
+              0.7069459834345951
+            ]
+          }
+        ],
+        "side-a connected plane": [
+          {
+            "pixels": 10217,
+            "camera_v": 0.5696369015562499,
+            "anchor_v": 0.2578485761732665,
+            "ratio_v": 0.45265427058679547,
+            "ratio_vt_by_timer": [
+              0.512021631555192,
+              0.4900277080514673
+            ]
+          },
+          {
+            "pixels": 10217,
+            "camera_v": 0.5874390732879712,
+            "anchor_v": 0.2622906546265164,
+            "ratio_v": 0.44649848223142913,
+            "ratio_vt_by_timer": [
+              0.5050584877122384,
+              0.4833636665190199
+            ]
+          }
+        ],
+        "side-b connected plane": [
+          {
+            "pixels": 2142,
+            "camera_v": 0.00763071458156143,
+            "anchor_v": 0.002721747599800303,
+            "ratio_v": 0.3566831874929552,
+            "ratio_vt_by_timer": [
+              0.40346356916438403,
+              0.38613276450718925
+            ]
+          },
+          {
+            "pixels": 2142,
+            "camera_v": 0.00697637693946052,
+            "anchor_v": 0.0025839230249605155,
+            "ratio_v": 0.37038179665222176,
+            "ratio_vt_by_timer": [
+              0.4189588039771961,
+              0.4009624004699877
+            ]
+          }
+        ],
+        "top connected plane": [
+          {
+            "pixels": 90888,
+            "camera_v": 0.08572609630956032,
+            "anchor_v": 0.052111258951531056,
+            "ratio_v": 0.6078809276857218,
+            "ratio_vt_by_timer": [
+              0.687606866011542,
+              0.6580706669924512
+            ]
+          },
+          {
+            "pixels": 90888,
+            "camera_v": 0.08565185734947026,
+            "anchor_v": 0.052177665201305845,
+            "ratio_v": 0.6091831142483515,
+            "ratio_vt_by_timer": [
+              0.6890798393859511,
+              0.6594803686968307
+            ]
+          }
+        ]
+      },
+      "scope": "All ratios compare the same G32 world. Timing uses the full composite41_compute pass mean. These are not absolute G16 to G32 comparisons."
+    },
+    "guarded_cdf_stratification": {
+      "quality": {
+        "forward": {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/lowfreq-series/cdf-strata-native-seeds-forward/accepted.json",
+            "sha256": "c9f7b59a4427a54008b18b813453869534b401c43b431b897fc25799e98bf982"
+          },
+          "job": "d9ecf4dc-e5e1-4eb8-934c-bb3ec027982b",
+          "identity": {
+            "camera_sha256": "3f26ff6395dd1ccf78cfe8d26e6a52acf0783a1818e4aadb8006fec7027c2492",
+            "emitters": 4243,
+            "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+            "world_voxel_sha256": "a609f099c1c76159f8ece3fc52fe827fcee04c14a46cdfdfd0dbbc1b4a6a4781"
+          },
+          "fixed_uv_sha256": "712815a2acea30f20fc050d54aa7459ab8f8f37899483d052b837a11d232ffc2",
+          "atlas_probe_match": {
+            "atlas-fire-color.bin": true,
+            "atlas-fire-specular.bin": true,
+            "atlas-lava-color.bin": true,
+            "atlas-lava-specular.bin": true
+          },
+          "matched_complete_pixels": 2018290,
+          "tile": {
+            "16": {
+              "iid": {
+                "mean": 1.2384546339880267e-07,
+                "p95": 3.7329386430970676e-07,
+                "tail": 2.086997088801903e-06,
+                "tiles": 7777
+              },
+              "strata": {
+                "mean": 6.804538364981443e-08,
+                "p95": 2.750229954877163e-07,
+                "tail": 1.1138207898835377e-06,
+                "tiles": 7777
+              },
+              "ratio": {
+                "mean": 0.549437837950488,
+                "p95": 0.7367466272082653,
+                "tail": 0.5336954209758656
+              }
+            },
+            "64": {
+              "iid": {
+                "mean": 4.997754680009062e-09,
+                "p95": 2.5245230057340795e-08,
+                "tail": 7.490804726700994e-08,
+                "tiles": 456
+              },
+              "strata": {
+                "mean": 2.84445752183426e-09,
+                "p95": 1.7023109231643362e-08,
+                "tail": 3.74560005750626e-08,
+                "tiles": 456
+              },
+              "ratio": {
+                "mean": 0.5691470878336714,
+                "p95": 0.6743099267852936,
+                "tail": 0.5000263915778045
+              }
+            }
+          },
+          "source": {
+            "cdf-iid": "20dfc7d0dbd3fc0dda8168fe3805dbd40fa0ae52",
+            "cdf-strata": "5c5e653d653852d3bd6ecb7f2c19c254d9124e05"
+          },
+          "shader_seed_frames": {
+            "cdf-iid": [
+              [
+                199,
+                230
+              ],
+              [
+                247,
+                278
+              ],
+              [
+                292,
+                323
+              ],
+              [
+                339,
+                370
+              ]
+            ],
+            "cdf-strata": [
+              [
+                199,
+                230
+              ],
+              [
+                246,
+                277
+              ],
+              [
+                297,
+                328
+              ],
+              [
+                347,
+                378
+              ]
+            ]
+          }
+        },
+        "reverse": {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/lowfreq-series/cdf-strata-native-seeds-reverse/accepted.json",
+            "sha256": "e84872441cb9c43588a9f8cc18432fb8445f6abc50c2ab6a50fd5cab327f6a8a"
+          },
+          "job": "85f92252-fb0b-4ad0-8ed8-9bdc638e401a",
+          "identity": {
+            "camera_sha256": "3f26ff6395dd1ccf78cfe8d26e6a52acf0783a1818e4aadb8006fec7027c2492",
+            "emitters": 4243,
+            "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+            "world_voxel_sha256": "a609f099c1c76159f8ece3fc52fe827fcee04c14a46cdfdfd0dbbc1b4a6a4781"
+          },
+          "fixed_uv_sha256": "712815a2acea30f20fc050d54aa7459ab8f8f37899483d052b837a11d232ffc2",
+          "atlas_probe_match": {
+            "atlas-fire-color.bin": true,
+            "atlas-fire-specular.bin": true,
+            "atlas-lava-color.bin": true,
+            "atlas-lava-specular.bin": true
+          },
+          "matched_complete_pixels": 2018292,
+          "tile": {
+            "16": {
+              "iid": {
+                "mean": 1.1553578547221495e-07,
+                "p95": 3.8597923292975856e-07,
+                "tail": 1.9339107927390625e-06,
+                "tiles": 7777
+              },
+              "strata": {
+                "mean": 7.28930068757503e-08,
+                "p95": 2.766296284717927e-07,
+                "tail": 1.2080379133144486e-06,
+                "tiles": 7777
+              },
+              "ratio": {
+                "mean": 0.6309128083374674,
+                "p95": 0.7166956273062868,
+                "tail": 0.6246606192230119
+              }
+            },
+            "64": {
+              "iid": {
+                "mean": 6.02784861566043e-09,
+                "p95": 2.6593364905953028e-08,
+                "tail": 9.175542425806973e-08,
+                "tiles": 456
+              },
+              "strata": {
+                "mean": 3.237301503156843e-09,
+                "p95": 1.104499129658382e-08,
+                "tail": 5.1241486351523906e-08,
+                "tiles": 456
+              },
+              "ratio": {
+                "mean": 0.5370575323916217,
+                "p95": 0.41532883618316974,
+                "tail": 0.5584572984742895
+              }
+            }
+          },
+          "source": {
+            "cdf-strata": "5c5e653d653852d3bd6ecb7f2c19c254d9124e05",
+            "cdf-iid": "20dfc7d0dbd3fc0dda8168fe3805dbd40fa0ae52"
+          },
+          "shader_seed_frames": {
+            "cdf-strata": [
+              [
+                551,
+                582
+              ],
+              [
+                597,
+                628
+              ],
+              [
+                644,
+                675
+              ],
+              [
+                692,
+                723
+              ]
+            ],
+            "cdf-iid": [
+              [
+                552,
+                583
+              ],
+              [
+                599,
+                630
+              ],
+              [
+                647,
+                678
+              ],
+              [
+                694,
+                725
+              ]
+            ]
+          }
+        }
+      },
+      "camera_native_uv_timing": [
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/camera-strata-native-uv-abba/accepted.json",
+            "sha256": "701311e99d9a6cc85e8d6fb0a441484923702d155ee0586d30df1a17c0f9850c"
+          },
+          "job": "eb6034a6-25da-4ae5-a027-c008cf1cddfc",
+          "order": [
+            "camera",
+            "candidate",
+            "candidate",
+            "camera"
+          ],
+          "mean_raygen_ratio": 1.081911790844232,
+          "median_raygen_ratio": 1.110418683446273,
+          "paired_median_ratios": [
+            1.1638054363376251,
+            1.0554054054054054
+          ],
+          "mean_pass_cap": true,
+          "build_block_medians_ms": {
+            "camera": [
+              0.407552,
+              0.403456
+            ],
+            "candidate": [
+              0.4864,
+              0.4864
+            ]
+          },
+          "identity": {
+            "camera_sha256": "3f26ff6395dd1ccf78cfe8d26e6a52acf0783a1818e4aadb8006fec7027c2492",
+            "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+            "world_voxel_sha256": "a609f099c1c76159f8ece3fc52fe827fcee04c14a46cdfdfd0dbbc1b4a6a4781"
+          }
+        },
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/camera-strata-native-uv-baab/accepted.json",
+            "sha256": "bd9393649cde8ee4c38255eb2a377f8a64ae2e4559dd8c917842ab66941abb1e"
+          },
+          "job": "38267205-d3ad-4ce1-8560-d697be9218ac",
+          "order": [
+            "candidate",
+            "camera",
+            "camera",
+            "candidate"
+          ],
+          "mean_raygen_ratio": 1.039731528386758,
+          "median_raygen_ratio": 1.0686133071729471,
+          "paired_median_ratios": [
+            1.0959313176558418,
+            1.0449849332759362
+          ],
+          "mean_pass_cap": true,
+          "build_block_medians_ms": {
+            "camera": [
+              0.40448,
+              0.405504
+            ],
+            "candidate": [
+              0.4864,
+              0.489472
+            ]
+          },
+          "identity": {
+            "camera_sha256": "3f26ff6395dd1ccf78cfe8d26e6a52acf0783a1818e4aadb8006fec7027c2492",
+            "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+            "world_voxel_sha256": "a609f099c1c76159f8ece3fc52fe827fcee04c14a46cdfdfd0dbbc1b4a6a4781"
+          }
+        }
+      ],
+      "guarded_iid_native_uv_timing": [
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/iid-strata-native-uv-abba/accepted.json",
+            "sha256": "74560215df7a55f7cd54ac9bdcdaed6bb2b45e340336533b291f489486266909"
+          },
+          "job": "0f253700-bba8-40ca-848e-db112d933252",
+          "order": [
+            "camera",
+            "candidate",
+            "candidate",
+            "camera"
+          ],
+          "mean_raygen_ratio": 1.0065710392721765,
+          "median_raygen_ratio": 0.9913860142370042,
+          "paired_median_ratios": [
+            0.9880295739936628,
+            0.9948755490483162
+          ],
+          "mean_pass_cap": true,
+          "build_block_medians_ms": {
+            "camera": [
+              0.485376,
+              0.484352
+            ],
+            "candidate": [
+              0.485888,
+              0.485376
+            ]
+          },
+          "identity": {
+            "camera_sha256": "3f26ff6395dd1ccf78cfe8d26e6a52acf0783a1818e4aadb8006fec7027c2492",
+            "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+            "world_voxel_sha256": "a609f099c1c76159f8ece3fc52fe827fcee04c14a46cdfdfd0dbbc1b4a6a4781"
+          }
+        },
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-failure-moving-4/iid-strata-native-uv-baab/accepted.json",
+            "sha256": "8654d70621ae4e66ae2f97a405481936699fc710583144b66e97c08c3663b6ad"
+          },
+          "job": "ee07c1c0-6f6b-400b-a441-f2f7c34b07d1",
+          "order": [
+            "candidate",
+            "camera",
+            "camera",
+            "candidate"
+          ],
+          "mean_raygen_ratio": 0.9914064986810187,
+          "median_raygen_ratio": 0.9847569912645835,
+          "paired_median_ratios": [
+            0.9911982161718108,
+            0.9783270852858482
+          ],
+          "mean_pass_cap": true,
+          "build_block_medians_ms": {
+            "camera": [
+              0.485376,
+              0.485376
+            ],
+            "candidate": [
+              0.485376,
+              0.485376
+            ]
+          },
+          "identity": {
+            "camera_sha256": "3f26ff6395dd1ccf78cfe8d26e6a52acf0783a1818e4aadb8006fec7027c2492",
+            "leaf_sha256": "b795d6dcafa94d29db34214ac89a4a4b8d44ee7f1bf23d1db4dbf7ad15a9c93d",
+            "world_voxel_sha256": "a609f099c1c76159f8ece3fc52fe827fcee04c14a46cdfdfd0dbbc1b4a6a4781"
+          }
+        }
+      ],
+      "scope": "Different acquisition orders use disjoint actual Iris seed intervals. Pooled tile differences measure observed 32f block noise; V*T for independent samples is not applied to stratified frames. Native UV timing has no seed SSBO writes or frozen-UV sampler.",
+      "failed_three_method_visual_reservation": "76a6092e-2dea-43a6-974d-838e-db112d933252"
+    },
+    "far_silhouette_initial": {
+      "quality": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-3-camera-far-fixed-fov-far-plane-fixed-fov.json",
+        "sha256": "d4dccb070f8cfa2f792cd636226f7bef7bc31be89fdc1ecbecd8cedbcbe475f6"
+      },
+      "source": "cc1faea0b02509380f9959578498d8cd0d16c2b9",
+      "camera": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+      "pixels": 1987457,
+      "emitting_uv_brackets_match": true,
+      "mean_raygen_ratio": 2.2464857884073295,
+      "whole_tail_v_ratio": [
+        1.0070024656751446,
+        1.0045349169224642
+      ],
+      "scope": "First same-input LS3 screen. Native PDF and boundary audit passed separately."
+    },
+    "far_entry_faces": {
+      "source": "661cf8539f612fa00de9ba3be633c3e6ddda628c",
+      "audit_source": "a048f800c9b132a658a5880e596c1289987b0ea1",
+      "glsl_smoke": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/far-entry-faces-glsl-smoke.json",
+        "sha256": "970a5fcafdc4bc332eff673cff3376e7cc81e2d925b5a80ffd5249cd8218459a"
+      },
+      "scope": "The far eligibility matches the silhouette trial. The entry-face mixture has conditional solid-angle density r^3 / sum(A_i * d_i). Native geometry and quality qualification are pending."
+    },
+    "ls5_fixed_uv": {
+      "source_buffer": "cases/light-sampling-5/camera-gate-fixed-fov/before_face-uv.bin",
+      "source_buffer_sha256": "fe5bab8b7691f5e2c6bbf4744bdf4db43e86ca8061e8c5ea85b1c9ee1b9ca8a4",
+      "frozen_texture_sha256": "62097b298375609019ef5b19def5b296316aceb7bafe37b635b7ce7ba2a5874c",
+      "sources": {
+        "camera": "260a90da69d46a4cbb6e3efdaaf1c2297a2c0d43",
+        "anchor": "7392aeb3063cfb2101ebd7d5b52543c0c7e0b959",
+        "anchor_gate": "75fccb4ccd467ede456c38a789b3204cfb874b97",
+        "coarse_sah_gate": "4eb4ee68e85ce7b4cada584ef1ca7281b6e09f0c"
+      },
+      "scope": "First 786432 bytes are the six face records for each material, verified against the native buffer layout. The quality-only texture carries this lookup, with sampled color/specular atlas contents checked separately."
+    }
   }
 }
