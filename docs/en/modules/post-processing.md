@@ -81,6 +81,15 @@ estimate counts weighted bilinear reads across the pyramid. GPU cost also depend
 the scene. Compare the affected reconstruction passes, PostComposite, and a stable neighboring pass on the same
 Iris setup.
 
+On an RTX 3080 Ti in the 720p night scene, Iris ran all nine shaped presets, Bloom Off, and the exported Custom
+kernel. The Off capture confirmed that [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)
+still ran. In the same-coefficient Standard/Custom A/A, pre-Bloom HDR means agreed within 0.2%. In the ABBA
+comparison with the exported Custom kernel, p50 for per-frame Bloom and PostComposite compute time totaled
+0.145 ms for Standard and 0.623 ms for Custom. The two recipes target different kernels, so these times describe
+the cost of each recipe. The old overbright capture was invalid because its snapshot omitted the PostComposite wrapper.
+Offline checks covered four held-out phases. The edited Camera Six export had up to 4.0% error at the origin.
+The editor's HTTP fit and export were exercised. Browser rendering remains unverified.
+
 ## Post composition and exposure
 
 | Order | Pass                                                                                                                                                                            | Purpose                                                                                                         |

@@ -75,6 +75,13 @@ CPU 拟合器检查各留出抽取相位的完整脉冲响应。二倍抽取会�
 CPU 成本估算按金字塔各层加权计算双线性读取次数，GPU 成本还受所选采样布局和场景影响。在同一 Iris 配置下对照受影响的重建 pass、
 PostComposite 和一个稳定的相邻 pass。
 
+在 RTX 3080 Ti 的 720p 夜景中，Iris 实际运行了九个造型预设、关闭 Bloom 的分支和导出的自定义核。
+关闭 Bloom 时，[`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl) 仍正常执行。
+标准与自定义采用相同系数的 A/A 中，Bloom 前 HDR 均值差异小于 0.2%。用实际导出的自定义核做 ABBA 时，逐帧累加
+Bloom 和 PostComposite 的 compute 耗时再取 p50，标准为 0.145 ms，自定义为 0.623 ms。两份配方的目标核不同，
+这些结果反映各自的运行成本。旧增亮样本所在快照漏带了 PostComposite wrapper，该样本无效。
+离线检查覆盖四个留出相位，调整版摄影六芒的导出核原点误差最高为 4.0%。编辑器已验证 HTTP 拟合和导出，浏览器实际渲染待验。
+
 ## 后期合成与曝光
 
 | 顺序 | Pass                                                                                                                                                                          | 作用                                                  |
