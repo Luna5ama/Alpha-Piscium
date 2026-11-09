@@ -5499,8 +5499,8 @@
         "closure": "Original and CDF/cube fast path exceed the 1.25 mean cap in at least one qualified order. The distinct fast-cull source gets one paired retest to resolve its severe mixed-pass timing screen."
       },
       "k": {
-        "state": "partly_closed",
-        "closure": "Cut2 native PDF and matched quality/timing screen, Ward K1 matched quality/timing screen, Ward K2 prior six-scene quality plus pending matched LS1 Camera timing. A narrow matched K4 check replaces the excluded mismatched capture."
+        "state": "closed_on_measured_tradeoffs",
+        "closure": "Cut2 exceeds Camera mean cap on moving4. Ward K1 has a matched LS5 quality/cost screen. Ward K2 and K4 exceed the cap with qualified LS1 mean ratios 1.643 and 3.132. Prior matched six-scene quality and BRDF baseline stay linked."
       },
       "other_archived_screens": {
         "state": "measured_or_negative",
@@ -6719,7 +6719,68 @@
         "moving-4": 0.959
       },
       "moving4_upward_receiver_v_ratio_vs_prefix_nearfar_approx": 1.53,
-      "decision": "Prior six-scene real-Iris whole-image results all improve relative to Prefix + Near/Far. The local upward receiver is a diagnostic, so closeout still needs a minimal matched Camera mean-raygen check on LS1, where the prior quality improvement is largest."
+      "decision": "Qualified LS1 ABBA timing exceeds 1.25 by a wide margin, with both adjacent median pairs above 1.63. Close on cost, with prior six-scene quality and remaining local tradeoffs retained.",
+      "ls1_native_timing": {
+        "evidence": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-1/ls1-ward-k2-abba/accepted.json",
+          "sha256": "24d30b9e88168c8dc9aa2e6bc31c97eaf64e26d5a523818dca2631366d80ddb9"
+        },
+        "job": "88771384-686b-44ab-a9f0-dfbe9ffb524e",
+        "order": [
+          "camera",
+          "candidate",
+          "candidate",
+          "camera"
+        ],
+        "mean_pass_ratio": 1.643373482373504,
+        "mean_pass_cap": false,
+        "adjacent_pair_median_ratios": [
+          1.678998364162577,
+          1.6304254929491484
+        ],
+        "identity": {
+          "camera_sha256": "5d66f77e17b8bdf105438d2336a68a9081fdf21c181cff7699b5ccd045e57902",
+          "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+          "world_voxel_sha256": "4dfca2b6ba4714126b4962a206a4bda14e358bf9a33eaa67ac85bfb99e9d61df"
+        }
+      }
+    },
+    "ward_k4": {
+      "ls1_native_timing": {
+        "evidence": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-1/ls1-ward-k4-abba/accepted.json",
+          "sha256": "6daa363c0528ac12cc35912ee9070107f655bc137e912b5eee94f3bcee918d20"
+        },
+        "job": "2e0867fa-aec5-4953-8ee3-1fc12bc93756",
+        "order": [
+          "camera",
+          "candidate",
+          "candidate",
+          "camera"
+        ],
+        "mean_pass_ratio": 3.13203908594506,
+        "mean_pass_cap": false,
+        "adjacent_pair_median_ratios": [
+          3.1310759493670886,
+          3.157222041082491
+        ],
+        "identity": {
+          "camera_sha256": "5d66f77e17b8bdf105438d2336a68a9081fdf21c181cff7699b5ccd045e57902",
+          "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+          "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+        }
+      },
+      "decision": "Qualified same-input LS1 ABBA mean exceeds the cap. The earlier mismatched capture remains excluded. Previous six-scene image quality evidence is in the Near/Far combination index."
+    },
+    "directional_8b_input": {
+      "reference": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls1-directional-sidecar-neighbors-cross-cohort.json",
+        "sha256": "dad757379faa50c3a0beced9af5ec6eec2e919e05503e56f51b50ee6b740062c"
+      },
+      "all_neighbor_words_matched": true,
+      "leaves": 10235,
+      "neighbor_sha256": "146ae715ad5abec18aa87ae2025ebd1d68f2978800563516c2fb562f7f342193",
+      "scope": "Whole-world digest differs. Each of the six native adjacent words for all 10235 lamps matches exactly, and the leaf digest is identical. Reuse the existing fixed directional atlas with its original topology control; the native experiment uses the current world on both sides."
     }
   }
 }
