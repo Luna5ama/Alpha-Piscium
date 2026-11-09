@@ -4410,5 +4410,121 @@
       },
       "state": "Both native captures accepted; different world voxel hashes, require a fresh matched pair."
     }
+  },
+  "stage7_live_upper_and_cube": {
+    "parallel_coarse_moving4": {
+      "source": "11482bf26ae73fe27c0736771adf7757e7cbbfc5",
+      "quality": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-camera-prefix-paired-parallel-dynamic-coarse-upper-dynamic-coarse-parallel-cosine-brdf.json",
+        "sha256": "7fb005f173ed98b536fc6592f8d4e79436414649b3d5f76e4354dfa4ae1d38d0"
+      },
+      "topology": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-parallel-coarse-fp32-replay.json",
+        "sha256": "031669eacbc7ff0da9a9ab171813a0bc667ab3aefae26fa0a55dcea4c43cb14e"
+      },
+      "whole_tail_v_times_t_vs_camera": 0.7551,
+      "initial_mean_ratio_vs_camera": 1.03166,
+      "stage3_ms": 0.396288,
+      "total_build_ms": 0.77824,
+      "serial_stage3_ms": 0.78848,
+      "serial_total_build_ms": 1.170432,
+      "decision": "Parallelization reproduced the serial moving4 topology. Reverse Camera timing and generalization remain pending."
+    },
+    "coarse_morton_anchor_moving4": {
+      "source": "15df1311d5c1fe2e87d47f64bf724e853f84fb42",
+      "quality": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-camera-prefix-paired-anchor-dynamic-coarse-anchor-dynamic-coarse-parallel-outer-near-cosine-brdf.json",
+        "sha256": "a0b7d0906a8e3edddc7fbdb71a8bcb3ccfee606b59dd43aa48031fcc4d4c95c6"
+      },
+      "topology": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-anchor-coarse-topology.json",
+        "sha256": "4b1420bda3c1741ada1d9ee52cf91394949b1145a051e74f4bb32784fde0aea7"
+      },
+      "whole_tail_v_times_t_vs_camera": 0.789,
+      "connected_planes_v_times_t_vs_camera": [
+        0.62,
+        0.333,
+        0.963
+      ],
+      "initial_mean_ratio_vs_camera": 0.997975,
+      "stage3_ms": 0.103424,
+      "total_build_ms": 0.484352,
+      "decision": "Strong moving4 screen. Source and CPU topology agree; real anchor motion and reverse timing remain pending."
+    },
+    "lookahead_fast_cull_ls1": {
+      "source": "b9ea9a60592feb3d3962f17ff12e45e785fd8fee",
+      "quality": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-surfaces-camera-paired-lookcull-lookahead-fast-cull.json",
+        "sha256": "e8cfb2a2ddbc3a97698c20df88eb193382175499717bd6a4913a181317da2753"
+      },
+      "initial_p50_ratio": 1.049232054197021,
+      "camera_mean_ms_approx": 11.36,
+      "candidate_mean_ms_approx": 18.59,
+      "decision": "Reject for now; the mean exceeds the cap. No attribution to GPU contention."
+    },
+    "cube_silhouette_ls1": {
+      "audit": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-1/cube-silhouette-audit/audit.bin",
+        "sha256": "76be64df80cdb7cfb9b1ce2b7f6b5f6342cda36481255f16b1b5167793c2fd02"
+      },
+      "rejected_restore_witness": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls1-cube-silhouette-failure-witness.json",
+        "sha256": "8448e9ee79abcc3d043cf8c02379ed2076bcf65dcfb7e02a064ad6503e94d946"
+      },
+      "numerical_bad_pdfs": 1,
+      "reconstructed_positive_slab_misses": 51,
+      "decision": "Do not rank the ellipse inversion. Two native diagnostic rays had large double-precision slab misses, relative gap 0.753 and 0.939, with first uniform variate above 0.99999; most other misses were small. Far-plane-area replacement is a separate proposal, pending runtime acceptance.",
+      "far_plane_source": "480550f3094ff699436c0a8162984600545143c2"
+    },
+    "directional_sidecar_screen_ls1": {
+      "source": "eadb865210c97e370f1ac2ee1762e5ae156f583f",
+      "sidecar": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls1-directional-8b-atlas.json",
+        "sha256": "264395bdf46f9466b3d1ab24c9cee1f0436dfecb9fadd4aa4a16c11b7568b918"
+      },
+      "screen": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls1-packed-directional-offline.json",
+        "sha256": "31b878012ddf9e307701d2ea165c5d1b207855c04e346fc2f6f7febe60964c87"
+      },
+      "decision": "Offline exact-leaf proposal replay only. Better than exposed-only at the chosen points; adverse-point variance still about 2.27 times Prefix."
+    },
+    "ls2_cohort": {
+      "pair": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-2-camera-paired-prefix-prefix-paired-camera.json",
+        "sha256": "2fda6d086e4aec03ff5ebf12f85ddc6a9e68fac8b24fc4bc38d941d4720df412"
+      },
+      "decision": "Camera and Prefix share the 838a voxel cohort. Earlier cosine BRDF capture is a different voxel cohort; do not pool."
+    },
+    "restoration": {
+      "first_failed_job": "71dbcd97-d7b9-406a-8a4e-38ae3fb1bcba",
+      "first_recovery": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/runtime-recover-95762370/result.json",
+        "sha256": "23304194c8237307ecf30ef92cb15f56dfa20fd1b338c7d420145a8e94a61139"
+      },
+      "first_rejected_artifact": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/rejected/ls1-fast-empty-restore-failed/manifest.json",
+        "sha256": "05f7a00b67e4eab326a2dc06cf3b96552de1d2d1dcf2c038b67dc664124ed066"
+      },
+      "second_failed_job": "a43b5c4f-ee16-4411-883e-cfc30a137f4f",
+      "second_failure": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/ls1-silhouette-witness-restore-failed/result.json",
+        "sha256": "fe2873900d9beac9b6c9574ee8fadf4ffe0dc37a45e24e75fe17f6a4eb2ab0d6"
+      },
+      "second_recovery": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/runtime-recover-217b1d10/result.json",
+        "sha256": "6167ed6a54961081ff81fd600c7d1fb3f0621f7987ccbbf4d918884130ab5b7b"
+      },
+      "second_rejected_artifact": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/rejected/ls1-silhouette-witness-restore-failed/manifest.json",
+        "sha256": "8f47d1ee0249c405e81fba6dbba930b88194332ced44e002a71576713a54a30f"
+      },
+      "expected_scene_prefix": "6541ce12",
+      "failure_scene_prefix": "9b18557e",
+      "decision": "Both LS1 transactions committed native diagnostic artifacts and then failed to restore the original scene hash. Both explicit source-free recover_runtime runs restored exact scene, source and settings and reset temporal state. Retain the failed data for diagnostic use only."
+    },
+    "low_frequency_series": {
+      "tool": "scripts/light_sampling_exploration_lowfreq.py",
+      "decision": "Prepared 4 disjoint 32-frame windows per method and a separate reverse-order batch; not yet run."
+    }
   }
 }
