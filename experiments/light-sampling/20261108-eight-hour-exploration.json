@@ -4714,5 +4714,258 @@
       "emitting_uv_matched": false,
       "decision": "Separate 6feb world-voxel cohort. Do not merge with the 838a Camera/Prefix pair. World voxel, leaves, geometry and consumed G-buffer match within the pair; the observed emitting-UV snapshots do not."
     }
+  },
+  "stage9_anchor_holdouts_and_far_audit": {
+    "ls5_anchor": {
+      "report": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-paired-anchor-dynamic-coarse-anchor-prefix-cosine-brdf.json",
+        "sha256": "d91ac2cae2a4f9956cdda0411a96ab6b745270855e6c435030203b23e9013b00"
+      },
+      "compared_pixels": 2066955,
+      "mean_time_ratio": 0.9559437484060509,
+      "median_time_ratio": 0.8759048603929679,
+      "windows": {
+        "whole": [
+          {
+            "base_tail_v": 0.2703669395415773,
+            "trial_tail_v": 0.35672449378315857,
+            "tail_vtimes_p50_ratio": 1.1556764982274756,
+            "tail_vtimes_mean_ratio": 1.261280503871972
+          },
+          {
+            "base_tail_v": 0.2694869664937567,
+            "trial_tail_v": 0.35483192401305114,
+            "tail_vtimes_p50_ratio": 1.153298843759927,
+            "tail_vtimes_mean_ratio": 1.2586855828629675
+          }
+        ],
+        "A: left sandstone wall": [
+          {
+            "base_tail_v": 0.004064683577123013,
+            "trial_tail_v": 0.5975148064993371,
+            "tail_vtimes_p50_ratio": 128.7593765269109,
+            "tail_vtimes_mean_ratio": 140.5252175268663
+          },
+          {
+            "base_tail_v": 0.0039681216598336745,
+            "trial_tail_v": 0.6051830987991845,
+            "tail_vtimes_p50_ratio": 133.58532401652778,
+            "tail_vtimes_mean_ratio": 145.79215294581743
+          }
+        ],
+        "B: blue-lit pillar": [
+          {
+            "base_tail_v": 0.030875157030667587,
+            "trial_tail_v": 0.0023013792710883324,
+            "tail_vtimes_p50_ratio": 0.06528838985828181,
+            "tail_vtimes_mean_ratio": 0.07125434616325893
+          },
+          {
+            "base_tail_v": 0.030838558660520304,
+            "trial_tail_v": 0.002379991903826922,
+            "tail_vtimes_p50_ratio": 0.06759870003025434,
+            "tail_vtimes_mean_ratio": 0.07377576905476474
+          }
+        ],
+        "C: blue floor below pillar": [
+          {
+            "base_tail_v": 0.00044549929860940426,
+            "trial_tail_v": 0.0009717233708546819,
+            "tail_vtimes_p50_ratio": 1.910524272756032,
+            "tail_vtimes_mean_ratio": 2.08510514931926
+          },
+          {
+            "base_tail_v": 0.0004522803084900732,
+            "trial_tail_v": 0.0010387999506566523,
+            "tail_vtimes_p50_ratio": 2.011783198772864,
+            "tail_vtimes_mean_ratio": 2.1956169659253173
+          }
+        ],
+        "D: blue floor in right shadow": [
+          {
+            "base_tail_v": 0.001693370170985659,
+            "trial_tail_v": 0.0010271982792329432,
+            "tail_vtimes_p50_ratio": 0.5313238539236367,
+            "tail_vtimes_mean_ratio": 0.5798754402497982
+          },
+          {
+            "base_tail_v": 0.0017259976239361336,
+            "trial_tail_v": 0.0010404075347898582,
+            "tail_vtimes_p50_ratio": 0.5279833551761732,
+            "tail_vtimes_mean_ratio": 0.5762296916775579
+          }
+        ]
+      }
+    },
+    "ls5_geometry_only": {
+      "report": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-paired-anchor-geometry-anchor-geometry-only-camera-paired-anchor-dynamic-coarse-anchor.json",
+        "sha256": "e3cf5bbad94b986e2f6305fde75084860b14391df7c92602cc2801daebf95d34"
+      },
+      "compared_pixels": 2066956,
+      "mean_time_ratio": 0.9990910465016525,
+      "median_time_ratio": 1.0077186963979416,
+      "windows": {
+        "whole": [
+          {
+            "base_tail_v": 0.27036693864497613,
+            "trial_tail_v": 0.45871527116513383,
+            "tail_vtimes_p50_ratio": 1.7097355075775515,
+            "tail_vtimes_mean_ratio": 1.6950974945811066
+          },
+          {
+            "base_tail_v": 0.2682021959085328,
+            "trial_tail_v": 0.4529502676828344,
+            "tail_vtimes_p50_ratio": 1.7018744076133903,
+            "tail_vtimes_mean_ratio": 1.6873036979413085
+          }
+        ],
+        "A: left sandstone wall": [
+          {
+            "base_tail_v": 0.004064683577123013,
+            "trial_tail_v": 0.3034062637048301,
+            "tail_vtimes_p50_ratio": 75.22065586123936,
+            "tail_vtimes_mean_ratio": 74.57664926886414
+          },
+          {
+            "base_tail_v": 0.003756687211372746,
+            "trial_tail_v": 0.32426540452527186,
+            "tail_vtimes_p50_ratio": 86.98310302383477,
+            "tail_vtimes_mean_ratio": 86.23839146646763
+          }
+        ],
+        "B: blue-lit pillar": [
+          {
+            "base_tail_v": 0.030875157030667587,
+            "trial_tail_v": 0.006792429881211577,
+            "tail_vtimes_p50_ratio": 0.22169469708186793,
+            "tail_vtimes_mean_ratio": 0.21979664335206897
+          },
+          {
+            "base_tail_v": 0.030869848242458968,
+            "trial_tail_v": 0.0069398176960559065,
+            "tail_vtimes_p50_ratio": 0.2265441665595879,
+            "tail_vtimes_mean_ratio": 0.22460459377790862
+          }
+        ]
+      }
+    },
+    "ls5_wall_fixture": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/ls5-wall-mode3-fixture.json",
+      "sha256": "467697199194b2a5d9f993ebb7c4e6c2dcd73199f828b1225381539794023509"
+    },
+    "ls3_anchor": {
+      "report": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-3-camera-paired-anchor-dynamic-coarse-anchor-prefix-cosine-brdf.json",
+        "sha256": "e42c8c0ec32ad6ac51dbb1c7f57343dfd691ca3d3b7f16c70c2b83b3c8b60cf2"
+      },
+      "compared_pixels": 1858913,
+      "mean_time_ratio": 0.9286940441430875,
+      "median_time_ratio": 0.9284804453460396,
+      "windows": {
+        "whole": [
+          {
+            "base_tail_v": 0.5516527076803731,
+            "trial_tail_v": 0.9576422604500522,
+            "tail_vtimes_p50_ratio": 1.611796878879866,
+            "tail_vtimes_mean_ratio": 1.6121676759991164
+          },
+          {
+            "base_tail_v": 0.5464140379470628,
+            "trial_tail_v": 0.969613644573368,
+            "tail_vtimes_p50_ratio": 1.6475918369694158,
+            "tail_vtimes_mean_ratio": 1.64797086879089
+          }
+        ]
+      }
+    },
+    "g32_moving4": {
+      "report": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-prefix-g32-anchor-g32.json",
+        "sha256": "08fbe5295879dedd27bf6618c67670afd111eef99a41a6ae4c3bc1c0133f2f07"
+      },
+      "compared_pixels": 2022173,
+      "mean_time_ratio": 0.8630414990456932,
+      "median_time_ratio": 0.8032786885245902,
+      "windows": {
+        "whole": [
+          {
+            "base_tail_v": 0.05590604012884768,
+            "trial_tail_v": 0.016873718499647014,
+            "tail_vtimes_p50_ratio": 0.2424478363284312,
+            "tail_vtimes_mean_ratio": 0.2604856161310555
+          },
+          {
+            "base_tail_v": 0.05615302337046506,
+            "trial_tail_v": 0.016850447577460924,
+            "tail_vtimes_p50_ratio": 0.24104856014207993,
+            "tail_vtimes_mean_ratio": 0.2589822357542331
+          }
+        ],
+        "side-a connected plane": [
+          {
+            "base_tail_v": 1.1297878054277746,
+            "trial_tail_v": 0.2640991357339911,
+            "tail_vtimes_p50_ratio": 0.1877743823872776,
+            "tail_vtimes_mean_ratio": 0.20174453371288997
+          },
+          {
+            "base_tail_v": 1.1459041164523796,
+            "trial_tail_v": 0.2621757712230166,
+            "tail_vtimes_p50_ratio": 0.18378519340950433,
+            "tail_vtimes_mean_ratio": 0.197458554656633
+          }
+        ],
+        "side-b connected plane": [
+          {
+            "base_tail_v": 0.009926031340280762,
+            "trial_tail_v": 0.002761352753693175,
+            "tail_vtimes_p50_ratio": 0.22346653385417162,
+            "tail_vtimes_mean_ratio": 0.2400921313103472
+          },
+          {
+            "base_tail_v": 0.008960770751657084,
+            "trial_tail_v": 0.0025858404328457066,
+            "tail_vtimes_p50_ratio": 0.2318048937080594,
+            "tail_vtimes_mean_ratio": 0.24905085347077144
+          }
+        ],
+        "top connected plane": [
+          {
+            "base_tail_v": 0.14598757722003028,
+            "trial_tail_v": 0.05126370861714658,
+            "tail_vtimes_p50_ratio": 0.2820722517014157,
+            "tail_vtimes_mean_ratio": 0.30305803256740027
+          },
+          {
+            "base_tail_v": 0.14583085131555454,
+            "trial_tail_v": 0.05137962429186517,
+            "tail_vtimes_p50_ratio": 0.28301389483593775,
+            "tail_vtimes_mean_ratio": 0.30406973263363346
+          }
+        ]
+      }
+    },
+    "g32_topology": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-g32-anchor-coarse-topology.json",
+      "sha256": "904cd8ca4824aa4c1b1f266ecf742c2f05eb046ac8ba85445837f28b1ca1f56a"
+    },
+    "far_plane_ls3": {
+      "far": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls3-far-plane-count-audit.json",
+        "sha256": "3a2b6ce7456c812f4a3fe425ce2486b4d5105393bdb3291c6eb5d9a2d57ce600"
+      },
+      "legacy": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls3-legacy-cube-count-audit.json",
+        "sha256": "a902095cfc2f0776c1252b50e5207f1a168c32f4a09f93aa0c858c4c90f9ab18"
+      },
+      "witness_source": {
+        "ref": "experiment/light-sampling-eight-hour-cube-far-plane-failure-witness",
+        "source": "01d2c1f8e126c48f3bffe7c151be07296d15801d",
+        "parent": "c7e221dacd9a7fd52c2e996e0354d81371d14399"
+      },
+      "decision": "Independently validated 38 far plane PDFs, max relative error 4.04e-6; 1 of 1,368,649 far-plane draws flagged slab miss, no bad PDFs. Legacy-only diagnostic logged 1 bad PDF and 13 slab misses in 1,980,303 receivers. Hold far-plane performance/quality ranking pending the exact failure witness."
+    },
+    "decision": "Do not generalize the moving4 winner. LS5 has a large absolute sandstone wall regression at both 50/50 and 75/25; near weighting amplifies it. LS3 whole-image tails worsen. In moving4 at G32 the 31,994-light, 30-root native topology matches CPU and anchor beats Prefix; the Camera cap at G32 is pending."
   }
 }
