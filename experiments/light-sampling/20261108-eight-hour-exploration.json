@@ -5491,12 +5491,12 @@
         "closure": "Native far support/PDF check passes. Camera ABBA mean 1.359, both adjacent median pairs above 1.33, and two LS3 quality windows have slightly higher whole-image tail V."
       },
       "directional_8b": {
-        "state": "pending_gpu",
-        "closure": "Existing frozen LS1 sidecar only. Evaluate it against its exact topology control when source identity matches. Report offline Anchor+gate L1 directional screen separately from native fixed L2."
+        "state": "closed_native_frozen_tradeoff",
+        "closure": "Actual LS1 native PDF, 1spp/two 32f windows on the same topology, and Camera mean pass screen complete. Red-pillar connected-plane V about 0.49, whole-image V about 1.04 relative to the no-sidecar control, with same-topology group pass 1.058. Dynamic build has no acceptance claim."
       },
       "lookahead": {
-        "state": "partly_closed",
-        "closure": "Original and CDF/cube fast path exceed the 1.25 mean cap in at least one qualified order. The distinct fast-cull source gets one paired retest to resolve its severe mixed-pass timing screen."
+        "state": "closed_mean_cap_failed",
+        "closure": "Original and CDF/cube fast path have accepted mean-cap failures. Distinct fast-cull now also exceeds the cap in one matched order, 1.248 ABBA and 1.268 BAAB on LS1."
       },
       "k": {
         "state": "closed_on_measured_tradeoffs",
@@ -6781,6 +6781,213 @@
       "leaves": 10235,
       "neighbor_sha256": "146ae715ad5abec18aa87ae2025ebd1d68f2978800563516c2fb562f7f342193",
       "scope": "Whole-world digest differs. Each of the six native adjacent words for all 10235 lamps matches exactly, and the leaf digest is identical. Reuse the existing fixed directional atlas with its original topology control; the native experiment uses the current world on both sides."
+    },
+    "lookahead_fast_cull": {
+      "timing": [
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-1/ls1-lookahead-fast-cull-abba/accepted.json",
+            "sha256": "2788d2c0f4ab04b22688c862a0f0e444f225cba5c354998bb2ba23d6ed0898e7"
+          },
+          "job": "0fbd57a0-ba35-4c57-b7bc-3f0c19a62c4d",
+          "order": [
+            "camera",
+            "candidate",
+            "candidate",
+            "camera"
+          ],
+          "mean_pass_ratio": 1.2475998039132739,
+          "mean_pass_cap": true,
+          "paired_medians": [
+            1.228509181450358,
+            1.2530807551127425
+          ],
+          "source": {
+            "camera": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+            "candidate": "b9ea9a60592feb3d3962f17ff12e45e785fd8fee"
+          },
+          "identity": {
+            "camera_sha256": "5d66f77e17b8bdf105438d2336a68a9081fdf21c181cff7699b5ccd045e57902",
+            "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+            "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+          }
+        },
+        {
+          "evidence": {
+            "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-1/ls1-lookahead-fast-cull-baab/accepted.json",
+            "sha256": "ee96520ab45f407769db9a3e66b3c61c6d9feb9dab8c565de13045cba17ed177"
+          },
+          "job": "b0a03ca5-0e70-4ea1-ad31-4cc9f1500011",
+          "order": [
+            "candidate",
+            "camera",
+            "camera",
+            "candidate"
+          ],
+          "mean_pass_ratio": 1.2678380764300585,
+          "mean_pass_cap": false,
+          "paired_medians": [
+            1.306094895203806,
+            1.2787588294651866
+          ],
+          "source": {
+            "candidate": "b9ea9a60592feb3d3962f17ff12e45e785fd8fee",
+            "camera": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9"
+          },
+          "identity": {
+            "camera_sha256": "5d66f77e17b8bdf105438d2336a68a9081fdf21c181cff7699b5ccd045e57902",
+            "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+            "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+          }
+        }
+      ],
+      "source": "b9ea9a60592feb3d3962f17ff12e45e785fd8fee",
+      "scope": "Repeat LS1 paired timing closes the near-threshold screen. BAAB exceeds 1.25 despite the ABBA mean slightly below. Earlier raw mixed-pass spike stays a separate observation."
+    },
+    "directional_8b": {
+      "quality": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-1-reprojected-surfaces-exposed-ls1-closeout-directional-ls1-closeout.json",
+        "sha256": "9badf16a5534a06e81c6452778350e015a4bff538451c16a6ce5a07c4dcbeb7f"
+      },
+      "native_pdf": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ls1-frozen-directional-8b-native-pdf.json",
+        "sha256": "90fc8b703bcbc9eead3e6f4dfc039e7277452f54d31e91b835681c9f1ad4af89"
+      },
+      "same_input_checks": [
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ls1-directional-sidecar-neighbors-native-audit.json",
+          "sha256": "3c663eecf53e5bf011f2f65ecf94e948904be5c67e96b8fabfc9fcc7d631825c"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ls1-directional-sidecar-neighbors-quality.json",
+          "sha256": "e74eb302a2d8aac535c18cc86aa4f146db1eb452c22479ae40a71ce86a1ce5f8"
+        }
+      ],
+      "same_topology_input": "10d7d4b16f47ce567a37cc09e13fe41a6c2546045497319c0037831f15c42794",
+      "matching_emitting_uv": true,
+      "common_complete_pixels": 2012384,
+      "mean_pass_ratio_vs_same_topology_group_screen": 1.05779240896939,
+      "camera_mean_timing": {
+        "evidence": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-1/ls1-frozen-directional-8b-camera-abba/accepted.json",
+          "sha256": "0c0fd12999a1c6299386cae59912613244d082a18863bb736ee8792d6e184364"
+        },
+        "job": "0df241aa-2db6-4f9a-a46f-0bb8c33ac47c",
+        "order": [
+          "camera",
+          "candidate",
+          "candidate",
+          "camera"
+        ],
+        "mean_pass_ratio": 1.0252327928631895,
+        "mean_pass_cap": true,
+        "paired_medians": [
+          1.0147858925942521,
+          1.0357562312410282
+        ],
+        "source": {
+          "camera": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+          "candidate": "eadb865210c97e370f1ac2ee1762e5ae156f583f"
+        },
+        "identity": {
+          "camera_sha256": "5d66f77e17b8bdf105438d2336a68a9081fdf21c181cff7699b5ccd045e57902",
+          "leaf_sha256": "ce3347600e2d804aeaea14082eeb84a971dce2f2154797c7f1ba52f0795d0631",
+          "world_voxel_sha256": "023bcd36b56717e760c6fed9c356ab574fa3d95f76c4766d20fe9293a3351b21"
+        }
+      },
+      "regions_vs_same_topology": {
+        "whole": [
+          {
+            "pixels": 2012384,
+            "control_v": 0.6126175751701463,
+            "trial_v": 0.6367523093304008,
+            "ratio_v": 1.0393960851572883,
+            "ratio_vt_group_screen": 1.0994652887918812
+          },
+          {
+            "pixels": 2012384,
+            "control_v": 0.6132919611168403,
+            "trial_v": 0.6408681237036992,
+            "ratio_v": 1.0449641676969663,
+            "ratio_vt_group_screen": 1.1053551642348676
+          }
+        ],
+        "red-pillar": [
+          {
+            "pixels": 64,
+            "control_v": 0.04142757013323717,
+            "trial_v": 0.011956498943618499,
+            "ratio_v": 0.2886121224383819,
+            "ratio_vt_group_screen": 0.3052917122518645
+          },
+          {
+            "pixels": 64,
+            "control_v": 0.04170566870016046,
+            "trial_v": 0.022400523819669615,
+            "ratio_v": 0.5371098106762506,
+            "ratio_vt_group_screen": 0.5681506805163241
+          }
+        ],
+        "central-ceiling": [
+          {
+            "pixels": 64,
+            "control_v": 0.08820775130880065,
+            "trial_v": 0.10267460666364059,
+            "ratio_v": 1.1640088896971637,
+            "ratio_vt_group_screen": 1.2312797674945477
+          },
+          {
+            "pixels": 64,
+            "control_v": 0.06843693391419947,
+            "trial_v": 0.05110747230355628,
+            "ratio_v": 0.746782028073183,
+            "ratio_vt_group_screen": 0.7899403604505788
+          }
+        ],
+        "red-pillar connected plane": [
+          {
+            "pixels": 130283,
+            "control_v": 0.039616831432207594,
+            "trial_v": 0.01956378490039589,
+            "ratio_v": 0.49382507871366443,
+            "ratio_vt_group_screen": 0.5223644196220257
+          },
+          {
+            "pixels": 130283,
+            "control_v": 0.03947204287993784,
+            "trial_v": 0.01932689146609259,
+            "ratio_v": 0.4896349430121775,
+            "ratio_vt_group_screen": 0.5179321258844413
+          }
+        ],
+        "central-ceiling connected plane": [
+          {
+            "pixels": 146664,
+            "control_v": 0.2402543392159538,
+            "trial_v": 0.2321742401860416,
+            "ratio_v": 0.9663685615157637,
+            "ratio_vt_group_screen": 1.0222173286380438
+          },
+          {
+            "pixels": 146664,
+            "control_v": 0.24090408616926476,
+            "trial_v": 0.22633649111065504,
+            "ratio_v": 0.9395294812543188,
+            "ratio_vt_group_screen": 0.9938271532737671
+          }
+        ]
+      },
+      "storage": {
+        "logical_bytes_per_node": 8,
+        "static_nodes": 15336,
+        "logical_bytes": 122688,
+        "texture_allocation_delta_bytes": 131072
+      },
+      "scope": "Native L2 directional weighting on one frozen LS1 topology, with matched six-neighbor input and 63 selected leaf PDFs. The red connected plane improves while whole-image tail worsens. The independent Anchor+gate L1 screen is an offline follow-up with different inputs, not the implementation tested here.",
+      "offline_anchor_l1_review": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/offline-anchor-directional.json",
+        "sha256": "4b171b6881d6d6ab9cec0cb097a1c497da68b4416aee4128704cd5c6ba8899ed"
+      }
     }
   }
 }
