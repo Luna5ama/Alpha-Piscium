@@ -2,6 +2,29 @@
 
 Language: English | [简体中文](../../sc/modules/light-sampling-clustering-repair-prompt.md)
 
+## Offline follow-up after review (2026-11-08)
+
+This diagnosis follows result commit `e426ff265` and supersedes the unexecuted GPU candidate expansion/dynamic construction in this prompt. The red-pillar stop remains effective. Use retained references offline only: no new GPU jobs, runtime/weight/default changes, or lookahead/K work.
+
+The original World Prefix/Camera comparison changed only the cross-brick hierarchy; global SAH also rebuilt brick interiors. Its red-pillar regression therefore cannot yet be attributed entirely to the upper hierarchy. With fixed 12-bin flux light-SAH + Kr, identical deterministic four-way conversion, and A + Near/Far, compare four logical trees:
+
+| Method | Cross-brick hierarchy | Brick interiors |
+|---|---|---|
+| Existing control | Original World Prefix | Original Morton subtrees |
+| Upper-only change | Light-SAH over actual brick-root AABBs/flux | Preserve complete original subtrees |
+| Interior-only change | Original World Prefix topology | Build light-SAH separately over each brick's emitters |
+| Existing global candidate | Global light-SAH | No fixed brick-subtree boundaries |
+
+Upper SAH primitives are variable-sized actual brick-root AABBs, not uniform points or unit cubes. Bin their true bounding-box centers, use complete areas/flux, and tie-break with stable world brick keys. The interior-only variant must retain upper semantic membership; report floating-point differences from new flux reductions separately. Extract native brick roots or maximal single-brick logical subtrees, verifying complete disjoint coverage and each brick's world emitter keys. **Indivisible bricks are a diagnostic control, not a decision to narrow the final global cross-brick scope.**
+
+Reuse the [new-receiver compact reference](../../../experiments/light-sampling/20261108-clustering-repair-reference.npz), [original five-point reference](../../../experiments/light-sampling/20261108-cluster-summaries-reference.npz), and [new moving interior points](../../../experiments/light-sampling/20261108-nearfar-combination-reference.npz). Evaluate each complete input cohort separately and retain both windows; do not multiply old ls1 results with new whole-image ratios. Do not add another Kr sweep or clustering algorithm. Verify matching builders/formulas before reusing existing control results.
+
+Report per-point conditional variance, positive-M2 support, null probability, and node/depth counts, emphasizing the new red pillar, central ceiling, ls5 vertical face, and moving interior points. Add one diagnostic at the red pillar: retain all descendant conditional proposals and replace only root probabilities with their conditional-M2 optimum. Child j has `A_j = sum_i(M2_i / p(i|j))`; root probabilities are proportional to `sqrt(A_j)`, and minimum variance is `(sum_j sqrt(A_j))² - ||sum_i mean_i||²`. This is neither a runtime oracle nor a new weight candidate. It measures how much root-only correction can explain; globally optimal per-light shares are not substitutes.
+
+Reuse existing scripts/result entry and store this follow-up in a separate field. Deliver reproducible findings identifying upper, interior, or interaction effects and whether upper-only changes preserve existing improvements, without promoting them to a runtime fix. The discussion chat owns this round's bilingual design updates; the experiment chat owns scripts, result fields, and necessary compact inputs while preserving previous results. Use Idle for expensive computation and retain existing evidence agreements.
+
+Continue the human-authorized two-chat arrangement and return route: experiment chat `01a18648-f66e-78e0-8d01-cd906ca45429`, host=`local`; notify discussion chat `01a18c0e-8678-7800-8ab8-04b69f072f12` with commits, result fields, and limitations for review. No additional stage approval is required.
+
 ## Task and authorization
 
 Prioritize clustering quality for the world-stable light tree, and verify current Near/Far cost and benefit. The user's latest instruction prioritizes clustering, defers one-level lookahead and K1/K2/K4 until clustering is repaired, and authorizes arranging the next work. Pause new combinations and selection among those summaries/lookahead candidates; retain existing code, images, and evidence. All clustering comparisons use Half-space A + Near/Far (model 6); do not change production defaults.

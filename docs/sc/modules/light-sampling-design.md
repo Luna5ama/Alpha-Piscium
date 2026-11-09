@@ -72,6 +72,10 @@ ls5 的 2,172 灯同输入冻结原型通过实机节点回读和 PDF 验证。�
 
 [ls5 八图对比页](../../../builds/light-sampling/20261108-clustering-repair/viewer/comparison.html)包含四种方法的 1 spp、32 帧均值和垂直面标记。[实验记录](../../../experiments/light-sampling/20261108-clustering-repair.json)与[可复算 M2 参考](../../../experiments/light-sampling/20261108-clustering-repair-reference.npz)保存输入身份、根层诊断、计时和复查入口。
 
+讨论端独立复查接受上述**诊断与有限范围测量**，拒绝将该全局 SAH 候选提升为修复基线。[逐点复算](../../../builds/light-sampling/20261108-clustering-repair/review/new-point-review.json)的 8 窗 × 7 方法与报告最大相对差为 3.12e-16；[实机原件与图像复查](../../../builds/light-sampling/20261108-clustering-repair/review/quality-review.json)重算 ls5 共同完整像素与全部八张图，64 条实际选灯 PDF 最大相对差 5.35e-7；[ABBA 复算](../../../builds/light-sampling/20261108-clustering-repair/review/timing-review.json)核对原始样本、载入来源／设置和灯／体素身份。共验证五份 manifest 的 282 个文件。浏览器交互沿用实验端记录，本端直接查看图像并独立检查全部原始行方向与无损像素。ls5 冻结质量有两个非有限接收像素，被四方法共同完整掩码排除；没有掩盖或宣称修复其原因。上述材料／深度和有限窗口限制保持不变。
+
+Near/Far 在这批点与 ls5 的收益已确认，继续用于聚类实验；当前证据不支持“所有区域都无回退”或“成本可以忽略”。普通面积／通量 SAH 仍有稳定反例，不能直接据此选择 H-PLOC 或宣称全部聚类方法无效。原始前缀／相机对照只改上层，而全局候选也重做了 brick 内部；下一步用[离线分层隔离任务](light-sampling-clustering-repair-prompt.md#复查后的离线补充任务2026-11-08)区分只改上层、只改内部和全局重建，并量出只修根层的理想诊断上限。不可拆 brick 仅作控制，不收缩最终跨 brick 范围；GPU 扩展／动态构建停线继续有效，前瞻及 K 系列保持暂停。
+
 
 ### 前一轮路线与依据（2026-11-01）
 

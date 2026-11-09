@@ -7103,5 +7103,112 @@
     "path": "builds/light-sampling/20261108-clustering-repair",
     "purpose": "Keep accepted M2, ABBA, ls5 prototype captures, image verification and source setup through independent review.",
     "owner": "Light Sampling experiment chat after independent review. Historical paused and denied cleanup items remain untouched."
+  },
+  "independent_review": {
+    "reviewed_result_commit": "e426ff2659461c7152cfb6603ee35571cde4d3f9",
+    "decision": "Accept scoped diagnostic evidence; reject the current global SAH candidate as a repair baseline. Continue offline layer isolation, with no new GPU work.",
+    "moment_windows": 8,
+    "methods_per_window": 7,
+    "moment_max_variance_relative_error": 3.113320867103378e-16,
+    "moment_scope": "Independent scalar A/NearFar PMFs, raw versus compact moments bit-identical, tree parent/bounds/leaf-flux checks; candidate builders reused. ls1 cohort remains separate from the recent whole-image grouping capture.",
+    "red_pillar_root_fixed_inner_optimum": [
+      {
+        "actual": 0.690212400699334,
+        "fixed_inner_optimum": 0.8230170003816605
+      },
+      {
+        "actual": 0.690212400699334,
+        "fixed_inner_optimum": 0.8228542205123816
+      }
+    ],
+    "ls5_quality": {
+      "whole_scene": {
+        "common_complete": 2066954,
+        "excluded": 2,
+        "sah_over_prefix": 0.706078044027511,
+        "sah_over_camera": 1.0606521981017887
+      },
+      "reviewed-vertical-face": {
+        "common_complete": 81,
+        "excluded": 0,
+        "sah_over_prefix": 0.6162762436824549,
+        "sah_over_camera": 3.1761711571117752
+      }
+    },
+    "gpu_pdf": {
+      "records": 64,
+      "max_relative_error": 5.347458880538954e-07
+    },
+    "nearfar_ls5": {
+      "whole_scene": {
+        "pixels": 2066956,
+        "variance_on_over_off": 0.2586405544675174
+      },
+      "reviewed-vertical-face": {
+        "pixels": 81,
+        "variance_on_over_off": 0.409248302971609
+      }
+    },
+    "timing": [
+      {
+        "scene": 1,
+        "initial_a_ms": 7.306424,
+        "initial_b_ms": 7.513876,
+        "initial_ratio": 1.0283930962670658,
+        "voxel_scope": "Whole ordered frozen-job endpoints",
+        "depth_status": "No depth snapshots in this timing job; receiver identity not independently checked"
+      },
+      {
+        "scene": 5,
+        "initial_a_ms": 3.077548,
+        "initial_b_ms": 3.6320120000000005,
+        "initial_ratio": 1.1801642086492234,
+        "voxel_scope": "Whole ordered frozen-job endpoints",
+        "depth_status": "Identical valid depth at both endpoints"
+      }
+    ],
+    "verified_manifests": 5,
+    "verified_manifest_files": 282,
+    "images": {
+      "count": 8,
+      "full_raw_reverse_rows_and_lossless_pixels_verified": true,
+      "browser": "Reused experiment-side actual browser interaction; independent direct image inspection."
+    },
+    "not_accepted": [
+      "No dynamic GPU builder or live motion validation",
+      "No universal sampling-quality or bias claim",
+      "No current SAH default change",
+      "No isolated texture upload or full dynamic builder cost"
+    ],
+    "artifacts": [
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/new_point_review.py",
+        "sha256": "4338225a41fe167ea4df262dd25214efd9c7d1e3898d549d5d7db925cc43d6b1"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/new-point-review.json",
+        "sha256": "8b6acd76c69dd99ecac97589ad1b19d88ce78760ec49c0c669550bcb142290d7"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/quality_review.py",
+        "sha256": "ede40d4b1da9ccec8257fd044ff81a275aea612f647f49090cbf320ee5c34a47"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/quality-review.json",
+        "sha256": "452a103f249da4ef4d8bc686dd345d6e586ef1aba85756557f99290b3894ac1b"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/timing_review.py",
+        "sha256": "b09f4eb57a8bbc82514e2931c2980c638a43c3ddd9d346cc87d79475fed1dacd"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/timing-review.json",
+        "sha256": "346cd77d17e3bc1b1cd16b88c18784792f860f9c3b0edc4684a23b244a84742d"
+      },
+      {
+        "path": "builds/light-sampling/20261108-clustering-repair/review/offline_review.py",
+        "sha256": "fbfb6e4a99628a7aa8e2d94ca580444f12bfbd7d82f7c6503f2471e3a3b22d3f"
+      }
+    ]
   }
 }
