@@ -1,7 +1,9 @@
 """Reconstruct the GPU's selected leaf PMF and conditional cube PDF."""
 import argparse
+import copy
 import json
 from pathlib import Path
+import subprocess
 
 import numpy as np
 
@@ -16,6 +18,27 @@ from light_sampling_point_screening import Tree
 from light_sampling_weight_reference import cube_pdf, load_tree
 
 
+def directional_openness(receipt, nodes, links, tree):
+    source = receipt['source']
+    atlas_path = 'shaders/textures/light_sampling_frozen_sah.bin'
+    atlas = np.frombuffer(subprocess.check_output(['git','show',f'{source}:{atlas_path}']),'<u4').reshape(-1,4)
+    slot = int(receipt['settings']['SETTING_DEBUG_LIGHT_CLUSTER_SCENE'])
+    offset = int(atlas[slot - 1, 3])
+    assert offset > 0
+
+    # Reproduce the breadth-first order of Tree while keeping native slot IDs.
+    slots = [1]
+    for index in slots:
+        link = int(links[index])
+        if not link & 0x80000000:
+            first, count = link & 0x0fffffff, ((link >> 28) & 7) + 1
+            slots.extend(i for i in range(first, first + count) if nodes[i, 3] > 0.)
+    np.testing.assert_array_equal(nodes[slots, :7], tree.nodes)
+    indices = np.asarray(slots)
+    words = atlas[offset + (indices[:, None] >> 1), 2 * (indices[:, None] & 1) + np.arange(2)]
+    return np.ascontiguousarray(words, dtype='<u4').view('u1').reshape(-1,8)[:,:6] / 255.
+
+
 def main(folder, output, proposal, silhouette=False):
     receipt = read(folder/'accepted.json')
     assert receipt['settings']['SETTING_DEBUG_LIGHT_AUDIT']=='true'
@@ -24,6 +47,7 @@ def main(folder, output, proposal, silhouette=False):
     header,nodes,links = load_tree(folder/'before_tree.bin',model)
     tree = Tree(native_node(nodes,links,1))
     assert len(tree.leaves)==int(header[1]) and header[2]==header[3]==0
+    openness = directional_openness(receipt,nodes,links,tree) if proposal=='directional-8b' else None
     indices = dict(zip(tree.keys,tree.leaves,strict=True))
     data = np.fromfile(folder/'audit.bin','<f4',count=1024).reshape(64,4,4)
     leaves, cubes, nulls = [], [], 0
@@ -33,7 +57,17 @@ def main(folder, output, proposal, silhouette=False):
         if status==0.:
             continue
         origin, normal = row[0,:3].astype(float),row[1,:3].astype(float)
-        base = scores(tree,origin,normal)
+        weighted_tree = tree
+        if openness is not None:
+            delta = .5*(tree.nodes[:,:3] + tree.nodes[:,4:7]) - origin
+            signed_axes = np.c_[np.maximum(-delta,0.),np.maximum(delta,0.)]
+            distance = np.linalg.norm(delta,axis=1)
+            exposed = np.divide((signed_axes*openness).sum(axis=1),distance,
+                                out=openness.mean(axis=1),where=distance>0.)
+            weighted_tree = copy.copy(tree)
+            weighted_tree.nodes = tree.nodes.copy()
+            weighted_tree.nodes[:,3] *= .25 + .75*exposed
+        base = scores(weighted_tree,origin,normal)
         if proposal=='lookahead':
             pmf = endpoints(tree,origin,normal,base[0])['both-endpoints']
         elif proposal=='near-gate':
@@ -85,7 +119,7 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('folder',type=Path)
     parser.add_argument('output',type=Path)
-    parser.add_argument('--proposal',choices=('prefix','outer-near','lookahead','near-gate'),required=True)
+    parser.add_argument('--proposal',choices=('prefix','outer-near','lookahead','near-gate','directional-8b'),required=True)
     parser.add_argument('--silhouette',action='store_true')
     a=parser.parse_args()
     main(a.folder,a.output,a.proposal,a.silhouette)
