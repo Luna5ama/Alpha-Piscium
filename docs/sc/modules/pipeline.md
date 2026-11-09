@@ -27,7 +27,7 @@ deferred（当前为空）
   ↓
 DOFPrepare、TAAPrepare、TAAResolve、FXAA 与 RCAS
   ↓
-Bloom downsample/upsample
+Bloom 下采样与从粗到细重建
   ↓
 PostComposite、曝光、下一帧状态与 OverlayComposite
   ↓
@@ -125,7 +125,7 @@ dispatch。[`EnvProbeUpdate2ReprojectDilate`](../../../shaders/pass/composite/En
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | [`DOFPrepare`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                                                                                                                                                                                              | 可选 DOF prepare                                                                |
 | [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | TAA prepare、resolve、FXAA 与 RCAS                                               |
-| [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                                                                                                                            | 下采样第 1–8 层，可选 [`BloomShape`](../../../shaders/pass/composite/BloomShape.comp.glsl)，从第 8–2 层重建；末级上采样融合进后期合成 |
+| [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl) | 下采样第 1–8 层，从第 8 层向第 1 层重建并注入同层原始数据。PostComposite 将第 1 层上采样到视口。 |
 | [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur 与 post composite                                        |
 | [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) → [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                                         | next-frame RTWSM warp 与 exposure mip                                          |
 | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl) → [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl)                                                                                                           | exposure gather 与 RTWSM 2D warp write                                         |

@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bloom DPF 核生成器</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui,sans-serif;background:#111;color:#eee}
+body{max-width:1040px;margin:32px auto;padding:0 20px}
+h1{margin:0 0 16px} h2{font-size:1rem} small,#status{color:#bfc3c9}
+main{display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px}
+section{background:#1b1c1e;padding:16px;border:1px solid #35373b;border-radius:8px}
+select,button,input{font:inherit;accent-color:#78b9ff} button,select{padding:.35rem .6rem}
+label{display:block;margin:8px 0} input[type=range]{width:100%} output{float:right}
+.controls,.buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#kernel,#lights,#hdr{display:block;width:100%;image-rendering:pixelated;background:#000}
+#kernel{aspect-ratio:1;max-width:600px;margin:12px auto 6px}
+#lights,#hdr{max-width:480px;margin:0 auto}
+#hdr[hidden]{display:none}
+#lobeEditor{margin:12px 0}
+#lobeEditor summary{cursor:pointer}
+#lobeCount{width:4em}
+#lobeFields label{display:grid;grid-template-columns:1fr 5em;gap:4px 8px;align-items:center}
+#lobeFields input[type=number]{width:100%;box-sizing:border-box}
+#lobeFields input[type=range]{grid-column:1/-1;margin:0}
+#selectedLobe{width:100%;margin-top:8px}
+@media(min-width:701px){#preview{position:sticky;top:12px;align-self:start;max-height:calc(100dvh - 24px);overflow:auto}}
+#status{min-height:3em;overflow-wrap:anywhere}
+@media(max-width:700px){main{grid-template-columns:1fr}#recipe{order:2}}
+</style>
+<h1>Bloom DPF 核生成器</h1>
+<main>
+<section id="recipe">
+<label for="preset">预设</label><select id="preset"></select>
+<div id="parameters"></div>
+<details id="lobeEditor" hidden open>
+<summary>单向瓣</summary>
+<small>高斯长度以三倍纵向标准差表示。角度从画面向右起，顺时针增加。</small>
+<small>拉长或加宽时，强度保持光源原点的亮度。</small>
+<div class="controls">
+<input id="lobeCount" type="number" min="1" max="24" step="1" value="6" required aria-label="均布瓣数量">
+<button id="uniform">均匀生成</button><button id="addLobe">添加一瓣</button>
+</div>
+<select id="selectedLobe" aria-label="选择要编辑的瓣"></select>
+<div id="lobeFields"></div>
+<div id="lobeActions" class="buttons"></div>
+</details>
+<div class="buttons">
+<button id="fit">生成参数</button><button id="cancel" disabled>取消</button>
+<button id="export" disabled>导出核</button>
+<button id="save">保存配方</button><button id="load">载入配方</button>
+<input id="file" type="file" accept="application/json,.json" hidden>
+</div>
+<p id="status" role="status">正在载入…</p>
+<small>将导出包里的 shaders 目录合并到已解压的光影包，重新加载后在泛光核中选「自定义」。</small>
+<details id="diagnostics" hidden><summary>计算详情</summary><small id="details"></small></details>
+</section>
+<section id="preview">
+<div class="controls">
+<button id="target">目标</button><button id="fitted" disabled>生成结果</button>
+<select id="phase" aria-label="验证相位" disabled><option value="mean">留出相位平均</option></select>
+<select id="view" aria-label="查看范围"><option>160</option><option>320</option><option>768</option><option>1536</option></select>
+<select id="display" aria-label="显示曲线"><option value="log">对数显示</option><option value="linear">线性显示</option></select>
+</div>
+<label>显示曝光 <output id="evValue">0 EV</output><input id="ev" type="range" min="-4" max="4" step=".25" value="0"></label>
+<img id="kernel" alt="Bloom 点扩散核">
+<img id="lights" alt="白、暖、青三种点光响应">
+<small><span id="scale"></span> <span id="sync" role="status"></span> 两种预览使用同一坐标和显示曝光，外圈拟合图来自分块均值。光点从左到右为白、暖、青。</small>
+<figure id="hdrPreview" hidden>
+<img id="hdr" alt="同一曝光下的 1 倍、4 倍和 16 倍白色点光目标">
+<figcaption><small>固定曝光，白色点光从左到右为 1×、4×、16×。预览使用同一目标核，输入倍数指首级压缩后的有效强度。</small></figcaption>
+</figure>
+</section>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const sliders=[
+ ['size','整体尺寸',.5,2,.01], ['core_gain','圆形高斯强度',0,4,.01],
+ ['core_sigma','高斯宽度（像素）',.75,16,.05], ['tail_gain','长尾强度',0,4,.01],
+ ['shape_gain','造型强度',0,4,.01], ['camera','相机色散',0,2,.01], ['prism','棱镜色散',0,2,.01]
+];
+const names={'standard':'标准','diamond-four':'菱形四芒','horizontal-streak':'横向光带','cross-four':'正十字',
+ 'camera-six':'摄影六芒','camera-ten':'摄影十芒','cinema-star':'电影星芒','prismatic-streak':'棱镜光带',
+ 'digits-67':'67','trollface':'Trollface','custom-lobes':'自定义瓣'};
+const inputs={};
+let presets, recipe, targetHash, mode='target', state={status:'empty'};
+let selectedLobe=0, sequence=0, timer, previewPending=true;
+let inFlight=false, queued=false, lastRequest=0;
+const maxLobes=24;
+const lobeFields=[
+ ['angle','角度（°）',0,360,.1], ['length','高斯长度（像素）',6,240,.1],
+ ['width','宽度（像素）',.75,24,.05], ['gain','强度',0,4,.01], ['profile','横截面硬度',2,6,.1]
+];
+const wrapAngle=angle=>((angle%360)+360)%360;
+const opposite=angle=>wrapAngle(angle+180);
+const fieldValue=(value,step)=>Number(value.toFixed(String(step).split('.')[1]?.length||0));
+const newLobe=(angle,pair=null)=>({angle,length:96,width:2,gain:.25,profile:2,pair});
+function pairedLobe(lobe){
+ return lobe.pair==null?undefined:recipe.lobes.find(x=>x!==lobe&&x.pair===lobe.pair);
+}
+function freePair(){
+ const used=new Set(recipe.lobes.map(x=>x.pair));
+ for(let i=0;i<maxLobes;i++)if(!used.has(i))return i;
+}
+function lobeButton(label,action,disabled=false){
+ const button=document.createElement('button');
+ Object.assign(button,{textContent:label,onclick:action,disabled});
+ return button;
+}
+function lobeLabel(lobe,index){
+ return '瓣 '+(index+1)+' · '+fieldValue(lobe.angle,.1)+'°';
+}
+function renderLobes(){
+ const custom=recipe.preset==='custom-lobes';
+ $('lobeEditor').hidden=!custom;
+ if(!custom){$('hdrPreview').hidden=true;return;}
+ const list=$('selectedLobe'), fields=$('lobeFields'), actions=$('lobeActions');
+ const lobes=recipe.lobes;
+ list.replaceChildren(...lobes.map((lobe,index)=>new Option(lobeLabel(lobe,index),String(index))));
+ list.hidden=lobes.length===0;
+ fields.replaceChildren();actions.replaceChildren();
+ $('addLobe').disabled=lobes.length>=maxLobes;
+ if(!lobes.length)return;
+ selectedLobe=Math.min(selectedLobe,lobes.length-1);
+ list.value=String(selectedLobe);
+ const lobe=lobes[selectedLobe], partner=pairedLobe(lobe);
+ for(const [key,label,min,max,step] of lobeFields){
+  const row=document.createElement('label');
+  const range=document.createElement('input'), number=document.createElement('input');
+  row.textContent=label;
+  const value=fieldValue(lobe[key],step);
+  Object.assign(range,{type:'range',min,max,step,value,ariaLabel:label});
+  Object.assign(number,{type:'number',min,max,step,value,required:true,ariaLabel:label+'数值'});
+  function edit(input){
+   lobe[key]=key==='angle'?wrapAngle(input.valueAsNumber):input.valueAsNumber;
+   if(partner)partner[key]=key==='angle'?opposite(lobe.angle):lobe[key];
+   if(key==='angle'){
+    list.options[selectedLobe].textContent=lobeLabel(lobe,selectedLobe);
+    if(partner){
+     const i=lobes.indexOf(partner);
+     list.options[i].textContent=lobeLabel(partner,i);
+    }
+   }
+   changed();
+  }
+  range.oninput=()=>{number.value=range.value;edit(range);};
+  number.oninput=()=>{
+   if(!number.checkValidity())return;
+   range.value=number.value;edit(number);
+  };
+  number.onchange=()=>{number.value=range.value=fieldValue(lobe[key],step);};
+  row.append(number,range);fields.append(row);
+ }
+ const existing=()=>lobes.find(x=>x!==lobe&&x.pair==null
+   && Math.abs(wrapAngle(x.angle-lobe.angle)-180)<.11);
+ actions.append(
+  lobeButton(partner?'解除联动（瓣 '+(lobes.indexOf(partner)+1)+'）':'联动对向瓣',()=>{
+   if(partner){
+    lobe.pair=partner.pair=null;
+    renderLobes();
+   }else{
+    const other=existing(), pair=freePair();
+    const copy={...lobe,angle:opposite(lobe.angle),pair};
+    lobe.pair=pair;
+    if(other)Object.assign(other,copy);else lobes.push(copy);
+    renderLobes();changed();
+   }
+  },!partner&&!existing()&&lobes.length>=maxLobes),
+  lobeButton('复制',()=>{
+   lobes.splice(++selectedLobe,0,{...lobe,pair:null});
+   renderLobes();changed();
+  },lobes.length>=maxLobes),
+  lobeButton('删除',()=>{
+   if(partner)partner.pair=null;
+   lobes.splice(selectedLobe,1);
+   renderLobes();changed();
+  })
+ );
+}
+$('selectedLobe').onchange=()=>{
+ selectedLobe=Number($('selectedLobe').value);
+ renderLobes();
+};
+$('uniform').onclick=()=>{
+ const count=$('lobeCount');
+ if(!count.reportValidity())return;
+ const n=count.valueAsNumber;
+ recipe.lobes=Array.from({length:n},(_,i)=>newLobe(i*360/n,n%2?null:i%(n/2)));
+ selectedLobe=0;
+ renderLobes();changed();
+};
+$('addLobe').onclick=()=>{
+ selectedLobe=recipe.lobes.length;
+ recipe.lobes.push(newLobe(0));
+ renderLobes();changed();
+};
+for(const [key,label,min,max,step] of sliders){
+ const row=document.createElement('label');
+ row.textContent=label;
+ const value=document.createElement('output');
+ const input=document.createElement('input');
+ Object.assign(input,{type:'range',min,max,step});
+ row.append(value,input); $('parameters').append(row); inputs[key]={input,value};
+ input.addEventListener('input',()=>{recipe[key]=Number(input.value);value.textContent=input.value;changed();});
+}
+async function api(path,data){
+ const r=await fetch(path,data===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+ if(!r.ok){const err=await r.json();throw new Error(err.error);}
+ return r;
+}
+async function data(path,body){return (await api(path,body)).json();}
+function loadRecipe(x){
+ if(!presets[x.preset])throw new Error('未知的预设');
+ const candidate=structuredClone({...presets[x.preset],...x});
+ for(const [key,label,min,max] of sliders){
+  if(!Number.isFinite(candidate[key])||candidate[key]<min||candidate[key]>max)
+   throw new Error(label+'超出当前界面的范围');
+ }
+ if(candidate.preset==='custom-lobes'){
+  if(!Array.isArray(candidate.lobes)||candidate.lobes.length>maxLobes)throw new Error('瓣数量超出范围');
+  for(const lobe of candidate.lobes){
+   for(const [key,label,min,max] of lobeFields){
+    if(!Number.isFinite(lobe[key])||lobe[key]<min||lobe[key]>max)throw new Error(label+'超出范围');
+   }
+   if(lobe.pair==null)continue;
+   const group=candidate.lobes.filter(x=>x.pair===lobe.pair);
+   if(!Number.isInteger(lobe.pair)||lobe.pair<0||lobe.pair>=maxLobes||group.length!==2)
+    throw new Error('联动标记必须对应两瓣');
+  }
+ }
+ recipe=candidate;
+ selectedLobe=0;
+ $('preset').value=recipe.preset;
+ for(const [key,{input,value}] of Object.entries(inputs)){
+  input.value=recipe[key];value.textContent=recipe[key];
+ }
+ inputs.shape_gain.input.disabled=recipe.preset==='standard';
+ renderLobes();changed();
+}
+function changed(){
+ targetHash=null;previewPending=true;mode='target';renderState();schedule();
+}
+function schedule(){++sequence;queued=true;$('sync').textContent='正在更新预览…';pump();}
+function pump(){
+ if(inFlight||timer||!queued)return;
+ timer=setTimeout(async()=>{
+  timer=null;queued=false;inFlight=true;lastRequest=performance.now();
+  try{await draw();}finally{inFlight=false;pump();}
+ },Math.max(0,75-(performance.now()-lastRequest)));
+}
+async function draw(){
+ const epoch=sequence;
+ const which=mode;
+ const ev=Number($('ev').value);
+ const radius=Number($('view').value), display=$('display').value;
+ $('evValue').textContent=ev+' EV';
+ try{
+  const phase=$('phase').value==='mean'?'mean':Number($('phase').value);
+  const x=await data(which==='target'?'/api/target':'/api/fitted',{recipe,ev,phase,radius,display});
+  if(epoch!==sequence)return;
+  $('kernel').src=x.image;$('lights').src=x.lights;
+  $('hdrPreview').hidden=!x.hdr;
+  if(x.hdr)$('hdr').src=x.hdr;
+  $('scale').textContent='查看范围 ±'+x.radius+' px。';
+  $('sync').textContent='';
+  if(which==='target'){targetHash=x.recipe_sha256;previewPending=false;}
+  renderState();
+ }catch(e){if(epoch===sequence)$('status').textContent=e.message;}
+}
+function renderState(){
+ const matched=!!targetHash && state.recipe_sha256===targetHash;
+ const ready=state.status==='finished' && matched;
+ $('fit').disabled=state.status==='running'||previewPending;
+ $('cancel').disabled=state.status!=='running';
+ $('export').disabled=!ready;$('fitted').disabled=!ready;
+ $('phase').disabled=!ready||mode!=='fitted';
+ $('diagnostics').hidden=state.status!=='finished';
+ if(state.status==='running'){
+  const loss=state.loss===undefined?'':', loss '+state.loss.toFixed(4);
+  $('status').textContent='正在拟合，第 '+state.iteration+' 步'+loss+(matched?'':'（参数已改动）');
+ }else if(state.status==='finished'){
+  const a=state.holdout.map(x=>x.relative_l2), b=state.holdout.map(x=>x.pooled_outer_relative_l2);
+  $('details').textContent='留出相位相对 L2 '+Math.min(...a).toFixed(3)+'–'+Math.max(...a).toFixed(3)
+      +'，远尾 '+Math.max(...b).toFixed(3)+'，每全分辨率像素静态双线性采样 '+state.budget.toFixed(2)
+      +'。'+state.solver;
+  $('status').textContent=ready
+   ? state.converged?'生成完成。':state.iteration>=state.iteration_limit?'已达到计算上限。可以查看当前结果。':'求解器提前停止。可以查看当前结果。'
+   : '已完成的拟合属于另一份配方。拟合当前参数后可导出。';
+ }else $('status').textContent=state.error||(state.status==='cancelled'?'拟合已取消。':'预览目标，准备好后开始拟合。');
+}
+function updateState(s){
+ const rebuild=s.status==='finished'&&(state.status!==s.status||state.recipe_sha256!==s.recipe_sha256);
+ state=s;
+ if(rebuild){
+  const phase=$('phase');
+  phase.replaceChildren(new Option('留出相位平均','mean'),...s.phases.map(([x,y],i)=>new Option('相位 '+x+', '+y,String(i))));
+ }
+ renderState();
+}
+async function poll(){
+ try{updateState(await data('/api/state'));}catch(e){$('status').textContent=e.message;}
+ if(state.status==='running')setTimeout(poll,700);
+}
+function download(blob,name){
+ const uri=URL.createObjectURL(blob), link=document.createElement('a');
+ link.href=uri;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(uri),1000);
+}
+$('fit').onclick=async()=>{try{updateState(await data('/api/fit',{recipe}));poll();}catch(e){$('status').textContent=e.message;}};
+$('cancel').onclick=async()=>{try{updateState(await data('/api/cancel',{}));}catch(e){$('status').textContent=e.message;}};
+$('export').onclick=async()=>{try{download(await (await api('/api/export',{recipe})).blob(),'bloom-dpf.zip');}catch(e){$('status').textContent=e.message;}};
+$('target').onclick=()=>{mode='target';schedule();};
+$('fitted').onclick=()=>{mode='fitted';schedule();};
+$('phase').onchange=schedule;$('ev').oninput=schedule;
+$('view').onchange=schedule;$('display').onchange=schedule;
+$('preset').onchange=()=>loadRecipe(presets[$('preset').value]);
+$('save').onclick=()=>download(new Blob([JSON.stringify(recipe,null,2)],{type:'application/json'}),'bloom-recipe.json');
+$('load').onclick=()=>$('file').click();
+$('file').onchange=async()=>{
+ try{if($('file').files[0])loadRecipe(JSON.parse(await $('file').files[0].text()));}
+ catch(e){$('status').textContent=e.message;}
+ $('file').value='';
+};
+(async()=>{
+ try{
+  presets=await data('/api/presets');
+  $('preset').replaceChildren(...Object.keys(presets).map(x=>new Option(names[x]||x,x)));
+  loadRecipe(presets.standard);
+  const s=await data('/api/state');updateState(s);if(s.status==='running')poll();
+ }catch(e){$('status').textContent=e.message;}
+})();
+</script>

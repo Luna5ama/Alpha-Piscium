@@ -28,7 +28,7 @@ scene-preparation, GI, caustics, cloud, shadow, and lighting passes
   ↓
 DOFPrepare, TAAPrepare, TAAResolve, FXAA, and RCAS
   ↓
-Bloom downsample/upsample
+Bloom downsample and coarse-to-fine reconstruction
   ↓
 PostComposite, exposure, next-frame state, and OverlayComposite
   ↓
@@ -131,7 +131,7 @@ The last stage uses indirect dispatch from SSBO 0 offset 0.
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
 | [`DOFPrepare`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                                                                                                                                                                                              | Optional DOF prepare                                                            |
 | [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Temporal AA, spatial AA, and sharpening                                         |
-| [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                                                                                                                            | Downsample levels 1–8, optional [`BloomShape`](../../../shaders/pass/composite/BloomShape.comp.glsl), reconstruct levels 8–2; final upsample fused into post composition |
+| [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl) | Downsample levels 1–8 and reconstruct from level 8 to level 1 with raw-level injection. PostComposite upsamples level 1 to the viewport. |
 | [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur and post composite                                        |
 | [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) → [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                                         | Next-frame RTWSM warp and exposure mip                                          |
 | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl) → [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl)                                                                                                           | Exposure gather and RTWSM 2D warp write                                         |

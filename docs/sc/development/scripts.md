@@ -45,37 +45,34 @@ kotlin <script>.main.kts
 
 ## Bloom 核拟合
 
-[`fit-bloom.py`](../../../scripts/fit-bloom.py) 用四尺度高斯代理校准共用的五 tap 下采样与八 tap 上采样，写入
-[`BloomTaps.glsl`](../../../shaders/techniques/BloomTaps.glsl)，并检查代理全部 256 个相位的单位质量与质心。
-运行时另行按相等权重组合八层。[`fit-bloom-shape.py`](../../../scripts/fit-bloom-shape.py) 使用实际原始第 1 层 Bloom
-载体进行稀疏拟合，生成 [`BloomShapeTaps.glsl`](../../../shaders/techniques/BloomShapeTaps.glsl)。
-[`bloom_shape_targets.py`](../../../scripts/bloom_shape_targets.py) 定义方向采样与图案目标。图案拟合后按整数个第 1 层
-texel 平移，使视觉包围盒居中。[`Trollface 输入`](../../../scripts/assets/trollface-source.png) 为 Carlos Ramirez 的画作，
-取自 [Wikipedia 文件页](https://en.wikipedia.org/wiki/File:Trollface.png)。
+[本地 Bloom 编辑器](../../../scripts/bloom_dpf_web.py) 将基础光晕、可选高斯核心与所选造型组合成完整 RGB 点扩散函数并提供预览。
+摄影色散和棱镜色散分别调节。自定义光瓣配方可编辑各个方向的光瓣，也可将相对的两个光瓣联动。
 
-两者需要 Python、NumPy 和 SciPy；形状输入还需要 Pillow。从仓库根目录以低进程优先级运行。只在有意修改标准核时重新校准
-共用 tap，之后也要重新拟合形状载体：
+在仓库根目录用 Python 启动编辑器，依赖 NumPy、SciPy 和 Pillow。进程使用 Idle 优先级。
 
 ```powershell
-python -B scripts/fit-bloom.py
-python -B scripts/fit-bloom-shape.py --builtins --output shaders/techniques/BloomShapeTaps.glsl
+python -B scripts/bloom_dpf_web.py
 ```
 
-自定义目标先创建输出目录，再任选一个入口：
+打开[本地编辑器](http://127.0.0.1:8765)，编辑配方后执行拟合，再以与目标相同的曝光查看各留出采样相位的响应。
+导出的 ZIP 包含解析后的配方、拟合系数和误差，以及[自定义 GLSL 系数表](../../../shaders/techniques/bloom/BloomDpfCustom.glsl)。
+将系数表复制到包中指定的 shader 路径，重新载入 shader pack，然后在 Bloom 造型菜单中选择自定义。
+
+[目标模型](../../../scripts/bloom_dpf_target.py) 构建完整响应。[拟合器](../../../scripts/bloom_dpf_fit.py)
+通过 [CPU 金字塔模型](../../../scripts/bloom_dpf_model.py) 拟合重建和各层原始输入的权重，使用与运行时一致的双线性采样范围。
+[参考存档](../../../scripts/assets/bloom-dpf-reference.npz) 固定已发布版本的采样系数。
+其中的 Trollface 系数来自 [Carlos Ramirez 的原画](../../../scripts/assets/trollface-source.png)，来源见
+[Wikimedia 文件页](https://en.wikipedia.org/wiki/File:Trollface.png)。
+
+[内置系数库](../../../scripts/assets/bloom-dpf-kernels.json) 保存已选系数。执行以下命令重新生成
+[内置 GLSL 系数表](../../../shaders/techniques/bloom/BloomDpfPresets.glsl)。
 
 ```powershell
-python -B scripts/fit-bloom-shape.py --image <weights.png> --carrier bloom --mip 1 --tap-budget 64 --output <fit.json> --glsl <shape.glsl>
-python -B scripts/fit-bloom-shape.py --function <kernel.py> --size 129 --carrier bloom --mip 1 --tap-budget 64 --output <fit.json> --glsl <shape.glsl>
+python -B scripts/bloom_dpf_fit.py
 ```
 
-PNG 输入是不透明 8/16 位灰度图，像素为原始线性权重。函数输入是可信 Python 文件，定义 `psf(x, y)` 并返回与坐标网格
-相同形状的数组。两种入口均要求奇数尺寸、有限非负权重和正总质量。中心 texel 为原点，x 向右、y 向下，单位是全分辨率像素。
-输入归一化为单位质量。JSON gather 偏移以 mip texel 为单位，GLSL 为 atlas 坐标翻转 y，并将相邻拟合 tap 合并成等价双线性读取。
-运行时 GLSL 导出要求 `--carrier bloom --mip 1`。每个 invocation 均需在输出范围检查前调用生成的 `bloom_shapePrepare()`。
-
-自定义输出是供维护者评估的滤波片段，不会自动新增玩家选项。`--report` 为 `--builtins` 增加 JSON 报告。
-生成源码与生成器修改一起提交，临时拟合报告放入忽略的输出目录。修改权重后复查输入相位、边缘行为及 Iris 渲染。
-运行时契约与已接受成本见 [Bloom](../modules/post-processing.md#bloom)。
+对未经调节的内置配方，将已审核的拟合结果传给 `--select-fit`，即可替换对应条目并重新生成系数表。
+检查完整响应，并复核 Iris 编译和实机渲染。运行时流程和限制见 [Bloom](../modules/post-processing.md#bloom)。
 
 ## 二进制纹理辅助
 

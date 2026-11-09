@@ -31,17 +31,12 @@ void main() {
         outputColor = texelFetch(usam_main, texelPos, 0);
 
         #ifdef SETTING_BLOOM
-        // The eight levels are averaged. Keep the former default 8/128 blend.
+        // Keep the default 8/128 blend calibration.
         float bloomIntensity = SETTING_BLOOM_INTENSITY - 4.0;
         if (isEyeInWater == 1) {
             bloomIntensity += SETTING_BLOOM_UNDERWATER_BOOST;
         }
         vec3 glow = bloom_filterPixel(texelPos);
-        #if SETTING_BLOOM_SHAPE != 0
-        vec2 shapeSize = vec2(global_mipmapTileCeilPadded[1].zw);
-        vec2 shapeTexel = clamp((vec2(texelPos) + 0.5) * 0.5, vec2(0.5), shapeSize - 0.5);
-        glow += transient_bloomShape_sample(shapeTexel * uval_mainImageSizeRcp).rgb;
-        #endif
         outputColor.rgb += glow * exp2(bloomIntensity);
         #endif
 

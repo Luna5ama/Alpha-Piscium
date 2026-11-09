@@ -50,43 +50,38 @@ dimensionality, integer/float access class, and any hard-coded channel assumptio
 
 ## Bloom kernel fitting
 
-[`fit-bloom.py`](../../../scripts/fit-bloom.py) calibrates the shared five-tap downsample and eight-tap upsample
-against a four-scale Gaussian proxy and writes [`BloomTaps.glsl`](../../../shaders/techniques/BloomTaps.glsl).
-It checks unit mass and centroids across all 256 proxy phases. The runtime separately combines eight levels with
-equal weights. [`fit-bloom-shape.py`](../../../scripts/fit-bloom-shape.py) uses the actual raw level-1 Bloom carrier
-for sparse fitting and emits [`BloomShapeTaps.glsl`](../../../shaders/techniques/BloomShapeTaps.glsl).
-[`bloom_shape_targets.py`](../../../scripts/bloom_shape_targets.py) defines the directional taps and the glyph
-targets. The glyph fits translate by whole level-1 texels to center their visual bounds. The
-[`Trollface input`](../../../scripts/assets/trollface-source.png) is Carlos Ramirez's drawing, sourced from the
-[Wikipedia file page](https://en.wikipedia.org/wiki/File:Trollface.png).
+The [local Bloom editor](../../../scripts/bloom_dpf_web.py) previews a complete RGB point-spread function from
+the base halo, optional Gaussian core, and selected shape. Camera and prism dispersion have independent controls.
+The Custom Lobes recipe lets you author directional lobes and optionally link opposing pairs.
 
-Both tools require Python, NumPy and SciPy; shape input also uses Pillow. Run from the repository root at low
-process priority. Recalibrate the shared taps only when intentionally changing the standard kernel; then refit the
-shape carrier as well:
+From the repository root, run the editor with Python, NumPy, SciPy, and Pillow at idle process priority.
 
 ```powershell
-python -B scripts/fit-bloom.py
-python -B scripts/fit-bloom-shape.py --builtins --output shaders/techniques/BloomShapeTaps.glsl
+python -B scripts/bloom_dpf_web.py
 ```
 
-For a custom target, create an output directory and use either input form:
+Open [the local editor](http://127.0.0.1:8765). Edit the recipe, run the fit, and inspect the fitted response
+across the held-out sampling phases at the same exposure as the target. The ZIP export contains the resolved
+recipe, fitted coefficients and errors, and [the Custom GLSL table](../../../shaders/techniques/bloom/BloomDpfCustom.glsl).
+Copy that table to the indicated shader path, reload the pack, and select Custom in the Bloom shape menu.
+
+The [target model](../../../scripts/bloom_dpf_target.py) authors the complete response. The
+[fitter](../../../scripts/bloom_dpf_fit.py) uses the [CPU cascade](../../../scripts/bloom_dpf_model.py) to fit the
+reconstruction and raw-level injection weights with the same bilinear footprints used at runtime. The
+[reference archive](../../../scripts/assets/bloom-dpf-reference.npz) freezes the published baseline taps.
+The frozen Trollface taps derive from [Carlos Ramirez’s drawing](../../../scripts/assets/trollface-source.png),
+sourced from the [Wikimedia file page](https://en.wikipedia.org/wiki/File:Trollface.png).
+
+The [built-in coefficient bank](../../../scripts/assets/bloom-dpf-kernels.json) owns the selected coefficients.
+Regenerate the [built-in GLSL table](../../../shaders/techniques/bloom/BloomDpfPresets.glsl) with the following command.
 
 ```powershell
-python -B scripts/fit-bloom-shape.py --image <weights.png> --carrier bloom --mip 1 --tap-budget 64 --output <fit.json> --glsl <shape.glsl>
-python -B scripts/fit-bloom-shape.py --function <kernel.py> --size 129 --carrier bloom --mip 1 --tap-budget 64 --output <fit.json> --glsl <shape.glsl>
+python -B scripts/bloom_dpf_fit.py
 ```
 
-PNG input is opaque 8/16-bit grayscale containing raw linear weights. Function input is trusted Python defining
-`psf(x, y)` and returning an array matching the coordinate grids. Both require odd dimensions, finite nonnegative
-weights and positive total mass. The middle texel is the origin; x points right and y down, in full-resolution
-pixels. Inputs normalize to unit mass. JSON gather offsets use mip texels; GLSL flips y for atlas coordinates and
-merges adjacent fitted taps into equivalent bilinear reads. Runtime GLSL export requires `--carrier bloom --mip 1`.
-Call the generated `bloom_shapePrepare()` from every invocation before checking output bounds.
-
-Custom output is a filter fragment for a maintainer to evaluate, not an automatic player-facing option. `--report`
-adds a JSON report for `--builtins`. Keep generated source with the generator change; temporary fit reports stay in
-ignored output directories. Recheck input phases, edge behavior and Iris rendering after changing weights. See
-[Bloom](../modules/post-processing.md#bloom) for the runtime contract and accepted cost.
+Use `--select-fit` with a reviewed fit for an unmodified built-in recipe to replace its bank entry and regenerate
+the table. Review the complete response and recheck Iris compilation and rendering. See
+[Bloom](../modules/post-processing.md#bloom) for the runtime pipeline and limitations.
 
 ## Binary texture helpers
 

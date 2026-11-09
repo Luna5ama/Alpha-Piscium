@@ -43,7 +43,7 @@ vec3 bloom_sample(vec2 pos, vec4 tile) {
     // Clamp inside the input mip before converting to atlas coordinates.
     vec2 texel = tile.xy + clamp(pos, vec2(0.5), tile.zw - 0.5);
     vec2 uv = texel * uval_mainImageSizeRcp;
-    #if defined(BLOOM_DOWNSAMPLE) || defined(BLOOM_ZERO_EXTEND)
+    #ifdef BLOOM_DOWNSAMPLE
     // Zero-extend the bilinear footprint without sampling an adjacent tile.
     vec2 coverage = clamp(min(pos, tile.zw - pos) + 0.5, 0.0, 1.0);
     #endif
@@ -53,15 +53,31 @@ vec3 bloom_sample(vec2 pos, vec4 tile) {
     value = bloom_compressHighlights(value);
     #endif
     #else
-    vec3 value = transient_bloom_sample(uv).rgb;
+    #if defined(BLOOM_DOWNSAMPLE) || defined(BLOOM_FIRST_UPSAMPLE)
+    vec3 value = transient_bloomRaw_sample(uv).rgb;
+    #else
+    vec3 value = transient_bloomReconstruction_sample(uv).rgb;
     #endif
-    #if defined(BLOOM_DOWNSAMPLE) || defined(BLOOM_ZERO_EXTEND)
+    #endif
+    #ifdef BLOOM_DOWNSAMPLE
     value *= coverage.x * coverage.y;
     #endif
     return value;
 }
 
-#include "/techniques/BloomTaps.glsl"
+#if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS > 1
+vec3 bloom_sampleRaw(vec2 pos, vec4 tile) {
+    vec2 texel = tile.xy + clamp(pos, vec2(0.5), tile.zw - 0.5);
+    vec2 coverage = clamp(min(pos, tile.zw - pos) + 0.5, 0.0, 1.0);
+    return transient_bloomRaw_sample(texel * uval_mainImageSizeRcp).rgb * (coverage.x * coverage.y);
+}
+#endif
+
+#if SETTING_BLOOM_SHAPE == 10
+#include "/techniques/bloom/BloomDpfCustom.glsl"
+#else
+#include "/techniques/bloom/BloomDpfPresets.glsl"
+#endif
 
 vec3 bloom_filterPixel(ivec2 pos) {
     #ifdef BLOOM_DOWNSAMPLE

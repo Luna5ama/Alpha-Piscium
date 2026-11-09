@@ -354,10 +354,6 @@ programs {
                 cond("defined(SETTING_BLOOM)")
             }
         }
-        pass("/pass/composite/BloomShape.comp.glsl") {
-            constDefine("BLOOM_PASS", 1)
-            cond("defined(SETTING_BLOOM) && SETTING_BLOOM_SHAPE != 0")
-        }
         for (i in bloomLevels downTo 2) {
             pass("/techniques/Bloom.comp.glsl") {
                 constDefine("BLOOM_PASS", i)
