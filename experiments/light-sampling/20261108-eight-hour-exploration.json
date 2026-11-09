@@ -49,8 +49,7 @@
     "historical_local_originals_untouched": true
   },
   "next": [
-    "Complete the closeout comparator, then close the report.",
-    "Wait for fresh user intent before operating the Windows Vibris window."
+    "Vibris is verified at LS5 Camera G16. Normal JVM exit and the GPU handoff require fresh user intent after the physical Escape stop."
   ],
   "results": [
     {
@@ -7137,6 +7136,38 @@
       "vibris_pid": 70844,
       "jvm_state": "running",
       "handoff_state": "Await user intent after physical Escape stopped the Windows close action. No close was attempted. Fornax was told the GPU is still occupied."
+    },
+    "final_viewer": {
+      "files": {
+        "comparison.html": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/closeout-candidate-viewer/comparison.html",
+          "sha256": "f633754d41df86321101d9431736ad3f834b6c447b073b5708c758383032564d"
+        },
+        "evidence.json": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/closeout-candidate-viewer/evidence.json",
+          "sha256": "e3eb4b77102ff0747e3ca577c0125d861b33251cbe64669ef4fc6e9ec6ce2f03"
+        },
+        "manifest.json": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/closeout-candidate-viewer/manifest.json",
+          "sha256": "8b60802adbab2dba2a0ab7a663f9307853bbb7c8aa8b3123e083f1c426854865"
+        },
+        "build.py": {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/closeout-candidate-viewer/build.py",
+          "sha256": "99b0420867de62e5e9c288c4792be187580371506bb1745a7d7c5fa5710009ac"
+        }
+      },
+      "images": 76,
+      "cohorts": 12,
+      "agent_task": "task-62692-25",
+      "scope": "Actual Iris captures; decoded exact lossless pixels, direct OpenGL row mapping, JavaScript and marker static QA. Browser interactivity not exercised.",
+      "physical_marker_review": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-closeout-viewer-marker-fix.json",
+        "sha256": "0b1b8f63ebd7d6160db780cecb348982d8f2c7f7b9e0be49db65b5f8c14cb82c"
+      },
+      "independent_controls": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/all-preset-baseline-viewer/comparison.html",
+        "sha256": "33a4b134101fec34a2f83e3e0775d4e74f20a323848a777dc22e9db4a5e96bc5"
+      }
     }
   }
 }
