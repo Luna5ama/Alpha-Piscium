@@ -14,16 +14,16 @@ from light_sampling_point_screening import Tree
 RUN = EVIDENCE.parents[1]/'builds/light-sampling/20261108-clustering-repair'
 
 
-def escape_proxy(keys, original):
+def neighbor_words(keys, original, camera_brick=None):
     accepted = read(original/'accepted.json')
     meta = np.fromfile(original/'before_voxel-meta.bin','<u4')
     materials = np.memmap(original/'before_voxel-materials.bin','<u4','r')
-    origin = (np.asarray(accepted['pose']['camera_brick'])-8)*16
+    brick = accepted['pose']['camera_brick'] if camera_brick is None else camera_brick
+    origin = (np.asarray(brick)-8)*16
     allocation = np.full(4096,-1,dtype=int)
     bricks = meta[9217:9217+int(meta[0])]
     allocation[bricks] = np.arange(len(bricks))
     np.testing.assert_array_equal(meta[4097+bricks],np.arange(len(bricks)))
-    emitters = np.unique(keys[:,3])
     def lookup(cells):
         local = cells-origin
         inside = ((local>=0)&(local<256)).all(axis=1)
@@ -35,12 +35,20 @@ def escape_proxy(keys, original):
         values[selected] = materials[slot[loaded]*4096+morton_encode(local[selected]%16)]
         return values
     np.testing.assert_array_equal(lookup(keys[:,:3]) >> 1,keys[:,3])
-    open_faces = np.zeros(len(keys),dtype=int)
-    for shift in np.concatenate([np.eye(3,dtype=int),-np.eye(3,dtype=int)]):
-        material = lookup(keys[:,:3]+shift)
-        solid = ((material&1)!=0) | np.isin(material>>1,emitters)
-        open_faces += ~solid
-    return (1.+open_faces)/7.,open_faces,accepted['identity']
+    offsets = np.concatenate([np.eye(3,dtype=int),-np.eye(3,dtype=int)])
+    return np.column_stack([lookup(keys[:,:3]+shift) for shift in offsets]),accepted['identity']
+
+
+def neighbor_solids(keys, original):
+    words,identity = neighbor_words(keys,original)
+    emitters = np.unique(keys[:,3])
+    return ((words&1)!=0) | np.isin(words>>1,emitters),identity
+
+
+def escape_proxy(keys, original):
+    solid,identity = neighbor_solids(keys,original)
+    open_faces = (~solid).sum(axis=1)
+    return (1.+open_faces)/7.,open_faces,identity
 
 
 def reweight(node, factors):

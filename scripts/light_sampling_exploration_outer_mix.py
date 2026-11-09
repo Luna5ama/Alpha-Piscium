@@ -6,8 +6,9 @@ from pathlib import Path
 
 import numpy as np
 
-from light_sampling_clustering_hierarchy import cohorts
-from light_sampling_clustering_repair import EVIDENCE, key_order, scores
+from light_sampling_clustering_hierarchy import brick_roots, cohorts
+from light_sampling_clustering_repair import EVIDENCE, build_primitives, key_order, scores
+from light_sampling_clustering_rule_screen import RULES
 from light_sampling_point_screening import Tree
 
 
@@ -30,7 +31,7 @@ def outer_mix(tree, baseline, near_fraction):
     return q
 
 
-def main(output):
+def main(output, upper=False):
     refs = [EVIDENCE/f'20261108-{tag}-reference.npz' for tag in
             ('clustering-repair','cluster-summaries','nearfar-combination')]
     combo_path = EVIDENCE/'20261108-nearfar-combination.json'
@@ -40,15 +41,26 @@ def main(output):
         for cohort,_,keys,root,windows in cohorts(fresh,old,mix,combo):
             tree = Tree(root)
             order = key_order(tree,list(map(tuple,keys)))
+            source_tree = tree
+            source_order = order
+            if upper:
+                atoms = brick_roots(root)
+                rebuilt = build_primitives(np.asarray(list(atoms)),list(atoms.values()),True,
+                                           partition=RULES['flux-diagonal'])
+                source_tree = Tree(rebuilt)
+                source_order = key_order(source_tree,list(map(tuple,keys)))
             cached = {}
             for point,window,label,origin,normal,moments in windows:
                 origin,normal = origin.astype(float),normal.astype(float)
                 key = tuple(np.r_[origin,normal])
                 if key not in cached:
                     baseline = scores(tree,origin,normal)
+                    source = scores(source_tree,origin,normal) if upper else baseline
                     cached[key] = {'prefix':baseline[0][order],
-                        'outer-near-quarter':outer_mix(tree,baseline,.25)[order],
-                        'outer-near-three-quarters':outer_mix(tree,baseline,.75)[order]}
+                        'outer-near-quarter':outer_mix(source_tree,source,.25)[source_order],
+                        'outer-near-three-quarters':outer_mix(source_tree,source,.75)[source_order]}
+                    if upper:
+                        cached[key]['upper'] = source[0][source_order]
                 m2 = moments[:,3]
                 mu = moments[:,:3].sum(0)
                 result = {}
@@ -65,11 +77,13 @@ def main(output):
     assert len(rows)==28
     payload = dict(input_sha256={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [*refs,combo_path]},
                    rule='Only at cross-brick parents, replace 50/50 by 25/75 or 75/25 near/far. Keep sibling normalization and containing preference.',
-                   rows=rows)
+                   source_tree='upper/flux-diagonal' if upper else 'prefix',rows=rows)
     output.write_text(json.dumps(payload,indent=2,allow_nan=False)+'\n',encoding='utf8')
 
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('output',type=Path)
-    main(parser.parse_args().output)
+    parser.add_argument('--upper',action='store_true')
+    options = parser.parse_args()
+    main(options.output,options.upper)

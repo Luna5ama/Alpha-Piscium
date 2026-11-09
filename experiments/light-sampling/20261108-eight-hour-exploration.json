@@ -48,7 +48,12 @@
     "post_release_reserved_bytes": 7456185,
     "historical_local_originals_untouched": true
   },
-  "next": "Screen upper + lookahead, world phase, texture and escape mass, and outer near mix. Reintroduce frozen global SAH. Expand promising methods to the remaining presets.",
+  "next": [
+    "Resolve repeatable moving-4 mean RGB split with paired capture and emitter-face identity.",
+    "Run matched ls1 and ls5 outer-near and matched moving-4 ABBA. Compare separately with frozen global-diagonal.",
+    "Extend dynamic shortlist and independent cosine BRDF-only to the remaining live presets and native 720p fixtures.",
+    "Measure real boundary motion and evaluate runtime build cost separately from offline frozen candidates."
+  ],
   "results": [
     {
       "id": "ls1-initial-screen",
@@ -265,7 +270,7 @@
       },
       "findings": [
         "Frozen upper improves mean/tail and time relative to Prefix, but does not match Camera on whole-image mean or tail. Atlas read and validation is not dynamic upper construction.",
-        "One-level lookahead improves mean and tail V*T; first timing is 1.2636\u00d7 Camera and requires paired/ordered repeats."
+        "One-level lookahead improves mean and tail V*T; first timing is 1.2636× Camera and requires paired/ordered repeats."
       ],
       "restoration": {
         "actual_scene_sha256": "6541ce12e1e9e7ecbea47971c0a7eec90fde0d50407b547377791b8c099fa674",
@@ -847,6 +852,1123 @@
       },
       "verified_lossless_images": 40,
       "agent": "Pyxis GPT-6.1 Terra medium, priority; Windows Idle"
+    },
+    {
+      "id": "ls5-global-face-matched",
+      "scene": "light-sampling-5",
+      "source": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-prefix-global-area-sah-face-mixture-global-face.json",
+        "sha256": "4de1aba76afea272868c342d3c73b463482d604b644c3805b17e2dda7ae30ae9"
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "matched_pixels": 2066955,
+      "receiver_data": [
+        "colortex8",
+        "colortex10",
+        "colortex9"
+      ],
+      "methods": {
+        "camera": {
+          "p50_time_ratio": 1.0,
+          "mean_time_ratio": 1.0,
+          "build_p50_ns": 196608.0,
+          "whole": [
+            {
+              "mean": 0.016062639513151806,
+              "p99": 0.20153285895474124,
+              "worst05_mean": 0.27028674660233243,
+              "zero_mean_fraction": 0.42723136207609747,
+              "mean_rgb": [
+                0.01100427501342609,
+                0.0069123922546271074,
+                0.0021355016620563036
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.06332033847312157,
+                "p99": 0.794460264891178,
+                "worst05_mean": 1.0654941403400955
+              }
+            },
+            {
+              "mean": 0.016050167582814856,
+              "p99": 0.2021233566291625,
+              "worst05_mean": 0.2700398620958749,
+              "zero_mean_fraction": 0.427046549150804,
+              "mean_rgb": [
+                0.011002397740618031,
+                0.00691275952572078,
+                0.002138739892925043
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.06327117302620344,
+                "p99": 0.796788058687542,
+                "worst05_mean": 1.0645208998898033
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "p50_time_ratio": 1.1324285714285713,
+          "mean_time_ratio": 1.0786933219146808,
+          "build_p50_ns": 192512.0,
+          "whole": [
+            {
+              "mean": 0.02419332419910052,
+              "p99": 0.33418352248147093,
+              "worst05_mean": 0.3941146375197656,
+              "zero_mean_fraction": 0.5270666269947821,
+              "mean_rgb": [
+                0.011021423532574022,
+                0.006921084061729833,
+                0.00213916532875739
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10287736926513193,
+                "p99": 1.4210499293820489,
+                "worst05_mean": 1.6758952495838495
+              }
+            },
+            {
+              "mean": 0.023918857977166766,
+              "p99": 0.33128677397035033,
+              "worst05_mean": 0.3883513085598979,
+              "zero_mean_fraction": 0.5272732110761966,
+              "mean_rgb": [
+                0.010998170970011127,
+                0.0069067640925560055,
+                0.002135734335612302
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10171025545173815,
+                "p99": 1.4087320741012166,
+                "worst05_mean": 1.6513878227944883
+              }
+            }
+          ]
+        },
+        "global-area-sah": {
+          "p50_time_ratio": 0.8397142857142857,
+          "mean_time_ratio": 0.8244686572192199,
+          "build_p50_ns": 183296.0,
+          "whole": [
+            {
+              "mean": 0.016833276865597876,
+              "p99": 0.22711747404187907,
+              "worst05_mean": 0.27833451318912134,
+              "zero_mean_fraction": 0.44943648990906915,
+              "mean_rgb": [
+                0.011013701581205841,
+                0.00692163141578734,
+                0.002139684258362328
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.05471030447263189,
+                "p99": 0.7381608616727843,
+                "worst05_mean": 0.9046227946823325
+              }
+            },
+            {
+              "mean": 0.016849850858043212,
+              "p99": 0.22708580562844827,
+              "worst05_mean": 0.2787815820447724,
+              "zero_mean_fraction": 0.44954292667232715,
+              "mean_rgb": [
+                0.010996739040921457,
+                0.006909430553577898,
+                0.0021369292474195762
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.05476417206955027,
+                "p99": 0.7380579352755774,
+                "worst05_mean": 0.9060758256880119
+              }
+            }
+          ]
+        },
+        "face-mixture": {
+          "p50_time_ratio": 1.0464285714285715,
+          "mean_time_ratio": 1.0343148098165236,
+          "build_p50_ns": 191488.0,
+          "whole": [
+            {
+              "mean": 0.02231064893795271,
+              "p99": 0.3103438768163322,
+              "worst05_mean": 0.3737995175138743,
+              "zero_mean_fraction": 0.4348836815508804,
+              "mean_rgb": [
+                0.011027315285047974,
+                0.006921372333667769,
+                0.002136325940532394
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.09096854755365086,
+                "p99": 1.2653837095758402,
+                "worst05_mean": 1.5241152007303707
+              }
+            },
+            {
+              "mean": 0.02224190541796775,
+              "p99": 0.3093487243726842,
+              "worst05_mean": 0.3726309317507948,
+              "zero_mean_fraction": 0.4350747839212755,
+              "mean_rgb": [
+                0.011009492932741975,
+                0.006914024437216991,
+                0.002138158974593106
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.09068825547500499,
+                "p99": 1.2613261148082076,
+                "worst05_mean": 1.5193504558834208
+              }
+            }
+          ]
+        },
+        "global-face": {
+          "p50_time_ratio": 0.8694285714285714,
+          "mean_time_ratio": 0.8261631906745867,
+          "build_p50_ns": 183808.0,
+          "whole": [
+            {
+              "mean": 0.015654853684553126,
+              "p99": 0.20988099744543415,
+              "worst05_mean": 0.2662972600000685,
+              "zero_mean_fraction": 0.38442685012494227,
+              "mean_rgb": [
+                0.011008678179507035,
+                0.0069175076016017205,
+                0.0021382857365619015
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.0509848527186821,
+                "p99": 0.6835421115282695,
+                "worst05_mean": 0.867279046746303
+              }
+            },
+            {
+              "mean": 0.015692198135088837,
+              "p99": 0.21020726013928615,
+              "worst05_mean": 0.2672009394631236,
+              "zero_mean_fraction": 0.3842347801476084,
+              "mean_rgb": [
+                0.010984606586800295,
+                0.006901914773133966,
+                0.002134569784527907
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.05110647642394241,
+                "p99": 0.6846046864797082,
+                "worst05_mean": 0.8702221572510167
+              }
+            }
+          ]
+        }
+      },
+      "caution": "Frozen topology is a query-quality and query-cost screen; excludes a production dynamic global builder. Both blue floor regions still regress relative to Camera."
+    },
+    {
+      "id": "moving4-global-shape-and-outer-near",
+      "scene": "light-sampling-failure-moving-4",
+      "source": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-camera-prefix-global-area-sah-global-diagonal-outer-near-upper-cut2-global-face.json",
+        "sha256": "04376ed9f107ec423fb732659ecb2dca452e76921b5d57670242e34113fc132d"
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "matched_pixels": 2022169,
+      "receiver_data": [
+        "colortex8",
+        "colortex10",
+        "colortex9"
+      ],
+      "methods": {
+        "camera": {
+          "p50_time_ratio": 1.0,
+          "mean_time_ratio": 1.0,
+          "build_p50_ns": 400384.0,
+          "whole": [
+            {
+              "mean": 0.000991427575510814,
+              "p99": 0.021395745806512434,
+              "worst05_mean": 0.017255968144680448,
+              "zero_mean_fraction": 0.5628154719017056,
+              "mean_rgb": [
+                0.0015207913488998245,
+                0.006856253061139924,
+                0.0006018729145443179
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.004136346884919573,
+                "p99": 0.0892654478283002,
+                "worst05_mean": 0.07199383176803903
+              }
+            },
+            {
+              "mean": 0.0009922264464488036,
+              "p99": 0.02143521542777308,
+              "worst05_mean": 0.01726518117130165,
+              "zero_mean_fraction": 0.5626700834598889,
+              "mean_rgb": [
+                0.0015234854652739088,
+                0.00686016147453484,
+                0.0006029729950892514
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.004139679863946411,
+                "p99": 0.0894301195087972,
+                "worst05_mean": 0.07203226954696168
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "p50_time_ratio": 1.0976975731176104,
+          "mean_time_ratio": 1.101282036532097,
+          "build_p50_ns": 497664.0,
+          "whole": [
+            {
+              "mean": 0.0016620261043439853,
+              "p99": 0.033832369321026054,
+              "worst05_mean": 0.029831976291591487,
+              "zero_mean_fraction": 0.5937060651211644,
+              "mean_rgb": [
+                0.0015389414469790853,
+                0.006797800785206929,
+                0.0005802254121685159
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.007636464804898388,
+                "p99": 0.15544864001297742,
+                "worst05_mean": 0.13706814617163923
+              }
+            },
+            {
+              "mean": 0.0016715823333344963,
+              "p99": 0.03418519477010711,
+              "worst05_mean": 0.030029273522311287,
+              "zero_mean_fraction": 0.593921180672832,
+              "mean_rgb": [
+                0.0015447347326511681,
+                0.006803621258283548,
+                0.0005814766899592539
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.007680372542666677,
+                "p99": 0.15706975722475758,
+                "worst05_mean": 0.13797466223330504
+              }
+            }
+          ]
+        },
+        "global-area-sah": {
+          "p50_time_ratio": 0.8894835096453018,
+          "mean_time_ratio": 0.876415589993749,
+          "build_p50_ns": 392192.0,
+          "whole": [
+            {
+              "mean": 0.00178059375480201,
+              "p99": 0.035011679913111535,
+              "worst05_mean": 0.03221102352411746,
+              "zero_mean_fraction": 0.586913358873566,
+              "mean_rgb": [
+                0.0015251624952058035,
+                0.0068591981647691345,
+                0.0006030269839740527
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.006510748186808569,
+                "p99": 0.128020347649012,
+                "worst05_mean": 0.1177797363600296
+              }
+            },
+            {
+              "mean": 0.0017844631968328864,
+              "p99": 0.03489553278312095,
+              "worst05_mean": 0.0322790909886881,
+              "zero_mean_fraction": 0.5868470933932821,
+              "mean_rgb": [
+                0.001523980835830152,
+                0.006865579001525232,
+                0.0006035244094121197
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.006524896817072237,
+                "p99": 0.12759565520361288,
+                "worst05_mean": 0.11802862531650199
+              }
+            }
+          ]
+        },
+        "global-diagonal": {
+          "p50_time_ratio": 0.8317361543248288,
+          "mean_time_ratio": 0.8615089911296725,
+          "build_p50_ns": 392192.0,
+          "whole": [
+            {
+              "mean": 0.0008361997326008932,
+              "p99": 0.016503050313331206,
+              "worst05_mean": 0.014873186632279494,
+              "zero_mean_fraction": 0.5730638734942529,
+              "mean_rgb": [
+                0.0015396315130724845,
+                0.0067957256952444105,
+                0.0005806781345145546
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.0030055627332841815,
+                "p99": 0.05931711177781012,
+                "worst05_mean": 0.05345887319064178
+              }
+            },
+            {
+              "mean": 0.0008357094725837494,
+              "p99": 0.016598454471677567,
+              "worst05_mean": 0.014858227505995756,
+              "zero_mean_fraction": 0.5732166797137134,
+              "mean_rgb": [
+                0.0015380838106239009,
+                0.006802883290374585,
+                0.0005804982936731177
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.0030038005858214413,
+                "p99": 0.059660024089004345,
+                "worst05_mean": 0.053405105423530615
+              }
+            }
+          ]
+        },
+        "outer-near": {
+          "p50_time_ratio": 0.9588052271313006,
+          "mean_time_ratio": 1.0094954306116422,
+          "build_p50_ns": 498688.0,
+          "whole": [
+            {
+              "mean": 0.0008271702136394832,
+              "p99": 0.017912631273502504,
+              "worst05_mean": 0.01451816381815329,
+              "zero_mean_fraction": 0.5794985483409151,
+              "mean_rgb": [
+                0.0015236618371280107,
+                0.00685868122412016,
+                0.0006030195712463313
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.003483815949551393,
+                "p99": 0.07544313068828615,
+                "worst05_mean": 0.061146557061503126
+              }
+            },
+            {
+              "mean": 0.0008276260757070474,
+              "p99": 0.01798229105595992,
+              "worst05_mean": 0.014531264820431091,
+              "zero_mean_fraction": 0.5796182218202336,
+              "mean_rgb": [
+                0.001522214539478838,
+                0.006860349858598019,
+                0.0006028825274793724
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.0034857359165854913,
+                "p99": 0.07573651874453596,
+                "worst05_mean": 0.0612017349196246
+              }
+            }
+          ]
+        },
+        "upper-cut2": {
+          "p50_time_ratio": 0.9966397013067828,
+          "mean_time_ratio": 1.039699797129128,
+          "build_p50_ns": 392192.0,
+          "whole": [
+            {
+              "mean": 0.0007877780807738831,
+              "p99": 0.01582040246954425,
+              "worst05_mean": 0.013987088483094795,
+              "zero_mean_fraction": 0.5736844942237765,
+              "mean_rgb": [
+                0.0015414761192151583,
+                0.006799907044849059,
+                0.0005809177601210814
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.0034171796432084264,
+                "p99": 0.06862485588985076,
+                "worst05_mean": 0.060672409145013546
+              }
+            },
+            {
+              "mean": 0.0007885077762527957,
+              "p99": 0.015838038484798787,
+              "worst05_mean": 0.01400392558944643,
+              "zero_mean_fraction": 0.5738046622216046,
+              "mean_rgb": [
+                0.0015403702872237859,
+                0.006801783679406538,
+                0.0005807651271630232
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.0034203448753939067,
+                "p99": 0.06870135640920502,
+                "worst05_mean": 0.06074544420206772
+              }
+            }
+          ]
+        },
+        "global-face": {
+          "p50_time_ratio": 0.8209085252022402,
+          "mean_time_ratio": 0.8725786843689719,
+          "build_p50_ns": 391168.0,
+          "whole": [
+            {
+              "mean": 0.001665981809987135,
+              "p99": 0.03301801291003389,
+              "worst05_mean": 0.03047757810036944,
+              "zero_mean_fraction": 0.582410767843835,
+              "mean_rgb": [
+                0.001512005125940851,
+                0.006764120260599872,
+                0.0005693832575502144
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.006065000115330925,
+                "p99": 0.12020194392692674,
+                "worst05_mean": 0.11095350116408254
+              }
+            },
+            {
+              "mean": 0.0016681813880607054,
+              "p99": 0.032971512090298506,
+              "worst05_mean": 0.030518029800433884,
+              "zero_mean_fraction": 0.5824325266582565,
+              "mean_rgb": [
+                0.0015103688606702842,
+                0.006770288779304718,
+                0.0005697406702496937
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.006073007670509446,
+                "p99": 0.12003265787868335,
+                "worst05_mean": 0.11110076541636035
+              }
+            }
+          ]
+        }
+      },
+      "caution": "Emitter face UV is not present in this group. Prefix and global-diagonal have a repeatable mean RGB shift relative to Camera and outer-near; paired target-identity check pending. Outer-near is built dynamically."
+    },
+    {
+      "id": "ls5-texture-mass-matched",
+      "scene": "light-sampling-5",
+      "source": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-prefix-texture-mass.json",
+        "sha256": "2a778e95bfffa3ee45c38a57bad7a610344c4d67f13f6cee1fd043650cb1285f"
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "matched_pixels": 2066954,
+      "receiver_data": [
+        "colortex8",
+        "colortex10",
+        "colortex9"
+      ],
+      "methods": {
+        "camera": {
+          "p50_time_ratio": 1.0,
+          "mean_time_ratio": 1.0,
+          "build_p50_ns": 196608.0,
+          "whole": [
+            {
+              "mean": 0.016062614140641546,
+              "p99": 0.20153321289922943,
+              "worst05_mean": 0.2702865153360301,
+              "zero_mean_fraction": 0.42723156877221263,
+              "mean_rgb": [
+                0.011004239423221113,
+                0.006912369651695976,
+                0.002135494276728065
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.06332023845245335,
+                "p99": 0.7944616601714974,
+                "worst05_mean": 1.0654932286679804
+              }
+            },
+            {
+              "mean": 0.016050149747470686,
+              "p99": 0.20212349909357688,
+              "worst05_mean": 0.2700397833071089,
+              "zero_mean_fraction": 0.42704675575750595,
+              "mean_rgb": [
+                0.011002373030346707,
+                0.006912746477724148,
+                0.002138738536517008
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.06327110271770722,
+                "p99": 0.7967886202948002,
+                "worst05_mean": 1.0645205892975544
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "p50_time_ratio": 1.1324285714285713,
+          "mean_time_ratio": 1.0786933219146808,
+          "build_p50_ns": 192512.0,
+          "whole": [
+            {
+              "mean": 0.024193306083827033,
+              "p99": 0.3341836292389777,
+              "worst05_mean": 0.3941146375197656,
+              "zero_mean_fraction": 0.5270668819915683,
+              "mean_rgb": [
+                0.011021409614894865,
+                0.006921077972636809,
+                0.0021391665504647637
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10287729223348203,
+                "p99": 1.421050383347422,
+                "worst05_mean": 1.6758952495838495
+              }
+            },
+            {
+              "mean": 0.023918808275619586,
+              "p99": 0.3312868527369571,
+              "worst05_mean": 0.3883509458552554,
+              "zero_mean_fraction": 0.5272734661729288,
+              "mean_rgb": [
+                0.010998131820154305,
+                0.006906743201404488,
+                0.002135732583165648
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10171004410565027,
+                "p99": 1.4087324090407738,
+                "worst05_mean": 1.651386280464086
+              }
+            }
+          ]
+        },
+        "texture-mass": {
+          "p50_time_ratio": 1.1195714285714287,
+          "mean_time_ratio": 1.0189909509884103,
+          "build_p50_ns": 203776.0,
+          "whole": [
+            {
+              "mean": 0.025716893996407232,
+              "p99": 0.3707261836901305,
+              "worst05_mean": 0.42091101944811476,
+              "zero_mean_fraction": 0.5418886922495614,
+              "mean_rgb": [
+                0.011027498704872976,
+                0.006924675482509465,
+                0.0021401194130082355
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10330352877265601,
+                "p99": 1.4891892850264372,
+                "worst05_mean": 1.6907793613941435
+              }
+            },
+            {
+              "mean": 0.025685459441902283,
+              "p99": 0.3708828925900153,
+              "worst05_mean": 0.42060730637038973,
+              "zero_mean_fraction": 0.5422684781567466,
+              "mean_rgb": [
+                0.011013778869836496,
+                0.006911172987122982,
+                0.0021333524311777387
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10317725767606825,
+                "p99": 1.4898187771552471,
+                "worst05_mean": 1.6895593605391497
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ls5-local-escape-matched",
+      "scene": "light-sampling-5",
+      "source": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-prefix-local-escape.json",
+        "sha256": "f629b08c219b2f55b0c78ef9b68ddfc3f15fe1b9da22f599818405220902c5e4"
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "matched_pixels": 2066955,
+      "receiver_data": [
+        "colortex8",
+        "colortex10",
+        "colortex9"
+      ],
+      "methods": {
+        "camera": {
+          "p50_time_ratio": 1.0,
+          "mean_time_ratio": 1.0,
+          "build_p50_ns": 196608.0,
+          "whole": [
+            {
+              "mean": 0.016062639513151806,
+              "p99": 0.20153285895474124,
+              "worst05_mean": 0.27028674660233243,
+              "zero_mean_fraction": 0.42723136207609747,
+              "mean_rgb": [
+                0.01100427501342609,
+                0.0069123922546271074,
+                0.0021355016620563036
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.06332033847312157,
+                "p99": 0.794460264891178,
+                "worst05_mean": 1.0654941403400955
+              }
+            },
+            {
+              "mean": 0.016050167582814856,
+              "p99": 0.2021233566291625,
+              "worst05_mean": 0.2700398620958749,
+              "zero_mean_fraction": 0.427046549150804,
+              "mean_rgb": [
+                0.011002397740618031,
+                0.00691275952572078,
+                0.002138739892925043
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.06327117302620344,
+                "p99": 0.796788058687542,
+                "worst05_mean": 1.0645208998898033
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "p50_time_ratio": 1.1324285714285713,
+          "mean_time_ratio": 1.0786933219146808,
+          "build_p50_ns": 192512.0,
+          "whole": [
+            {
+              "mean": 0.02419332419910052,
+              "p99": 0.33418352248147093,
+              "worst05_mean": 0.3941146375197656,
+              "zero_mean_fraction": 0.5270666269947821,
+              "mean_rgb": [
+                0.011021423532574022,
+                0.006921084061729833,
+                0.00213916532875739
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10287736926513193,
+                "p99": 1.4210499293820489,
+                "worst05_mean": 1.6758952495838495
+              }
+            },
+            {
+              "mean": 0.023918857977166766,
+              "p99": 0.33128677397035033,
+              "worst05_mean": 0.3883513085598979,
+              "zero_mean_fraction": 0.5272732110761966,
+              "mean_rgb": [
+                0.010998170970011127,
+                0.0069067640925560055,
+                0.002135734335612302
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10171025545173815,
+                "p99": 1.4087320741012166,
+                "worst05_mean": 1.6513878227944883
+              }
+            }
+          ]
+        },
+        "local-escape": {
+          "p50_time_ratio": 1.1165714285714285,
+          "mean_time_ratio": 1.0255965873922652,
+          "build_p50_ns": 197632.0,
+          "whole": [
+            {
+              "mean": 0.02248244289026502,
+              "p99": 0.294919520374387,
+              "worst05_mean": 0.36347631662984387,
+              "zero_mean_fraction": 0.5153769675682345,
+              "mean_rgb": [
+                0.011025782721892587,
+                0.006922296554934644,
+                0.002139093857953607
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.09089633674579836,
+                "p99": 1.1923572615174838,
+                "worst05_mean": 1.4695318403239257
+              }
+            },
+            {
+              "mean": 0.02225384569792514,
+              "p99": 0.29533983761942983,
+              "worst05_mean": 0.3590537263932262,
+              "zero_mean_fraction": 0.5154954994182264,
+              "mean_rgb": [
+                0.011001301607047117,
+                0.00690796770536872,
+                0.0021366264833405446
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.08997212012594576,
+                "p99": 1.194056600776654,
+                "worst05_mean": 1.4516513433780023
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ls5-ward-k1-matched",
+      "scene": "light-sampling-5",
+      "source": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-prefix-ward-k1.json",
+        "sha256": "9d9f9e244b8d3a35fd6ee74904cd0d17b86269cab385de73c58b6d38f8c2ce52"
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "matched_pixels": 2066955,
+      "receiver_data": [
+        "colortex8",
+        "colortex10",
+        "colortex9"
+      ],
+      "methods": {
+        "camera": {
+          "p50_time_ratio": 1.0,
+          "mean_time_ratio": 1.0,
+          "build_p50_ns": 196608.0,
+          "whole": [
+            {
+              "mean": 0.016062639513151806,
+              "p99": 0.20153285895474124,
+              "worst05_mean": 0.27028674660233243,
+              "zero_mean_fraction": 0.42723136207609747,
+              "mean_rgb": [
+                0.01100427501342609,
+                0.0069123922546271074,
+                0.0021355016620563036
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.06332033847312157,
+                "p99": 0.794460264891178,
+                "worst05_mean": 1.0654941403400955
+              }
+            },
+            {
+              "mean": 0.016050167582814856,
+              "p99": 0.2021233566291625,
+              "worst05_mean": 0.2700398620958749,
+              "zero_mean_fraction": 0.427046549150804,
+              "mean_rgb": [
+                0.011002397740618031,
+                0.00691275952572078,
+                0.002138739892925043
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.06327117302620344,
+                "p99": 0.796788058687542,
+                "worst05_mean": 1.0645208998898033
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "p50_time_ratio": 1.1324285714285713,
+          "mean_time_ratio": 1.0786933219146808,
+          "build_p50_ns": 192512.0,
+          "whole": [
+            {
+              "mean": 0.02419332419910052,
+              "p99": 0.33418352248147093,
+              "worst05_mean": 0.3941146375197656,
+              "zero_mean_fraction": 0.5270666269947821,
+              "mean_rgb": [
+                0.011021423532574022,
+                0.006921084061729833,
+                0.00213916532875739
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10287736926513193,
+                "p99": 1.4210499293820489,
+                "worst05_mean": 1.6758952495838495
+              }
+            },
+            {
+              "mean": 0.023918857977166766,
+              "p99": 0.33128677397035033,
+              "worst05_mean": 0.3883513085598979,
+              "zero_mean_fraction": 0.5272732110761966,
+              "mean_rgb": [
+                0.010998170970011127,
+                0.0069067640925560055,
+                0.002135734335612302
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10171025545173815,
+                "p99": 1.4087320741012166,
+                "worst05_mean": 1.6513878227944883
+              }
+            }
+          ]
+        },
+        "ward-k1": {
+          "p50_time_ratio": 1.3304285714285715,
+          "mean_time_ratio": 1.2124965246843804,
+          "build_p50_ns": 192512.0,
+          "whole": [
+            {
+              "mean": 0.02156619323528557,
+              "p99": 0.3180018826598821,
+              "worst05_mean": 0.34422308694610115,
+              "zero_mean_fraction": 0.5092974931723235,
+              "mean_rgb": [
+                0.011013704694351216,
+                0.00691692748689073,
+                0.0021375953454098352
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10308140030783444,
+                "p99": 1.5199752226774594,
+                "worst05_mean": 1.645306495846192
+              }
+            },
+            {
+              "mean": 0.021551461502988985,
+              "p99": 0.3180860216170545,
+              "worst05_mean": 0.34393447282366624,
+              "zero_mean_fraction": 0.5094547292998638,
+              "mean_rgb": [
+                0.011014443504888886,
+                0.006910339747779081,
+                0.002133820647521791
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.10301098604521866,
+                "p99": 1.5203773873725055,
+                "worst05_mean": 1.6439269872994295
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "moving4-world-phase-matched",
+      "scene": "light-sampling-failure-moving-4",
+      "source": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-surfaces-camera-prefix-world-phase.json",
+        "sha256": "556430713e211a60af5536aa986b851f22bb9fdc7ee963c8d90a821d03dcf862"
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "matched_pixels": 2022172,
+      "receiver_data": [
+        "colortex8",
+        "colortex10",
+        "colortex9"
+      ],
+      "methods": {
+        "camera": {
+          "p50_time_ratio": 1.0,
+          "mean_time_ratio": 1.0,
+          "build_p50_ns": 400384.0,
+          "whole": [
+            {
+              "mean": 0.0009914262815944577,
+              "p99": 0.021395741463857126,
+              "worst05_mean": 0.017255968144680448,
+              "zero_mean_fraction": 0.5628141424171633,
+              "mean_rgb": [
+                0.0015207897257149955,
+                0.006856251042697523,
+                0.0006018724623535359
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.004136341486555616,
+                "p99": 0.08926542971025588,
+                "worst05_mean": 0.07199383176803903
+              }
+            },
+            {
+              "mean": 0.0009922252444452692,
+              "p99": 0.02143521171441535,
+              "worst05_mean": 0.01726518117130165,
+              "zero_mean_fraction": 0.5626687541910381,
+              "mean_rgb": [
+                0.0015234840176400397,
+                0.00686016023657537,
+                0.0006029724847001702
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.004139674849053041,
+                "p99": 0.08943010401625286,
+                "worst05_mean": 0.07203226954696168
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "p50_time_ratio": 1.0976975731176104,
+          "mean_time_ratio": 1.101282036532097,
+          "build_p50_ns": 497664.0,
+          "whole": [
+            {
+              "mean": 0.0016620240810818951,
+              "p99": 0.033832301222864854,
+              "worst05_mean": 0.029831976291591487,
+              "zero_mean_fraction": 0.5937046898087799,
+              "mean_rgb": [
+                0.001538940385932339,
+                0.006797802860798666,
+                0.000580225164683602
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.007636455508672714,
+                "p99": 0.1554483271242629,
+                "worst05_mean": 0.13706814617163923
+              }
+            },
+            {
+              "mean": 0.0016715802247954349,
+              "p99": 0.03418516471487241,
+              "worst05_mean": 0.030029273522311287,
+              "zero_mean_fraction": 0.593919805041312,
+              "mean_rgb": [
+                0.001544733308875769,
+                0.006803622372470214,
+                0.0005814762498440449
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.00768036285462129,
+                "p99": 0.15706961913081224,
+                "worst05_mean": 0.13797466223330504
+              }
+            }
+          ]
+        },
+        "world-phase": {
+          "p50_time_ratio": 1.0731798382078408,
+          "mean_time_ratio": 1.0754514739776881,
+          "build_p50_ns": 476160.0,
+          "whole": [
+            {
+              "mean": 0.0018031490111724148,
+              "p99": 0.03977926082734485,
+              "worst05_mean": 0.031744186053256435,
+              "zero_mean_fraction": 0.5857869656982689,
+              "mean_rgb": [
+                0.001515564702981904,
+                0.006772061458749341,
+                0.0005706078873345729
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.008090556510825552,
+                "p99": 0.17848572452325692,
+                "worst05_mean": 0.14243311537910053
+              }
+            },
+            {
+              "mean": 0.0017964073689113785,
+              "p99": 0.039806608772632944,
+              "worst05_mean": 0.031609176265416566,
+              "zero_mean_fraction": 0.5858196038714808,
+              "mean_rgb": [
+                0.001508519805107285,
+                0.006766451916698186,
+                0.0005694942446330237
+              ],
+              "variance_times_mean_ms": {
+                "mean": 0.00806030740919794,
+                "p99": 0.17860843212836183,
+                "worst05_mean": 0.14182733942200268
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ls5-global-area-abba",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-5/global-area-abba/accepted.json",
+        "sha256": "e1f86e1eec09046145fa7704cabeb01cc1133fd8800d5c50ce05fe9313b7cc02"
+      },
+      "same_inputs": true,
+      "ratios": [
+        0.8369905956112853,
+        0.8397142857142857
+      ],
+      "median_ratio": 0.8383506919674704,
+      "mean_ratio": 0.8184861747592812,
+      "cap_pass": true
+    },
+    {
+      "id": "face-mixture-native-pdf-audit",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/face-mixture-audit/result.json",
+        "sha256": "223e2ab684316b30195388d3b1776d2d229381a4a10df83ffe476ec27c562609"
+      },
+      "capture": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/face-mixture-audit/accepted.json",
+        "sha256": "900c680f4d6d891029a2d956e98ec9015034caf7fdb8dd766ac1ab6d241d2d94"
+      },
+      "samples": 64,
+      "locally_reweighted_samples": 44,
+      "cube_pdf_max_relative_error": 0.0001717773536
+    },
+    {
+      "id": "secondary-offline-screens",
+      "evidence": [
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/endpoint-screen.json",
+          "sha256": "bf72dbfff1734ecf5080d2c160459fc62c4e36b4a293e5ad75e4ad4eba35fc7d"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/face-exclusion-offline.json",
+          "sha256": "b25b160e7fe001db82c330fec0bdc14d687cd2a20e136927fb4707bbc284678a"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/backface-proof-offline.json",
+          "sha256": "76652d9637843ee13871968083f3257486cabfd76aa9023058e398532fbbb50e"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/outer-upper-mix-screen.json",
+          "sha256": "5d559ac89e6e706845c72fac0ab4045b845f19fab39b8a94bbbe687d58ed5949"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/outer-upper-mix-replay.json",
+          "sha256": "e66b3b798a372c0bcc63b003a45e9ca14f7f0ec19b2f60f3fb8d98e576818d34"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/neighbor-hit-witness.json",
+          "sha256": "630c12b0261cf590d54f26df4b6310c167c0af5a9cbaa4a49fe4c6cc18f32b61"
+        }
+      ],
+      "scope": "Point-window and geometric proof checks only; the observed loss of positive support rejects hard blocked-face exclusion."
     }
   ],
   "frozen_candidate_refs": {
@@ -890,6 +2012,38 @@
     "local-escape": {
       "ref": "experiment/light-sampling-eight-hour-local-escape",
       "source": "3f9c7ad58eb9786452cf84a31b5750804a389e1a"
+    },
+    "face-mixture": {
+      "ref": "experiment/light-sampling-eight-hour-face-mixture",
+      "source": "b51af2a40330b3cdc9d168e772ead66c12ff8b7b"
+    },
+    "far-endpoint": {
+      "ref": "experiment/light-sampling-eight-hour-far-endpoint",
+      "source": "323186bcd23cd8f3ec25cdb80cb9ac96fe1c654b"
+    },
+    "global-area": {
+      "ref": "experiment/light-sampling-eight-hour-global-area",
+      "source": "474ad60b3ff7137463d9a9fc988b6480c414c3c3"
+    },
+    "global-diagonal": {
+      "ref": "experiment/light-sampling-eight-hour-global-diagonal",
+      "source": "2d0a5d61ebf09649056436c7dcd2d1ca323d545c"
+    },
+    "global-face": {
+      "ref": "experiment/light-sampling-eight-hour-global-face",
+      "source": "d442565b762c2eb60f654736ff5fb513dd8a077f"
+    },
+    "outer-face": {
+      "ref": "experiment/light-sampling-eight-hour-outer-face",
+      "source": "190204e8467936f0930ab8e5247613030da42193"
+    },
+    "upper-cut2": {
+      "ref": "experiment/light-sampling-eight-hour-upper-cut2",
+      "source": "5eb03eb09a1e2b89a298686b08397304018511aa"
+    },
+    "upper-outer-near": {
+      "ref": "experiment/light-sampling-eight-hour-upper-outer-near",
+      "source": "2a214517e0e2bb400c88fa6b2ae5cbc6df76bb73"
     }
   },
   "runtime_scene_recovery": {

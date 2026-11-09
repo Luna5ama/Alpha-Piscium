@@ -10,7 +10,7 @@ from matplotlib.path import Path as Polygon
 import numpy as np
 
 from light_sampling_distribution_review import REGIONS, summarize
-from light_sampling_moving_analysis import bracket_identity, native_node
+from light_sampling_moving_analysis import bracket_identity, leaves, native_node
 from light_sampling_point_moments import ROOT, read, sha
 from light_sampling_point_screening import Tree
 from light_sampling_weight_reference import load_tree
@@ -36,13 +36,15 @@ def archive(job_id, name):
     settings = {v['name']:v['value'] for v in prov['effective_settings']['settings']}
     for key, value in request['configs'][0]['values'].items():
         assert settings[key] == value, (key, value, settings[key])
-    assert settings['SETTING_DEBUG_LIGHT_AUDIT'] == 'false'
+    audited = name.endswith('-audit')
+    assert settings['SETTING_DEBUG_LIGHT_AUDIT'] == ('true' if audited else 'false')
     context = request['__vibris_scene_context']
     folder = RUN/'cases'/prov['preset_id']/name
     manifest, ref = retain_manifest(job, result, folder)
     identity = input_identity(folder, context, settings)
-    metrics = next(r['gpu_metrics'] for r in result['action_receipts'] if r['kind']=='ACTION_KIND_GET_GPU_METRICS')
-    timings = timing(metrics)
+    metrics = [r['gpu_metrics'] for r in result['action_receipts'] if r['kind']=='ACTION_KIND_GET_GPU_METRICS']
+    assert len(metrics)==(0 if audited else 1)
+    timings = None if audited else timing(metrics[0])
     accepted = dict(
         job=job_id, name=folder.name, scene=prov['preset_id'], context=context,
         manifest_id=manifest['manifest_id'], manifest_sha256=ref['sha256'],
@@ -80,6 +82,69 @@ def retain_manifest(job, result, folder):
         shutil.copyfile(source, folder/name)
     return manifest, ref
 
+
+
+def archive_group(job_id, name):
+    """Retain one frozen-scene action group containing two quality methods."""
+    job = ROOT/'.vibris/jobs'/job_id
+    request = read(job/'request.json')['arguments']
+    saved = read(job/'result.json')
+    assert saved['success']
+    result = saved['result']
+    provenance = result['provenance']
+    assert not provenance['stale'] and not provenance['patch_sha256'] and not provenance['dirty_shader_delta_sha256']
+    assert provenance['preset_id'] == request['preset_id']
+    assert result['restoration']['status']=='RECEIPT_STATUS_OK'
+    assert len(request['actions'])==len(result['action_receipts'])
+    assert all(row['status']=='RECEIPT_STATUS_OK' for row in result['action_receipts'])
+    context = request['__vibris_scene_context']
+    scene = request['preset_id']
+    group = RUN/'quality-groups'/scene/name
+    manifest, ref = retain_manifest(job,result,group)
+    sources = {row['id']:row for row in request['sources']}
+    configs = {row['id']:row['values'] for row in request['configs']}
+    entries = {}
+    tag = None
+    for action, receipt in zip(request['actions'],result['action_receipts'],strict=True):
+        kind = action['type']
+        if kind == 'load_shader':
+            tag = action['config_id']
+            assert Path(tag).name==tag and tag not in entries
+            source = sources[action['source_id']]
+            m = receipt['runtime_mutation']
+            assert source['snapshot_sha256']==m['source_sha256']
+            settings = {pair['name']:pair['value'] for pair in m['effective_settings']['settings']}
+            assert all(settings[k]==v for k,v in configs[tag].items())
+            assert settings['SETTING_DEBUG_LIGHT_AUDIT']=='false'
+            entries[tag] = dict(job=job_id, name=tag, scene=scene, context=context, resolution=context['resolution'],
+                                source=source['resolved_revision'],source_snapshot_sha256=m['source_sha256'],
+                                preset_sha256=request['__vibris_preset']['preset_sha256'],
+                                scene_sha256=m['scene_sha256'],settings=settings,restore=result['restoration'])
+        elif kind=='get_gpu_metrics':
+            entries[tag]['timings']=timing(receipt['gpu_metrics'])
+    assert len(entries)==2 and all('timings' in row for row in entries.values())
+    assert provenance['source_snapshot_sha256'] == entries[tag]['source_snapshot_sha256']
+    assert provenance['scene_sha256'] == entries[tag]['scene_sha256']
+    for tag, entry in entries.items():
+        folder = RUN/'cases'/scene/tag
+        folder.mkdir(parents=True,exist_ok=True)
+        prefix = tag+'--'
+        files = [item for item in manifest['files'] if item['relative_path'].startswith(prefix)]
+        assert len(files)>=48
+        for item in files:
+            source = group/item['relative_path']
+            path = folder/item['relative_path'][len(prefix):]
+            if not path.exists():
+                os.link(source,path)
+            assert os.path.samefile(source,path)
+        entry['identity']=input_identity(folder,context,entry['settings'])
+        entry['manifest_id']=manifest['manifest_id']
+        entry['manifest_sha256']=ref['sha256']
+        entry['path']=folder.relative_to(ROOT).as_posix()
+        entry['group_path']=group.relative_to(ROOT).as_posix()
+        (folder/'accepted.json').write_text(json.dumps(entry,indent=2,allow_nan=False)+'\n',encoding='utf8')
+    return dict(job=job_id,group=group.relative_to(ROOT).as_posix(),manifest_id=manifest['manifest_id'],
+                manifest_sha256=ref['sha256'],methods=entries)
 
 def archive_ordered(job_id, name):
     job = ROOT/'.vibris/jobs'/job_id
@@ -182,6 +247,19 @@ def input_identity(folder, context, settings):
     identity['grid'] = int(settings['SETTING_VOXEL_GRID_SIZE'])
     identity['gbuffer'] = {f:sha(folder/f'{f}.bin') for f in ('colortex8','colortex9','colortex10')
                            if (folder/f'{f}.bin').is_file()}
+    if (folder/'before_face-uv.bin').is_file():
+        header,nodes,links = load_tree(folder/'before_tree.bin',1)
+        rows = leaves(native_node(nodes,links,1))
+        assert len(rows)==int(header[1])
+        ids = np.asarray(sorted({r[3] for r in rows}),dtype='<u4')
+        uv = {}
+        for phase in ('before','after'):
+            path = folder/f'{phase}_face-uv.bin'
+            data = np.fromfile(path,'<u4').reshape(16384,6,2)
+            uv[phase] = dict(raw_sha256=sha(path), emitting_sha256=hashlib.sha256(
+                ids.tobytes()+data[ids].tobytes()).hexdigest(),
+                populated_emitting_faces=int(np.any(data[ids]!=0,axis=2).sum()))
+        identity['face_uv'] = dict(material_count=len(ids), **uv)
     return identity
 
 
@@ -246,6 +324,17 @@ def match_light_keys(folder, names, variant):
     assert np.isfinite(mass).all() and np.all(mass[:,1]>=support_floor*mass[:,0]*(1.-2e-7))
     result['changed_lamp_masses'] = int(np.sum(mass[:,0]!=mass[:,1]))
     result['mass_ratio_quantiles'] = np.quantile(mass[:,1]/mass[:,0],[0,.05,.5,.95,1.]).tolist()
+    if variant == 'local-escape':
+        fixture = sorted((EARLIER/'cases'/folder.name).glob('m2-*'))
+        if fixture:
+            from light_sampling_exploration_escape import neighbor_words
+            brick = read(fixture[0]/'accepted.json')['pose']['camera_brick']
+            key_array = np.asarray(keys,dtype=int)
+            words,_ = neighbor_words(key_array,folder/'prefix',brick)
+            solid = ((words&1)!=0) | np.isin(words>>1,np.unique(key_array[:,3]))
+            expected = mass[:,0]*(1+(~solid).sum(axis=1))/7.
+            np.testing.assert_allclose(mass[:,1],expected,rtol=2e-7)
+            result['cpu_mass_max_relative_error'] = float(np.max(np.abs(mass[:,1]/expected-1.)))
     if variant == 'texture-mass':
         uv_paths = {phase:folder/variant/f'{phase}_face-uv.bin' for phase in ('before','after')}
         result['uv_tables'] = {phase:sha(p) for phase,p in uv_paths.items()}
@@ -257,7 +346,32 @@ def match_light_keys(folder, names, variant):
     return result
 
 
-def compare(scene, names, full_receiver=False, proposal_mass_variant=None):
+def connected_surface(folder, dim, center, axis):
+    """Get the connected matching planar material/normal at a fixed receiver."""
+    from scipy.ndimage import label
+    height,width = dim['height'],dim['width']
+    x = round(center[0]*width/1920)
+    y = round(center[1]*height/1080)
+    view = np.memmap(folder/'colortex10.bin','<f4','r',shape=(height,width))[::-1]
+    packed = np.memmap(folder/'colortex8.bin','<u4','r',shape=(height,width,4))[::-1]
+    camera = np.fromfile(folder/'before_camera.bin','<f4')
+    inverse_view = camera[16:32].reshape(4,4).T.astype(float)
+    inverse_projection = camera[96:112].reshape(4,4).T.astype(float)
+    x_ndc = ((np.arange(width)+.5)*2./width-1.)*inverse_projection[0,0]
+    y_ndc = (1.-(np.arange(height)+.5)*2./height)*inverse_projection[1,1]
+    direction = inverse_view[axis,2] - (
+        inverse_view[axis,0]*x_ndc[None,:] + inverse_view[axis,1]*y_ndc[:,None])
+    axis_coordinate = view * direction
+    same_surface = np.abs(axis_coordinate-axis_coordinate[y,x]) <= .01
+    same_surface &= ((packed[:,:,0]^packed[y,x,0]) & 0xffff)==0
+    same_surface &= ((packed[:,:,3]^packed[y,x,3]) >> 16)==0
+    same_surface &= np.isfinite(view)&(view>-65536.)
+    labels,_ = label(same_surface)
+    assert labels[y,x]>0
+    return labels==labels[y,x]
+
+
+def compare(scene, names, full_receiver=False, proposal_mass_variant=None, surface_regions=False):
     folder = RUN/'cases'/scene
     cases = {n:read(folder/n/'accepted.json') for n in names}
     base = cases[names[0]]
@@ -287,6 +401,10 @@ def compare(scene, names, full_receiver=False, proposal_mass_variant=None):
                    if scene=='light-sampling-1' else [('side-a',(700,583)),('side-b',(1312,515)),('top',(1000,631))])
         for name,(x,y) in centers:
             points[name] = (abs(xx-x)<=4) & (abs(yy-y)<=4)
+        if surface_regions:
+            axes = [0,1] if scene=='light-sampling-1' else [2,0,1]
+            points.update({name+' connected plane':connected_surface(folder/names[0],dim,center,axis)
+                           for (name,center),axis in zip(centers,axes,strict=True)})
     windows = []
     previous_end = {}
     common = np.ones((height,width),dtype=bool)
@@ -300,6 +418,11 @@ def compare(scene, names, full_receiver=False, proposal_mass_variant=None):
             previous_end[n] = frames[1]
             data[window][n] = (mean,variance,frames)
     complete_pixels = int(common.sum())
+    uv_identities = {n:r['identity'].get('face_uv') for n,r in cases.items()}
+    emitting_uv_matched = None
+    if all(uv_identities.values()):
+        emitting_uv_matched = len({uv[p]['emitting_sha256'] for uv in uv_identities.values()
+                                   for p in ('before','after')})==1
     receiver_match = np.ones_like(common)
     input_payloads = [('colortex8','<u4',(height,width,4)), ('colortex10','<f4',(height,width))]
     if all((folder/n/'colortex9.bin').exists() for n in names):
@@ -355,8 +478,9 @@ def compare(scene, names, full_receiver=False, proposal_mass_variant=None):
                   raw_timing_cap={n:r<=1.25 for n,r in time_ratios.items()},
                   windows=windows, joint_complete_pixels=int(common.sum()), before_receiver_match_pixels=complete_pixels,
                   receiver_data_compared=[field for field,_,_ in input_payloads],
-                  receiver_mismatches=mismatches, full_receiver=full_receiver, proposal_mass_change=mass_change)
-    tag = ('full-gbuffer-' if full_receiver else '') + '-'.join(names)
+                  receiver_mismatches=mismatches, full_receiver=full_receiver, proposal_mass_change=mass_change,
+                  emitting_uv_matched=emitting_uv_matched)
+    tag = ('full-gbuffer-' if full_receiver else '') + ('surfaces-' if surface_regions else '') + '-'.join(names)
     out = RUN/f'{scene}-{tag}.json'
     out.write_text(json.dumps(result,indent=2,allow_nan=False)+'\n',encoding='utf8')
     return result
@@ -371,10 +495,14 @@ if __name__=='__main__':
     ordered = ops.add_parser('ordered')
     ordered.add_argument('job_id')
     ordered.add_argument('name')
+    grouped=ops.add_parser('group')
+    grouped.add_argument('job_id')
+    grouped.add_argument('name')
     report=ops.add_parser('compare')
     report.add_argument('scene')
     report.add_argument('names',nargs='+')
     report.add_argument('--full-receiver',action='store_true')
+    report.add_argument('--surface-regions',action='store_true')
     report.add_argument('--proposal-mass-variant',choices=('texture-mass','local-escape'))
     args=parser.parse_args()
     if args.op=='archive':
@@ -383,6 +511,8 @@ if __name__=='__main__':
         print(json.dumps({key:result[key] for key in fields}))
     elif args.op=='ordered':
         print(json.dumps(archive_ordered(args.job_id,args.name)))
+    elif args.op=='group':
+        print(json.dumps(archive_group(args.job_id,args.name)))
     else:
-        result=compare(args.scene,args.names,args.full_receiver,args.proposal_mass_variant)
+        result=compare(args.scene,args.names,args.full_receiver,args.proposal_mass_variant,args.surface_regions)
         print(result['time_ratios'],result['joint_complete_pixels'])
