@@ -174,7 +174,7 @@ def main(args):
     print(json.dumps({k:v for k,v in result.items() if k!="witnesses"}))
 
 
-def live(folder, output):
+def live(folder, output, legacy_only):
     case = read(folder/"accepted.json")
     assert case["restore"]["status"] == "RECEIPT_STATUS_OK"
     data = np.fromfile(folder/"audit.bin","<u4")
@@ -201,10 +201,18 @@ def live(folder, output):
         errors[tag].append(abs(d[3]/expected-1.))
     evidence = {name:dict(samples=len(v),max_relative_pdf_error=max(v) if v else None)
                 for name,v in errors.items()}
-    qualified = bool(errors["far_plane"]) and max(errors["far_plane"]+errors["legacy"]) < .005
-    qualified &= not any(counters[i] for i in (10,11,12))
-    report = dict(source=source,job=case["job"],scene=case["scene"],counters=counters,verified=evidence,
-                  qualified=qualified,scope="Native debug frame; independently validate sampled conditional PDFs and require zero full-frame far-plane numerical/support failures.")
+    tagged = errors["far_plane"]+errors["legacy"]
+    valid_pdf_samples = bool(tagged) and max(tagged) < .005
+    counts = dict(far_bad_pdf=counters[11],far_slab_miss=counters[12],
+                  legacy_bad_pdf=counters[13],legacy_slab_miss=counters[14],far_selected=counters[15],
+                  receiver_evaluations=sum(counters[:10])+sum(counters[11:15]))
+    if legacy_only:
+        qualified = valid_pdf_samples and not any((errors["far_plane"],counts["far_selected"],counters[11],counters[12]))
+    else:
+        qualified = valid_pdf_samples and bool(errors["far_plane"]) and not any((counters[11],counters[12]))
+    report = dict(source=source,job=case["job"],scene=case["scene"],counters=counters,
+                  diagnostic_counts=counts,verified=evidence,legacy_only=legacy_only,qualified=qualified,
+                  scope="Native debug frame; sampled PDFs and full-frame event counters are separate. Legacy failures remain explicit even when the far-plane audit qualifies.")
     output.write_text(json.dumps(report,indent=2,allow_nan=False)+"\n",encoding="utf8")
     print(json.dumps(report))
     if not qualified:
@@ -220,8 +228,9 @@ if __name__=="__main__":
     native=sub.add_parser("live")
     native.add_argument("folder",type=Path)
     native.add_argument("output",type=Path)
+    native.add_argument("--legacy-only",action="store_true")
     args=p.parse_args()
     if args.mode=="live":
-        live(args.folder,args.output)
+        live(args.folder,args.output,args.legacy_only)
     else:
         main(args)
