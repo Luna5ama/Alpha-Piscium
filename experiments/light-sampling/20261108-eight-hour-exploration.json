@@ -48,7 +48,7 @@
     "post_release_reserved_bytes": 7456185,
     "historical_local_originals_untouched": true
   },
-  "next": "Run distance-gated lookahead and moving-4 controls; confirm timing with paired order; continue ls5 recovery without restart.",
+  "next": "Screen upper + lookahead, world phase, texture and escape mass, and outer near mix. Reintroduce frozen global SAH. Expand promising methods to the remaining presets.",
   "results": [
     {
       "id": "ls1-initial-screen",
@@ -297,6 +297,556 @@
       "scene": "light-sampling-5",
       "job": "342182e9-4b97-4785-89da-c22c99878c0a",
       "reason": "WORLD_LOAD_FAILED: 238/3461 render-view chunks missing; restoration receipt OK."
+    },
+    {
+      "id": "moving4-prefix-cut-screen",
+      "scene": "light-sampling-failure-moving-4",
+      "source": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-camera-prefix-near-lookahead-lookahead-cut2.json",
+        "sha256": "757e77a4611af0695f0ea349887ebf95ebc78239e07c5b7bd6d2fe93f35dfa0f"
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "matched_pixels": 2022172,
+      "receiver_data": [
+        "colortex8",
+        "colortex10",
+        "colortex9"
+      ],
+      "methods": {
+        "camera": {
+          "job": "78e05624-3ee9-4c1c-8ce9-cff3de3da186",
+          "revision": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-failure-moving-4/camera",
+          "manifest_sha256": "01792e09d476d427b80f7be370afd4575320664e3e7f9ca2f18357ce0a73fd53",
+          "raygen_median_ratio": 1.0,
+          "raygen_mean_ratio": 1.0,
+          "prepare_median_ms": 0.400384,
+          "windows": [
+            {
+              "mean": 0.0009914245810128724,
+              "p99": 0.021395741463857126,
+              "worst05_mean": 0.01725596241968061,
+              "variance_times_mean_ms": {
+                "mean": 0.004136334391538777,
+                "p99": 0.08926542971025588,
+                "worst05_mean": 0.0719938078826985
+              }
+            },
+            {
+              "mean": 0.000992223630225514,
+              "p99": 0.02143521171441535,
+              "worst05_mean": 0.017265177606480178,
+              "variance_times_mean_ms": {
+                "mean": 0.004139668114347429,
+                "p99": 0.08943010401625286,
+                "worst05_mean": 0.07203225467412723
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "job": "7fc10947-6c59-4a4d-8ff6-c72a2a4204bf",
+          "revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-failure-moving-4/prefix",
+          "manifest_sha256": "48ab5d0af3a56e8250bb0791e2bbda9ea04c176b835d9197a171837413cc5f0b",
+          "raygen_median_ratio": 1.0976975731176104,
+          "raygen_mean_ratio": 1.101282036532097,
+          "prepare_median_ms": 0.497664,
+          "windows": [
+            {
+              "mean": 0.0016620220505880025,
+              "p99": 0.033832301222864854,
+              "worst05_mean": 0.029831973048351838,
+              "variance_times_mean_ms": {
+                "mean": 0.007636446179219279,
+                "p99": 0.1554483271242629,
+                "worst05_mean": 0.13706813127001682
+              }
+            },
+            {
+              "mean": 0.001671577971383977,
+              "p99": 0.03418516471487241,
+              "worst05_mean": 0.03002926712944641,
+              "variance_times_mean_ms": {
+                "mean": 0.00768035250093476,
+                "p99": 0.15706961913081224,
+                "worst05_mean": 0.1379746328601878
+              }
+            }
+          ]
+        },
+        "near-lookahead": {
+          "job": "ff376244-01ea-4d74-94b2-432b7851ef51",
+          "revision": "08b8892e27f7edbbef4eaea124b06007dbc27bc8",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-failure-moving-4/near-lookahead",
+          "manifest_sha256": "d630828c6f6932cf1498b39969df152a951cf2b41f4dc7dcbaf72e61ef44a72c",
+          "raygen_median_ratio": 1.450031113876789,
+          "raygen_mean_ratio": 1.426790076584713,
+          "prepare_median_ms": 0.498688,
+          "windows": [
+            {
+              "mean": 0.0013956553834807072,
+              "p99": 0.02992663242388517,
+              "worst05_mean": 0.024858005910423142,
+              "variance_times_mean_ms": {
+                "mean": 0.008307956879596344,
+                "p99": 0.17814510277536913,
+                "worst05_mean": 0.14797294780714132
+              }
+            },
+            {
+              "mean": 0.0013978171429510074,
+              "p99": 0.03002133532179887,
+              "worst05_mean": 0.024909288712064912,
+              "variance_times_mean_ms": {
+                "mean": 0.008320825245724464,
+                "p99": 0.17870884336746115,
+                "worst05_mean": 0.14827822037639274
+              }
+            }
+          ]
+        },
+        "lookahead": {
+          "job": "998403b5-9697-4f90-91e0-efb096721f44",
+          "revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-failure-moving-4/lookahead",
+          "manifest_sha256": "2bb58cc9244ab5d08f73e0b17a17310fde6e86d65069e0b48d0d19ee843ef573",
+          "raygen_median_ratio": 1.5631611698817673,
+          "raygen_mean_ratio": 1.5715589610250156,
+          "prepare_median_ms": 0.499712,
+          "windows": [
+            {
+              "mean": 0.0013795871012886106,
+              "p99": 0.02964027338253807,
+              "worst05_mean": 0.024584004096183745,
+              "variance_times_mean_ms": {
+                "mean": 0.009045566338761059,
+                "p99": 0.19434297329275502,
+                "worst05_mean": 0.1611904313375299
+              }
+            },
+            {
+              "mean": 0.0013852796309399573,
+              "p99": 0.029750615604498366,
+              "worst05_mean": 0.024703285575528235,
+              "variance_times_mean_ms": {
+                "mean": 0.009082890661776637,
+                "p99": 0.19506645634632655,
+                "worst05_mean": 0.16197252659877748
+              }
+            }
+          ]
+        },
+        "cut2": {
+          "job": "18de02da-224b-42cb-bd0a-1f00f569392e",
+          "revision": "77a063293170338782610073627abe42178b0e52",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-failure-moving-4/cut2",
+          "manifest_sha256": "09cfd6d0040ed7bdb9dc5faed51725277bacb683368ec8f206ee94643ecf79bb",
+          "raygen_median_ratio": 1.3706285003111387,
+          "raygen_mean_ratio": 1.3455650279762383,
+          "prepare_median_ms": 0.497664,
+          "windows": [
+            {
+              "mean": 0.0015270872856976844,
+              "p99": 0.0320114551589359,
+              "worst05_mean": 0.02737795333185603,
+              "variance_times_mean_ms": {
+                "mean": 0.008572835904639375,
+                "p99": 0.179707443521082,
+                "worst05_mean": 0.1536956685561333
+              }
+            },
+            {
+              "mean": 0.0015326915279872313,
+              "p99": 0.03227990938710386,
+              "worst05_mean": 0.027493247747262816,
+              "variance_times_mean_ms": {
+                "mean": 0.008604297269008063,
+                "p99": 0.18121450475297424,
+                "worst05_mean": 0.15434291387947588
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "moving4-compaction-and-frozen-combination",
+      "scene": "light-sampling-failure-moving-4",
+      "source": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-failure-moving-4-camera-prefix-compact-prefix-upper-lookahead.json",
+        "sha256": "0c4bf2be003df9a00e4ce97acb28961b7609efea55ce4ee5394b227f5abaff85"
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "matched_pixels": 2022170,
+      "receiver_data": [
+        "colortex8",
+        "colortex10",
+        "colortex9"
+      ],
+      "methods": {
+        "camera": {
+          "job": "78e05624-3ee9-4c1c-8ce9-cff3de3da186",
+          "revision": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-failure-moving-4/camera",
+          "manifest_sha256": "01792e09d476d427b80f7be370afd4575320664e3e7f9ca2f18357ce0a73fd53",
+          "raygen_median_ratio": 1.0,
+          "raygen_mean_ratio": 1.0,
+          "prepare_median_ms": 0.400384,
+          "windows": [
+            {
+              "mean": 0.0009914252940463558,
+              "p99": 0.021395744358960665,
+              "worst05_mean": 0.01725596241968061,
+              "variance_times_mean_ms": {
+                "mean": 0.004136337366394329,
+                "p99": 0.0892654417889521,
+                "worst05_mean": 0.0719938078826985
+              }
+            },
+            {
+              "mean": 0.0009922243692917204,
+              "p99": 0.02143521418998717,
+              "worst05_mean": 0.017265177606480178,
+              "variance_times_mean_ms": {
+                "mean": 0.004139671197814418,
+                "p99": 0.08943011434461576,
+                "worst05_mean": 0.07203225467412723
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "job": "7fc10947-6c59-4a4d-8ff6-c72a2a4204bf",
+          "revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-failure-moving-4/prefix",
+          "manifest_sha256": "48ab5d0af3a56e8250bb0791e2bbda9ea04c176b835d9197a171837413cc5f0b",
+          "raygen_median_ratio": 1.0976975731176104,
+          "raygen_mean_ratio": 1.101282036532097,
+          "prepare_median_ms": 0.497664,
+          "windows": [
+            {
+              "mean": 0.0016620235163577674,
+              "p99": 0.03383234662163899,
+              "worst05_mean": 0.029831973048351838,
+              "variance_times_mean_ms": {
+                "mean": 0.007636452913950576,
+                "p99": 0.15544853571673925,
+                "worst05_mean": 0.13706813127001682
+              }
+            },
+            {
+              "mean": 0.0016715792768571954,
+              "p99": 0.034185184751695546,
+              "worst05_mean": 0.03002926712944641,
+              "variance_times_mean_ms": {
+                "mean": 0.007680358499156004,
+                "p99": 0.15706971119344248,
+                "worst05_mean": 0.1379746328601878
+              }
+            }
+          ]
+        },
+        "compact-prefix": {
+          "job": "bbaa2f19-d7bb-4fc1-85c8-6fdeee80f04b",
+          "revision": "9f5f00cc8d0349f3a91137e2c3b2a57dd3da37cd",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-failure-moving-4/compact-prefix",
+          "manifest_sha256": "87966c0d3dccb6efeeac270d239f6dfa4df3c93679a4956d65b7d0fd7a07edbb",
+          "raygen_median_ratio": 1.2769135034225265,
+          "raygen_mean_ratio": 1.2445495231192258,
+          "prepare_median_ms": 0.499712,
+          "windows": [
+            {
+              "mean": 0.0016617244184435615,
+              "p99": 0.03383923343746577,
+              "worst05_mean": 0.029831129569527572,
+              "variance_times_mean_ms": {
+                "mean": 0.008628337870326349,
+                "p99": 0.17570683570069726,
+                "worst05_mean": 0.15489515717681498
+              }
+            },
+            {
+              "mean": 0.0016681798448875483,
+              "p99": 0.034118445924395925,
+              "worst05_mean": 0.029967027822385698,
+              "variance_times_mean_ms": {
+                "mean": 0.008661857026594106,
+                "p99": 0.17715661861783338,
+                "worst05_mean": 0.1556007952649555
+              }
+            }
+          ]
+        },
+        "upper-lookahead": {
+          "job": "562e1a46-df2f-43f1-af14-02459b85d9d2",
+          "revision": "7eac8d668788505037e4c50a738046f379ee8895",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-failure-moving-4/upper-lookahead",
+          "manifest_sha256": "b70a8643b157d8ee69934a3fd596e19692e3f395abc27f749b6e3fad49b1db2f",
+          "raygen_median_ratio": 1.4864965774735532,
+          "raygen_mean_ratio": 1.4932427509136859,
+          "prepare_median_ms": 0.391168,
+          "windows": [
+            {
+              "mean": 0.0007652547513303939,
+              "p99": 0.01555367798020609,
+              "worst05_mean": 0.013480438347853391,
+              "variance_times_mean_ms": {
+                "mean": 0.004767518734674322,
+                "p99": 0.09689904052841242,
+                "worst05_mean": 0.08398280737660627
+              }
+            },
+            {
+              "mean": 0.0007653470252489812,
+              "p99": 0.01562979899412337,
+              "worst05_mean": 0.013482118238126896,
+              "variance_times_mean_ms": {
+                "mean": 0.004768093598972547,
+                "p99": 0.09737327261821274,
+                "worst05_mean": 0.08399327305269284
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ls5-matched-whole-image",
+      "scene": "light-sampling-5",
+      "source": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/light-sampling-5-camera-prefix-upper-lookahead.json",
+        "sha256": "e5c9fabaf7d1b24fa0acbe99cda3fc41bac71855c2e7c49b5559ff30b20a423d"
+      },
+      "resolution": {
+        "height": 1080,
+        "width": 1920
+      },
+      "matched_pixels": 2066955,
+      "receiver_data": [
+        "colortex8",
+        "colortex10",
+        "colortex9"
+      ],
+      "methods": {
+        "camera": {
+          "job": "e812ca42-1c7a-4193-86ba-09bf00f523ac",
+          "revision": "24e7ca13d4b735d83c8957be5bc78ff00a33ffc9",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/camera",
+          "manifest_sha256": "14e125bc8961fa59d09b8ac03b749198d014eeeb8133aca8a8c839b3d78b1175",
+          "raygen_median_ratio": 1.0,
+          "raygen_mean_ratio": 1.0,
+          "prepare_median_ms": 0.196608,
+          "windows": [
+            {
+              "mean": 0.016062639513151806,
+              "p99": 0.20153285895474124,
+              "worst05_mean": 0.27028674660233243,
+              "variance_times_mean_ms": {
+                "mean": 0.06332033847312157,
+                "p99": 0.794460264891178,
+                "worst05_mean": 1.0654941403400955
+              }
+            },
+            {
+              "mean": 0.016050167582814856,
+              "p99": 0.2021233566291625,
+              "worst05_mean": 0.2700398620958749,
+              "variance_times_mean_ms": {
+                "mean": 0.06327117302620344,
+                "p99": 0.796788058687542,
+                "worst05_mean": 1.0645208998898033
+              }
+            }
+          ]
+        },
+        "prefix": {
+          "job": "939aee81-f457-47da-8eca-a62b8bd4c07d",
+          "revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/prefix",
+          "manifest_sha256": "61fa63fd482ec0ef64e6c6474ff65ad45d3f54c07dae9f81109bc1d49a03c767",
+          "raygen_median_ratio": 1.1324285714285713,
+          "raygen_mean_ratio": 1.0786933219146808,
+          "prepare_median_ms": 0.192512,
+          "windows": [
+            {
+              "mean": 0.02419332419910052,
+              "p99": 0.33418352248147093,
+              "worst05_mean": 0.3941146375197656,
+              "variance_times_mean_ms": {
+                "mean": 0.10287736926513193,
+                "p99": 1.4210499293820489,
+                "worst05_mean": 1.6758952495838495
+              }
+            },
+            {
+              "mean": 0.023918857977166766,
+              "p99": 0.33128677397035033,
+              "worst05_mean": 0.3883513085598979,
+              "variance_times_mean_ms": {
+                "mean": 0.10171025545173815,
+                "p99": 1.4087320741012166,
+                "worst05_mean": 1.6513878227944883
+              }
+            }
+          ]
+        },
+        "upper": {
+          "job": "375ce4ca-bf1f-467e-b6c5-7d2502c3a41d",
+          "revision": "937741acfbbf9e2d8bcab2318ec46e2fed0c572d",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/upper",
+          "manifest_sha256": "686e5e9d9704da0aabec122cdbafe19a6301cc3f881815dace150629fec116b2",
+          "raygen_median_ratio": 1.0277142857142858,
+          "raygen_mean_ratio": 0.9782470609484111,
+          "prepare_median_ms": 0.18432,
+          "windows": [
+            {
+              "mean": 0.024622771046450213,
+              "p99": 0.35944101645611176,
+              "worst05_mean": 0.434731275412283,
+              "variance_times_mean_ms": {
+                "mean": 0.09495367840618364,
+                "p99": 1.386125331636296,
+                "worst05_mean": 1.6764698676983019
+              }
+            },
+            {
+              "mean": 0.024397559286123707,
+              "p99": 0.35842067925259447,
+              "worst05_mean": 0.43028003444635,
+              "variance_times_mean_ms": {
+                "mean": 0.09408518618721315,
+                "p99": 1.3821905685462332,
+                "worst05_mean": 1.6593043869166997
+              }
+            }
+          ]
+        },
+        "lookahead": {
+          "job": "b2ba54ac-134b-488f-95c0-3f928f20cdf5",
+          "revision": "e9132607ec1540820fc0d7f53772579a0598e50f",
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-5/lookahead",
+          "manifest_sha256": "7b494647d8852e3c6912a9286a476331073ed933d831fd5498e1139d392bca4f",
+          "raygen_median_ratio": 2.0492857142857144,
+          "raygen_mean_ratio": 1.933793461739058,
+          "prepare_median_ms": 0.19456,
+          "windows": [
+            {
+              "mean": 0.021796112651273368,
+              "p99": 0.2913272143900394,
+              "worst05_mean": 0.34054267748704214,
+              "variance_times_mean_ms": {
+                "mean": 0.16615577722538472,
+                "p99": 2.220840959502718,
+                "worst05_mean": 2.59601949033638
+              }
+            },
+            {
+              "mean": 0.021676577732688197,
+              "p99": 0.2901124612241979,
+              "worst05_mean": 0.3375816394602858,
+              "variance_times_mean_ms": {
+                "mean": 0.16524454054658494,
+                "p99": 2.211580672604926,
+                "worst05_mean": 2.5734469526274193
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ls1-lookahead-ordered",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/ordered/light-sampling-1/lookahead-abba/accepted.json",
+        "sha256": "d2148a30ca984eea946b8e16ecbc788505cb29042218494b28b470bd65350ebb"
+      },
+      "same_inputs": true,
+      "ratios": [
+        1.2932890447191978,
+        1.2958854007924414
+      ],
+      "median_ratio": 1.2945931051374686,
+      "mean_ratio": 1.289993497127305,
+      "cap_pass": false
+    },
+    {
+      "id": "cut2-native-audit-moving4",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/audit/cut2-moving4/accepted.json",
+        "sha256": "f9ba15482e98fa8b9d6450ca658e652387ffa1faa34edd547561afc299c48c04"
+      },
+      "samples": 63,
+      "leaf_pdf_max_relative_error": 4.982261563313273e-07,
+      "cube_pdf_max_relative_error": 4.909091791616138e-05
+    },
+    {
+      "id": "compact-native-identity",
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/moving4-prefix-compact-record-equivalence.json",
+        "sha256": "5ca16cb0b1638448930d2f00576a734851eaf71bb48784df04c21046809efb7a"
+      },
+      "active_nodes": 7490,
+      "empty_slot_count_before": 476,
+      "empty_slot_count_after": 0
+    },
+    {
+      "id": "ls1-near-cull-mismatched",
+      "scenes": [
+        "light-sampling-1"
+      ],
+      "evidence": [
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-1/near-lookahead/accepted.json",
+          "sha256": "5ed77a2a2ca83fb2f310c10e34abb8f01396b5ee9e947bb7f98888bc01526246"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/cases/light-sampling-1/lookahead-cull/accepted.json",
+          "sha256": "e9f16b9fa00c80d0af05869530ada8cd729709295e5f2a9a27eeb0fed6e14dbc"
+        }
+      ],
+      "caution": "World voxel hash 023b differs from original ls1 cohort, so no cross-cohort quality or performance ranking."
+    },
+    {
+      "id": "offline-geometry-weight-screens",
+      "evidence": [
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/soft-near-offline.json",
+          "sha256": "20850dd24b27ca9f2b2050865ef70cf86d5a34d0c27dd57dd0082c81721d3604"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/world-phase-offline.json",
+          "sha256": "8f9969c73d7cb040b540cd991612a94ebc8bacd8f3ae0c175849f6f0123efb6d"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/outer-mix-offline.json",
+          "sha256": "1f710054dc90e62cc6f33f53aab86fe421c37d95dd4b453dbddd2e9688658978"
+        },
+        {
+          "path": "builds/light-sampling/20261108-eight-hour-exploration/local-escape-offline.json",
+          "sha256": "dd3f7f0ed1d03e2d6c295270482f407eb3410833b45d07e1ed24ab64cb674274"
+        }
+      ],
+      "scope": "Fixed point-window screens; no whole-image or GPU implication."
+    },
+    {
+      "id": "first-viewer",
+      "page": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/stage1-viewer/comparison.html",
+        "sha256": "5cad2e16d30902ad77ea048ed6b7424fe467230325ab3196e5e043493fb3db53"
+      },
+      "evidence": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/stage1-viewer/evidence.json",
+        "sha256": "7972de065b97bce4eb2afde2e021e7a84e49008deda5e0f59c004132f678b668"
+      },
+      "verified_lossless_images": 40,
+      "agent": "Pyxis GPT-6.1 Terra medium, priority; Windows Idle"
     }
   ],
   "frozen_candidate_refs": {
@@ -308,6 +858,51 @@
       "ref": "experiment/light-sampling-eight-hour-near-lookahead",
       "source": "08b8892e27f7edbbef4eaea124b06007dbc27bc8",
       "rule": "Use model 11 lookahead on a cross-brick cluster only when the receiver-to-AABB distance is at most its half-diagonal."
+    },
+    "cut2": {
+      "ref": "experiment/light-sampling-eight-hour-cut2",
+      "source": "77a063293170338782610073627abe42178b0e52"
+    },
+    "lookahead-cull": {
+      "ref": "experiment/light-sampling-eight-hour-lookahead-cull",
+      "source": "4671d778be348734c96ebdb3aecc0b7ddbc35ec2"
+    },
+    "compact-prefix": {
+      "ref": "experiment/light-sampling-eight-hour-compact-prefix",
+      "source": "9f5f00cc8d0349f3a91137e2c3b2a57dd3da37cd"
+    },
+    "upper-lookahead": {
+      "ref": "experiment/light-sampling-eight-hour-upper-lookahead",
+      "source": "7eac8d668788505037e4c50a738046f379ee8895"
+    },
+    "world-phase": {
+      "ref": "experiment/light-sampling-eight-hour-world-phase",
+      "source": "3474ed2f8f2727c7158673f3e2afc28b4e5793d7"
+    },
+    "texture-mass": {
+      "ref": "experiment/light-sampling-eight-hour-texture-mass",
+      "source": "18b2a94cab6d1e7083d71f5b09088bbec6da5b24"
+    },
+    "outer-near": {
+      "ref": "experiment/light-sampling-eight-hour-outer-near",
+      "source": "d34cbdc2632f95e2962ace1dff92a70ff593fb65"
+    },
+    "local-escape": {
+      "ref": "experiment/light-sampling-eight-hour-local-escape",
+      "source": "3f9c7ad58eb9786452cf84a31b5750804a389e1a"
+    }
+  },
+  "runtime_scene_recovery": {
+    "ls5_initial_failure": "342182e9-4b97-4785-89da-c22c99878c0a",
+    "scoped_unfreeze_readiness": "fddca524-ee54-46d1-b29d-f43bfb14cc71",
+    "quality_used_scoped_freeze_after_recovery": true,
+    "ls5-load-failure": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/ls5-load-failure/result.json",
+      "sha256": "cf6d80674cb5b1c1f0cfb6e36504f79fb0df24b61ff82a18d61b7596685dc709"
+    },
+    "ls5-readiness": {
+      "path": "builds/light-sampling/20261108-eight-hour-exploration/receipts/ls5-readiness/result.json",
+      "sha256": "e4b92b80af53ec9c5d52ca5670de4cefc5bc6e53580732e636a7f9f19fe4e314"
     }
   }
 }
