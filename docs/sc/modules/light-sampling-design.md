@@ -37,7 +37,7 @@
 
 性能硬上限是各已验代表场景的实际 raygen pass 不超过冻结 Camera 基线的 `1.25` 倍。初始计时范围为当前完整 [LightSamplingInitial](../../../shaders/pass/composite/LightSamplingInitial.comp.glsl)，包含选灯、灯内采样和真实可见性光线；完整建树与准备成本另外报告。效率用 `V*T` 而非 `V/T`，因为独立样本的等时间均值方差随 `V*T/B` 变化。不同尾部／区域的 V 各自与实测时间结合，不引入未经选择的综合分数。持续优先降低困难区域／尾部，同时保留整体均值和零观测限制；允许适度平均代价换取明显尾部收益。
 
-首轮将已有 upper/flux-diagonal、前瞻和 K 候选放到同输入质量＋性能对照，再依真实反例迭代。保留 Camera、World Prefix 与 Cosine BRDF 控制；不以固定少数点或旧有限窗口推断所有场景。第一份可复查结果即可回传，讨论端持续复查；截止前收口最佳已验证候选及未完成范围，不因一次失败终止探索。当前状态和本轮原件入口在[实验记录](../../../experiments/light-sampling/20261108-eight-hour-exploration.json)。
+首轮将已有 upper/flux-diagonal、前瞻和 K 候选放到同输入质量＋性能对照，再依真实反例迭代。保留 Camera、World Prefix 与 Cosine BRDF 控制；不以固定少数点或旧有限窗口推断所有场景。用户随后要求减少过细派工和频繁通信，现按整轮可评审成果回传，实验端自主推进、讨论端批次复查，具体所有权见工作包。截止前收口最佳已验证候选及未完成范围，不因一次失败终止探索。当前状态和本轮原件入口在[实验记录](../../../experiments/light-sampling/20261108-eight-hour-exploration.json)。
 
 #### 首轮筛选与独立复查（2026-11-09 06:20 UTC）
 
@@ -105,6 +105,18 @@ moving-4 提供了反例：包含颜色、深度、几何法线及灯／遮挡�
 将可见 cube 轮廓合成一个投影多边形的候选尚未通过数值审计。实机见证有 52 次无效方向／未命中，其中两次远离 cube。独立重建同一几何并在同一扇区 CDF 内双精度有界求逆后，52 次全部命中；[重放记录](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-silhouette-witness.json)支持求逆数值问题，不是轮廓几何不可采样。[CPU float32 重放](../../../builds/light-sampling/20261108-eight-hour-exploration/silhouette-f32-sectors.json)中，一个原本约 4.75e-14 的末扇区面积放大至约 1.17e-10，导致接近 1 的随机数选错扇区；这不是 GPU 逐位重放，不能认定所有失败都来自同一机制。该见证作业最终场景恢复失败，原件仅用于诊断，不计入画质／性能排名。
 
 后续远场候选 `480550f` 按几何条件选择在一个轴向平面的 cube 轮廓上均匀采样，再用真实面积到立体角 Jacobian 计算 PDF；近场和掠射回到原路径。讨论端用全部八个角的独立凸包，并在真实可见 cube 面积分 proposal，1,207 个合格输入覆盖 26 方位区域，归一误差最大约 1.33e-12，见[独立面域积分](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-far-plane-integral.json)。这只证明双精度几何归一性，实际 GPU 支持、纹理／遮挡方差、速度和原路径自身失败率仍需实机核对。
+
+#### 砂岩墙归因、分层与 MIS 的范围（2026-11-09 09:37 UTC）
+
+anchor 在 moving-4 的收益不能推广到所有场景。同输入 ls5 配对的 raygen 均值约为 Camera 的 `0.956`，但两窗整图最差 5% 方差乘均值时间约为 `1.26`；左砂岩墙尾部绝对方差约从 `0.004` 升至 `0.60`，蓝柱则改善。ls3 的对应整图尾部效率代价约为 `1.61–1.65`。这些原始统计均已独立复算，见 [ls5 配对](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-ls5-anchor-first-review.json)及 [ls3](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-light-sampling-3-anchor-first-review.json)。G32 moving-4 的独立比较只对 Prefix 成立：raygen 均值比约 `0.863`、尾部效率比约 `0.26`；其保留单元为 `256×128×128` 世界块，不能描述成 G16 的同一 64³ 粗层。Camera 配对出现实际投影漂移，未通过该项输入验收。
+
+新 ls5 墙点 display `(100,295)` 的有效 mode-3 子集有 2,172 灯，每灯每窗 15,264 样本，双窗完整；第二个选到发光体的接收点不纳入结论。讨论端从原始 mean／variance／完整性缓冲重新提取条件矩，独立解析原生 32B 树并重算 PMF，与实验侧结果一致。二阶矩恒等式最大相对误差约 `4.87e-7`。墙点 Camera 方差为 `0.0004932／0.0004966`，anchor 75/25 为 `0.017578／0.017734`；这些点值解释已经观察到的整面退化，不替代整图取舍。见[独立原件与分叉复查](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-ls5-wall.json)。
+
+关键分叉中，bounds `(305,10,260)–(363,27,319)` 的兄弟 AABB 包住接收点，独占 Near 臂；含主要灯的 `(256,3,192)–(376,33,256)` 最近距离平方约 `80.95`，Near 份额变为零，只获 Far 臂带来的 `5.76%` 条件概率。最终三盏 `(307,12..14,255,4440)` 各自概率由 Camera 的约 `12.3–13.1%` 降至约 `0.342–0.363%`。75/25 改回 50/50 仅缓和到 Camera 的约 `22.8` 倍点方差；Prefix 与 coarse-SAH 也仍约 `12.3`／`14.4` 倍。这是与旧 Near/Far 退化相同的含点粗 AABB 抢占机制；不能据此按法线方向硬编码修正。旧全层 bounded near/far 已有 moving 反例，后续修法需同时检查这些反例。
+
+另一条独立研究是沿树复用 CDF 随机数并对连续 32 帧分层。理论按 32 个独立 jitter 的 strata 计算块均值方差；相关样本不能用每帧样本方差除以 32 验收。[穷举复核](../../../builds/light-sampling/20261108-eight-hour-exploration/independent-cdf-grid.json)直接向量执行全部 `2^23` 个中点随机数，与实验侧二分区间计数的结果吻合。既有 28 窗加新墙点双窗的预测方差降幅为约 `4.6–51.6%`，中位约 `26.0%`；墙点只约 `5.8%`。在这批有限矩及 CPU float32 proposal 下，RGB 均值相对范数偏差最大约 `7.63e-6`，均值 32 帧 MSE 与理想分层模型之比最大约 `1.0000143`。该检查不是实际 GPU 权重／PCG 频率证明，也不解决粗簇漏分概率；仍要实际独立帧块及耗时验证。[分层原理](https://pbr-book.org/4ed/Monte_Carlo_Integration/Improving_Efficiency)提供方差分解依据。
+
+[单样本 BRDF／选灯 MIS 余量筛查](../../../builds/light-sampling/20261108-eight-hour-exploration/offline-brdf-mis-headroom.json)也未给出这些失败点的通用修法。普通投影面上 `p_BRDF/p_cube` 为常数，小投影面积分支用几何上下界；将固定 M2 代入混合密度，50/50 对 anchor 的新红柱点约增至 `1.30–1.31` 倍，顶面约降至 `0.81`，moving 点多为 `1.79–2.60` 倍，砂岩墙约 `1.16` 倍。它仍可能适合其他近灯／稀疏场景，但不能仅凭互补直觉加入本轮默认。此筛查假设两个 proposal 评价同一目标积分，尚未验证现有同材质终点容差下的契约，未实现反向 PMF 或测量成本；[PBRT 接口](https://pbr-book.org/4ed/Light_Sources/Light_Sampling)说明反向 PMF 是实际 MIS 的必要部分。
 
 ### 聚类修复阶段的证据与依据（2026-11-08）
 
