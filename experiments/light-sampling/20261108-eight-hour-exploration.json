@@ -4980,7 +4980,11 @@
       },
       "presets": 11,
       "images": 102,
-      "scope": "1 spp plus two disjoint 32-frame means. LS2 Camera/Prefix and Camera/BRDF cohorts separate. Pixel, native raw row, and static HTML validation; no browser interaction test."
+      "scope": "1 spp plus two disjoint 32-frame means. LS2 Camera/Prefix and Camera/BRDF cohorts separate. Pixel, native raw row, and static HTML validation; no browser interaction test.",
+      "numeric_ledger": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/native-baseline-matrix.json",
+        "sha256": "2e27893a900d772e35af76c01e3a6838e9a97710ff07805c15f57818040fb34e"
+      }
     },
     "actual_projection_drift": {
       "rejected_g32_group": {
@@ -5070,7 +5074,15 @@
         "path": "builds/light-sampling/20261108-eight-hour-exploration/soft-containment-offline-with-selective.json",
         "sha256": "44036710524c78d1bee6d08c4c533672dae1156cd7537787e5fc47654df410a7"
       },
-      "decision": "Measured two fixed wall windows, 2172 lights and 15264 valid samples per light per window. Top three lamps (307,12..14,255,4440) fall from 12.3–13.1 percent per lamp under Camera to 0.342–0.363 percent under Anchor75. One broad mostly-behind containing sibling takes 82.7 percent at the affected split. A single conditional near-only expansion moves point variance from about 35.7 to 4.92 times Camera offline; 28 prior point windows are near unchanged (worst 1.000274 times anchor). Broad unconditional floors have large regressions; no whole-image or timing conclusion yet."
+      "decision": "Measured two fixed wall windows, 2172 lights and 15264 valid samples per light per window. Top three lamps (307,12..14,255,4440) fall from 12.3–13.1 percent per lamp under Camera to 0.342–0.363 percent under Anchor75. One broad mostly-behind containing sibling takes 82.7 percent at the affected split. A single conditional near-only expansion moves point variance from about 35.7 to 4.92 times Camera offline; 28 prior point windows are near unchanged (worst 1.000274 times anchor). Broad unconditional floors have large regressions; no whole-image or timing conclusion yet.",
+      "independent_reanalysis": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/independent-ls5-wall.json",
+        "sha256": "e97bcd0afdaf131fc3d65a79bb74067eab56889b95d9e02ba3f6a021b9edcaca"
+      },
+      "workload_proxy": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/selective-near-gate-workload-proxy.json",
+        "sha256": "ccd2751717f0fdec95d0adc6a3729d8f877f758c6b528ae9d394a7aebf59ae46"
+      }
     },
     "far_cube_numeric_bound": {
       "series": {
@@ -5094,7 +5106,11 @@
         },
         "scope": "The selected ray and PDF are unchanged. A conservative 8-ULP-scale slab comparison lets the real visibility trace determine the edge cases; no clamping, forced hit, or fallback after drawing."
       },
-      "decision": "Twelve native diagnostic frames drifted in projection and are excluded from image/perf ranking. Three far events retained actual ray values: two hit in double and one misses by 9.85e-8 blocks at the slab midpoint. Let the unchanged native visibility ray resolve only floating-point ambiguous slab edges; no post-draw proposal change."
+      "decision": "Twelve native diagnostic frames drifted in projection and are excluded from image/perf ranking. Three far events retained actual ray values: two hit in double and one misses by 9.85e-8 blocks at the slab midpoint. Let the unchanged native visibility ray resolve only floating-point ambiguous slab edges; no post-draw proposal change.",
+      "roundoff_cpu_check": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/far-plane-roundoff-cpu-witness-check.json",
+        "sha256": "e9063b17de2c61748f50df3b8bb38806039ccb7dd87c397a64c0e9fc5702a062"
+      }
     },
     "cdf_stratification": {
       "source": {
@@ -5163,7 +5179,11 @@
         ],
         "scope": "Shader diagnostic sums and valid receiver counts only; the estimator/target is unchanged. This source is never used for timing."
       },
-      "decision": "Two controlled moving4 UV sources write four block sums, valid counts and receiver identity during the deterministic static camera warmup. Compare only if camera, receiver, voxel/leaves, frozen UV and probed atlas support match; this source is not timed."
+      "decision": "Native actions completed and restored the original scene. Four 32-frame sums, counts, and actual projection checks were collected. Frozen UVs, tested atlas crops, and world identity matched. Actual FOV still varied 94.50–96.71 degrees inside both sequences, leaving zero stable complete matching receivers. No quality/timing ranking. The vanilla FOV effects setting was not changed by the experiment.",
+      "first_case": {
+        "path": "builds/light-sampling/20261108-eight-hour-exploration/deterministic-quality/light-sampling-failure-moving-4/uv-camera-diagonal-stationary/report.json",
+        "sha256": "df8b3a3fbfcf764e4adcace0a3623475efdaf00db2e7033f5fcffacec9d09968"
+      }
     }
   }
 }
