@@ -53,8 +53,12 @@ dimensionality, integer/float access class, and any hard-coded channel assumptio
 [`fit-bloom.py`](../../../scripts/fit-bloom.py) calibrates the shared five-tap downsample and eight-tap upsample
 against a four-scale Gaussian proxy and writes [`BloomTaps.glsl`](../../../shaders/techniques/BloomTaps.glsl).
 It checks unit mass and centroids across all 256 proxy phases. The runtime separately combines eight levels with
-equal weights. [`fit-bloom-shape.py`](../../../scripts/fit-bloom-shape.py) fits the star/streak or a custom shape
-using the actual raw level-1 Bloom carrier and emits [`BloomShapeTaps.glsl`](../../../shaders/techniques/BloomShapeTaps.glsl).
+equal weights. [`fit-bloom-shape.py`](../../../scripts/fit-bloom-shape.py) uses the actual raw level-1 Bloom carrier
+for sparse fitting and emits [`BloomShapeTaps.glsl`](../../../shaders/techniques/BloomShapeTaps.glsl).
+[`bloom_shape_targets.py`](../../../scripts/bloom_shape_targets.py) defines the directional taps and the glyph
+targets. The glyph fits translate by whole level-1 texels to center their visual bounds. The
+[`Trollface input`](../../../scripts/assets/trollface-source.png) is Carlos Ramirez's drawing, sourced from the
+[Wikipedia file page](https://en.wikipedia.org/wiki/File:Trollface.png).
 
 Both tools require Python, NumPy and SciPy; shape input also uses Pillow. Run from the repository root at low
 process priority. Recalibrate the shared taps only when intentionally changing the standard kernel; then refit the
@@ -76,7 +80,8 @@ PNG input is opaque 8/16-bit grayscale containing raw linear weights. Function i
 `psf(x, y)` and returning an array matching the coordinate grids. Both require odd dimensions, finite nonnegative
 weights and positive total mass. The middle texel is the origin; x points right and y down, in full-resolution
 pixels. Inputs normalize to unit mass. JSON gather offsets use mip texels; GLSL flips y for atlas coordinates and
-merges adjacent taps into equivalent bilinear reads. Runtime GLSL export requires `--carrier bloom --mip 1`.
+merges adjacent fitted taps into equivalent bilinear reads. Runtime GLSL export requires `--carrier bloom --mip 1`.
+Call the generated `bloom_shapePrepare()` from every invocation before checking output bounds.
 
 Custom output is a filter fragment for a maintainer to evaluate, not an automatic player-facing option. `--report`
 adds a JSON report for `--builtins`. Keep generated source with the generator change; temporary fit reports stay in

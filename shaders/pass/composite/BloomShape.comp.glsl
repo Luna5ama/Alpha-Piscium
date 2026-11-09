@@ -7,6 +7,7 @@ const vec2 workGroupsRender = vec2(0.5, 0.5);
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 
 void main() {
+    bloom_shapePrepare();
     ivec4 tile = global_mipmapTileCeilPadded[1];
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(pos, tile.zw))) {

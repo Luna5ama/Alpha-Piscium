@@ -2859,20 +2859,34 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             comment = "使明亮区域发光并渗透到周围像素，就像光线使相机过曝一样。"
                         }
                     }
-                    slider("SETTING_BLOOM_SHAPE", 0, 0..2) {
+                    slider("SETTING_BLOOM_SHAPE", 0, 0..9) {
                         lang {
                             name = "Bloom Shape"
-                            comment = "Choose the standard glow, a four-point star, or a horizontal streak."
+                            comment = "Choose the standard glow or add a streak, star, or novelty shape."
                             0 value "Standard"
-                            1 value "Four-point Star"
+                            1 value "Diamond Four"
                             2 value "Horizontal Streak"
+                            3 value "Cross Four"
+                            4 value "Camera Six"
+                            5 value "Camera Ten"
+                            6 value "Cinema Star"
+                            7 value "Prismatic Streak"
+                            8 value "67"
+                            9 value "Trollface"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "泛光形状"
-                            comment = "选择标准泛光、四向星芒或横向光带。"
+                            comment = "选择标准泛光，或叠加光带、星芒或趣味造型。"
                             0 value "标准"
-                            1 value "四向星芒"
+                            1 value "菱形四芒"
                             2 value "横向光带"
+                            3 value "正十字"
+                            4 value "摄影六芒"
+                            5 value "摄影十芒"
+                            6 value "电影星芒"
+                            7 value "棱镜光带"
+                            8 value "67"
+                            9 value "Trollface"
                         }
                     }
                     slider("SETTING_BLOOM_INTENSITY", 0.0, -8.0..8.0 step 0.25) {

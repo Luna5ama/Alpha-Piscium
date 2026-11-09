@@ -7,6 +7,7 @@ and an odd-sized image centered on its middle texel.
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import runpy
@@ -19,7 +20,6 @@ import numpy as np
 from PIL import Image
 from scipy.optimize import minimize
 from scipy.signal import correlate2d
-
 
 def soft_strip(x, y):
     """An asymmetric soft horizontal strip, quantized for the PNG example."""
@@ -186,10 +186,13 @@ def score(target, carriers, depth, budget, gather, weights):
     }
 
 
-def fit_builtin(carriers, wide, narrow, rays, offsets):
+def fit_horizontal_streak(carriers):
+    wide, narrow = 61., 1.225
+    rays = [(1, 0), (-1, 0)]
+    offsets = range(1, 73)
     span = 2 * max(offsets) + 8
     axis = np.arange(-span, span + 1)
-    x, y = np.meshgrid(axis, axis if len(rays) == 4 else np.arange(-8, 9))
+    x, y = np.meshgrid(axis, np.arange(-8, 9))
     distances = 2 * np.hypot(*rays[0]) * np.array([0, *offsets])
     end = distances[-1]
 
@@ -197,17 +200,10 @@ def fit_builtin(carriers, wide, narrow, rays, offsets):
         t = np.clip((end - np.abs(distance)) / (end * .28), 0, 1)
         taper = t * t * (3 - 2 * t)
         tail = np.exp(-.5 * (distance / wide)**2)
-        if len(rays) == 4:
-            return tail * taper
         core = np.exp(-.5 * (distance / 22.)**2)
         return (.3 * core / 22. + .7 * tail / wide) * taper
 
-    if len(rays) == 4:
-        u, v = (x + y) / np.sqrt(2), (x - y) / np.sqrt(2)
-        target = envelope(u) * np.exp(-.5 * (v / narrow)**2)
-        target += envelope(v) * np.exp(-.5 * (u / narrow)**2)
-    else:
-        target = envelope(x) * np.exp(-.5 * (y / narrow)**2)
+    target = envelope(x) * np.exp(-.5 * (y / narrow)**2)
     target /= target.sum()
 
     # Fit one weight per distance to keep the rays symmetric.
@@ -260,32 +256,87 @@ def bilinear_taps(fit):
             yield x, y, weight
 
 
-def glsl_shape(fit, gain):
-    lines = [f"const float bloom_shapeGain = {gain};",
-             "vec3 bloom_shape(vec2 center, vec4 tile) {"]
-    for j, (x, y, w) in enumerate(bilinear_taps(fit)):
-        prefix = "vec3 result =" if j == 0 else "result +="
-        # PNG/PSF Y points down. Atlas Y points up.
-        lines.append(f"    {prefix} bloom_sample(center + vec2({x:.9f}, {-y:.9f}), tile) * {w:.9f};")
-    return [*lines, "    return result;", "}"]
+def fitted_taps(result, shift_x=0):
+    return [(x + shift_x, y, np.full(3, weight)) for x, y, weight in bilinear_taps(result)]
+
+
+def fit_centered_glyph(target_function, budget, gather_shift_x):
+    center = 160
+    axis = np.arange(-center, center + 1)
+    target = target_function(*np.meshgrid(axis, axis))
+    target /= target.sum()
+    y, x = np.nonzero(target > target.max() * 1e-9)
+    rx = max(abs(x - center)) + 4
+    ry = max(abs(y - center)) + 4
+    cropped = target[center-ry:center+ry+1, center-rx:center+rx+1].copy()
+    cropped /= cropped.sum()
+    # Fit in the authored coordinates, then translate the fused table by
+    # whole D1 texels to center the visual bounds.
+    return fitted_taps(fit(cropped, 1, budget, runtime=True), gather_shift_x)
+
+
+def glsl_shape_table(taps, gain):
+    lines = [
+        f"const float bloom_shapeGain = {gain};",
+        f"const int bloom_shapeTapCount = {len(taps)};",
+        "shared vec2 bloom_shapeOffset[bloom_shapeTapCount];",
+        "shared vec3 bloom_shapeWeight[bloom_shapeTapCount];",
+        "",
+        "void bloom_shapePrepare() {",
+        "    switch (gl_LocalInvocationIndex) {",
+    ]
+    chunk = max(24, math.ceil(len(taps) / 16))
+    for first in range(0, len(taps), chunk):
+        lines.append(f"        case {first // chunk * 16}u:")
+        for i in range(first, min(first + chunk, len(taps))):
+            x, y, weight = taps[i]
+            r, g, b = weight
+            # PSF Y points down. Atlas Y points up.
+            lines.append(f"            bloom_shapeOffset[{i}] = vec2({x:.9f}, {-y:.9f});")
+            lines.append(f"            bloom_shapeWeight[{i}] = vec3({r:.9f}, {g:.9f}, {b:.9f});")
+        lines.append("            break;")
+    return [*lines, "    }", "    barrier();", "}"]
+
+
+SHAPE_LOOP = [
+    "",
+    "vec3 bloom_shape(vec2 center, vec4 tile) {",
+    "    vec3 result = vec3(0.0);",
+    "    for (int i = 0; i < bloom_shapeTapCount; ++i) {",
+    "        result += bloom_sample(center + bloom_shapeOffset[i], tile) * bloom_shapeWeight[i];",
+    "    }",
+    "    return result;",
+    "}",
+]
 
 
 def emit_builtins(output, report):
+    import bloom_shape_targets as targets
+
     carriers = list(phase_carriers(1, runtime=True))
-    horizontal = [(1, 0), (-1, 0)]
+    stretch = (1.025, 1., .975)
+    camera_stretch = (1.035, 1., .965)
     presets = [
-        ("star", .375, 30., 1.23, [(x, y) for x in (-1, 1) for y in (-1, 1)], range(1, 29)),
-        ("strip", .5, 61., 1.225, horizontal, range(1, 73)),
+        ("diamond-four", 1.1, targets.rays((35, 145), (144, 144), (32, 32), stretch, 1.)),
+        ("horizontal-streak", .5, fitted_taps(fit_horizontal_streak(carriers))),
+        ("cross-four", 1.1, targets.rays((0, 90), (144, 144), (32, 32), stretch, 1.)),
+        ("camera-six", 1.1, targets.rays((0, 60, 120), (144,)*3, (32,)*3, camera_stretch, .55)),
+        ("camera-ten", 1.5, targets.rays((18, 54, 90, 126, 162), (110, 96, 126, 96, 110),
+                                        (27.5, 24, 31.5, 24, 27.5), camera_stretch, .55)),
+        ("cinema-star", 1.35, targets.cinema_star()),
+        ("prismatic-streak", 1.4, targets.prismatic_streak()),
+        ("digits-67", 2.8, fit_centered_glyph(targets.digits_67, 320, 26)),
+        ("trollface", 4.0, fit_centered_glyph(targets.trollface, 512, 34)),
     ]
     lines = ["// Generated by scripts/fit-bloom-shape.py --builtins."]
     details = {}
-    for i, (name, gain, wide, narrow, rays, offsets) in enumerate(presets, start=1):
-        fit = fit_builtin(carriers, wide, narrow, rays, offsets)
-        details[name] = {"setting": i, "gain": gain, "target_sigma_px": [wide, narrow],
-                         "shader_fetches": len(list(bilinear_taps(fit))), **fit}
+    for i, (name, gain, taps) in enumerate(presets, start=1):
+        details[name] = {"setting": i, "gain": gain, "shader_fetches": len(taps),
+                         "gather_offsets_xy_mip_texels": [[float(x), float(y)] for x, y, _ in taps],
+                         "rgb_weights": [w.tolist() for _, _, w in taps]}
         condition = "if" if i == 1 else "elif"
-        lines += [f"#{condition} SETTING_BLOOM_SHAPE == {i}", *glsl_shape(fit, gain)]
-    output.write_text("\n".join([*lines, "#endif", ""]), encoding="utf-8", newline="\n")
+        lines += [f"#{condition} SETTING_BLOOM_SHAPE == {i}", *glsl_shape_table(taps, gain)]
+    output.write_text("\n".join([*lines, "#endif", *SHAPE_LOOP, ""]), encoding="utf-8", newline="\n")
     if report:
         report.write_text(json.dumps({"carrier": "Raw D1, half-resolution shape, centered bilinear reconstruction",
                                       "gather_axis_convention": "x right, y down",
@@ -298,7 +349,7 @@ def main():
     inputs.add_argument("--image", type=Path, help="linear grayscale PNG weights")
     inputs.add_argument("--function", type=Path, help="trusted Python file exporting psf(x, y)")
     inputs.add_argument("--example", action="store_true", help="use the asymmetric soft-strip example")
-    inputs.add_argument("--builtins", action="store_true", help="fit both in-game presets and emit GLSL")
+    inputs.add_argument("--builtins", action="store_true", help="generate the in-game shape tables and emit GLSL")
     parser.add_argument("--size", type=int, default=81, help="odd square canvas for function input")
     parser.add_argument("--mip", type=int, choices=(1, 2), default=1)
     parser.add_argument("--tap-budget", type=int, default=32, help="maximum number of sparse taps")
@@ -345,7 +396,7 @@ def main():
     args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     if args.glsl:
         lines = ["// Generated by scripts/fit-bloom-shape.py for the raw mip-1 Bloom branch.",
-                 *glsl_shape(report, .375), ""]
+                 *glsl_shape_table(fitted_taps(report), .375), *SHAPE_LOOP, ""]
         args.glsl.write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 

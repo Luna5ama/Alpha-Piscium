@@ -49,7 +49,8 @@ changing the sampling sequence requires updating reprojection conventions as wel
 
 ## Bloom
 
-`SETTING_BLOOM_SHAPE` selects Standard (0, default), Four-point Star (1), or Horizontal Streak (2).
+`SETTING_BLOOM_SHAPE` offers Standard (0, default), Diamond Four (1), Horizontal Streak (2), Cross Four (3),
+Camera Six (4), Camera Ten (5), Cinema Star (6), Prismatic Streak (7), 67 (8), and Trollface (9).
 Standard is an eight-scale, long-tailed Gaussian approximation with a concentrated core. Each scale contributes
 1/8 of the normalized filter; it is not a single Gaussian. The fixed eight levels preserve the broad halo that
 was lost in the rejected four-level prototype.
@@ -62,7 +63,7 @@ and a fixed pyramid depth. The four-scale fitting proxy calibrates reusable taps
 | Order | Pass/stage | Purpose |
 |---|---|---|
 | 1 | [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl), downsample levels 1–8 | Five bilinear reads per output texel. The first level reads the decoded linear main image and applies Bloom-only highlight compression. |
-| 2 | [`BloomShape`](../../../shaders/pass/composite/BloomShape.comp.glsl), optional | Reads raw level 1 before reconstruction, evaluates the generated directional kernel, and writes a separate half-resolution image. Standard and Bloom Off disable this pass. |
+| 2 | [`BloomShape`](../../../shaders/pass/composite/BloomShape.comp.glsl), optional | Initializes the selected tap table in workgroup shared memory, then samples raw level 1 in a bounded loop and writes a separate half-resolution image. Standard and Bloom Off disable this pass. |
 | 3 | [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl), reconstruct levels 8–2 | Eight bilinear reads per output texel. The deepest contribution and each finer downsample receive weight 1/8; the invocation reads the finer texel that it then overwrites. |
 | 4 | [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl) | Fuses the last upsample, adds the optional shape with centered bilinear reconstruction, and applies Bloom intensity and underwater boost. |
 
@@ -78,10 +79,10 @@ clamps to the valid input mip. This prevents a long streak from repeatedly copyi
   [`shadesmith.json`](../../../shaders/shadesmith.json) reuses a slot after FXAA/RCAS have finished with it, without
   increasing the current physical atlas dimensions. It remains a separate logical resource from the pyramid.
 
-The star has four diagonal arms; the streak combines a bright inner band and a longer soft band. Both retain the
-whole standard core and tail and add directional energy, with gains 0.375 and 0.5 respectively. Their generated
-kernels use 109 and 72 bilinear reads. Generating them from raw level 1 avoids shaping an already blurred accumulated
-mip. Parameters and custom PNG/function input are maintained by
+Each shape adds energy over the full Standard core and tail. Camera and Prismatic shapes spread each input channel
+with its own weights. The two novelty kernels align their visual bounds to the light and are most legible around
+small emitters. Larger emitting surfaces broaden the shapes and can fill fine gaps. Parameters and custom
+PNG/function input are maintained by
 [`fit-bloom-shape.py`](../../../scripts/fit-bloom-shape.py); see [kernel fitting](../development/scripts.md#bloom-kernel-fitting).
 
 Highlight compression belongs to the first Bloom downsample, after AA decoding. RGB and luma modes retain their
@@ -91,23 +92,29 @@ existing curves. AA retains its original log encoding and dark-value floor witho
 
 ### Bloom validation and limits
 
-The accepted 2026-11-08 shader snapshot `692e264d…` was checked on Minecraft 1.21.11, Iris 1.10.6-vibris.3 and
-RTX 3080 Ti. Five 1280×720 scenes covered Small lamps night, Craft close lights, outdoor point lights, Non-cube
-architecture and Frutiger interior. Each had Standard, Star, Streak and Bloom Off full-frame captures with a shared
-camera, time and fixed exposure within the scene, after 192 warmup frames. TAA-off shape output was finite and
-nonzero; Bloom Off omitted the shape pass.
+Shader snapshot `0ed64baf9a70…` rendered all ten modes and Bloom Off at 1280×720 in Small lamps night (EV 9.45),
+outdoor point lights (EV 11.07), and Craft close lights (EV 7.34). Camera and world time were fixed within each
+scene, with 192 warmup frames per mode. Camera Six produced finite, nonzero shape output with TAA disabled.
+Bloom Off suppressed the first downsample and shape passes with Trollface selected.
 
-Small lamps night, fixed EV 9.45, paired forward/reverse order, 128 warmup and 128 sampled frames per window:
+On RTX 3080 Ti in Small lamps night, two rounds bracketed the forward and reverse shape orders with Standard.
+Each window used 96 warmup frames and 64 sampled frames. GPU times are in milliseconds.
 
-| Mode | Bloom plus entire PostComposite p50 / p95 | p50 increase over paired Standard |
+| Mode | Shape pass p50 | Bloom + complete PostComposite p50 / p95 |
 |---|---:|---:|
-| Standard | 0.190–0.191 / 0.199–0.200 ms | — |
-| Four-point Star | 0.275 / 0.282 ms | 0.084 ms |
-| Horizontal Streak | 0.279 / 0.286 ms | 0.088 ms |
+| Standard | — | 0.191 / 0.201 |
+| Diamond Four | 0.254 | 0.455 / 0.471 |
+| Horizontal Streak | 0.094 | 0.289 / 0.296 |
+| Cross Four | 0.193 | 0.386 / 0.396 |
+| Camera Six | 0.357 | 0.553 / 1.114 |
+| Camera Ten | 0.399 | 0.593 / 1.234 |
+| Cinema Star | 0.263 | 0.460 / 0.831 |
+| Prismatic Streak | 0.179 | 0.375 / 0.397 |
+| 67 | 0.199 | 0.395 / 0.411 |
+| Trollface | 0.311 | 0.507 / 0.992 |
 
-These are sums of aligned per-frame program timings before computing quantiles, not whole-frame timings. RCAS and
-an unchanged volumetric-composite sentinel had stable medians. The accepted shader files and regenerated built-in
-weights matched the measured source exactly before integration.
+The combined column sums the aligned program samples per frame before calculating quantiles. The unchanged
+volumetric-composite reference pass had a 0.049 ms median in every mode.
 
 Independent CPU impulse models support a near-radial standard kernel: at radii 12, 24, 48 and 96 pixels, the
 eight-phase mean fourfold angular component was about 1.0–1.9% of ring brightness, versus 2.6–3.2% for the previous
