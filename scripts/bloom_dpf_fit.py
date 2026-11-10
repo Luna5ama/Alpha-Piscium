@@ -607,10 +607,28 @@ def shader_coefficients(recipe, fitted):
             lines.append("            break;")
         lines.extend(["    }", "    barrier();", "}",
                       "vec3 bloom_injection(vec2 center, vec4 tile) {",
-                      "    vec3 value = vec3(0.0);",
-                      "    for (int i = 0; i < bloom_injectionCount; ++i) {",
-                      "        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];",
-                      "    }", "    return value;", "}"])
+                      "    vec3 value = vec3(0.0);"])
+        if level == 2 and recipe.lobes is not None:
+            lo = (min(x for (x, _), _ in pairs), max(y for (_, y), _ in pairs))
+            hi = (max(x for (x, _), _ in pairs), min(y for (_, y), _ in pairs))
+            lines.extend([f"    if (all(greaterThanEqual(center + {vec2(lo)}, vec2(0.5))) &&",
+                          f"        all(lessThanEqual(center + {vec2(hi)}, tile.zw - 0.5))) {{",
+                          "        for (int i = 0; i < bloom_injectionCount; ++i) {",
+                          "            vec2 uv = (tile.xy + (center + bloom_injectionOffsets[i])) * uval_mainImageSizeRcp;",
+                          "            value += transient_bloomRaw_sample(uv).rgb * bloom_injectionWeights[i];",
+                          "        }", "        return value;", "    }",
+                          "    for (int i = 0; i < bloom_injectionCount; ++i) {",
+                          "        vec2 p = center + bloom_injectionOffsets[i];",
+                          "        vec2 texel = clamp(p, vec2(0.5), tile.zw - 0.5);",
+                          "        vec2 coverage = max(1.0 - abs(p - texel), 0.0);",
+                          "        vec2 uv = (tile.xy + texel) * uval_mainImageSizeRcp;",
+                          "        value += transient_bloomRaw_sample(uv).rgb * (coverage.x * coverage.y) * bloom_injectionWeights[i];",
+                          "    }"])
+        else:
+            lines.extend(["    for (int i = 0; i < bloom_injectionCount; ++i) {",
+                          "        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];",
+                          "    }"])
+        lines.extend(["    return value;", "}"])
     lines.append("#endif")
     deepest = injection[-1]
     if deepest["offsets"] != [[0.,0.]]:
