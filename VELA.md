@@ -9,7 +9,7 @@
 | Light Sampling | Alpha Piscium 选灯设计会话，沿用已有实验执行者 |
 | 统一体积渲染 | Alpha Piscium 大气与云设计会话 |
 | Skibidi DRT | `drt-bench` 的设计会话。移植到 shader pack 时，在此发布对应的集成规格 |
-| 仓库与文档结构 | Alpha Piscium 仓库结构设计会话，负责文档、设计记录与实验材料的归属，以及与 Vela 工作流的衔接 |
+| [仓库与文档结构](docs/repository-structure.md) | Alpha Piscium 仓库结构设计会话，负责文档、设计记录与实验材料的归属，以及与 Vela 工作流的衔接 |
 
 本机的会话链接和协调入口见 `.vela/local/design-sessions.md`。
 
