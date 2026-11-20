@@ -1,0 +1,7 @@
+version = 1
+index = "VELA.md"
+records = "records"
+max_slots = 8
+free_floor_bytes = 0
+protected = []
+legacy_roots = []
