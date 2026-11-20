@@ -5,7 +5,7 @@
 | 主题 | 设计归属 |
 | --- | --- |
 | 新一代降噪 | Alpha Piscium 降噪设计会话 |
-| DPF Bloom | Alpha Piscium Bloom 设计会话，沿用已有实验执行者 |
+| DPF Bloom | Alpha Piscium Bloom 设计会话，复用已交付的实验记录，下一轮由此确定实现范围 |
 | Light Sampling | Alpha Piscium 选灯设计会话，沿用已有实验执行者 |
 | 统一体积渲染 | Alpha Piscium 大气与云设计会话 |
 | Skibidi DRT | `drt-bench` 的设计会话。移植到 shader pack 时，在此发布对应的集成规格 |
