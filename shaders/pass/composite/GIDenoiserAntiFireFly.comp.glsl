@@ -96,9 +96,12 @@ void antiFireFlyRCRS(ivec2 texelPos) {
         vec4 centerDiff = transient_gi1AntiFireFlyInput_fetch(texelPos);
         vec4 centerSpec = transient_gi3AntiFireFlyInput_fetch(texelPos);
 
-        // Fixes vignette-like fade in
-        float viewHistoryLength = history_taa_fetch(texelPos).a;
-        float antiFireFlyMix = linearStep(1.0, 4.0, viewHistoryLength);
+        #ifdef SETTING_DENOISER_ACCUM
+        float priorGIFrames = transient_gi5Reprojected_fetch(texelPos).z * TOTAL_HISTORY_LENGTH * global_historyResetFactor;
+        float antiFireFlyMix = linearStep(0.0, 3.0, priorGIFrames);
+        #else
+        const float antiFireFlyMix = 1.0;
+        #endif
 
         vec4 newDiff = centerDiff;
         float centerDiffLum = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, newDiff.rgb);
