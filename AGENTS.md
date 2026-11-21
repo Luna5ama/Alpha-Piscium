@@ -34,7 +34,7 @@ docs/              project knowledge, maintainer workflows, and rendering-module
 | Shader entry points | `shaders/pass/` | Grouped by setup, begin, geometry, shadowcomp, composite, and general |
 | Shared rendering implementations | `shaders/techniques/` | GI, atmospherics, RTWSM, display transform, FFX, and other modules |
 | Cross-module GLSL helpers | `shaders/util/` | Math, coordinates, sampling, material, packing, and color helpers |
-| Pipeline and module contracts | `docs/en/modules/` | Pass flows, resources, settings, limitations, and validation targets |
+| Pipeline and rendering contracts | [`docs/README.md`](docs/README.md) | Pass dependencies, resources, limitations, and validation targets |
 
 ## Code Map
 
@@ -123,9 +123,8 @@ or AOT caches.
 
 Check the maintained project documentation before external sources:
 
-- Architecture and workflow: `docs/en/development/`
-- Pipeline and rendering-module contracts: `docs/en/modules/`
-- Generic Iris behavior: use the upstream documentation linked from `docs/en/README.md` instead of restating it here.
+- [Internal documentation](docs/README.md) links to development workflows, rendering contracts, and topic evidence.
+- Generic Iris behavior is covered by the upstream documentation linked from that index.
 
 When present in the working environment, check repository-local references before external sources:
 

@@ -8,8 +8,8 @@ utilities, and runtime assets.
 ## Where to Look
 
 Use [programs.main.kts](../scripts/programs.main.kts) for compute pass order and enable conditions.
-The [pipeline overview](../docs/en/modules/pipeline.md) explains how the stages fit together. Module contracts and validation targets are under
-`docs/en/modules/` for geometry/materials, shadows, GI, atmosphere/clouds, water/translucency, and post-processing.
+The [pipeline dependencies](../docs/rendering/pipeline.md) explain how the stages fit together. The [internal index](../docs/README.md)
+links to resource contracts and validation targets for each rendering topic.
 
 ## Placement and Naming
 
@@ -45,4 +45,4 @@ The [pipeline overview](../docs/en/modules/pipeline.md) explains how the stages 
 ## Validation
 
 Exercise relevant setting/profile branches, motion and disocclusion, history reset, edge conditions, and the
-module-specific cases in `docs/en/modules/`.
+module-specific cases linked from the [internal index](../docs/README.md).
