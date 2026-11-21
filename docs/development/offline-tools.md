@@ -145,8 +145,11 @@ integer-endpoint comparison has 21 samples over four held-out phases.
 The first geometry-driven fitter completed normal Fit and Export for User 8,
 its identical metadata-free raster, a 9.5-degree rotation and the existing 67
 bitmap. This bounded candidate failed native quality against the saved controls.
-Live compilation, the matched Small Lamps frame and complete GPU budget windows
-remain in progress through shared-resource admission. The detailed inputs,
+Iris compilation, the matched 1080p Small Lamps frame and all twelve GPU budget
+windows completed. Standalone Bloom costs 2.71x COD at 720p, 3.64-3.66x at 1080p
+and 4.59-4.60x at 1440p. The last resolution fails the 4x budget, independently of
+the native quality failure. PostComposite is reported separately. The dedicated
+game saved and exited normally and its GPU lease was returned. The detailed inputs,
 measurements, rejected candidates, independent reviews and remaining work are in
 [the DPF experiment record](../../experiments/dpf-bloom-20261108.md).
 
@@ -169,6 +172,12 @@ measurements, rejected candidates, independent reviews and remaining work are in
 <!-- vela:evidence {"run":"5d544efd-f3f3-4f3f-acb3-d851ea482e54","path":"bitmap-native-controls.png"} -->
 <!-- vela:evidence {"run":"7b0257e7-97f8-4bfd-8f96-53218fbbd47d","path":"candidate-phase0-bound.json"} -->
 <!-- vela:evidence {"run":"7b0257e7-97f8-4bfd-8f96-53218fbbd47d","path":"candidate-phase0-bound.png"} -->
+<!-- vela:evidence {"run":"82a818c2-85a3-4e5e-af0d-426d8dec9127","path":"runtime-summary.json"} -->
+<!-- vela:evidence {"run":"82a818c2-85a3-4e5e-af0d-426d8dec9127","path":"small-lamps-comparison.html"} -->
+<!-- vela:evidence {"run":"82a818c2-85a3-4e5e-af0d-426d8dec9127","path":"comparison-inputs.json"} -->
+<!-- vela:evidence {"run":"82a818c2-85a3-4e5e-af0d-426d8dec9127","path":"source-snapshot.zip"} -->
+<!-- vela:evidence {"run":"82a818c2-85a3-4e5e-af0d-426d8dec9127","path":"delivery-check.json"} -->
+<!-- vela:evidence {"run":"784926ab-6d52-4d8d-bb08-bb5f2402c503","path":"gpu-admission.json"} -->
 
 ## Binary texture helpers
 
