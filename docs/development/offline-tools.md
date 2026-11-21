@@ -306,6 +306,42 @@ in [the experiment record](../../experiments/dpf-bloom-20261108.md).
 <!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"bitmap-line-y24-regression.png"} -->
 <!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"bitmap-p0-native.png"} -->
 
+### Compressing a reference Bloom filter
+
+Start the next experiment from the half-resolution stage that already resolves the rays. Its direct samples
+specify how much RGB light each neighboring half-resolution texel contributes. Build this grid by spreading
+each saved tap over its bilinear footprint, using the positions and channel weights from the frozen renderer.
+The [replay report](../../.vela/local/runs/984195dd-5f4f-4d9f-95ab-f075a3ef3c42/replay.html) supplies the
+three control filters, the rejected compact fits and the eight-phase native and pooled comparisons.
+
+User 8 illustrates the cost of direct sampling. In its control grid, 560 texels exceed 0.1% of the largest
+absolute channel coefficient. Of those, 183 have even x and even y. Each direct bilinear read covers at most
+one such texel, so retaining nonzero support at those sites alone requires at least 183 reads per half-resolution
+pixel. That contributes 45.75 area-weighted reads per full-resolution pixel, with another 14.32 in the fixed
+stages. This bound applies to direct coverage of that particular grid. Visual accuracy permits approximation,
+and a shared short filter can contribute the same local pattern at many positions.
+
+- Compare a compact direct filter with a sum of translated, shared short filters plus direct samples for the
+  remainder. Choose local patterns, repeat locations, RGB weights and sample counts from the control grid.
+  Use the same procedure for User 8, its 9.5° rotation and the 67 bitmap. The frozen control is an offline
+  input for this diagnostic. The production generator must ultimately obtain its starting filter from the
+  supplied RGB target, including inputs without a recipe.
+- Keep the reference downsampling, upsampling and coarser injections together. First verify that the expanded
+  grid reproduces the control through that chain within floating-point accumulation error. Evaluate both
+  compact representations through the same chain. Count the reads that form each shared value and those that
+  sample it later, and report intermediate writes. Use the closest attainable costs at or below the previous
+  whole-filter read estimates (46.60, 46.85 and 46.35 respectively). One intermediate cost point can bracket
+  a visible loss.
+- Select using separate training or monitor phases. Keep the eight archived phases for regression and reserve
+  fresh phases before choosing candidates. Judge against the authored target and the matching control at native
+  resolution. Report both valleys and the weakest fine peaks, ray continuity and tips, the weak 67 stroke,
+  RGB separation, the core and the pooled outer halo. A cost-versus-quality plot or table and the worst
+  same-exposure images are sufficient to decide whether compression is worth integrating.
+
+This study ends with the best quality found at the tested costs and a visible example of any remaining loss.
+Qualifying the normal Fit and Export path on a new input and measuring the complete Bloom against 4× COD at
+720p, 1080p and 1440p are later runtime checks. Static read counts carry no GPU timing claim.
+
 ### DPF implementation evidence, 2026-11-21
 
 The interactive line profile passed independent source and actual Edge browser
