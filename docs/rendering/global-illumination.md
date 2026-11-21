@@ -110,10 +110,26 @@ roughness. Tile lifetime and format changes belong in [
 
 ### Next-generation denoiser design
 
-The runtime constraint is pure GLSL compute inside the shader pack. Offline training and backpropagation may use
-PyTorch with CUDA or any other suitable framework. Stable diffuse GI with ReSTIR and TAA is the quality baseline.
-Prioritize moving reflections and hard-to-sample lighting. Briefly dimming a firefly is acceptable. A persistent
-highlight should recover its brightness even when fresh paths reach its light only intermittently.
+Runtime inference and history updates run in GLSL compute inside the shader pack. Offline training and backpropagation
+may use PyTorch with CUDA or any other suitable framework.
+
+With TAA disabled, GI denoising must independently suppress noise in hard-to-sample lighting and moving reflections.
+With AP TAA enabled, preserve the stability and detail of the current ReSTIR and TAA output in well-sampled diffuse
+GI. A glint visible for only one or two frames may be attenuated when support from nearby samples and reprojected
+reflections is weak. A persistent highlight should recover its brightness along its motion even when fresh paths
+reach the light only intermittently. Check the width of fine reflections as well as their brightness.
+
+Ordinary scenes should stay within the cost of the current GI denoising passes at matched settings. Difficult scenes
+may cost more. The denoiser may flag regions for the sampler to acquire fresh observations. Count the extra sampling
+work caused by those requests in the cost comparison.
+
+One feedback design would keep normal sampling coverage everywhere and use validly reprojected evidence from the
+previous frame to allocate extra samples before drawing the current frame's fresh candidates. Estimate difficulty
+from observations before firefly suppression and account for repeated reuse of the same path. The sampler owns
+candidate generation and weighting. Taking a second draw only after a bright first draw and averaging the two can
+systematically dim rare lights. [Kirk and Arvo on adaptive sampling bias](https://authors.library.caltech.edu/records/8sntk-73q87)
+
+#### Deferred experiment on candidate weights
 
 A small model that weights current samples and reprojected history is a candidate. To test what those weights could
 achieve, hold the captured candidates fixed and fit their best nonnegative, normalized blend to an independent
@@ -125,7 +141,8 @@ Keep ReSTIR reuse active in the noisy inputs. A reference for a moving shot need
 frame's camera pose, jitter, world time and lighting state, including the radiance cache when it contributes.
 The [existing reference](#monte-carlo-reference) accumulates at a fixed camera. Measure signed mean brightness error
 over time in a region that follows the highlight, alongside firefly lifetime and highlight recovery time. Use
-material-remodulated linear HDR GI for the brightness comparison and the normal TAA output to judge visible trails.
+material-remodulated linear HDR GI for the brightness comparison. Inspect noise and trails with TAA disabled and
+check the normal TAA output for loss of detail or additional trails.
 
 ## Estimator contracts
 
