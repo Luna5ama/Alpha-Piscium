@@ -62,3 +62,9 @@
 在核图上拖线，同尺度叠看目标与拟合亮度。用已保存的 User 8 结果在浏览器核对相邻细芒之间的暗谷，记录端点和相位，首个自适应候选沿同一条线复查。[网页交互与验收规格](docs/development/offline-tools.md#interactive-bloom-line-profile)
 
 <!-- vela:ready {"item":"dpf-bloom-profile-preview","rev":"37449aa50ed3b6129c612ebf242c971bf2ed74df","spec":"docs/development/offline-tools.md","after":[]} -->
+
+### 用局部重建误差分配 Bloom 细节采样
+
+沿用上一轮的实际输出和耗时。对照只改变亮峰、暗谷评分，以及允许从任意位置取局部滤波形状的两种改动。先用原生像素检查 User 8、旋转版与数字 67，候选守住细节后再核对 1440p 的 4× COD 上限。[对照与停止条件](docs/development/offline-tools.md#residual-guided-fitting-of-thin-features)
+
+<!-- vela:ready {"item":"dpf-bloom-residual-footprints","rev":"f2c0a0d2ead8b531ec8c9423a5510850eaa2eec1","spec":"docs/development/offline-tools.md","after":["dpf-bloom-adaptive-fit@0945ab2a62357c391271c7f7fc37f057c6320329"]} -->
