@@ -83,10 +83,10 @@ the table. Review the complete response and recheck Iris compilation and renderi
 
 ### Geometry-driven DPF fitting
 
-**Ready for implementation.** Deliver one offline fitter through the editor's **Fit** and **Export** actions and the
-game's **Custom** option. In the current DPF checkout, `scripts/bloom_dpf_policy.py` ranks axes supplied by the lobe
-recipe and tries a few layouts. Its six-branch User 8 candidate recovers long diagonals, but its weakest tested
-phases cover only 69% and 74% of the two vertical rays. The same-target half-resolution fit covers 100% in both.
+**First prototype evaluated.** The editor's **Fit** and **Export** actions reach the raster-driven fitter and the
+game's **Custom** option. This prototype misses the User 8 quality floor and 1440p budget. An earlier design ranked
+the axes supplied by the lobe recipe. Its six-branch candidate restored long diagonals but covered only 69% and
+74% of the two vertical rays in their weakest phases. The same-target half-resolution fit covered 100% in both.
 
 Use the complete linear RGB impulse response as the input to sample allocation. Keep the optical origin, pixel
 spacing, extent through the outer halo, relative channel energy and existing normalization identical for recipe and
@@ -111,13 +111,13 @@ with its core, halo, shape and dispersion in that response.
 - Load the normal export in Iris and supply the matched full 1080p Small Lamps frame. Measure standalone Bloom
   against original COD Bloom (`0bf3a72ba247f9121f6c28691f6f6b44bec3c9a2`) at 720p, 1080p and 1440p using matched
   forward and reverse windows. Count every executed Bloom pass for each variant and report Bloom plus PostComposite
-  separately. Aim for 3× and stay within 4× at each resolution. The previous corrected 1440p capture omitted
-  active passes and needs a new measurement. Keep the current presets until quality and cost both pass. If they
+  separately. Aim for 3× and stay within 4× at each resolution. The 1440p windows in the implementation evidence
+  below include every active pass for the raster-driven candidate. Keep the current presets until quality and cost both pass. If they
   conflict, deliver the closest candidates with their visible differences and measured costs for review.
 
 ### Interactive Bloom line profile
 
-**Ready for implementation.** In the local editor, dragging a line across the kernel image should overlay the
+**Implemented and verified in the experimental editor.** Dragging a line across the kernel image overlays the
 target and fitted brightness curves in one plot. Keep the line visible on the image. Label both curves and use
 distance from the first endpoint in full-resolution pixels on the horizontal axis. Redrawing the line or selecting
 another held-out phase should update the plot from the available response without starting a fit.
@@ -134,6 +134,37 @@ rays away from the core at native scale, then switch phase. Check the peaks and 
 underlying response samples, and check that editing the recipe clears the stale fitted curve. Deliver a rendered
 editor view with the line and both curves visible and record its endpoints and phase. Reuse that line on the first
 geometry-driven candidate for the fitting comparison.
+
+### Residual-guided fitting of thin features
+
+**Next experiment for 2.1.** The first raster-driven fit searched for straight ridges through the optical origin.
+Its User 8 export selected four axes. At 24 pixels from the core, the reconstructed middle peak reached 56–58%
+of the old half-resolution response and both neighboring valleys filled in. The 67 bitmap also lost detail.
+The search scores layouts by regional L2, whereas the continuous fit also uses signed pixel derivatives.
+These results leave two plausible causes, the proposed sample locations and the score used to choose them.
+
+- Start from the sealed fit and its full RGB response. Compare the existing layout proposals with one alternative
+  that proposes a short 2D filter from a **local patch of reconstruction error** and learns where else to apply it.
+  The patch may be off-center. Along a thin feature, favor overlapping samples that preserve its continuity. Across
+  it, measure missing peaks and excess light in adjacent valleys separately. Use target pixels to find these probes
+  for any input. Reuse the existing DPF intermediates and allow ordinary 2D taps where sharing offers little gain.
+- Compare proposals at matched sample and intermediate-write costs and fitting effort. First rescore the control
+  proposals with the same local contrast criterion, then add the local proposals. This distinguishes a scoring
+  improvement from a change in what the sparse filters can represent. Keep the published four phases and the
+  horizontal line at y=24 as regression controls. Set aside fresh input phases before selection. Compare User 8
+  and its 9.5° rotation with their own old-half controls, and 67 with its saved bitmap control. Inspect peaks,
+  intervening valleys, gaps along rays or strokes, horizontal tips, RGB separation and the broad halo at the
+  same exposure. Report the strongest remaining failure if the new allocation still misses visible detail.
+- Target fewer expensive half-resolution reads. In the two 1440p candidate windows, `composite66` (half-resolution
+  reconstruction) took 0.44144 and 0.44126 ms. `composite53` (prefilters and downsample) took 0.08387 and 0.08393 ms.
+  At the measured COD budget the complete filter must save 0.09229 and 0.09330 ms respectively. With all other
+  stages at their recorded times, those two passes together have 0.43302 and 0.43188 ms. Use this to choose a
+  lower-cost layout. Read counts alone cannot predict its GPU time. Take a fresh 1440p paired measurement once
+  a candidate clears native quality, then complete the existing 720p/1080p and full-frame checks if it fits 4×.
+
+Reuse the review runs indexed below, including the source snapshot, full-frame viewer and per-program timings.
+The current built-in User 8 remains the game preset during this experiment. The experiment ends with a measured
+candidate that clears both gates or a comparison showing which gate still binds.
 
 ### DPF implementation evidence, 2026-11-21
 
