@@ -6,6 +6,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_main;
+layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 #include "/techniques/DOF.glsl"
 
 void main() {
@@ -21,5 +22,8 @@ void main() {
         outputColor.rgb *= exp2(global_aeData.expValues.z);
         outputColor.rgb = agxInvertible_forward(outputColor.rgb);
         imageStore(uimg_main, texelPos, outputColor);
+        #ifdef SETTING_BLOOM
+        transient_bloom_store(texelPos, vec4(0.0));
+        #endif
     }
 }

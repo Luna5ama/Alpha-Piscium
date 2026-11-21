@@ -345,27 +345,26 @@ programs {
         pass("/pass/composite/RCAS.comp.glsl") {
             cond("defined(SETTING_TAA)")
         }
-        val bloomLevels = 8
-        for (i in 1..bloomLevels) {
+        for (i in 1..10) {
             pass("/techniques/Bloom.comp.glsl") {
-                constDefine("BLOOM_DOWNSAMPLE")
+                constDefine("BLOOM_DOWN_SAMPLE", 1)
                 constDefine("BLOOM_PASS", i)
-                constDefine("BLOOM_RENDER_SCALE", 1.0 / (1 shl i))
-                cond("defined(SETTING_BLOOM)")
+                var cond = "defined(SETTING_BLOOM)"
+                if (i > 1) {
+                    cond += " && SETTING_BLOOM_PASS > ${i - 1}"
+                }
+                cond(cond)
             }
         }
-        pass("/pass/composite/BloomShape.comp.glsl") {
-            constDefine("BLOOM_PASS", 1)
-            cond("defined(SETTING_BLOOM) && SETTING_BLOOM_SHAPE != 0")
-        }
-        for (i in bloomLevels downTo 2) {
+        for (i in 10 downTo 2) {
             pass("/techniques/Bloom.comp.glsl") {
+                constDefine("BLOOM_UP_SAMPLE", 1)
                 constDefine("BLOOM_PASS", i)
-                if (i == bloomLevels) {
-                    constDefine("BLOOM_FIRST_UPSAMPLE")
+                var cond = "defined(SETTING_BLOOM)"
+                if (i > 1) {
+                    cond += " && SETTING_BLOOM_PASS > ${i - 1}"
                 }
-                constDefine("BLOOM_RENDER_SCALE", 1.0 / (1 shl (i - 1)))
-                cond("defined(SETTING_BLOOM)")
+                cond(cond)
             }
         }
         pass(
