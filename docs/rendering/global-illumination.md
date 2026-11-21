@@ -145,7 +145,31 @@ Record temporal noise separately. Averaging independent realizations of producti
 Using `L_ref` as the target would also reward compensation for upstream bias. Responsibility for correcting that
 bias remains open.
 
-#### Deferred experiment on candidate weights
+#### Anti-firefly response on controlled neighborhoods
+
+At `add444edb`, [the anti-firefly pass](../../shaders/pass/composite/GIDenoiserAntiFireFly.comp.glsl) replaces an
+outlying center with the RGB of the darkest or brightest of its eight neighbors. Its blend weight is
+`clamp((history_taa.a - 1) / 3, 0, 1)`. [Setup](../../shaders/pass/setup/ClearRGBA16F.glsl) clears the TAA history
+tile. Its only normal writer, [FXAA](../../shaders/pass/composite/FXAA.comp.glsl), runs with TAA enabled. On a clean
+TAA-off start this code therefore predicts zero weight for the anti-firefly replacement.
+
+A CPU enumeration used grayscale inputs after GI accumulation. Each draw had value 65 with probability `p = 1/64`
+and value 1 otherwise, giving a mean of 2. In one case all nine draws were independent. In the other, one neighbor
+copied the center, with seven independent neighbors. The table weights all 512 and 256 possible configurations,
+respectively, by their exact probabilities.
+
+| TAA history alpha | Blend weight | Output mean, independent | Output mean, one neighbor copies center |
+| ---: | ---: | ---: | ---: |
+| 0 | 0 | 2.000000 | 2.000000 |
+| 2.5 | 0.5 | 1.559187 | 2.000000 |
+| 4 | 1 | 1.118374 | 2.000000 |
+
+The independent result also equals `2 + 64 * weight * ((1-p)*p^8 - p*(1-p)^8)`. At full weight a lone 65 becomes
+1, while two adjacent copies stay at 65. This isolates the response of one filter step to spatial correlation.
+The in-game baseline needs matched raw and denoised HDR GI, a separate AP reference, and the actual TAA history
+weight before attributing a scene's brightness change to this pass.
+
+#### Candidate weights awaiting matched captures
 
 A small model that weights current samples and reprojected history is a candidate. To test what those weights could
 achieve, hold the captured candidates fixed and fit their best nonnegative, normalized blend to an independent
