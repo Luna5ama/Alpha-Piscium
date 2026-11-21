@@ -115,6 +115,26 @@ with its core, halo, shape and dispersion in that response.
   active passes and needs a new measurement. Keep the current presets until quality and cost both pass. If they
   conflict, deliver the closest candidates with their visible differences and measured costs for review.
 
+### Interactive Bloom line profile
+
+**Ready for implementation.** In the local editor, dragging a line across the kernel image should overlay the
+target and fitted brightness curves in one plot. Keep the line visible on the image. Label both curves and use
+distance from the first endpoint in full-resolution pixels on the horizontal axis. Redrawing the line or selecting
+another held-out phase should update the plot from the available response without starting a fit.
+
+Sample both floating-point linear RGB responses over the same footprint at the same points and convert both to
+luminance identically. Use one vertical scale for both curves. Apply the editor's exposure and linear/log display
+only after sampling. The wide views contain pooled outer values, so retain their represented footprint and indicate
+that resolution. Tie the fitted curve to the active recipe and phase (including the phase mean). Show the target
+alone while the matching fit is unavailable. The existing preview paths in `scripts/bloom_dpf_web.py` and the
+kernel view in `scripts/bloom_dpf.html` provide the data and interaction entry points.
+
+Use the existing saved User 8 fit for browser acceptance. Draw across adjacent
+rays away from the core at native scale, then switch phase. Check the peaks and intervening valley against the
+underlying response samples, and check that editing the recipe clears the stale fitted curve. Deliver a rendered
+editor view with the line and both curves visible and record its endpoints and phase. Reuse that line on the first
+geometry-driven candidate for the fitting comparison.
+
 ## Binary texture helpers
 
 [`bintex.main.kts`](../../scripts/bintex.main.kts) is a standalone converter for one or more inputs into a binary
