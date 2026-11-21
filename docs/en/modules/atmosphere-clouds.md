@@ -287,13 +287,20 @@ python test/cloud-local-transport-check.py --output ../builds/cloud-transport/lo
 ### CPU radiance reference
 
 The `cloud-light-transport-comparison` work item uses the frozen specification at
-`d2f1ef0fe2b1ac9a962a062fe7d2af7f922611ba`, with real-time baseline
-`c09cfdc76e79cb3e4e986d16e29730777283e78d` in wt9. Its first CPU stage is independent of the
+`d2f1ef0fe2b1ac9a962a062fe7d2af7f922611ba`, with real-time baseline in wt9:
+`c09cfdc76e79cb3e4e986d16e29730777283e78d`. Its first CPU stage is independent of the
 24-direction cache and local reconstruction. [`cloud-reference.cpp`](../../../scripts/test/cloud-reference.cpp)
 traces continuous directions through a fixed union of eight constant-density ellipsoids. Union chord lengths,
 overlaps, free flights and solar transmission are analytic. It samples the normalized 11.54 um HG+Draine
 phase directly, with no angular LUT, spatial grid or fixed scattering-order cutoff. Roulette starts at event 32.
 This follows the [volume transfer equation](https://pbr-book.org/4ed/Light_Transport_II_Volume_Rendering/The_Equation_of_Transfer).
+
+The current reference uses an importance proposal `q = 0.8 p + 0.1 p_side + 0.1 p_back` for continuation;
+each event multiplies throughput by `p/q`. The last two proposal lobes point toward the two fixed solar axes.
+The physical scattering phase, free-flight distribution and next-event solar integral are unchanged. Passing
+guide weight zero selects the original phase-only sampler. The proposal's normalization and first moment are
+checked against analytic phase moments. This reduces rare near-forward connections without using a cache,
+diagonal phase resummation or a density approximation.
 
 The fixture spans about 150 x 216 x 110 metres. The 32 x 40 orthographic pixel-centre camera is fixed at
 Z=-450 m, looking along +Z; X covers [-100,100] m and Y [-10,240] m. Inside the union, density is 0.15,
@@ -302,7 +309,24 @@ irradiance 1, directed from +Y (side) or +Z (back). Sky, air, ground and neighbo
 The manifest records every ellipsoid, seed scheme, input and raw float64 channel. This is a reusable sample
 cloud, not the production eroded procedural density.
 
-The first run, `802ff939-d1e4-4654-bdc1-2c41fdb030b3`, completed 41,943,040 paths with eight independent
+Run `2b8a366e-740b-4da8-b7b8-09cc28b1c15c` contains the current guided reference: eight independent
+streams, 671,088,640 paths, 839,402,395 scattering events, maximum 33 events on one path. Increasing the
+budget preserves earlier checkpoints bit for bit. The final values retain finite Monte Carlo uncertainty:
+
+| Total paths/pixel | Side total RMS relative standard error | Back total RMS relative standard error |
+|---|---:|---:|
+| 32,768 | 5.571% | 0.3276% |
+| 131,072 | 3.270% | 0.1616% |
+| 524,288 | 1.453% | 0.08113% |
+
+At the last budget, multiple scattering alone has 1.511% / 0.3969% RMS relative standard error (side/back).
+The side-light thin-rim, notch and core region means have 0.0827%, 0.2104% and 0.1476% standard error.
+Their last disjoint sample blocks agree within their 95% intervals. The whole-cloud side mean shifts by
+0.44% between those blocks (2.66 standard errors); retain that observation rather than calling the reference
+noise-free. Comparisons with the earlier sampler differ by at most 2.45 standard errors across the recorded
+region/component means. These are convergence diagnostics, not a test of the production renderer.
+
+The earlier run, `802ff939-d1e4-4654-bdc1-2c41fdb030b3`, completed 41,943,040 paths with eight independent
 replicates and 512/2,048/8,192/32,768 paths per pixel. Phase normalization differs from 1 by 2.11e-9;
 sampled phase mean and the analytic sphere single-scattering check are within two standard errors. Union and
 vacuum-gap checks pass. Pixel RMS standard error divided by RMS radiance drops from 2.52% to 0.318% for
@@ -313,9 +337,17 @@ independent-replicate confidence intervals and comparisons of disjoint sample bl
 explicit linear scale for each light direction, shared by all components in that row; measurements use raw radiance.
 
 Compile the C++20 program with an optimizing compiler, then pass a preallocated output directory, maximum
-samples per replicate, replicate count and CPU worker count. Run the Python reporter on the same directory.
+samples per replicate, replicate count, CPU worker count and optional guide weight. This run used Clang 22.1.8,
+`-O3 -std=c++20`, four workers at Idle priority and `65536 8 4 0.2`; no fast-math. Run the Python reporter
+on the same directory, with `--compare` pointing at the earlier run for the estimator comparison.
 Vela records the run and job source. Production-cloud agreement, neighboring-tower influence, sky input, motion
 and Iris cost remain separate obligations; no live game or GPU measurements were performed in this stage.
+
+<!-- vela:evidence {"run":"2b8a366e-740b-4da8-b7b8-09cc28b1c15c","path":"reference.json"} -->
+<!-- vela:evidence {"run":"2b8a366e-740b-4da8-b7b8-09cc28b1c15c","path":"radiance.bin"} -->
+<!-- vela:evidence {"run":"2b8a366e-740b-4da8-b7b8-09cc28b1c15c","path":"convergence.json"} -->
+<!-- vela:evidence {"run":"2b8a366e-740b-4da8-b7b8-09cc28b1c15c","path":"reference.png"} -->
+<!-- vela:evidence {"run":"2b8a366e-740b-4da8-b7b8-09cc28b1c15c","path":"convergence.png"} -->
 
 <!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"reference.json"} -->
 <!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"radiance.bin"} -->

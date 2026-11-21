@@ -1,6 +1,6 @@
 // Continuous-angle CPU reference for a fixed finite cloud; no transport cache.
 // clang++ -O3 -std=c++20 -pthread cloud-reference.cpp -o reference.exe
-// reference.exe <output-directory> [maximum-spp=4096] [replicates=8] [threads=4]
+// reference.exe <output-directory> [maximum-spp=4096] [replicates=8] [threads=4] [guide-weight=0.2]
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -130,7 +130,16 @@ Chord intersect(const std::vector<Ellipsoid>& shapes, Vec origin, Vec direction)
 }
 
 struct Sample { double ss[2]{}, ms[2]{}; uint64_t events = 0; };
-Sample trace(Vec origin, Random& rng, const Phase& phase) {
+Vec continuation(Vec current, Random& rng, const Phase& phase, double guiding, double& ratio) {
+    double selection = rng.uniform();
+    Vec axis = selection < guiding/2 ? Vec{0,1,0} : selection < guiding ? Vec{0,0,1} : current;
+    Vec direction = orient(axis, phase.cosine(rng), 2*pi*rng.uniform());
+    double p = phase.value(dot(current,direction));
+    double q = (1-guiding)*p + (guiding/2)*(phase.value(direction.y)+phase.value(direction.z));
+    ratio = p/q;
+    return direction;
+}
+Sample trace(Vec origin, Random& rng, const Phase& phase, double guiding) {
     Sample result;
     Vec direction{0,0,1};
     Chord chord = intersect(tower, origin, direction);
@@ -156,7 +165,9 @@ Sample trace(Vec origin, Random& rng, const Phase& phase) {
             if (rng.uniform() >= 0.98) break;
             throughput /= 0.98;
         }
-        direction = orient(direction, phase.cosine(rng), 2*pi*rng.uniform());
+        double ratio;
+        direction = continuation(direction, rng, phase, guiding, ratio);
+        throughput *= ratio;
         chord = intersect(tower, origin, direction);
         distance = chord.distance(-std::log(rng.uniform())/extinction);
     }
@@ -175,7 +186,7 @@ struct Moments {
 };
 
 void require(bool ok, const char* message) { if (!ok) throw std::runtime_error(message); }
-void checks(std::ostream& out, const Phase& phase) {
+void checks(std::ostream& out, const Phase& phase, double guiding) {
     std::vector<Ellipsoid> sphere{{{0,0,0},{1,1,1}}};
     Chord a = intersect(sphere,{0,0,-3},{0,0,1});
     require(std::abs(a.length-2) < 1e-13 && std::abs(a.distance(0.75)-2.75)<1e-13, "sphere chord");
@@ -208,19 +219,36 @@ void checks(std::ostream& out, const Phase& phase) {
     double singleSe = std::sqrt((single2/n-single*single)/(n-1));
     double exact = 0.999*hg.value(1)*tau*std::exp(-tau);
     require(std::abs(single-exact)<5*singleSe, "analytic sphere single scattering");
+    double weight = 0, weight2 = 0, moment = 0, moment2 = 0;
+    Vec axis = normalize({1,2,3});
+    for (int i = 0; i < n; ++i) {
+        double ratio;
+        Vec sampled = continuation(axis, rng, phase, guiding, ratio);
+        double v = ratio*dot(axis,sampled);
+        weight += ratio; weight2 += ratio*ratio; moment += v; moment2 += v*v;
+    }
+    weight /= n; moment /= n;
+    double weightSe = std::sqrt(std::max(0.0, weight2/n-weight*weight)/(n-1));
+    double momentSe = std::sqrt(std::max(0.0, moment2/n-moment*moment)/(n-1));
+    require(std::abs(weight-1)<5*weightSe+1e-12, "guided proposal phase normalization");
+    require(std::abs(moment-phase.firstMoment())<5*momentSe, "guided proposal phase moment");
     out << "{\"phase_integral\":" << norm << ",\"sample_g\":" << mean
         << ",\"exact_g\":" << phase.firstMoment() << ",\"g_standard_error\":" << se
         << ",\"sphere_L1\":" << single << ",\"sphere_L1_exact\":" << exact
         << ",\"sphere_L1_standard_error\":" << singleSe
+        << ",\"guided_weight_integral\":" << weight << ",\"guided_weight_standard_error\":" << weightSe
+        << ",\"guided_g\":" << moment << ",\"guided_g_standard_error\":" << momentSe
         << ",\"chord_union_vacuum_checks\":true}";
 }
 
 int main(int argc, char** argv) {
-    if (argc < 2 || argc > 5) { std::cerr << "reference <output> [maximum-spp=4096] [replicates=8] [threads=4]\n"; return 2; }
+    if (argc < 2 || argc > 6) { std::cerr << "reference <output> [maximum-spp=4096] [replicates=8] [threads=4] [guide-weight=0.2]\n"; return 2; }
     int maximum = argc > 2 ? std::stoi(argv[2]) : 4096;
     int replicates = argc > 3 ? std::stoi(argv[3]) : 8;
     int threads = argc > 4 ? std::stoi(argv[4]) : 4;
+    double guiding = argc > 5 ? std::stod(argv[5]) : 0.2;
     require(maximum >= 256 && replicates >= 4 && threads >= 1, "invalid sampling budget");
+    require(std::isfinite(guiding) && guiding >= 0 && guiding < 1, "invalid mixture weight");
     std::filesystem::path output(argv[1]);
     require(std::filesystem::is_directory(output), "output directory must exist");
     std::vector<int> levels;
@@ -229,7 +257,7 @@ int main(int argc, char** argv) {
     Phase phase = Phase::droplets(11.54);
     std::ostringstream checked;
     checked << std::setprecision(17);
-    checks(checked, phase);
+    checks(checked, phase, guiding);
     std::cout << "checks " << checked.str() << std::endl;
     auto start = std::chrono::steady_clock::now();
     size_t pixels = width*height, stride = pixels*5;
@@ -249,7 +277,7 @@ int main(int argc, char** argv) {
                 Moments moments[2];
                 size_t level = 0;
                 for (int sample = 1; sample <= maximum; ++sample) {
-                    Sample value = trace(origin, rng, phase);
+                    Sample value = trace(origin, rng, phase, guiding);
                     localEvents += value.events;
                     localMaximum = std::max(localMaximum, value.events);
                     for (int light = 0; light < 2; ++light) moments[light].add(value.ss[light], value.ms[light]);
@@ -284,6 +312,8 @@ int main(int argc, char** argv) {
         << "\"camera\":{\"type\":\"orthographic pixel centres\",\"x\":[-100,100],\"y_top_bottom\":[240,-10],\"z\":-450,\"direction\":[0,0,1]},"
         << "\"density_inside_union\":0.15,\"extinction_per_metre\":" << extinction << ",\"single_scattering_albedo\":" << albedo
         << ",\"phase\":{\"type\":\"HG+Draine\",\"diameter_um\":11.54,\"gh\":" << phase.gh << ",\"gd\":" << phase.gd << ",\"alpha\":" << phase.alpha << ",\"wd\":" << phase.wd << "},"
+        << "\"continuation_guiding\":{\"total_weight\":" << guiding << ",\"proposal\":\"(1-g)*physical_phase + g/2*(phase_about_side_sun_axis+phase_about_back_sun_axis)\",\"compensation\":\"physical_phase / proposal_pdf\"},"
+        << "\"random\":{\"type\":\"SplitMix64\",\"base_hex\":\"219d681098b34102\",\"replicate_stride_hex\":\"82a2b175229d6a5b\",\"pixel_stride_hex\":\"d1342543de82ef95\"},"
         << "\"roulette\":{\"starts_at_event\":32,\"survival\":0.98,\"fixed_depth_limit\":null},\"neighbors\":false,\"spp_per_replicate\":[";
     for (size_t i = 0; i < levels.size(); ++i) report << (i ? "," : "") << levels[i];
     report << "],\"ellipsoids_center_radius\":[";

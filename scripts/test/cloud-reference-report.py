@@ -59,6 +59,7 @@ def stats(values):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', type=Path)
+    parser.add_argument('--compare', type=Path, help='independent earlier reference run with identical physical inputs')
     args = parser.parse_args()
     directory = args.directory
     manifest = json.loads((directory / 'reference.json').read_text(encoding='utf-8'))
@@ -130,6 +131,29 @@ def main():
             np.sum(errors[light, -1, :, :, 2][masks['cloud']] ** 2) /
             np.sum(per_path_var[light, :, -1, :, :, 2].mean(axis=0)[masks['cloud']] / replicates))
         report['views'][label] = view
+    if args.compare:
+        earlier_manifest = json.loads((args.compare / 'reference.json').read_text(encoding='utf-8'))
+        physical_keys = ('fixture', 'camera', 'light_directions_to_sun', 'sun_angular_radius_degrees',
+                         'sun_normal_irradiance', 'sky_radiance', 'ground', 'density_inside_union',
+                         'extinction_per_metre', 'single_scattering_albedo', 'phase', 'ellipsoids_center_radius')
+        assert all(manifest[key] == earlier_manifest[key] for key in physical_keys), 'comparison physical inputs differ'
+        earlier = np.fromfile(args.compare / 'radiance.bin', dtype='<f8').reshape(earlier_manifest['shape'])
+        assert earlier.shape[:2] == raw.shape[:2] and earlier.shape[3:] == raw.shape[3:]
+        compare = {'earlier_manifest_sha256': hashlib.sha256((args.compare / 'reference.json').read_bytes()).hexdigest(),
+                   'earlier_spp_per_replicate': earlier_manifest['spp_per_replicate'][-1],
+                   'current_spp_per_replicate': int(levels[-1]),
+                   'meaning': 'Current minus earlier estimate; paired independent replicate differences, not a noise-free truth test.',
+                   'views': {}}
+        for light, label in enumerate(('side', 'back')):
+            compare['views'][label] = {}
+            for region, mask in masks.items():
+                result = {}
+                for component, name in enumerate(('single', 'multiple', 'total')):
+                    old = earlier[light, :, -1, :, :, component] if component < 2 else earlier[light, :, -1, :, :, :2].sum(axis=-1)
+                    difference = values[light, :, -1, :, :, component][:, mask].mean(axis=-1) - old[:, mask].mean(axis=-1)
+                    result[name] = stats(difference)
+                compare['views'][label][region] = result
+        report['comparison'] = compare
     (directory / 'convergence.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
 
     fig, axes = plt.subplots(2, 3, figsize=(11, 8), constrained_layout=True)
