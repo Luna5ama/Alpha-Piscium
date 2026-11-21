@@ -284,6 +284,45 @@ frame-end `P S` against an Iris SSBO dump.
 python test/cloud-local-transport-check.py --output ../builds/cloud-transport/local-numerics.json
 ```
 
+### CPU radiance reference
+
+The `cloud-light-transport-comparison` work item uses the frozen specification at
+`d2f1ef0fe2b1ac9a962a062fe7d2af7f922611ba`, with real-time baseline
+`c09cfdc76e79cb3e4e986d16e29730777283e78d` in wt9. Its first CPU stage is independent of the
+24-direction cache and local reconstruction. [`cloud-reference.cpp`](../../../scripts/test/cloud-reference.cpp)
+traces continuous directions through a fixed union of eight constant-density ellipsoids. Union chord lengths,
+overlaps, free flights and solar transmission are analytic. It samples the normalized 11.54 um HG+Draine
+phase directly, with no angular LUT, spatial grid or fixed scattering-order cutoff. Roulette starts at event 32.
+This follows the [volume transfer equation](https://pbr-book.org/4ed/Light_Transport_II_Volume_Rendering/The_Equation_of_Transfer).
+
+The fixture spans about 150 x 216 x 110 metres. The 32 x 40 orthographic pixel-centre camera is fixed at
+Z=-450 m, looking along +Z; X covers [-100,100] m and Y [-10,240] m. Inside the union, density is 0.15,
+extinction is 0.027820753413 /m and albedo is 0.999999528504. The sun has radius 0.266 degrees and normal
+irradiance 1, directed from +Y (side) or +Z (back). Sky, air, ground and neighboring towers are absent.
+The manifest records every ellipsoid, seed scheme, input and raw float64 channel. This is a reusable sample
+cloud, not the production eroded procedural density.
+
+The first run, `802ff939-d1e4-4654-bdc1-2c41fdb030b3`, completed 41,943,040 paths with eight independent
+replicates and 512/2,048/8,192/32,768 paths per pixel. Phase normalization differs from 1 by 2.11e-9;
+sampled phase mean and the analytic sphere single-scattering check are within two standard errors. Union and
+vacuum-gap checks pass. Pixel RMS standard error divided by RMS radiance drops from 2.52% to 0.318% for
+backlight, but remains 36.2% for side light; its notch mean has 9.32% standard error. **The first side-light
+result is not a converged image reference.** Rare near-forward connections dominate its multiple-scattering variance.
+[`cloud-reference-report.py`](../../../scripts/test/cloud-reference-report.py) retains single/multiple components,
+independent-replicate confidence intervals and comparisons of disjoint sample blocks. Display plots use a separate
+explicit linear scale for each light direction, shared by all components in that row; measurements use raw radiance.
+
+Compile the C++20 program with an optimizing compiler, then pass a preallocated output directory, maximum
+samples per replicate, replicate count and CPU worker count. Run the Python reporter on the same directory.
+Vela records the run and job source. Production-cloud agreement, neighboring-tower influence, sky input, motion
+and Iris cost remain separate obligations; no live game or GPU measurements were performed in this stage.
+
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"reference.json"} -->
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"radiance.bin"} -->
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"convergence.json"} -->
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"reference.png"} -->
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"convergence.png"} -->
+
 ## Air, depth layers, and composition
 
 | Stage               | Pass/code                                                                                                                                                  | Purpose                                                                                                          |

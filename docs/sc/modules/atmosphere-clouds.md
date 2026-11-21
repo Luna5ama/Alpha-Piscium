@@ -247,6 +247,40 @@ python test/cloud-transport-check.py --output ../builds/cloud-transport/numerics
 python test/cloud-local-transport-check.py --output ../builds/cloud-transport/local-numerics.json
 ```
 
+### CPU 辐亮度参考
+
+`cloud-light-transport-comparison` 工作项沿用冻结规格
+`d2f1ef0fe2b1ac9a962a062fe7d2af7f922611ba`，实时基线为 wt9 的
+`c09cfdc76e79cb3e4e986d16e29730777283e78d`。首个 CPU 阶段独立于 24 方向缓存及局部重建。
+[`cloud-reference.cpp`](../../../scripts/test/cloud-reference.cpp) 在八个恒密度椭球的固定并集中追踪连续方向。
+并集弦长、重叠、自由飞行和太阳透射均解析求值。直接采样归一化的 11.54 um HG+Draine 相函数，
+没有角度 LUT、空间网格或固定散射阶截断；第 32 次事件起使用俄罗斯轮盘。
+它求解[体积输运方程](https://pbr-book.org/4ed/Light_Transport_II_Volume_Rendering/The_Equation_of_Transfer)。
+
+样本云体尺寸约 150 x 216 x 110 米。固定的 32 x 40 正交像素中心相机位于 Z=-450 m，朝 +Z；
+X 范围 [-100,100] m，Y 范围 [-10,240] m。并集内部密度 0.15，消光 0.027820753413 /m，
+反照率 0.999999528504。太阳半径 0.266 度、垂直入射辐照度 1，分别从 +Y 侧照或 +Z 逆照。
+天空、空气、地面和邻塔均关闭。manifest 记录各椭球、随机种子方案、输入及原始 float64 通道。
+这是可复用的样本云体，不是生产中的侵蚀程序化密度。
+
+首轮 `802ff939-d1e4-4654-bdc1-2c41fdb030b3` 已完成 41,943,040 条路径，使用八组独立重复，
+逐级累计 512/2,048/8,192/32,768 路径/像素。相函数积分距 1 为 2.11e-9，采样方向均值及解析球的一次
+散射均落在两个标准误内；并集及真空间隙检查通过。逆光的像素 RMS 标准误/辐亮度 RMS 从 2.52%
+降至 0.318%，侧光仍为 36.2%，其凹口均值标准误为 9.32%。**首轮侧光结果还不是收敛的图像参考。**
+少量接近前向峰的连接主导多次散射方差。
+[`cloud-reference-report.py`](../../../scripts/test/cloud-reference-report.py) 保留单次/多次分量、独立重复的
+置信区间及不相交样本块对照。每种光向的显示使用明确标注的线性范围，同一行各分量共用范围；数值比较使用原始辐亮度。
+
+用开启优化的 C++20 编译器编译程序，传入预分配输出目录、每组最大样本数、独立组数及 CPU 线程数，
+再对该目录运行 Python 报告脚本。Vela 登记运行及作业源码。生产云体一致性、邻塔影响、天空入射、
+运动和 Iris 成本仍分别待验；本阶段没有操作实机或测量 GPU。
+
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"reference.json"} -->
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"radiance.bin"} -->
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"convergence.json"} -->
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"reference.png"} -->
+<!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"convergence.png"} -->
+
 ## 空气、深度层与合成
 
 | 阶段    | Pass/代码                                                                                                                                                    | 作用                                                             |
