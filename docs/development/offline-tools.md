@@ -81,6 +81,40 @@ Use `--select-fit` with a reviewed fit for an unmodified built-in recipe to repl
 the table. Review the complete response and recheck Iris compilation and rendering. See
 [Bloom](../rendering/post-processing.md#bloom) for the runtime pipeline and limitations.
 
+### Geometry-driven DPF fitting
+
+**Ready for implementation.** Deliver one offline fitter through the editor's **Fit** and **Export** actions and the
+game's **Custom** option. In the current DPF checkout, `scripts/bloom_dpf_policy.py` ranks axes supplied by the lobe
+recipe and tries a few layouts. Its six-branch User 8 candidate recovers long diagonals, but its weakest tested
+phases cover only 69% and 74% of the two vertical rays. The same-target half-resolution fit covers 100% in both.
+
+Use the complete linear RGB impulse response as the input to sample allocation. Keep the optical origin, pixel
+spacing, extent through the outer halo, relative channel energy and existing normalization identical for recipe and
+raster input. The equivalence check can pass a lossless floating-point raster directly to the shared fitter.
+Choose each level's 2D sample positions, RGB weights and sample count offline by comparing the **composed** DPF
+response with the target over multiple input phases. Authored angles may seed a search. Let image evidence select
+or discard directions, including directions absent from those seeds. The solver, number of shared filters and use of
+full or half resolution are implementation choices. The game runs the exported spatial DPF for the whole kernel
+with its core, halo, shape and dispersion in that response.
+
+- Fit the [original User 8 recipe](../../scripts/assets/bloom-dpf-user8-recipe.json) and its identical raster with all
+  lobe metadata removed. Both must preserve the same visible details within the same cost limit. Also try an
+  off-axis rotation and an existing bitmap shape such as 67 to expose preferred axes and forced symmetry.
+- Compare the target, current User 8, old half-resolution fit and candidate at native pixel scale and matched
+  exposure. Reserve input phases outside fitting and layout selection. Check the weakest phase for the gaps
+  between the 75°, 90° and 105° rays and their opposites, continuity to the horizontal tips, and RGB separation.
+  The candidate must match or exceed the old half-resolution quality. Its original run used a 160 px fine radius,
+  768 px outer radius and 18 iterations. The saved control is `pure-dpf-joint/routes-2-4/user8/quality/legacy-half-fit.json`
+  in the DPF run artifacts (SHA-256 `9033014299d2d1f771dde5a9f43fd533645d84a781033c18f31cac05386b6546`).
+  The existing full-frame Small Lamps controls are in the local
+  `builds/dpf-user8-layout-repair/user8-small-lamps-comparison.html`.
+- Load the normal export in Iris and supply the matched full 1080p Small Lamps frame. Measure standalone Bloom
+  against original COD Bloom (`0bf3a72ba247f9121f6c28691f6f6b44bec3c9a2`) at 720p, 1080p and 1440p using matched
+  forward and reverse windows. Count every executed Bloom pass for each variant and report Bloom plus PostComposite
+  separately. Aim for 3× and stay within 4× at each resolution. The previous corrected 1440p capture omitted
+  active passes and needs a new measurement. Keep the current presets until quality and cost both pass. If they
+  conflict, deliver the closest candidates with their visible differences and measured costs for review.
+
 ## Binary texture helpers
 
 [`bintex.main.kts`](../../scripts/bintex.main.kts) is a standalone converter for one or more inputs into a binary

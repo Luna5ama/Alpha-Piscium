@@ -1,0 +1,140 @@
+{
+  "preset": "custom-lobes",
+  "size": 1,
+  "core_gain": 1,
+  "core_sigma": 3,
+  "tail_gain": 1,
+  "shape_gain": 0.9,
+  "camera": 2,
+  "prism": 0.2,
+  "lobes": [
+    {
+      "angle": 0,
+      "length": 144,
+      "width": 1,
+      "gain": 0.8,
+      "profile": 2,
+      "pair": 0
+    },
+    {
+      "angle": 60,
+      "length": 84,
+      "width": 1,
+      "gain": 0.15,
+      "profile": 2,
+      "pair": 1
+    },
+    {
+      "angle": 120,
+      "length": 84,
+      "width": 1,
+      "gain": 0.15,
+      "profile": 2,
+      "pair": 2
+    },
+    {
+      "angle": 180,
+      "length": 144,
+      "width": 1,
+      "gain": 0.8,
+      "profile": 2,
+      "pair": 0
+    },
+    {
+      "angle": 240,
+      "length": 84,
+      "width": 1,
+      "gain": 0.15,
+      "profile": 2,
+      "pair": 1
+    },
+    {
+      "angle": 300,
+      "length": 84,
+      "width": 1,
+      "gain": 0.15,
+      "profile": 2,
+      "pair": 2
+    },
+    {
+      "angle": 90,
+      "length": 48,
+      "width": 1,
+      "gain": 0.2,
+      "profile": 2,
+      "pair": 3
+    },
+    {
+      "angle": 270,
+      "length": 48,
+      "width": 1,
+      "gain": 0.2,
+      "profile": 2,
+      "pair": 3
+    },
+    {
+      "angle": 105,
+      "length": 32,
+      "width": 0.75,
+      "gain": 0.25,
+      "profile": 2,
+      "pair": 4
+    },
+    {
+      "angle": 285,
+      "length": 32,
+      "width": 0.75,
+      "gain": 0.25,
+      "profile": 2,
+      "pair": 4
+    },
+    {
+      "angle": 30,
+      "length": 48,
+      "width": 0.75,
+      "gain": 0.25,
+      "profile": 2,
+      "pair": 5
+    },
+    {
+      "angle": 210,
+      "length": 48,
+      "width": 0.75,
+      "gain": 0.25,
+      "profile": 2,
+      "pair": 5
+    },
+    {
+      "angle": 75,
+      "length": 32,
+      "width": 0.75,
+      "gain": 0.15,
+      "profile": 2,
+      "pair": 6
+    },
+    {
+      "angle": 330,
+      "length": 48,
+      "width": 0.75,
+      "gain": 0.15,
+      "profile": 2,
+      "pair": 7
+    },
+    {
+      "angle": 255,
+      "length": 32,
+      "width": 0.75,
+      "gain": 0.15,
+      "profile": 2,
+      "pair": 6
+    },
+    {
+      "angle": 150,
+      "length": 48,
+      "width": 0.75,
+      "gain": 0.15,
+      "profile": 2,
+      "pair": 7
+    }
+  ]
+}
