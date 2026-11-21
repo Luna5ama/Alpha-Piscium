@@ -166,8 +166,35 @@ respectively, by their exact probabilities.
 
 The independent result also equals `2 + 64 * weight * ((1-p)*p^8 - p*(1-p)^8)`. At full weight a lone 65 becomes
 1, while two adjacent copies stay at 65. This isolates the response of one filter step to spatial correlation.
-The in-game baseline needs matched raw and denoised HDR GI, a separate AP reference, and the actual TAA history
-weight before attributing a scene's brightness change to this pass.
+
+#### Static mirror-room measurements
+
+Vibris captured the center 512 × 288 pixels of `mirror-room-1-720p` at 1280 × 720 on an RTX 3080 Ti. The camera
+and world time were fixed. The brightness comparison disabled TAA, jitter, radiance cache and path guiding.
+All three jobs measured material-remodulated linear HDR luminance before TAA using the same probe on `add444edb`.
+The reference averaged 1,024 fresh pre-reuse draws per pixel in 16 batches, with a separate spatial offset and phase for each
+64-frame block of the sampling sequence. Production recorded raw GI and the signed filter change on the same frame.
+
+After 128 warmup frames, raw total GI fell from 0.130992 to 0.115661 across eight successive 32-frame batches.
+A separate production run warmed up for 1,024 frames and captured 2,048 more. Its 16 batch means for raw total
+GI ranged from 0.112668 to 0.113405. The table uses this later window. All batches had 147,456 finite pixels.
+
+| GI signal | AP reference | Raw after ReSTIR | Denoised | Raw − reference (% of reference) | Denoised − raw (% of raw) |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Diffuse + specular | 0.110284 | 0.112914 | 0.137790 | +0.002631 (+2.39%) | +0.024876 (+22.03%) |
+| Specular | 0.103667 | 0.104472 | 0.129789 | +0.000804 (+0.78%) | +0.025317 (+24.23%) |
+
+With anti-firefly enabled, the TAA history alpha used by that pass was zero at every pixel in the crop.
+Turning on TAA alone gave 106.5 at every pixel after the same 128-frame warmup. The replacement weight went
+from zero to one. The TAA-off filter change above therefore arose elsewhere in the GI chain. A crop mean includes
+light redistributed across its edges and cannot establish the response of an individual moving highlight.
+
+Vibris jobs `574befac-36dd-4e3a-a1ea-45ab16719b80` (early production and reference),
+`f4e7314c-3685-4608-973b-4964e9f5215f` (late production) and `b1359747-33b3-40ab-b078-f1f7806ed459`
+(TAA control) verified shader compilation and restored the baseline. The diagnostic patch SHA-256 was
+`409a4ee78ecf36e0671821dc3d4e6b895e28ee8b1580fbce6c63a1f2b7670dd5`.
+
+<!-- vela:evidence {"run":"7bebc71b-7ba6-47fa-b34a-d561f17c7bd3","path":"static-hdr-metrics.json"} -->
 
 #### Candidate weights awaiting matched captures
 
