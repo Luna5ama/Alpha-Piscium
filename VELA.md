@@ -45,6 +45,12 @@
 
 <!-- vela:ready {"item":"procedural-cloud-shapes","rev":"8532145674051de7192bfe3ee22c38a4ea38c7d8","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
 
+### 云光照的物理输运对照
+
+在形状、光源与相机固定时增减邻塔，将实时单次和多次散射与同介质的离线参考对照。可从固定样本云体开工，以侧光和逆光的参考误差、运动时的噪声和实机开销决定候选去留。[云光照规格与双球基准](docs/rendering/atmosphere-clouds.md#云光照的物理对照)
+
+<!-- vela:ready {"item":"cloud-light-transport-comparison","rev":"d2f1ef0fe2b1ac9a962a062fe7d2af7f922611ba","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
+
 ### 从目标核几何自适应拟合 DPF Bloom
 
 让离线生成器从完整 RGB 核分配各层的采样位置、权重及数量。用 User 8 原配方及相同像素的无标注核图，对照旧半分辨率画质，并在 720p、1080p 和 1440p 核对独立 Bloom 的 4× COD 耗时上限。[实现与验收规格](docs/development/offline-tools.md#geometry-driven-dpf-fitting)
