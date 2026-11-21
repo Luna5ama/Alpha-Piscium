@@ -135,6 +135,41 @@ underlying response samples, and check that editing the recipe clears the stale 
 editor view with the line and both curves visible and record its endpoints and phase. Reuse that line on the first
 geometry-driven candidate for the fitting comparison.
 
+### DPF implementation evidence, 2026-11-21
+
+The interactive line profile passed independent source and actual Edge browser
+acceptance. The bound phase-(139,3) image records its real floating-point drag
+endpoints, 22 samples, Network response and active plot data. The separate
+integer-endpoint comparison has 21 samples over four held-out phases.
+
+The first geometry-driven fitter completed normal Fit and Export for User 8,
+its identical metadata-free raster, a 9.5-degree rotation and the existing 67
+bitmap. This bounded candidate failed native quality against the saved controls.
+Live compilation, the matched Small Lamps frame and complete GPU budget windows
+remain in progress through shared-resource admission. The detailed inputs,
+measurements, rejected candidates, independent reviews and remaining work are in
+[the DPF experiment record](../../experiments/dpf-bloom-20261108.md).
+
+<!-- vela:evidence {"run":"bdf75f9c-4d35-43c7-938a-813d08c3f534","path":"checks.json"} -->
+<!-- vela:evidence {"run":"bdf75f9c-4d35-43c7-938a-813d08c3f534","path":"same-line-comparison.json"} -->
+<!-- vela:evidence {"run":"bdf75f9c-4d35-43c7-938a-813d08c3f534","path":"browser-check.json"} -->
+<!-- vela:evidence {"run":"bdf75f9c-4d35-43c7-938a-813d08c3f534","path":"candidate-browser-check.json"} -->
+<!-- vela:evidence {"run":"bdf75f9c-4d35-43c7-938a-813d08c3f534","path":"user8-profile-mean.png"} -->
+<!-- vela:evidence {"run":"bdf75f9c-4d35-43c7-938a-813d08c3f534","path":"user8-profile-phase0.png"} -->
+<!-- vela:evidence {"run":"bdf75f9c-4d35-43c7-938a-813d08c3f534","path":"candidate-profile-mean.png"} -->
+<!-- vela:evidence {"run":"bdf75f9c-4d35-43c7-938a-813d08c3f534","path":"candidate-profile-phase0.png"} -->
+<!-- vela:evidence {"run":"bdf75f9c-4d35-43c7-938a-813d08c3f534","path":"qa-identity-binding.json"} -->
+<!-- vela:evidence {"run":"afbc378c-f5b7-41e0-8e35-2ec3507387f1","path":"user8-fit.json"} -->
+<!-- vela:evidence {"run":"afbc378c-f5b7-41e0-8e35-2ec3507387f1","path":"user8-response.npz"} -->
+<!-- vela:evidence {"run":"afbc378c-f5b7-41e0-8e35-2ec3507387f1","path":"user8-export.zip"} -->
+<!-- vela:evidence {"run":"afbc378c-f5b7-41e0-8e35-2ec3507387f1","path":"raster-equivalence.json"} -->
+<!-- vela:evidence {"run":"afbc378c-f5b7-41e0-8e35-2ec3507387f1","path":"validation-summary.json"} -->
+<!-- vela:evidence {"run":"afbc378c-f5b7-41e0-8e35-2ec3507387f1","path":"user8-native-controls.png"} -->
+<!-- vela:evidence {"run":"5d544efd-f3f3-4f3f-acb3-d851ea482e54","path":"rotated-native-controls.png"} -->
+<!-- vela:evidence {"run":"5d544efd-f3f3-4f3f-acb3-d851ea482e54","path":"bitmap-native-controls.png"} -->
+<!-- vela:evidence {"run":"7b0257e7-97f8-4bfd-8f96-53218fbbd47d","path":"candidate-phase0-bound.json"} -->
+<!-- vela:evidence {"run":"7b0257e7-97f8-4bfd-8f96-53218fbbd47d","path":"candidate-phase0-bound.png"} -->
+
 ## Binary texture helpers
 
 [`bintex.main.kts`](../../scripts/bintex.main.kts) is a standalone converter for one or more inputs into a binary
