@@ -74,3 +74,9 @@
 交换画质参考与候选的上采样滤波，保留各自已有的逐层采样。用 User 8、旋转版与数字 67 的八相位响应，判断细节损失来自哪一部分，或是否只在特定组合中出现。[交换方法与判读](docs/development/offline-tools.md#separating-upsampling-from-per-level-bloom-samples)
 
 <!-- vela:ready {"item":"dpf-bloom-upsampling-replay","rev":"0389c911c759335bc778581c3c9595afd8879e03","spec":"docs/development/offline-tools.md","after":["dpf-bloom-residual-footprints@f2c0a0d2ead8b531ec8c9423a5510850eaa2eec1"]} -->
+
+### 从高画质参考核压缩 Bloom 采样
+
+从能分开细芒的半分辨率滤波核出发，自动找出可在多处复用的局部形状，剩余部分直接采样。在相近成本下与直接合并采样点对照，检查三种核的细芒、笔画、暗谷和宽光晕。[压缩实验规格](docs/development/offline-tools.md#compressing-a-reference-bloom-filter)
+
+<!-- vela:ready {"item":"dpf-bloom-reference-compression","rev":"f17d8f14afb3737b00a00de9c4e4ff69d3cdec9d","spec":"docs/development/offline-tools.md","after":["dpf-bloom-upsampling-replay@0389c911c759335bc778581c3c9595afd8879e03"]} -->
