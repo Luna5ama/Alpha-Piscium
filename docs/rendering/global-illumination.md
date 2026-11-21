@@ -196,7 +196,20 @@ Vibris jobs `574befac-36dd-4e3a-a1ea-45ab16719b80` (early production and referen
 
 <!-- vela:evidence {"run":"7bebc71b-7ba6-47fa-b34a-d561f17c7bd3","path":"static-hdr-metrics.json"} -->
 
-#### Candidate weights awaiting matched captures
+#### GI anti-firefly warmup
+
+Since `4a473d32`, anti-firefly reads the validated, reprojected GI age before the current sample is added and
+before the accumulation pass borrows neighboring history lengths. Its weight rises from zero to one over three
+prior GI frames and follows the GI reset factor. Spatial-only filtering uses full weight. On the same 147,456
+mirror-room pixels the warmed-up weight was one with TAA on, TAA off and temporal GI accumulation off. The first
+two settings produced the same mean and maximum absolute specular correction in that frame.
+
+Two ABBA rounds compared clean revisions `a1b54c51` and `4a473d32` with normal TAA, 128 warmup and 256 timed
+frames per window. The anti-firefly pass median was 44.03 µs for both. GI accumulation measured 110.59 to
+110.08 µs and the GI composite measured 63.49 to 64.51 µs. The normal TAA output also completed a separate
+73-frame motion check on each revision.
+
+#### Candidate weights with fixed histories
 
 A small model that weights current samples and reprojected history is a candidate. To test what those weights could
 achieve, hold the captured candidates fixed and fit their best nonnegative, normalized blend to an independent
@@ -211,6 +224,104 @@ The [existing reference](#monte-carlo-reference) accumulates at a fixed camera. 
 over time in a region that follows the highlight, alongside firefly lifetime and highlight recovery time. Use
 material-remodulated linear HDR GI for the brightness comparison. Inspect noise and trails with TAA disabled and
 check the normal TAA output for loss of detail or additional trails.
+
+#### Moving mirror pilot
+
+The camera translated 0.5 blocks over eight frames in `mirror-room-1-720p` and held its final pose. All nine
+distinct poses have a separate 192-draw pre-reuse AP specular reference. World time was frozen, with TAA, jitter,
+radiance cache and guiding off for the HDR comparison. The production sequence ran ReSTIR and GI history
+continuously. For each pose the probe exported current GI, surface-reprojected and virtual-point-reprojected
+specular history, their validity, and the displayed GI after the same material remodulation. The diagnostic PNGs
+stored the FP16 bit patterns across byte planes. The byte ramp, frame IDs, camera poses and finite values were
+checked. Crop depth and roughness agreed across the capture paths within one FP16 unit in the last place.
+
+**Candidate upper bound.** We fit nonnegative weights summing to one per pixel in linear RGB against the first
+96 reference draws, then scored the blend against the other 96. Across 430,308 nonemissive, smooth-surface
+pixel-frames, RGB RMSE fell from 0.331 for the displayed denoiser to 0.204. Restricting the blend to current
+and virtual-point history gave 0.207, or 0.209 with surface history instead. Among 15,031 pixel-frames where
+both reference halves exceeded luminance 1, 41.7% had both references brighter than `1.1 * brightest valid
+candidate + 0.01`. Mixing the available candidates cannot recover the missing peak in those observations.
+
+A 24-coefficient softmax selector used current and candidate luminances, their differences and roughness.
+It trained on one side of the crop, left a 64-pixel gap, and scored the opposite side on the second set of
+reference draws. RMSE for the displayed denoiser, fitted constant weights and selector was 0.431 / 0.434 / 0.375
+on the left and 0.197 / 0.196 / 0.173 on the right. For a blind test, we trained on the full mirror crop and
+used the same weights on two poses in `spec-contact-2-720p`, a different room in the same world. Across 17,039
+eligible pixel-frames the three errors were 1.242 / 0.858 / 0.769. These comparisons held the captured histories
+fixed and used the pre-reuse AP reference as a diagnostic target. The production training target remains open.
+[Reproduce the weight probe](../../scripts/gi_mirror_weight_probe.py)
+
+**Recovery along the reflection.** The first reference half selected the strongest local contrast among 27 small
+bright components on smooth nonemissive surfaces. A 17 × 17 reference patch tracked its center by normalized
+correlation. The measured 7 × 7 box moved from OpenGL pixel (448, 367) to (458, 375). The two reference halves
+at the endpoint averaged 0.826 and 0.824. With production history the reflection stayed outside ±20% of reference
+for the three-consecutive-frame recovery criterion throughout the 224-frame hold. Over the last 64 frames the AP
+reference was 0.825, raw ReSTIR averaged 0.646 and denoised GI averaged 0.438. This gives an upstream offset of
+−0.179 and an additional local filtering offset of −0.208.
+
+The next experiment changed only which specular color the second blur wrote back into history. Every variant
+displayed both spatial passes. The raw colors in the tracked box were bit-identical across the two endpoint
+variants over the last 64 frames. The control used 1,864 mid-brightness nonemissive pixels at the final pose
+where the two reference halves agreed within 0.1 luminance. Flicker is the RMS frame-to-frame luminance change.
+
+| Color written to history | Tracked luminance, last 64 frames | Fraction of reference | Control flicker |
+| --- | ---: | ---: | ---: |
+| After both spatial passes (production) | 0.438 | 53.1% | 0.00857 |
+| 50% before spatial filtering, 50% after | 0.498 | 60.3% | 0.01168 |
+| Before spatial filtering | 0.627 | 76.0% | 0.03835 |
+
+With production history the tracked mean was already 0.445 after temporal accumulation. The current frame's
+anti-firefly step changed it by −0.00023. The two spatial passes then reduced it to 0.438 and fed that blurred
+color back to the next frame. Writing the pre-blur value into history preserved more of the reflection, with
+4.47 times the control flicker. Both alternative writebacks remain experimental.
+
+**Closed-loop weight predictor.** We exported the same 24 coefficients to GLSL. On smooth nonemissive surfaces
+the test shader displayed the three-candidate blend and wrote its demodulated RGB to the next frame's regular
+specular history. The baseline kept the production temporal and spatial filters. On each capture's own inputs,
+GPU and offline predictions agreed to RGB RMSE 0.000031 in the mirror and 0.000089 in the other room. The table
+reports RGB error against the second reference half and frame-to-frame luminance change in the control region.
+
+| Measured quantity | Mirror, production → predictor | Other room, production → predictor |
+| --- | ---: | ---: |
+| RGB RMSE at moving poses with a reference | 0.331 → 0.315 (9 poses) | 1.242 → 1.273 (2 poses) |
+| RGB RMSE over the final 64 stationary frames | 0.216 → 0.224 | 0.784 → 1.040 |
+| Control-region flicker over those frames | 0.00857 → 0.05678 (1,864 pixels) | 0.02939 → 0.07322 (1,714 pixels) |
+
+The mirror highlight averaged 0.418 with the predictor, down from 0.438 at identical raw input in the tracked
+box over those 64 frames. Neither variant met the three-frame recovery criterion. The predictor did suppress
+bright outliers on dark reference pixels. The direct recurrent replacement is rejected because the real highlight
+lost energy and ordinary surfaces flickered more in both rooms. These results test this selector and writeback.
+
+![Mirror-room reflection crops and the tracked luminance over 233 frames](figures/gi-mirror-motion.png)
+
+The local NumPy fixture `agent_inputs/gi-denoiser/mirror-room-x0p5-pilot.npz` contains the nine candidate sets,
+references, camera poses, validity masks, geometry and three closed-loop traces. Its SHA-256 is
+`1de39c9ae6f45bbbb9741134bb240adb68a76811ed43491474b57cf34e83d0a8`. Fixture metadata lists the six capture
+jobs. Vibris job `026d1698-6586-4863-ac20-468fa977c178` contains both writeback endpoints,
+`b3a17152-d4fe-4d42-9af2-11447cb7d539` the midpoint and `57a4ba61-785b-4490-8ccb-aac8bf92c8b4` the timings.
+Job `0ea5a021-c624-42a2-afa1-4e6b877e1a27` produced the two-pose test fixture `spec-contact-x0p5-test.npz`
+in the same directory, SHA-256 `98d1fff3df9a9f584ea3946f2bd543aacd9733a56553f3c60fb9a3987ad24b24`. Pass
+the mirror fixture and then the test fixture to the Python weight probe to reproduce all three fixed-history scores.
+The recurrent GLSL runs are `e49fe4c1-4c5c-4ea4-99cd-fe737733ec67` (mirror) and
+`46187710-ed20-45eb-aad8-b8ceb94aece0` (other room, with a paired control). Both retained the shader patch.
+
+<!-- vela:evidence {"run":"9ff82b2d-4308-4e2e-b504-62b7d11a91c2","path":"motion-metrics.json"} -->
+
+#### Selective specular history writeback experiment
+
+Keep both existing spatial passes in the displayed GI. Test whether runtime evidence can identify where to write
+some of the pre-blur specular value to history. Use the production writeback and the fixed 50% blend as controls.
+Candidate rules may use surface and reflection validity, pre-suppression observations, and their agreement across
+space or time. A reused reservoir path can persist for several frames. Count that as one observation wherever
+its provenance is available. Record which signal the rule actually used and whether it improved on a constant blend.
+
+Run the decision in a GLSL feedback loop in both rooms above. Report signed changes from raw ReSTIR and the
+pre-reuse reference separately, tracked highlight recovery, the rate and duration of bright excursions on dark
+reference pixels, and flicker in the mid-brightness controls. Use repeated baseline windows to establish normal
+variation. A candidate for the shader pack should recover more persistent highlight energy while keeping ordinary
+flicker and bright outliers within that variation, also with normal TAA in the final picture. Check normal-scene
+pass cost at 720p before proposing integration. If the candidates contain insufficient energy, record the local
+evidence for a targeted fresh sample as a follow-up to light sampling. A measured rejection completes this experiment.
 
 ## Estimator contracts
 
