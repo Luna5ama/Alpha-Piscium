@@ -256,6 +256,56 @@ retain detail with either upsampler and the compact samples lose it with both, s
 the quality-passing response. An improvement using a control's coefficients still needs independent fitting
 from the input raster and a matched GPU budget test before it can qualify as a generated game preset.
 
+### Upsampling replay result, 2026-11-21
+
+All six parent paths reproduced their archived native and pooled RGB arrays
+bit-for-bit (0 ULP). The complete upsample arrays were then crossed without
+changing each row's downsample, injection or shared features. All eight archived
+phases were retained. The static four-cell boards, original 21-point y=24 line,
+extended line covering the rotated neighboring peak, RGB direction profiles and
+8x8 pooled wide views are in the local
+[replay report](../../.vela/local/runs/984195dd-5f4f-4d9f-95ab-f075a3ef3c42/replay.html).
+
+The main missing fine peaks and weak bitmap stroke follow the sample-allocation
+row. With control upsampling, compact User 8 still has only 36.0-37.8% of the
+control center peak, and the 67 stroke at (-44,0) retains 31.1-31.7% of its target.
+Dense User 8 samples with candidate upsampling preserve 103.9-108.6% of the
+control center peak and its two neighboring valleys. This does not clear the
+whole-filter gate: exchanging upsampling makes User 8 core/halo errors worse in
+both mixed cells. Reconstruction and sample allocation remain coupled.
+
+This CPU diagnostic therefore excludes an upsampling-only explanation or repair
+for the dominant missing peaks in these frozen exports. It does not establish
+that upsampling is unimportant, that all errors come from compression, or that
+any hybrid qualifies as a generated game preset. No fitting, GPU, game or editor
+operation occurred. See the phase-resolved evidence and exact source identities
+in [the experiment record](../../experiments/dpf-bloom-20261108.md).
+
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"input-manifest.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"attribution.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"comparison-summary.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"replay.html"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"reproducer-source.zip"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"source-delta.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"delivery-check.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"report-manifest.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"reproduce.md"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"user8-parent-reproduction.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"user8-analysis.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"user8-line-y24.png"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"user8-line-y24-regression.png"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"user8-p0-native.png"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"rotated-parent-reproduction.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"rotated-analysis.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"rotated-line-y24.png"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"rotated-line-y24-regression.png"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"rotated-p0-native.png"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"bitmap-parent-reproduction.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"bitmap-analysis.json"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"bitmap-line-y24.png"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"bitmap-line-y24-regression.png"} -->
+<!-- vela:evidence {"run":"984195dd-5f4f-4d9f-95ab-f075a3ef3c42","path":"bitmap-p0-native.png"} -->
+
 ### DPF implementation evidence, 2026-11-21
 
 The interactive line profile passed independent source and actual Edge browser
