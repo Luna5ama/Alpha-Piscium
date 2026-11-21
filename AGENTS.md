@@ -107,8 +107,11 @@ or AOT caches.
   when noise or drift matters.
 - Prioritize 720p presets over 1080p unless the user explicitly requests 1080p or 720p workload is too light to measure.
 - Use Nsight only when deeply optimizing shader code and Vibris measurements are not sufficient.
-- Never restart Minecraft or its launcher unless the user explicitly requests it. Exhaust safe non-restart recovery;
-  if Vibris remains unusable, stop and report the blocker instead of silently switching to replay or another runtime.
+- When a task needs live Minecraft, reuse the configured Vibris instance or start it on demand if it is stopped.
+  Confirm readiness through Vibris MCP. A busy queue, planned restart, or connection error alone does not establish
+  that the instance is stopped. See [Vibris instance startup](docs/development/vibris-startup.md).
+- Restarting a running game or its launcher still requires an explicit user request. If the target cannot be
+  identified or recovered, report the blocker.
 
 ## Validation
 
