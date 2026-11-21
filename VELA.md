@@ -4,7 +4,7 @@
 
 | 主题 | 设计归属 |
 | --- | --- |
-| 新一代降噪 | Alpha Piscium 降噪设计会话 |
+| [新一代降噪](docs/rendering/global-illumination.md#moving-mirror-pilot) | Alpha Piscium 降噪设计会话 |
 | DPF Bloom | Alpha Piscium Bloom 设计会话，复用已交付的实验记录，下一轮由此确定实现范围 |
 | [Light Sampling](docs/rendering/light-sampling.md) | Alpha Piscium 选灯设计会话，沿用已有实验执行者 |
 | 统一体积渲染 | Alpha Piscium 大气与云设计会话 |
@@ -26,3 +26,9 @@
 由 Vibris MCP 实现冷启动，在 AP 专用实例部署并验证，交付正常工具入口和实测结果。[启动规格](docs/development/vibris-startup.md)
 
 <!-- vela:ready {"item":"vibris-on-demand-start","rev":"9b1b276f654af8bd784a9e714338e55a78352608","spec":"docs/development/vibris-startup.md","after":[]} -->
+
+### 镜面 GI 历史写回对照
+
+在镜室和第二个房间验证按像素选择写回多少空间滤波前的镜面信号，记录真实高光恢复、普通区域闪烁和暗区亮点寿命。以实景闭环结果决定候选的去留。[实验规格和现有基线](docs/rendering/global-illumination.md#selective-specular-history-writeback-experiment)
+
+<!-- vela:ready {"item":"gi-specular-selective-writeback","rev":"59fe78cf124b67ddf4c2f684615ffddad8a8f79f","spec":"docs/rendering/global-illumination.md","after":[]} -->
