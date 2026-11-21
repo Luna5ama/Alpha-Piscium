@@ -20,3 +20,9 @@
 按发布标记固定的规格重整旧中英文内部文档。交付入口为 [docs/README.md](docs/README.md)，验收查阅 Anchor 的淘汰理由及适用范围，并定位受设置控制的 compute pass 的注册源和生成命令。
 
 <!-- vela:ready {"item":"ap-docs-migration","rev":"7980ad56bb71bf2c218a4a907846e5fdf5a6c0e3","spec":"docs/repository-structure.md","after":[]} -->
+
+### Vibris 专用实例按需启动
+
+由 Vibris MCP 实现冷启动，在 AP 专用实例部署并验证，交付正常工具入口和实测结果。[启动规格](docs/development/vibris-startup.md)
+
+<!-- vela:ready {"item":"vibris-on-demand-start","rev":"9b1b276f654af8bd784a9e714338e55a78352608","spec":"docs/development/vibris-startup.md","after":[]} -->
