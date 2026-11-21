@@ -7,7 +7,8 @@ utilities, and runtime assets.
 
 ## Where to Look
 
-Use `docs/en/modules/pipeline.md` for live pass order. Module contracts and validation targets are under
+Use [programs.main.kts](../scripts/programs.main.kts) for compute pass order and enable conditions.
+The [pipeline overview](../docs/en/modules/pipeline.md) explains how the stages fit together. Module contracts and validation targets are under
 `docs/en/modules/` for geometry/materials, shadows, GI, atmosphere/clouds, water/translucency, and post-processing.
 
 ## Placement and Naming

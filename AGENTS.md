@@ -20,7 +20,7 @@ shaders/
 ├─ util/           cross-module GLSL helpers
 └─ textures/       runtime LUT, noise, sky, cloud, and sampling assets
 scripts/           generators, packaging, release, and offline asset tools
-docs/              bilingual maintainer workflows and rendering-module maps
+docs/              project knowledge, maintainer workflows, and rendering-module maps
 ```
 
 ## Where to Look
@@ -48,7 +48,7 @@ docs/              bilingual maintainer workflows and rendering-module maps
 
 ## Project Policy
 
-- Do not automatically update `docs/`; only update documentation when explicitly requested by the user.
+- Maintain internal project knowledge using Vela's [topic documents and run records](https://github.com/Endoqa/Vela/blob/main/vela-main-task/references/documents.md). Choose the language and format that suit the material.
 - Write clean, direct maintainer code with simple control flow, explicit logic, compact formatting, and coherent
   ownership. When the existing organization obstructs the requested change, restructure it within scope instead of
   accumulating local patches around awkward boundaries. Do not turn that restructuring into an unrelated redesign.
@@ -72,7 +72,6 @@ docs/              bilingual maintainer workflows and rendering-module maps
 
 - Shader implementation and placement rules: `shaders/AGENTS.md`.
 - Generator, packaging, and release rules: `scripts/AGENTS.md`.
-- Documentation and language-parity rules: `docs/AGENTS.md`.
 
 ## Generated Files and Commands
 
