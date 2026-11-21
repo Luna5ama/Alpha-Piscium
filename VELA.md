@@ -5,7 +5,7 @@
 | 主题 | 设计归属 |
 | --- | --- |
 | [新一代降噪](docs/rendering/global-illumination.md#moving-mirror-pilot) | Alpha Piscium 降噪设计会话 |
-| DPF Bloom | Alpha Piscium Bloom 设计会话，复用已交付的实验记录，下一轮由此确定实现范围 |
+| [DPF Bloom](docs/development/offline-tools.md#geometry-driven-dpf-fitting) | Alpha Piscium Bloom 设计会话，负责目标核、拟合方法及画质与耗时验收 |
 | [Light Sampling](docs/rendering/light-sampling.md) | Alpha Piscium 选灯设计会话，沿用已有实验执行者 |
 | [统一体积渲染](docs/rendering/atmosphere-clouds.md) | Alpha Piscium 大气与云设计会话 |
 | Skibidi DRT | `drt-bench` 的设计会话。移植到 shader pack 时，在此发布对应的集成规格 |
@@ -44,3 +44,9 @@
 在现有 Iris 渲染路径接入可飞入的淡、中、浓积云。以全景、穿云与云上视角核对布局和保守边界，用同场景整帧耗时核对首版预算。形态参考和交付范围见[首版建模规格](docs/rendering/atmosphere-clouds.md#首版建模交付)。
 
 <!-- vela:ready {"item":"procedural-cloud-shapes","rev":"8532145674051de7192bfe3ee22c38a4ea38c7d8","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
+
+### 从目标核几何自适应拟合 DPF Bloom
+
+让离线生成器从完整 RGB 核分配各层的采样位置、权重及数量。用 User 8 原配方及相同像素的无标注核图，对照旧半分辨率画质，并在 720p、1080p 和 1440p 核对独立 Bloom 的 4× COD 耗时上限。[实现与验收规格](docs/development/offline-tools.md#geometry-driven-dpf-fitting)
+
+<!-- vela:ready {"item":"dpf-bloom-adaptive-fit","rev":"0945ab2a62357c391271c7f7fc37f057c6320329","spec":"docs/development/offline-tools.md","after":[]} -->
