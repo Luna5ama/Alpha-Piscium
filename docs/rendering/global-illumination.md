@@ -116,8 +116,8 @@ may use PyTorch with CUDA or any other suitable framework.
 With TAA disabled, GI denoising must independently suppress noise in hard-to-sample lighting and moving reflections.
 With AP TAA enabled, preserve the stability and detail of the current ReSTIR and TAA output in well-sampled diffuse
 GI. A glint visible for only one or two frames may be attenuated when support from nearby samples and reprojected
-reflections is weak. A persistent highlight should recover its brightness along its motion even when fresh paths
-reach the light only intermittently. Check the width of fine reflections as well as their brightness.
+reflections is weak. A persistent highlight should recover from that temporary attenuation along its motion even
+when fresh paths reach the light only intermittently. Check the width of fine reflections as well as their brightness.
 
 Ordinary scenes should stay within the cost of the current GI denoising passes at matched settings. Difficult scenes
 may cost more. The denoiser may flag regions for the sampler to acquire fresh observations. Count the extra sampling
@@ -129,13 +129,30 @@ from observations before firefly suppression and account for repeated reuse of t
 candidate generation and weighting. Taking a second draw only after a bright first draw and averaging the two can
 systematically dim rare lights. [Kirk and Arvo on adaptive sampling bias](https://authors.library.caltech.edu/records/8sntk-73q87)
 
+#### Bias in the production ReSTIR estimate
+
+Production ReSTIR can have a substantial systematic offset even where its output looks stable. Let `R` be the raw GI
+after reuse, shading and visibility, and `D` the denoised GI from that same sample stream, including any sampling
+feedback. Let `L_ref` be the independently accumulated pre-reuse AP lighting at the same scene state and transport
+settings. The [static reference](#monte-carlo-reference) reads the frame's initial candidate and shares AP's tracing
+and shading approximations. Use a separate sample stream for independent labels. Compare material-remodulated
+linear HDR GI before TAA and take means across realizations of the same frame.
+
+- `mean(R) - L_ref` measures the production estimator's signed offset from the chosen AP reference.
+- `mean(D) - mean(R)` measures the signed change introduced by filtering, including firefly suppression.
+
+Record temporal noise separately. Averaging independent realizations of production ReSTIR targets its own mean.
+Using `L_ref` as the target would also reward compensation for upstream bias. Responsibility for correcting that
+bias remains open.
+
 #### Deferred experiment on candidate weights
 
 A small model that weights current samples and reprojected history is a candidate. To test what those weights could
 achieve, hold the captured candidates fixed and fit their best nonnegative, normalized blend to an independent
-reference offline. A highlight missing from every candidate points to sampling or reprojection. Where the blend can
-recover it, compare learned and hand-written weights using the same runtime inputs. For a sequence, feed each
-predictor its own previous output and check that exported weights reproduce the offline history updates in GLSL.
+reference offline. Residual error can reflect biased shading in the candidates, a missing observation or a reprojection
+mismatch. Where the blend can recover a highlight, compare learned and hand-written weights using the same runtime
+inputs. For a sequence, feed each predictor its own previous output and check that exported weights reproduce the
+offline history updates in GLSL.
 
 Keep ReSTIR reuse active in the noisy inputs. A reference for a moving shot needs independent samples at each
 frame's camera pose, jitter, world time and lighting state, including the radiance cache when it contributes.
