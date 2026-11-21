@@ -108,6 +108,25 @@ Reprojection also depends on `history_viewZ`, historical/current view normals, g
 roughness. Tile lifetime and format changes belong in [
 `shaders/shadesmith.json`](../../shaders/shadesmith.json), not only in samplers.
 
+### Next-generation denoiser design
+
+The runtime constraint is pure GLSL compute inside the shader pack. Offline training and backpropagation may use
+PyTorch with CUDA or any other suitable framework. Stable diffuse GI with ReSTIR and TAA is the quality baseline.
+Prioritize moving reflections and hard-to-sample lighting. Briefly dimming a firefly is acceptable. A persistent
+highlight should recover its brightness even when fresh paths reach its light only intermittently.
+
+A small model that weights current samples and reprojected history is a candidate. To test what those weights could
+achieve, hold the captured candidates fixed and fit their best nonnegative, normalized blend to an independent
+reference offline. A highlight missing from every candidate points to sampling or reprojection. Where the blend can
+recover it, compare learned and hand-written weights using the same runtime inputs. For a sequence, feed each
+predictor its own previous output and check that exported weights reproduce the offline history updates in GLSL.
+
+Keep ReSTIR reuse active in the noisy inputs. A reference for a moving shot needs independent samples at each
+frame's camera pose, jitter, world time and lighting state, including the radiance cache when it contributes.
+The [existing reference](#monte-carlo-reference) accumulates at a fixed camera. Measure signed mean brightness error
+over time in a region that follows the highlight, alongside firefly lifetime and highlight recovery time. Use
+material-remodulated linear HDR GI for the brightness comparison and the normal TAA output to judge visible trails.
+
 ## Estimator contracts
 
 - Voxel traces distinguish three outcomes (`voxel_traceExhausted` in [
