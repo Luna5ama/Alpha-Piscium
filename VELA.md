@@ -56,3 +56,9 @@
 让离线生成器从完整 RGB 核分配各层的采样位置、权重及数量。用 User 8 原配方及相同像素的无标注核图，对照旧半分辨率画质，并在 720p、1080p 和 1440p 核对独立 Bloom 的 4× COD 耗时上限。[实现与验收规格](docs/development/offline-tools.md#geometry-driven-dpf-fitting)
 
 <!-- vela:ready {"item":"dpf-bloom-adaptive-fit","rev":"0945ab2a62357c391271c7f7fc37f057c6320329","spec":"docs/development/offline-tools.md","after":[]} -->
+
+### Bloom 编辑器局部亮度剖面
+
+在核图上拖线，同尺度叠看目标与拟合亮度。用已保存的 User 8 结果在浏览器核对相邻细芒之间的暗谷，记录端点和相位，首个自适应候选沿同一条线复查。[网页交互与验收规格](docs/development/offline-tools.md#interactive-bloom-line-profile)
+
+<!-- vela:ready {"item":"dpf-bloom-profile-preview","rev":"37449aa50ed3b6129c612ebf242c971bf2ed74df","spec":"docs/development/offline-tools.md","after":[]} -->
