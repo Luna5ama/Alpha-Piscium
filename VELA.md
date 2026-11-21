@@ -7,7 +7,7 @@
 | [新一代降噪](docs/rendering/global-illumination.md#moving-mirror-pilot) | Alpha Piscium 降噪设计会话 |
 | DPF Bloom | Alpha Piscium Bloom 设计会话，复用已交付的实验记录，下一轮由此确定实现范围 |
 | [Light Sampling](docs/rendering/light-sampling.md) | Alpha Piscium 选灯设计会话，沿用已有实验执行者 |
-| 统一体积渲染 | Alpha Piscium 大气与云设计会话 |
+| [统一体积渲染](docs/rendering/atmosphere-clouds.md) | Alpha Piscium 大气与云设计会话 |
 | Skibidi DRT | `drt-bench` 的设计会话。移植到 shader pack 时，在此发布对应的集成规格 |
 | [仓库与文档结构](docs/repository-structure.md) | Alpha Piscium 仓库结构设计会话，负责文档、设计记录与实验材料的归属，以及与 Vela 工作流的衔接 |
 
@@ -38,3 +38,9 @@
 将复用前的观测随镜面历史重投影，检验静止机位上 8–32 帧观测的判断能力能否在移动和遮挡变化时保留。沿用两间房间的高光、闪烁和暗区亮点对照。[实验规格](docs/rendering/global-illumination.md#reprojected-fresh-sample-evidence-experiment)
 
 <!-- vela:ready {"item":"gi-specular-fresh-history","rev":"29e4086ed3a8917947748b18d303db4b153d89af","spec":"docs/rendering/global-illumination.md","after":[]} -->
+
+### 程序化积云建模
+
+在现有 Iris 渲染路径接入可飞入的淡、中、浓积云。以全景、穿云与云上视角核对布局和保守边界，用同场景整帧耗时核对首版预算。形态参考和交付范围见[首版建模规格](docs/rendering/atmosphere-clouds.md#首版建模交付)。
+
+<!-- vela:ready {"item":"procedural-cloud-shapes","rev":"8532145674051de7192bfe3ee22c38a4ea38c7d8","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
