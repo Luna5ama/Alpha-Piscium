@@ -166,6 +166,59 @@ Reuse the review runs indexed below, including the source snapshot, full-frame v
 The current built-in User 8 remains the game preset during this experiment. The experiment ends with a measured
 candidate that clears both gates or a comparison showing which gate still binds.
 
+### Residual-footprint experiment result, 2026-11-21
+
+The bounded fixed-pyramid experiment completed three inputs and eight phases per
+input. A uses regional scoring; B rescored the identical four existing proposals
+with local peaks, valleys and continuity; C adds four off-center residual patches
+and their combination. A local-only challenger also received the same 48-gradient
+budget when the initial selector rejected all local proposals. Identical fits
+were reused. Seven unique fits consumed 336 gradient calls, each covering sixteen
+training phases. Four fresh phases were reserved before selection and never used
+to choose a layout or fitted iterate.
+
+Read proxies were reduced to about 46.60/46.85/46.35 for User 8/rotation/67.
+Carrier writes remained 1/1/.75 full-resolution pixels, respectively, with
+identical stage tap counts and levels between arms. These are static costs, not
+new GPU timings. User 8's original y=24 center retained only 39.5-43.2% of its
+old-half response with A/B and 36.9-40.2% with the local challenger. The bitmap's
+local proposal improved on B, but native L2 remained .174-.181 versus .090-.097
+for its existing control; its pooled outer error was also worse. Native rays and
+strokes still show gaps and beads. All three inputs failed the quality gate, so
+no GPU window, Iris reload or preset replacement was attempted for this package.
+
+The experiment is a negative result for this proposal pool, fixed pyramid and
+budget, not a representation limit. Full phase-separated measurements, original
+coefficients and reproducer sources are indexed in
+[the experiment record](../../experiments/dpf-bloom-20261108.md). The initial
+execution snapshot and final delivery snapshot are separately identified. No
+runtime path or user-facing editor was replaced; ports 8765 and 8768 were retained.
+
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"experiment-summary.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"final-selection.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"source-snapshot.zip"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"delivery-source-snapshot.zip"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"source-delta.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"metadata-correction.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"challenger-protocol.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"numeric-check.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"delivery-check.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"user8-protocol.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"user8-selection.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"user8-native-metrics.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"user8-line-y24.png"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"user8-native-eight-phase.png"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"rotated-protocol.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"rotated-selection.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"rotated-native-metrics.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"rotated-line-y24.png"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"rotated-native-eight-phase.png"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"bitmap-protocol.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"bitmap-selection.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"bitmap-native-metrics.json"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"bitmap-line-y24.png"} -->
+<!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"bitmap-native-eight-phase.png"} -->
+
 ### DPF implementation evidence, 2026-11-21
 
 The interactive line profile passed independent source and actual Edge browser
