@@ -32,3 +32,9 @@
 在镜室和第二个房间验证按像素选择写回多少空间滤波前的镜面信号，记录真实高光恢复、普通区域闪烁和暗区亮点寿命。以实景闭环结果决定候选的去留。[实验规格和现有基线](docs/rendering/global-illumination.md#selective-specular-history-writeback-experiment)
 
 <!-- vela:ready {"item":"gi-specular-selective-writeback","rev":"59fe78cf124b67ddf4c2f684615ffddad8a8f79f","spec":"docs/rendering/global-illumination.md","after":[]} -->
+
+### 跨帧验证镜面写回
+
+将复用前的观测随镜面历史重投影，检验静止机位上 8–32 帧观测的判断能力能否在移动和遮挡变化时保留。沿用两间房间的高光、闪烁和暗区亮点对照。[实验规格](docs/rendering/global-illumination.md#reprojected-fresh-sample-evidence-experiment)
+
+<!-- vela:ready {"item":"gi-specular-fresh-history","rev":"29e4086ed3a8917947748b18d303db4b153d89af","spec":"docs/rendering/global-illumination.md","after":[]} -->
