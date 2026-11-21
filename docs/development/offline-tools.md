@@ -137,7 +137,7 @@ geometry-driven candidate for the fitting comparison.
 
 ### Residual-guided fitting of thin features
 
-**Next experiment for 2.1.** The first raster-driven fit searched for straight ridges through the optical origin.
+**Completed experiment for 2.1.** The first raster-driven fit searched for straight ridges through the optical origin.
 Its User 8 export selected four axes. At 24 pixels from the core, the reconstructed middle peak reached 56–58%
 of the old half-resolution response and both neighboring valleys filled in. The 67 bitmap also lost detail.
 The search scores layouts by regional L2, whereas the continuous fit also uses signed pixel derivatives.
@@ -218,6 +218,43 @@ runtime path or user-facing editor was replaced; ports 8765 and 8768 were retain
 <!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"bitmap-native-metrics.json"} -->
 <!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"bitmap-line-y24.png"} -->
 <!-- vela:evidence {"run":"0d459ffd-adc4-43b5-985b-27a528566ead","path":"bitmap-native-eight-phase.png"} -->
+
+### Separating upsampling from per-level Bloom samples
+
+The old User 8 half-resolution fit resolves the three neighboring rays at y=24. The latest sparse fit loses the
+middle peak in all eight phases. Matching taps by position shows that both fits use the same downsample locations
+at all eight levels. Per-tap RGB weights differ by less than `3.8e-9`. The rotated and bitmap pairs give the same
+result. The upsample filters and the samples that add light at each level both changed materially. For
+example, the old User 8 fit has 883 direct half-resolution taps. The selected fit has 32 there plus four shared
+filters. Their upsamplers both use nine taps in the final step, with different positions and weights.
+
+Replay two new combinations per input to tell which change accounts for the lost contrast. For User 8 and its
+9.5° rotation use their respective old-half controls and selected B fits. For 67 use the saved bitmap control
+and selected C fit. Each row keeps its allocation of samples fixed.
+
+| Samples contributing light at each level | Control upsampling | Candidate upsampling |
+| --- | --- | --- |
+| Control | Saved control | Replay with candidate upsampling |
+| Candidate | Replay with control upsampling | Saved candidate |
+
+Swap the complete `upsample` array, keeping the direct `injection` samples, all shared `features` and the
+downsample array together on each row. Use the actual per-channel weights and optical origin. Verify the two
+parent paths reproduce their saved native and pooled responses within the renderer's numerical precision before
+interpreting the swaps. Use the eight archived phases, the full linear RGB targets and the same exposure. The
+two new cells on each input need only forward rendering. The saved coefficients are the entire input to this
+diagnostic. The ordinary editor, game and GPU are outside its scope.
+
+Show the four responses on the same axes. Compare the height of the y=24 peak **and both neighboring valleys**,
+the rays through their tips and their RGB separation, the weak 67 stroke at `(-44,0)`, and the pooled outer
+halo for every phase. If changing upsampling helps only with one sample allocation, report that interaction.
+Link the native boards and profiles and identify the largest difference that survives the swap. This test
+ends with that attribution, including an inconclusive result if neither component alone explains it.
+
+If the compact samples recover the reference detail with control upsampling, the next design question is how
+the fitter can learn those reconstruction filters from pixels at the same tap counts. If the dense controls
+retain detail with either upsampler and the compact samples lose it with both, study compression starting from
+the quality-passing response. An improvement using a control's coefficients still needs independent fitting
+from the input raster and a matched GPU budget test before it can qualify as a generated game preset.
 
 ### DPF implementation evidence, 2026-11-21
 
