@@ -342,6 +342,64 @@ This study ends with the best quality found at the tested costs and a visible ex
 Qualifying the normal Fit and Export path on a new input and measuring the complete Bloom against 4× COD at
 720p, 1080p and 1440p are later runtime checks. Static read counts carry no GPU timing claim.
 
+### Reference-compression result, 2026-11-21
+
+The three decoded D1 grids reproduced their reference native responses with
+maximum absolute RGB errors of 1.12e-8, 9.31e-9 and 2.33e-10, respectively.
+The fixed downsample, upsample and coarse injections were unchanged. Direct and
+shared compression used equal D1 read caps and separate formation/later-read and
+write accounting. Selection used four monitor phases; the old eight positions
+and four predeclared new positions were kept outside selection.
+
+At whole-filter read estimates 46.569/46.819/46.319, shared compression improved
+the 67 weak stroke from the direct filter's 84.4% to 93.7% of target. It did not
+preserve the star kernels: the weakest tested neighboring peaks were 63.0% of
+control for User 8 and 37.6% for its rotation. The strongest visible loss is the
+truncation of long rays; the intermediate-cost variants still have gaps and
+isolated bright points. Their coefficient-grid fits also dropped the weak outer
+D1 support, degrading User 8/rotation's pooled halo. An even/even support bound
+does not establish a visual or GPU feasibility limit.
+
+The bounded six-pattern search therefore produced a negative result for keeping
+the full reference quality at these costs. It does not establish a general
+limit of shared spatial filters. The local
+[cost/quality report](../../.vela/local/runs/42f19587-f64f-47ce-8cc3-cb2b86841457/comparison.html)
+contains target/control/native figures, per-channel ray profiles, both valleys,
+new-phase results and exact coefficients. The detailed method and source
+identities are in [the experiment record](../../experiments/dpf-bloom-20261108.md).
+Normal Fit/Export, unseen kernels and the three-resolution 4x COD GPU checks
+remain unqualified. Existing presets and review services were preserved.
+
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"protocol.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"cost-quality.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"comparison.html"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"compression-audit.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"quality-details.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"support-and-tips.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"reproducer-source.zip"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"selected-coefficients.zip"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"source-manifest.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"result-manifest.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"delivery-check.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"numeric-check.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"reproduce.md"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"user8-grid-reproduction.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"user8-quality.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"user8-line-y24.png"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"user8-line-y24-regression.png"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"user8-p9-native.png"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"rotated-grid-reproduction.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"rotated-quality.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"rotated-line-y24.png"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"rotated-line-y24-regression.png"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"rotated-p9-native.png"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"bitmap-grid-reproduction.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"bitmap-quality.json"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"bitmap-line-y24.png"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"bitmap-line-y24-regression.png"} -->
+<!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"bitmap-p9-native.png"} -->
+
+
 ### DPF implementation evidence, 2026-11-21
 
 The interactive line profile passed independent source and actual Edge browser
