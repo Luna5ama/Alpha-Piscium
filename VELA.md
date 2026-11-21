@@ -14,3 +14,9 @@
 本机的会话链接和协调入口见 `.vela/local/design-sessions.md`。
 
 ## 已发布修订
+
+### AP 内部文档迁移
+
+按[结构规格](docs/repository-structure.md)重整 `docs/en/` 和 `docs/sc/` 的现有内容，更新 README、AGENTS 和正文中受影响的入口。交付时从新的文档入口核对两件事：能否查回淘汰 Anchor 的理由及适用范围，能否定位受设置控制的 compute pass 的注册源。
+
+<!-- vela:ready {"item":"ap-docs-migration","rev":"7980ad56bb71bf2c218a4a907846e5fdf5a6c0e3","spec":"docs/repository-structure.md","after":[]} -->
