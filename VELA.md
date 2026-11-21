@@ -68,3 +68,9 @@
 沿用上一轮的实际输出和耗时。对照只改变亮峰、暗谷评分，以及允许从任意位置取局部滤波形状的两种改动。先用原生像素检查 User 8、旋转版与数字 67，候选守住细节后再核对 1440p 的 4× COD 上限。[对照与停止条件](docs/development/offline-tools.md#residual-guided-fitting-of-thin-features)
 
 <!-- vela:ready {"item":"dpf-bloom-residual-footprints","rev":"f2c0a0d2ead8b531ec8c9423a5510850eaa2eec1","spec":"docs/development/offline-tools.md","after":["dpf-bloom-adaptive-fit@0945ab2a62357c391271c7f7fc37f057c6320329"]} -->
+
+### 定位 Bloom 细芒和暗谷的损失
+
+交换画质参考与候选的上采样滤波，保留各自已有的逐层采样。用 User 8、旋转版与数字 67 的八相位响应，判断细节损失来自哪一部分，或是否只在特定组合中出现。[交换方法与判读](docs/development/offline-tools.md#separating-upsampling-from-per-level-bloom-samples)
+
+<!-- vela:ready {"item":"dpf-bloom-upsampling-replay","rev":"0389c911c759335bc778581c3c9595afd8879e03","spec":"docs/development/offline-tools.md","after":["dpf-bloom-residual-footprints@f2c0a0d2ead8b531ec8c9423a5510850eaa2eec1"]} -->
