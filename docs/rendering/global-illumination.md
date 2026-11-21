@@ -323,6 +323,105 @@ flicker and bright outliers within that variation, also with normal TAA in the f
 pass cost at 720p before proposing integration. If the candidates contain insufficient energy, record the local
 evidence for a targeted fresh sample as a follow-up to light sampling. A measured rejection completes this experiment.
 
+**Measured writebacks.** The GLSL trials used the same two spatial passes for display. When writing history, the
+center pixel and at least one compatible neighbor on each screen axis had to support the change from the blurred
+value toward the sharper value. The weight was the supported luminance change divided by the proposed change,
+clamped to [0, 1]. Neighbors had to be smooth and within 2% of center depth or 0.02 blocks. One trial used the
+current ReSTIR output. A second shaded the current frame's original candidates before reuse. The third used the
+same fresh observations and enabled only upward changes. Agreement among reused pixels can reflect one path.
+
+The table uses the final 64 frames after the camera stopped, out of 224 stationary frames in the mirror and 64 in
+the contact room. The contact-room box is centered on OpenGL pixel (543, 283), the highest-contrast qualifying
+small component at the endpoint in the first reference half. Its two independent reference means were 2.157 and
+2.212. The two available poses did not establish this component's identity during camera motion.
+
+| History writeback | Mirror highlight (ref 0.825) | Mirror flicker | Contact highlight (ref 2.185) | Contact flicker |
+| --- | ---: | ---: | ---: | ---: |
+| Production repeats | 0.438 | 0.00857 | 1.117–1.120 | 0.02916–0.02920 |
+| Fixed 50% pre-blur | 0.498 | 0.01168 | 1.102 | 0.03358 |
+| Reused spatial witnesses | 0.468 | 0.01491 | 1.084 | 0.03750 |
+| Fresh spatial witnesses | 0.314 | 0.01238 | 1.150 | 0.03869 |
+| Fresh witnesses, upward changes only | 0.469 | 0.00891 | 1.165 | 0.03070 |
+
+The three selective rules all missed the three-frame recovery criterion. The upward-only rule raised the mirror
+highlight by 7%, but raised the dark-reference bright-pixel rate from 0.270% to 0.356%. The 95th-percentile
+excursion grew from 29 to 45 frames. In the contact room the rate rose from 22.1–22.2% to 22.8%, with the 95th
+percentile at the 64-frame observation limit. The two-sided fresh rule reduced those rates to 0.00072% and 13.4%
+at the cost of a much darker mirror highlight and more flicker in both rooms. All three writebacks are rejected.
+Validation stopped at the standalone GI quality check with TAA and jitter off.
+
+**Where energy changes.** We instrumented the same production trajectory to shade a fresh pre-reuse draw and the
+packed temporal reservoir before spatial reuse, then read the spatial output and the displayed GI. In the
+spatial-off control, the temporal probe and raw shading agreed to RGB RMSE below 0.0000002 in both rooms.
+The next comparison uses the **first** 64 stationary frames so all four stages share the same inputs and window.
+
+| Tracked highlight | AP reference | Fresh | Temporal reuse | Spatial reuse | Displayed GI |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Mirror | 0.825 | 0.859 | 0.926 | 0.826 | 0.494 |
+| Contact | 2.185 | 2.207 | 2.176 | 1.145 | 1.118 |
+
+![Reference and measured HDR stages at the two highlights](figures/gi-specular-reuse-stages.png)
+
+In the contact room, spatial reuse removed about 1.03 luminance from the temporal estimate in the tracked box.
+All four consecutive 16-frame blocks showed the loss. An independent instrumentation run separated the spatial
+BRDF-ratio contribution in `GIReSTIRPairedSpatialShade` from the subsequent neighbor visibility checks.
+The weighted ratio contributed 1.112 of the 1.146 spatial output (97.0%). The pre- and post-visibility means
+were both 1.146. This locates the shortfall at the spatial resolve in this case. The experiment did not change
+ReSTIR weighting, visibility, or sampling policy. In the mirror the displayed GI lost 0.332 from the spatial
+estimate during this window. Raw and filtering errors depend on the selected highlight and time window.
+
+At each held pose we also counted fresh draws exceeding half of the independent reference on smooth nonemissive
+pixels where both reference halves exceeded 1 and agreed within 20%. Every one of the 1,553 mirror and 3,067
+contact pixels had such observations over the final 64 frames, with minima of 12 and 22 draws. In 998 and
+2,693 pixels respectively the raw ReSTIR mean was below 80% of reference while the fresh mean was within 20%.
+
+**Historical evidence for an upward writeback.** On the stationary production captures we tested the mean fresh
+luminance over the preceding 1, 8 or 32 frames, excluding the current observation. A proposed increase had to
+exceed both 0.001 and 1% of the blurred value. The rule accepted the change when the fresh mean exceeded the
+midpoint of pre- and post-blur luminance. Both reference halves had to agree on which value was closer. All
+three horizons scored the same final 32 frames without feedback from the tested rule.
+
+| Prior fresh frames | Mirror helpful changes accepted / harmful changes accepted | Contact helpful / harmful |
+| ---: | ---: | ---: |
+| 1 | 39.3% / 0.9% | 74.1% / 5.5% |
+| 8 | 83.7% / 4.2% | 97.2% / 4.6% |
+| 32 | 95.9% / 4.8% | 99.4% / 1.6% |
+
+The denominators were 62,380 helpful and 188,367 harmful mirror pixel-frames, and 6,548 helpful and 11,142 harmful
+contact pixel-frames. The fixed-pose result motivates carrying fresh-sample evidence through motion.
+
+The [measurement script](../../scripts/gi_specular_writeback_probe.py) accepts the matching reference fixture and
+Vibris job IDs. Use `--witness` for the three experimental writebacks, `--reuse-stages` for the estimator
+diagnostics and `--stationary-witness` on the production repeats to score the three history lengths. Local input
+`agent_inputs/gi-denoiser/selective-writeback-1175080e.npz` contains the run statistics, endpoint luminance maps,
+fresh hit counts, unrounded highlight traces and the six shader patches against `a1b54c51`. Measurements are keyed
+by job and capture. Its SHA-256 is `28820f2e9eabcdfeeed971a04a1f055361d040587b19e9112aa6dfd06675af12`. Selected jobs have lossless capture
+bundles in the same directory. The script reads those directly.
+
+| Native capture | Mirror job | Contact job |
+| --- | --- | --- |
+| Production repeat | `30450387-dfcb-459f-88ac-3bb5e2bf1299` | `43bf669b-7d80-475f-a95f-b02babb98bcc` |
+| Production and 50% controls | `026d1698-6586-4863-ac20-468fa977c178` and `b3a17152-d4fe-4d42-9af2-11447cb7d539` | `80cbc7df-fb30-4bf3-bdf5-52ec63043089` |
+| Reused witnesses | `6f3a5ebf-9815-4ce3-88b0-8fcac8cb1343` | `46a34ca6-1b2f-44f1-be87-e49412fabf22` |
+| Fresh witnesses | `0eb666f2-afec-435e-9cb3-b9d9a7970d6d` | `5a4d1627-6d32-4774-a5a5-6c27c07c908b` |
+| Upward-only fresh witnesses | `0b730cb7-1374-4d7d-803f-629f8df6c0d3` | `0f8be62b-5c33-4ad8-ab41-6e878fec1e72` |
+| Fresh, temporal, spatial and displayed GI | `5f692863-969b-439e-9eb0-7d66ae2f04fb` | `5492f85c-3e5d-4c79-8c26-e010e7c6e22a` |
+| Spatial BRDF-ratio and visibility terms | `4aef06cf-5333-4d8b-b1ab-2768d5171efb` | `fe8f044a-1905-4607-bfa2-e44fa24d44c6` |
+
+<!-- vela:evidence {"run":"1175080e-4798-4ff9-abec-ef3b250759ed","path":"selective-metrics.json"} -->
+
+#### Reprojected fresh-sample evidence experiment
+
+Use past pre-reuse observations only to choose the regular specular history writeback. Test short histories in
+GLSL against the production writeback and the upward-only control above. Reproject the evidence through camera
+motion, reject it on disocclusion and reset it with GI history. The evidence must remain distinct from a reused
+reservoir's age and the displayed radiance. Count its reads, writes, memory and shading cost in any proposed
+integration. Reuse the two rooms and the exact reference controls above, with at least one disocclusion sequence.
+Compare helpful and harmful writebacks while moving, high-energy recovery, ordinary flicker and dark excursions.
+A candidate that passes standalone GI also needs normal TAA and comparable 720p pass timings. Preserve an
+experimental rejection if the stationary discrimination does not survive feedback or motion. Upstream spatial
+estimator weighting remains a separately measured design decision.
+
 ## Estimator contracts
 
 - Voxel traces distinguish three outcomes (`voxel_traceExhausted` in [
