@@ -60,6 +60,8 @@ slots with the corresponding blur passes. The [pipeline overview](pipeline.md) s
 | 4 | [`TranslucentSST`](../../shaders/pass/composite/TranslucentSST.glsl) | Traces reflection and refraction in screen space |
 | 5 | [`TranslucentComposite`](../../shaders/pass/composite/TranslucentComposite.glsl) | Uses layered Z, material absorption, reflection, and refraction to update the main color |
 
+The [proposed air, cloud and water composition](atmosphere-clouds.md#天空雾与水的分段合成) specifies which medium to integrate on each reflected or refracted ray and where to apply the volume between the surface and the eye.
+
 ## Settings
 
 | Category | Settings |

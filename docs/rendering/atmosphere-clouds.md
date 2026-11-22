@@ -127,8 +127,32 @@ and [forward-flux derivation](https://github.com/AshenOneArt/HPVolumeCloud/blob/
 | --- | --- | --- |
 | GI phase | [`GIDenoiserEdgeClassificationAndVolumetricsDepthLayers`](../../shaders/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl) | Builds the depth layers required by volumetrics |
 | Air volume | [`EpipolarScatteringAir`](../../shaders/pass/composite/EpipolarScatteringAir.comp.glsl) | Consumes endpoints, epipolar data, LUTs, shadows, and depth layers to produce air scattering |
-| Water/translucency | Shared code such as [`LocalComposite.glsl`](../../shaders/techniques/atmospherics/LocalComposite.glsl) | Merges sky, clouds, and local media for water scattering and translucent back composite/SST/composite |
+| Water/translucency | [`LocalComposite.glsl`](../../shaders/techniques/atmospherics/LocalComposite.glsl) | Reconstructs one air or water interval from epipolar samples for the translucent back and final composites |
 | Optional correction | [`VolumetricLocalCompositeBreakFix`](../../shaders/pass/composite/VolumetricLocalCompositeBreakFix.comp.glsl) | Corrects depth breaks at the end |
+
+### 天空、雾与水的分段合成
+
+主检出 `9e82f4565` 有两套含义不同的“层”。Sky View 的第 0 组从阴影距离之后积分晴空，供 GI 和部分反射、折射查询。第 1–3 组按积云中高和卷云高度分割空气，主天空在这些组之间插入整段积云和卷云。积云历史只存散射、透射和历史长度，实体像素走不到这条天空合成路径。另一套由水面、其他透明表面和实体深度生成，远到近的三个槽位分别交给空气、水、空气。两套层没有共同的沿射线距离边界。[Sky View 生成](../../shaders/techniques/atmospherics/air/lut/GenerateSkyViewLUT.comp.glsl) · [天空合成](../../shaders/techniques/atmospherics/SkyComposite.glsl) · [透明深度分段](../../shaders/techniques/atmospherics/VolumetricsDepthLayers.glsl)
+
+推荐保留现有 `ScatteringResult`。在给定起点、方向和世界米制区间内，返回段内朝观察者散入的 RGB 辉度 $S$ 和 RGB 透射 $T$。近段和远段串接得到 $S_n+T_n S_f$ 与 $T_nT_f$，最后给背景乘总透射。天空以行星或大气边界为终点，远山以实体深度为终点。日月盘与星空作为边界辐亮度。先将视深转为沿该射线的实长，再把端点变换到大气坐标。现有水平距离和高度缩放可以不同。[现有合成运算](../../shaders/techniques/atmospherics/Common.glsl) · [大气坐标换算](../../shaders/techniques/atmospherics/air/Common.glsl)
+
+**空气和雾。** 主检出的空气包含 Rayleigh、Mie 和臭氧，近处体积光另查主光阴影。在一条无遮挡的天空射线上，高度层可从眼点开始，epipolar 又会计算到阴影距离的近段。两边都输出了这段空气的散射与透射。建议近场由 epipolar 或实际区间积分给出一次，远场从同一个交接点算到地形或天空。`shadowDistance` 只约束地形阴影采样。远处仍有空气透视，云隙光用所在位置到太阳的云透射。若加入局部地雾，则在重叠区间把额外雾的消光和带自身光照的散射源加到空气里，用共同透射积分。同一批气溶胶的密度只计一次。[近场空气](../../shaders/techniques/atmospherics/air/RaymarchScreenViewAtmosphere.glsl) · [EGSR 2020 的天空与空气透视](https://diglib.eg.org/items/8a3e5350-18b3-46bd-9274-3add5af88c75)
+
+**云和空气共处的距离。** 浓云采用标量云消光，保留彩色入射光与云前空气透视。已有实验给出了省去每个细步长都查大气的做法。对单个空气区间，以近端为 0、长度为 $D$，记 $S_a(s),T_a(s)$ 为该段空气和雾累计到 $s$ 的结果。它们可包含云投在空气上的太阳阴影，观察路径上的云消光则由 $T_c(s)$ 单独处理。$Q_c$ 是云散射源除以云消光，在有云的点取值。按 $d\alpha_c=T_c(s)\sigma_{t,c}(s)\,ds$ 加权可得
+
+$$
+S_{ac}=T_c(D) S_a(D)+\int_0^D [S_a(s)+T_a(s)Q_c(s)]\,d\alpha_c(s),\qquad T_{ac}=T_a(D)T_c(D).
+$$
+
+云细步本来就算出了权重 $T_{c,\mathrm{near}}(1-e^{-\Delta\tau_c})$。可以按它选少量散射深度，再查到这些位置的空气。每个被水面、玻璃或实体截断的区间单独累计。薄云、擦边或隔着净空的两团云应保留分开的深度贡献。举例，近、远云透射分别为 0.2 和 0.8，交换次序后整段云透射都是 0.16。夹在中间的雾若向相机散入 0.4，其可见贡献却是 0.08 或 0.32。单一平均云深可以帮助历史重投影，但不能恢复这个差别。已有的推导、均匀介质校验和 GLSL 取样实现分别见 `c09cfdc76:docs/en/modules/atmosphere-clouds.md`、`c09cfdc76:scripts/test/cloud-local-transport-check.py` 的 `air_cloud_integral` 和该修订的 `RenderVolumetric.comp.glsl`。[体积输运方程](https://pbr-book.org/4ed/Light_Transport_II_Volume_Rendering/The_Equation_of_Transfer)
+
+**如何供应距离查询。** 旧云实验返回给背景的是上式的积分项和 $T_c$，预期背景已经带有该段空气。建议在交给通用合成前就补入 $T_c S_a(D)$，并将该段透射写成 $T_a(D)T_c(D)$，让后面的水面和地形直接消费完整区间。第一版可只给实际端点和少量云深提供空气结果。沿相机射线缓存累计值时，只在同一条直线、同一介质范围且近端透射仍可分辨时恢复子段。透射接近零时，从可见的新起点直接求段，或在前景已遮蔽背景时终止。低分辨率的全球方向查询继续给 GI 和水面提供远方天空。在近云旁的反射或折射要从表面起点沿新方向查询局部段，再接远场天空。每次拼接只接入尚未覆盖的距离。
+
+**水面和玻璃。** 首先求从界面看出去的反射与折射分支，各按自己的方向和介质累积。用现有 Fresnel、表面材质和高光合成，最后应用眼点到界面的前景段一次。岸上看湖时，反射分支走空气和云雾，透进湖底的分支走水。水下向上时，折射出水的分支查询空气与天空，全反射的分支留在水里，两者都经过同一段眼前水体。现有 SST 命中读的是从另一个屏幕像素看过去、已带一部分体积的背景。可共用的后景段只取一次，路径差异明显时应以命中点的表面辐亮度为边界补算界面到命中的介质。水的 RGB 消光、散射与焦散沿用现有求值。最前层的深度断裂修正也应重算原来失败的区间，现行补算使用眼点到实体的空气段。[水体输运](../../shaders/techniques/atmospherics/water/WaterEpipolarScattering.comp.glsl) · [SST](../../shaders/pass/composite/TranslucentSST.glsl) · [最终表面合成](../../shaders/pass/composite/TranslucentComposite.glsl) · [深度断裂修正](../../shaders/pass/composite/VolumetricLocalCompositeBreakFix.comp.glsl)
+
+用户确认首版覆盖一段连续水体，包括从岸上看入水中、穿过水面和从水下抬头看云。沿用现有近、远水深和眼点介质标记。水下起段取眼点，终点取出水界面或先命中的实体。视线上隔着空气的第二段水体留给需要额外出入界面的后续版本。
+
+接入时先用无云天空与远山检查近远交接处，再在两团云之间放一段可见薄雾并移动地形截断深度。水面在同一天空下由上、下两侧观察，连续跨越水线并比较屏内命中和屏外方向。首版所有体积改动沿用同场景整帧 1.30 倍上限。
 
 ## Sky and celestial rendering
 
