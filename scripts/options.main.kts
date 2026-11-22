@@ -3154,34 +3154,49 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             2 value "Rec.2020"
                             3 value "Custom D65"
                         }
-                        lang(Locale.SIMPLIFIED_CHINESE) { name = "DRT 目标色域" }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "DRT 目标色域"
+                            3 value "自定义 D65"
+                        }
                     }
                     screen(2) {
-                        lang { name = "Custom D65 Primaries" }
-                        lang(Locale.SIMPLIFIED_CHINESE) { name = "自定义 D65 原色" }
+                        lang {
+                            name = "Custom D65 Primaries"
+                            comment = "Enter CIE 1931 xy coordinates in thousandths. For example, enter 680 for x = 0.680. Invalid primaries fall back to Display P3."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "自定义 D65 原色"
+                            comment = "按千分数填写 CIE 1931 xy 坐标。例如 x = 0.680 时填 680。原色无效时使用 Display P3。"
+                        }
                         slider("SETTING_TARGET_RX", 680, 1..999) {
                             lang { name = "R x (× 0.001)" }
+                            lang(Locale.SIMPLIFIED_CHINESE) { name = "红 x（× 0.001）" }
                         }
                         slider("SETTING_TARGET_RY", 320, 1..999) {
                             lang { name = "R y (× 0.001)" }
+                            lang(Locale.SIMPLIFIED_CHINESE) { name = "红 y（× 0.001）" }
                         }
                         slider("SETTING_TARGET_GX", 265, 1..999) {
                             lang { name = "G x (× 0.001)" }
+                            lang(Locale.SIMPLIFIED_CHINESE) { name = "绿 x（× 0.001）" }
                         }
                         slider("SETTING_TARGET_GY", 690, 1..999) {
                             lang { name = "G y (× 0.001)" }
+                            lang(Locale.SIMPLIFIED_CHINESE) { name = "绿 y（× 0.001）" }
                         }
                         slider("SETTING_TARGET_BX", 150, 1..999) {
                             lang { name = "B x (× 0.001)" }
+                            lang(Locale.SIMPLIFIED_CHINESE) { name = "蓝 x（× 0.001）" }
                         }
                         slider("SETTING_TARGET_BY", 60, 1..999) {
                             lang { name = "B y (× 0.001)" }
+                            lang(Locale.SIMPLIFIED_CHINESE) { name = "蓝 y（× 0.001）" }
                         }
                     }
                     empty()
                     toggle("SETTING_TONE_MAPPING_LOOK", 0, 0..3) {
                         lang {
-                            name = "SDR Look"
+                            name = "Display Look"
                             comment =
                                 "Pre-configured color grading styles. Choose Custom to manually adjust colors below."
                             0 value "Neutral"
@@ -3190,9 +3205,9 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             3 value "Custom"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "SDR 风格"
+                            name = "显示风格"
                             comment = "预配置的调色风格。选择自定义以手动调整下面的颜色。"
-                            0 value "默认"
+                            0 value "中性"
                             1 value "金色"
                             2 value "鲜明"
                             3 value "自定义"

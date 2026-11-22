@@ -44,6 +44,7 @@ screen.SCREEN_32=Bloom
 screen.SCREEN_33=Exposure
 screen.SCREEN_34=Tone Mapping
 screen.SCREEN_35=Custom D65 Primaries
+screen.SCREEN_35.comment=Enter CIE 1931 xy coordinates in thousandths. For example, enter 680 for x = 0.680. Invalid primaries fall back to Display P3.
 screen.SCREEN_36=Purkinje Effect (Night Vision)
 screen.SCREEN_37=Primary Color Calibration
 screen.SCREEN_38=HSL Color Mixer
@@ -612,7 +613,7 @@ option.SETTING_TARGET_GX=G x (× 0.001)
 option.SETTING_TARGET_GY=G y (× 0.001)
 option.SETTING_TARGET_BX=B x (× 0.001)
 option.SETTING_TARGET_BY=B y (× 0.001)
-option.SETTING_TONE_MAPPING_LOOK=SDR Look
+option.SETTING_TONE_MAPPING_LOOK=Display Look
 option.SETTING_TONE_MAPPING_LOOK.comment=Pre-configured color grading styles. Choose Custom to manually adjust colors below.
 value.SETTING_TONE_MAPPING_LOOK.0=Neutral
 value.SETTING_TONE_MAPPING_LOOK.1=Golden
