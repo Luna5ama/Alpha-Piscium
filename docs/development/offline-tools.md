@@ -370,6 +370,17 @@ identities are in [the experiment record](../../experiments/dpf-bloom-20261108.m
 Normal Fit/Export, unseen kernels and the three-resolution 4x COD GPU checks
 remain unqualified. Existing presets and review services were preserved.
 
+Across all twelve phases, the low-cost shared User 8 filter retains 3.17–3.38% of the reference luminance
+128 native pixels along the horizontal ray. The intermediate budget restores that point to about 105%, yet
+at 144 pixels both budgets retain only 4.79–5.11%. At phase (165, 90) the low-cost value at 128 pixels is
+`1.78e-6` in linear luminance, down from `5.33e-5`. The visible break persists as the sampled span grows.
+
+Keep the existing User 8 preset. The next layout worth comparing would give sampling priority to a visible
+gap along a continuous feature of the target, from the core through the tip. Detect that feature from the RGB
+image and compare its cross-section with the neighboring dark pixels. Local width can guide which fine detail
+to keep at high resolution and which smooth halo to move to a coarser level. The existing direct and shared
+results provide same-read controls for this proposed comparison.
+
 <!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"protocol.json"} -->
 <!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"cost-quality.json"} -->
 <!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"comparison.html"} -->
