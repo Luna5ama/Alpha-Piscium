@@ -138,6 +138,6 @@
 
 ### 2.1 曝光与 DRT
 
-在 `2.1/dev` 实施直方图曝光、四种 DRT 和共享 SDR Look，默认使用 Skibidi 与中性 Look。按[曝光与 DRT 规格](docs/roadmap.md#21-曝光与-drt)核对固定输入的 SDR 输出与 EV，验证暗洞、雪地和小面积强光的曝光响应。Blender AgX 在中性 Look 下与现版对照后交用户决定。统一时域重建的算法选型可独立推进。
+在 `2.1/dev` 实施直方图曝光、四种 DRT 和共享 SDR Look，默认使用 Skibidi 与中性 Look。按[曝光与 DRT 规格](docs/roadmap.md#21-曝光与-drt)核对固定输入的 SDR 输出与 EV，验证暗洞、雪地和小面积强光的曝光响应。Blender AgX 在中性 Look 下与现版对照后交用户决定。本修订接续 `179cab36` 的曝光与 SDR 工作，把 [HDR Mod 实机输出](docs/roadmap.md#hdr-mod-输出) 纳入 2.1 验收。沿用该版已有的 SDR 对照，补验模组启用后的参考白与高光层次。统一时域重建的算法选型可独立推进。
 
-<!-- vela:ready {"item":"exposure-drt-2-1","rev":"179cab36f92e9a9edc5497e013b6d4d9c4382aaf","spec":"docs/roadmap.md","after":[]} -->
+<!-- vela:ready {"item":"exposure-drt-2-1","rev":"4789a2c9064fba9098f4490d8f7250cdce66c7d0","spec":"docs/roadmap.md","after":[]} -->
