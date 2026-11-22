@@ -606,3 +606,13 @@ The GI profile settings of interest for the active passes are spatial reuse coun
 - The ratio-resolve producer in the paired passes, its read in spatial shading, and the trace-pass re-blend share the
   `transient_ssgiSpecOut` and provisional-record layouts and change together.
 - Validate convergence, camera motion, disocclusion, screen edges, and history reset after setting changes.
+
+## Four-hour GI performance experiment, 2026-11-22
+
+Start the four-hour window when the execution owner takes over. Record the start, deadline and measured baseline. Start from the GI implementation on `2.0/dev` at `5ba8718d4` in an isolated checkout. The hybrid screen-space GI candidate has its own checkout and acceptance work. The objective for 2.0.x is to reduce GPU milliseconds per frame across the affected GI chain at comparable image quality.
+
+Use the Pyxis optimization loop. Explain the dominant cost from timings and work counts, then test ways to eliminate that work. The owner may change the tracing algorithm, acceleration structure, data layout, ray batching, reservoir reuse, cache updates and scheduling across passes. A hypothesis may span files and passes. When local gains fall within the noise, revisit the algorithm or data flow. Use the November experiment at `11a9a9755` as a reference for scale. Its 8–9% improvement in one pass saved about 0.024–0.042 ms across 18 GI stages. The earlier sparse tree build and clear experiment and the denoiser sample-address counterexample are available in the execution history.
+
+Use existing results for initial screening while waiting for the shared GPU and Vibris. Prioritize 720p on matched scenes, settings and workload. For promising candidates, confirm absolute savings on the affected chain and key passes with adjacent forward and reverse pairs. Check displaced costs in tree building, cache updates, sibling passes and representative scenes. Use a stable frame sentinel for drift. Check image quality, occlusion and temporal stability, including camera motion and disocclusion. Use Nsight when it can resolve a specific uncertainty.
+
+Reserve time for confirmation. Commit confirmed improvements locally on the experiment branch and report revisions, baseline and candidate milliseconds, scenes, quality evidence and limits. Preserve candidates with unresolved quality tradeoffs separately and continue independent work inside the time budget. Deliver the best supported result, including rejected or unmeasured alternatives if no improvement qualifies.
