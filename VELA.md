@@ -99,3 +99,9 @@
 从 RGB 核图跟踪细芒和弯曲笔画，按重建结果里连续缺失的部分放置采样。用原成本比较 User 8、旋转版和 67 的峰谷、末端和宽光晕。画质通过后接续普通导出、实机截图及三档 COD 计时。由现有 DPF 实现会话按 Sol High 执行。[实现与验收规格](docs/development/offline-tools.md#allocating-dpf-samples-along-visible-features)
 
 <!-- vela:ready {"item":"dpf-bloom-feature-continuity","rev":"e1f10bebd1e1f13f681306ac67b638a5d0bb84f4","spec":"docs/development/offline-tools.md","after":["dpf-bloom-reference-compression@f17d8f14afb3737b00a00de9c4e4ff69d3cdec9d"]} -->
+
+### GI 算法与体素追踪四小时性能实验
+
+从 2.0/dev 已落地的 GI 管线出发，按相当画质下每帧节省的 GI 毫秒验收，记录代表性场景、时域质量和跨 pass 成本。[实验规格](docs/rendering/global-illumination.md#four-hour-gi-performance-experiment-2026-11-22)
+
+<!-- vela:ready {"item":"gi-algorithm-optimization-4h-20261122","rev":"3ea4b5db2402f507b626d187e5858fe7331cc9d0","spec":"docs/rendering/global-illumination.md","after":[]} -->
