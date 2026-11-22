@@ -48,7 +48,7 @@ docs/              project knowledge, maintainer workflows, and rendering-module
 
 ## Project Policy
 
-- Maintain internal project knowledge using Vela's [topic documents and run records](https://github.com/Endoqa/Vela/blob/main/vela-main-task/references/documents.md). Choose the language and format that suit the material.
+- Start at the [project knowledge index](docs/README.md). Within authorized work, record decisions, counterexamples and verification conditions in the relevant topic. Follow the [project documentation policy](docs/repository-structure.md) for the shared Vela rules and records location.
 - Write clean, direct maintainer code with simple control flow, explicit logic, compact formatting, and coherent
   ownership. When the existing organization obstructs the requested change, restructure it within scope instead of
   accumulating local patches around awkward boundaries. Do not turn that restructuring into an unrelated redesign.
