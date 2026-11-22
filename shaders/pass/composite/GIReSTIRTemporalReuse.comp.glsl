@@ -919,7 +919,7 @@ void main() {
                         viewPos,
                         vec4(sampleDirView, hitDistance),
                         hitDistance > 0.0
-                            ? nzpacking_unpackNormalOct32(initialPackedHitNormal)
+                            ? nzpacking_unpackNormalOct32(initialPackedHitNormal & ~1u)
                             : vec3(0.0),
                         hitRadiance,
                         canonicalPHat

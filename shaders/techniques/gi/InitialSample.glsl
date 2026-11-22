@@ -92,7 +92,7 @@ restir_InitialCandidate restir_initialCandidate_load(ivec2 texelPos) {
     candidate.rayDirView = nzpacking_unpackNormalOct32(directionAndPdf.x);
     candidate.pdf = uintBitsToFloat(directionAndPdf.y);
     candidate.hitNormalView = candidate.hitDistance > 0.0
-        ? nzpacking_unpackNormalOct32(packedHitNormal)
+        ? nzpacking_unpackNormalOct32(packedHitNormal & ~1u)
         : vec3(0.0);
     return candidate;
 }
