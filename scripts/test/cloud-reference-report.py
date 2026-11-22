@@ -23,11 +23,18 @@ from scipy.stats import t
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def camera_geometry(manifest):
+def camera_geometry(manifest, iris_base_km=None):
     height, width = manifest['shape'][3:5]
     camera = manifest['camera']
     xs = np.linspace(*camera['x'], width, endpoint=False) + np.diff(camera['x'])[0] / (2 * width)
     ys = np.linspace(*camera['y_top_bottom'], height, endpoint=False) + np.diff(camera['y_top_bottom'])[0] / (2 * height)
+    if iris_base_km is not None:
+        # The shader forms the planet-relative origin in float32 kilometres and
+        # subtracts the layer base before evaluating the ellipsoids in metres.
+        scale = np.float32(.001)
+        base = np.float32(iris_base_km)
+        xs = ((xs.astype(np.float32) * scale) * np.float32(1000)).astype(np.float64)
+        ys = (((ys.astype(np.float32) * scale + base) - base) * np.float32(1000)).astype(np.float64)
     x, y = np.meshgrid(xs, ys)
     thickness = np.zeros_like(x)
     for j in range(height):
@@ -96,7 +103,7 @@ def check_column(path, manifest, raw, x, y, masks):
     path.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
 
 
-def compare_iris_readout(mean_file, output, raw, tau, masks):
+def compare_iris_readout(mean_file, output, manifest, raw, tau, masks):
     """Compare a calibrated composite9 accumulation to the matching linear source basis."""
     case = mean_file.name.removesuffix('.mean.bin')
     method, sun, tower, lamp = case.split('-')
@@ -143,8 +150,35 @@ def compare_iris_readout(mean_file, output, raw, tau, masks):
               'vacuum_max_abs_rgb': float(np.max(np.abs(measured[~masks['cloud'], :3]))),
               'vacuum_max_abs_transmittance_error': float(np.max(np.abs(measured[~masks['cloud'], 3]-1))),
               'regions': {}}
+    weights = counts / counts.sum()
+    screen_batches = np.asarray(frames['screen_batch_means'])
+    if (frames['incomplete_batch_indices'] or np.any(frames['screen_batch_nonfinite_samples'])
+            or not np.all(np.asarray(frames['screen_batch_pixel_counts']) == nx*ny)):
+        raise ValueError('incomplete or nonfinite calibrated accumulation')
+    report['screen'] = {
+        'reference': stats(reference.reshape(len(reference), -1) @ weights),
+        'iris_mean_rgba': (measured.reshape(-1, 4).T @ weights).tolist(),
+        'batch_standard_error_rgba': (screen_batches.std(axis=0, ddof=1) / np.sqrt(len(screen_batches))).tolist(),
+        'distinct_batch_means': len(np.unique(screen_batches, axis=0)),
+    }
+    # Both calibrated revisions use a 6378.137 km planet with the layer base at 1 km.
+    base_km = np.float32(6378.137) + np.float32(1)
+    x, rounded_y, rounded_tau = camera_geometry(manifest, base_km)
+    rounded_t = np.exp(-rounded_tau)
+    vacuum = rounded_tau == 0
+    report['iris_origin_precision'] = {
+        'base_km_float32': float(base_km),
+        'vacuum_rays_entering_cloud': [
+            {'x_m': float(x[j, i]), 'iris_y_m': float(rounded_y[j, i]),
+             'analytic_transmittance': float(rounded_t[j, i]), 'iris_transmittance': float(measured[j, i, 3])}
+            for j, i in np.argwhere((tau == 0) & ~vacuum)],
+        'cloud_rays_becoming_vacuum': int(np.count_nonzero((tau > 0) & vacuum)),
+        'vacuum_max_abs_rgb': float(np.abs(measured[vacuum, :3]).max()),
+        'vacuum_max_abs_transmittance_error': float(np.abs(measured[vacuum, 3]-1).max()),
+    }
     for name, mask in masks.items():
         report['regions'][name] = {
+            'rounded_origin_transmittance_mae': float(np.abs(measured[mask, 3]-rounded_t[mask]).mean()),
             'reference': stats(reference[:, mask].mean(axis=1)),
             'iris_mean_rgb': measured[mask, :3].mean(axis=0).tolist(),
             'iris_minus_reference_rgb': difference[mask].mean(axis=0).tolist(),
@@ -295,7 +329,7 @@ def main():
     assert all(np.any(mask) for mask in masks.values())
     if manifest['neighbors']:
         if args.iris_readout:
-            compare_iris_readout(*args.iris_readout, raw, tau, masks)
+            compare_iris_readout(*args.iris_readout, manifest, raw, tau, masks)
             return
         if args.column_check:
             check_column(args.column_check, manifest, raw, x, y, masks)

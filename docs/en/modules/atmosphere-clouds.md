@@ -397,9 +397,29 @@ After verifying the loaded source, settings and scene in the Vibris receipt, run
 
 The user kept terrain compositing outside this lighting experiment. [SkyComposite](../../../shaders/techniques/atmospherics/SkyComposite.glsl) reads the accumulated cloud only for sky-depth pixels. From above, a ray ending on terrain therefore omits the overlying low cloud. Compare unoccluded rays to the physical reference and record this visibility limit for the terrain-backed view.
 
+#### Isolated tower under side sun
+
+The two 720p Iris captures used the same scene hash in `aerial-perspective-4-720p`, 64 warmup frames and 128 measured frames in 16 batches. The input manifest matches the loaded revisions, patches and settings. The table gives red-channel scattered radiance per unit normal solar irradiance (sr⁻¹), averaged equally over the CPU rays in each mask. The figure in the run uses one radiance scale for all three images.
+
+| Region | CPU reference | Light column | Layer-scaled transport, 32³ |
+|---|---:|---:|---:|
+| Whole cloud | 0.007248 | 0.360615 | 0.009252 |
+| Upper thin rim | 0.003962 | 0.651280 | 0.005585 |
+| Right notch | 0.005247 | 0.480769 | 0.007445 |
+| Core | 0.012358 | 0.276623 | 0.015408 |
+
+The column makes the upper rim 164 times as bright as the reference. The transport candidate restores the brighter core and reduces the whole-cloud excess to 27.7%. Its rim and notch means remain about 41% and 42% high. Weighting the reference by the actual number of screen texels in each ray gives 0.0036705 ± 0.0000021 for the full image, against 0.0046880 ± 0.0000153 for transport (CPU replicate SE and Iris batch SE respectively). All 57,600 texels have finite samples in every batch. The column's last eight batch means repeat the first eight exactly.
+
+At x = ±15.625 m, the exact y = 5.625 m rays miss the cloud. Adding this height to the 6,379 km layer base in float32 puts both at 5.859375 m. The analytic transmittance there is 0.73689. Iris measures 0.73651–0.73752 across the two paths and two rays. Every ray that still traverses vacuum has zero RGB and unit transmittance. On the original cloud mask, mean absolute transmittance error against chords at the rounded origins is 0.000470 for the column and 0.000147 for transport. Radiance comparisons above use the archived CPU rays. This capture covers the isolated tower. The neighbor response, native motion and whole-frame budget still need separate Iris samples.
+
 <!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"grid.json"} -->
 <!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"column.json"} -->
 <!-- vela:evidence {"run":"7a42496c-59bb-4bf5-8e91-8f520e82ef83","path":"iris-inputs.json"} -->
+<!-- vela:evidence {"run":"7a42496c-59bb-4bf5-8e91-8f520e82ef83","path":"iris-solar-receipts.json"} -->
+<!-- vela:evidence {"run":"7a42496c-59bb-4bf5-8e91-8f520e82ef83","path":"column-side-solo-solar.json"} -->
+<!-- vela:evidence {"run":"7a42496c-59bb-4bf5-8e91-8f520e82ef83","path":"focused-side-solo-solar.json"} -->
+<!-- vela:evidence {"run":"7a42496c-59bb-4bf5-8e91-8f520e82ef83","path":"iris-side-solo-solar.zip"} -->
+<!-- vela:evidence {"run":"7a42496c-59bb-4bf5-8e91-8f520e82ef83","path":"iris-side-solo-solar.png"} -->
 
 ## Air, depth layers, and composition
 
