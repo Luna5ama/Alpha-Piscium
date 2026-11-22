@@ -15,15 +15,15 @@ DPF Bloom 已拆出 2.0。`2.0/dev@5ba8718d4` 恢复了 `0bf3a72ba` 的普通 Bl
 
 ## 2.1 曝光与 DRT
 
-2.1 重构曝光与显示变换。玩家可选 **Skibidi DRT（默认）**、AgX、OpenDRT 或 Psychov30（RenoDX test30）。Skibidi DRT 在上游收尾，移植时固定所采用的修订。AgX 先用相同输入、曝光、Look 和显示设备对照当前实现与 Blender 的 AgX，再决定是否升级。[Blender AgX 参考](https://docs.blender.org/manual/en/4.5/render/color_management.html)
+2.1 重构曝光与显示变换。默认使用 **Skibidi DRT + 中性 Look**，保留 Skibidi 自身的饱和度。玩家也可选择 AgX、OpenDRT 或 Psychov30（RenoDX test30）。Skibidi DRT 在上游收尾，移植时固定所采用的修订。AgX 先用相同输入、曝光、Look 和显示设备对照当前实现与 Blender 的 AgX，再决定是否升级。[Blender AgX 参考](https://docs.blender.org/manual/en/4.5/render/color_management.html)
 
-**自动曝光测光。** 四种 DRT 共用一套相机曝光。在应用相机 EV、Bloom 和 DRT 之前，按场景线性亮度建立加权直方图。按累计测光权重裁掉最暗和最亮的两端，从保留区间求平均，驱动自动曝光。固定场景切换 DRT 或改变 Bloom 强度时，目标 EV 应一致。
+**自动曝光测光。** 四种 DRT 共用一套相机曝光。在应用相机 EV、Bloom 和 DRT 之前，按场景线性亮度建立加权直方图。按累计测光权重裁掉最暗和最亮的两端，从保留区间求平均，驱动自动曝光。固定场景切换 DRT 或改变 Bloom 强度时，目标 EV 应一致。四种 DRT 共用一条随场景亮度变化的测光目标曲线，暗场目标较低，亮场目标较高。充分适应后，无火把洞穴里的石壁仍可辨认且明显偏暗，日照雪地仍显明亮。
 
 建议以 `log2(Y)` 分桶，对保留部分求加权平均，再用目标中灰与测得亮度的档差计算目标 EV。百分位落在桶内时按重叠权重计入。最后限制 EV 范围并做时间适应。低端与高端裁剪比例分别用暗洞出口、雪地和小面积强光对照后选定。
 
 **时域重建与相机曝光。** 原生 TAA 与超分共用 FSR 3.1 的重建路径。FSR 逐帧计算重建所需的曝光，历史保存未施加相机 EV 的场景线性颜色。重建后应用一次相机 EV，再进入 Bloom。重建与锐化使用的可逆 AgX 数学变换独立于显示 DRT。只改变显示 DRT 或 Look 时可沿用重建历史。[FSR 原型的接线](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/techniques/ffx/fsr3upscaler/README.md#integration-contract)
 
-**共享 Look。** 四种 DRT 共用 AgX 风格的 Look 及其参数（RGB 斜率、偏移、幂和饱和度）。2.1 的 SDR 接线方案在已经过输出传递函数编码的显示 RGB 上应用一次 Look，再量化输出；以 sRGB 为基准验证。选择中性 Look 时应能复现各 DRT 的无 Look 基线。可参考 bench 的[共享运算](https://github.com/Luna5ama/drt-bench/blob/84325c18c548e4a49e87b8ef845c4ffd79164265/shaders/ap/techniques/drt/Common.glsl)和 [OpenDRT 的编码后接法](https://github.com/Luna5ama/drt-bench/blob/84325c18c548e4a49e87b8ef845c4ffd79164265/shaders/ap/techniques/drt/OpenDRT.glsl#L233-L262)。四路共用这一位置是 AP 的整合方案。
+**共享 Look。** 四种 DRT 共用 AgX 风格的 Look 及其参数（RGB 斜率、偏移、幂和饱和度）。2.1 的 SDR 接线方案在已经过输出传递函数编码的显示 RGB 上应用一次 Look，再量化输出；以 sRGB 为基准验证。默认的中性 Look 使用单位斜率、零偏移、单位幂和单位饱和度，应能复现各 DRT 的无 Look 基线。可参考 bench 的[共享运算](https://github.com/Luna5ama/drt-bench/blob/84325c18c548e4a49e87b8ef845c4ffd79164265/shaders/ap/techniques/drt/Common.glsl)和 [OpenDRT 的编码后接法](https://github.com/Luna5ama/drt-bench/blob/84325c18c548e4a49e87b8ef845c4ffd79164265/shaders/ap/techniques/drt/OpenDRT.glsl#L233-L262)。四路共用这一位置是 AP 的整合方案。
 
 参考 `drt-bench`，先在场景线性光上应用一次曝光，再按所选 DRT 的输入色彩空间转换。基准中 Skibidi 直接接收线性 ACES AP0，AgX 与 OpenDRT 经 XYZ 接入。Psychov30 的独立对照从 AP0 经 D60→D65 白点适配转为线性 BT.709，输出再做 sRGB 编码。移植时用相同输入和 EV 核对各自的 SDR 输出，避免重复施加曝光或输出编码。[AP 基准入口](https://github.com/Luna5ama/drt-bench/blob/a910d635b0d1b44ba193ec9eea023358dc841ac9/shaders/ap/main.glsl) · [Psychov30 对照入口](https://github.com/Luna5ama/drt-bench/blob/a910d635b0d1b44ba193ec9eea023358dc841ac9/tools/drt_compare_psychov.py)
 
@@ -35,7 +35,7 @@ DPF Bloom 已拆出 2.0。`2.0/dev@5ba8718d4` 恢复了 `0bf3a72ba` 的普通 Bl
 | 1.10.x | 修复同一资源包混用不同纹理分辨率时的视差映射。 |
 | 2.0 | 已有方块体素化和不透明表面的世界空间 GI。发布前须完成旧版 Iris 兼容和已可开工的[屏幕空间与体素混合 GI](rendering/hybrid-gi.md)。 |
 | 2.0.x | 优化 GI 管线，收回部分性能回退。 |
-| 2.1 | [曝光与 DRT](#21-曝光与-drt) 重构，默认使用 Skibidi DRT。用 FSR 3.1 统一 TAA 和超分辨率，加入 DPF Bloom。 |
+| 2.1 | [曝光与 DRT](#21-曝光与-drt) 重构，默认使用 Skibidi DRT + 中性 Look。用 FSR 3.1 统一 TAA 和超分辨率，加入 DPF Bloom。 |
 | 2.2 | 为世界空间 GI 加入镂空材质和生物群系染色材质，例如草与树叶。 |
 | 2.3 | 为半透明表面加入体素追踪的世界空间反射与折射。 |
 | 2.4 | 改善 ReSTIR GI 采样与降噪的画质和时域稳定性。 |
