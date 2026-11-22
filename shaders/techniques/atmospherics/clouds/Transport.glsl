@@ -23,9 +23,17 @@
 /*const*/
 
 const float CT_W = SPHERE_SOLID_ANGLE / float(CT_ANGLES);
-// 75% of each horizontal axis resolves the inner 24 km. A C1 exponential
-// skirt keeps distant illumination and escape paths out to +/-121 km.
-const float CT_SKIRT = 4.90219448065;
+// The inner 75% spans six layer thicknesses. Match the slope at the
+// transition and solve exp(k) - 1 = k * ratio for the fixed 121 km edge.
+const float CT_GRID_SCALE = 4.0 * max(SETTING_CLOUDS_CU_THICKNESS, 0.1);
+const float CT_SKIRT_RATIO = 4.0 * (121.0 / CT_GRID_SCALE - 0.75);
+const float CT_SKIRT_LOG = log(CT_SKIRT_RATIO);
+const float CT_SKIRT_GUESS = CT_SKIRT_LOG + log(CT_SKIRT_LOG + 1.0);
+#define CT_SKIRT_NEWTON(k) (k - (exp(k) - 1.0 - CT_SKIRT_RATIO * k) / (exp(k) - CT_SKIRT_RATIO))
+const float CT_SKIRT_1 = CT_SKIRT_NEWTON(CT_SKIRT_GUESS);
+const float CT_SKIRT_2 = CT_SKIRT_NEWTON(CT_SKIRT_1);
+const float CT_SKIRT = CT_SKIRT_NEWTON(CT_SKIRT_2);
+#undef CT_SKIRT_NEWTON
 const vec3 CT_EXTINCTION = vec3(CLOUDS_CU_EXTINCTION_COEFF);
 const vec3 CT_SCATTERING = vec3(CLOUDS_CU_SCATTERING_COEFF);
 const vec3 CT_ABSORPTION = CT_EXTINCTION - CT_SCATTERING;
@@ -202,12 +210,13 @@ vec3 ct_worldCenter() {
 float ct_horizontalEdge(float t) {
     float u = t * 2.0 - 1.0;
     float outer = max(abs(u) - 0.75, 0.0) * 4.0;
-    return sign(u) * (min(abs(u), 0.75) * 16.0 + 4.0 * (exp(CT_SKIRT * outer) - 1.0) / CT_SKIRT);
+    return sign(u) * CT_GRID_SCALE * (min(abs(u), 0.75) + 0.25 * (exp(CT_SKIRT * outer) - 1.0) / CT_SKIRT);
 }
 
 vec2 ct_horizontalGrid(vec2 x) {
-    vec2 outer = max(abs(x) - 12.0, vec2(0.0));
-    vec2 u = min(abs(x), vec2(12.0)) / 16.0 + log(1.0 + outer * (CT_SKIRT * 0.25)) * (0.25 / CT_SKIRT);
+    vec2 scaled = abs(x) / CT_GRID_SCALE;
+    vec2 outer = max(scaled - 0.75, vec2(0.0));
+    vec2 u = min(scaled, vec2(0.75)) + log(1.0 + outer * (4.0 * CT_SKIRT)) * (0.25 / CT_SKIRT);
     return sign(x) * u * 0.5 + 0.5;
 }
 

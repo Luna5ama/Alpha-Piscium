@@ -194,11 +194,12 @@ a NaN/Inf failure; validate the decoded mean/source relation and power sums at b
 `ctRadiance` holds outgoing values and `ctLifted` holds cell means. Coefficient RGB retains the solver parameters;
 level-zero fast/weight/exchange alpha lanes are unused and zero. The old boundary mean cache is removed.
 
-The grid spans ±121 km horizontally. Each horizontal axis assigns 75% of its cells uniformly to ±12 km;
-a continuously differentiable exponential skirt covers the remaining distance. The inverse sampling map and
+The experimental grid spans ±121 km horizontally. Each axis assigns 75% of its cells uniformly to three layer
+thicknesses on either side, with 0.1 km as the minimum thickness for grid allocation. A continuously differentiable
+exponential skirt covers the remaining distance. Its shape parameter is constant for each compiled thickness. The inverse sampling map and
 physical-center interpolation use the same allocation. The vertical extent covers the spherical cloud layer down to
-2.5 km below its nominal base. `SETTING_CLOUDS_MS_RESOLUTION` selects 32³ (default) or 64³;
-the inner horizontal spacing is 1 km or 500 m respectively. `SETTING_CLOUDS_MS_ITERATIONS` selects 1, 2 or 4
+2.5 km below its nominal base. At the default 3.5 km thickness the inner spacing is 875 m at 32³
+(default) or 437.5 m at 64³. `SETTING_CLOUDS_MS_ITERATIONS` selects 1, 2 or 4
 (default), as an upper iteration limit. Previous `(P - f I) S` is only an initial guess for the current operator and source.
 Frame discontinuities, history resets, or sun/moon changes larger than their angular radius reject that guess.
 At least one full iteration executes; subsequent iterations stop when both predicted relative residual and corrected
@@ -368,7 +369,7 @@ Run `046ae71f-2a18-44dd-a029-94bd57f95af6` adds a copy of the same eight ellipso
 | Back sun only | +0.0000180% | +0.0000373% | +0.0000868% |
 | Back sun and sky | +0.0000212% | +0.0000411% | +0.0000886% |
 
-Each percentage divides the paired change by the isolated region mean under the same lighting. All twelve paired 95% intervals exclude zero. In side sun the notch increases by 8.73 × 10⁻⁵ [8.07, 9.39] × 10⁻⁵ sr⁻¹ in units of normal solar irradiance. In back sun its absolute increase is comparable, but the isolated notch is about 267.38 sr⁻¹. This scene gives little physical basis for an obvious backlit edge from the neighboring tower. For the whole cloud the sky-only single-scattering change is −9.49 × 10⁻⁶ sr⁻¹ and the multiple-scattering change is +9.23 × 10⁻⁶ sr⁻¹. The net sky-only interval [−6.85, +1.63] × 10⁻⁷ sr⁻¹ includes zero. The three regional net sky changes are positive for this upper-hemisphere boundary.
+Each percentage divides the paired change by the isolated region mean under the same lighting. All twelve paired 95% intervals exclude zero. In side sun the notch increases by 8.73 × 10⁻⁵ sr⁻¹ in units of normal solar irradiance, with a 95% interval of [8.07, 9.39] × 10⁻⁵. In back sun its absolute increase is comparable, but the isolated notch is about 267.38 sr⁻¹. This scene gives little physical basis for an obvious backlit edge from the neighboring tower. For the whole cloud the sky-only single-scattering change is −9.49 × 10⁻⁶ sr⁻¹ and the multiple-scattering change is +9.23 × 10⁻⁶ sr⁻¹. The net sky-only interval [−6.85, +1.63] × 10⁻⁷ sr⁻¹ includes zero. The three regional net sky changes are positive for this upper-hemisphere boundary.
 
 Pass `neighbor` after the original `65536 8 4 0.2` arguments. Run [the reporter](../../../scripts/test/cloud-reference-report.py) with `--compare` pointing to guided run `2b8a366e-740b-4da8-b7b8-09cc28b1c15c`. It records per-order replicates, paired intervals, disjoint sample-block comparisons, a shared-exposure whole image and magnified region differences. These measurements apply to the fixed sample tower.
 
@@ -377,6 +378,20 @@ Pass `neighbor` after the original `65536 8 4 0.2` arguments. Run [the reporter]
 <!-- vela:evidence {"run":"046ae71f-2a18-44dd-a029-94bd57f95af6","path":"neighbor.json"} -->
 <!-- vela:evidence {"run":"046ae71f-2a18-44dd-a029-94bd57f95af6","path":"neighbor.png"} -->
 <!-- vela:evidence {"run":"046ae71f-2a18-44dd-a029-94bd57f95af6","path":"neighbor-regions.png"} -->
+
+### Fixed-volume Iris comparison
+
+[CloudTransportPrepare](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl) uses four transverse positions and eight density taps per solar chord. With the fixed camera 450 m from the 0.3 km layer, [the CPU probe check](../../../scripts/test/cloud-grid-fixture.py) found zero occupied cells for the isolated tower under either solar direction at both original grid sizes. The original near-cell widths are 1,000 m and 500 m. The experimental allocation in [Transport](../../../shaders/techniques/atmospherics/clouds/Transport.glsl) reduces them to 75 m and 37.5 m for this layer while retaining the 24 directions, quadrature, cell count and far extent.
+
+Integrated analytic chords across 1,024² pixel centres give 1,642,924 m³ for one tower. Halving that integration resolution changes the estimate by 9 m³. With the experimental 32³ grid, the quadrature gives 12 occupied cells for either light and one-tower volume errors of −0.38% (side) and −6.30% (back). At 64³ the errors are −1.12% and +0.61%. These are input-density measurements. Final radiance also depends on angular and spatial transport, fine reconstruction and history. Inspect the shared-exposure image and time the executed passes in Iris before selecting the grid.
+
+Moving the camera along the same orthographic rays adds only vacuum. At 2, 6 and 12 km, all three 32³ source estimates miss the isolated tower under both lights. At 64³ the new layout hits only the side-light probes at 2 km and only the backlight probes at 6 km. At 12 km both miss. Fine local paths still sample the density directly.
+
+[Generate the comparison patches](../../../scripts/test/cloud-iris-fixture.py) from the neighbor run's `reference.json`. The column baseline `fb8c36487` is the parent of the cloud rewrite and has the same camera-lighting shader as the frozen specification `d2f1ef0f` (blob `4fa191b0e`). Compare it with transport `c09cfdc76` and the layer-scaled grid. Choose `--sun side|back`, with optional `--neighbor` and `--sky`, for the calibrated camera. The measurement copies the cloud pass's stored half-float radiance and transmittance to `colortex0` at `composite9`. Use a 0.3 km layer, the analytic phase (ratio zero), 1,000 blocks per kilometre and fixed exposure. For frame times and motion, `--world-origin X_M Z_M` places the same density in the ordinary perspective path with game lighting. Count the added transport passes, cloud render, history, an unaffected workload and the complete frame separately. The fixed-volume times bound this candidate's cost in that scene. The 1.30× acceptance also needs a same-scene whole-frame comparison after the new cloud shapes are integrated.
+
+The user kept terrain compositing outside this lighting experiment. [SkyComposite](../../../shaders/techniques/atmospherics/SkyComposite.glsl) reads the accumulated cloud only for sky-depth pixels. From above, a ray ending on terrain therefore omits the overlying low cloud. Compare unoccluded rays to the physical reference and record this visibility limit for the terrain-backed view.
+
+<!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"grid.json"} -->
 
 ## Air, depth layers, and composition
 
