@@ -1,16 +1,17 @@
 # Global Illumination
 
-The current GI path is a screen-space ReSTIR/SST pipeline backed by an environment probe and a separate spatiotemporal
-denoiser. Pass order comes from [`scripts/programs.main.kts`](../../scripts/programs.main.kts); shared algorithms
-live under [`shaders/techniques/gi/`](../../shaders/techniques/gi/) and entry points are in [
-`shaders/pass/composite/`](../../shaders/pass/composite/).
+At the 2.0 release baseline `5ba8718d4`, screen pixels generate ReSTIR candidates. Voxels supply their secondary
+intersections and test visibility for finite spatial reconnections. The denoiser reprojects and filters in screen space.
+The [2.0 hybrid GI design](hybrid-gi.md) specifies where SST will join those traces and how hits use the radiance cache
+or reprojected diffuse history. See the [pass registration](../../scripts/programs.main.kts), [shared GI shaders](../../shaders/techniques/gi/)
+and [composite entry points](../../shaders/pass/composite/).
 
 ## Code map
 
 | Path | Responsibility |
 | --- | --- |
 | [`shaders/techniques/gi/Common.glsl`](../../shaders/techniques/gi/Common.glsl) | Common GI data and accessors |
-| [`InitialSample.glsl`](../../shaders/techniques/gi/InitialSample.glsl) | Initial proposals, screen-space tracing, and voxel fallback shading |
+| [`InitialSample.glsl`](../../shaders/techniques/gi/InitialSample.glsl) | Initial proposals, candidate storage, voxel shading and a screen-hit shading helper |
 | [`Reservoir.glsl`](../../shaders/techniques/gi/Reservoir.glsl), [`PairwiseMISMetadata.glsl`](../../shaders/techniques/gi/PairwiseMISMetadata.glsl) | Reservoir encoding and pairwise-reuse metadata |
 | [`ResampleMaterial.glsl`](../../shaders/techniques/gi/ResampleMaterial.glsl) | Material representation used during reuse |
 | [`Reproject.glsl`](../../shaders/techniques/gi/Reproject.glsl), [`ReprojectInfo.glsl`](../../shaders/techniques/gi/ReprojectInfo.glsl) | History reprojection |
@@ -47,8 +48,8 @@ interleaved with GI preparation:
 
 | Order | Pass | Notes |
 | --- | --- | --- |
-| 1 | [`GIReSTIRInitalSampleHiZ`](../../shaders/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl) | Generates initial candidates and traces the screen-space path |
-| 2 | [`GIReSTIRInitalSampleVoxelFallback`](../../shaders/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl) | Traces candidates marked for voxel fallback |
+| 1 | [`GIReSTIRInitalSampleHiZ`](../../shaders/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl) | Reads primary depth, generates a direction and PDF, and marks every valid direction for voxel tracing |
+| 2 | [`GIReSTIRInitalSampleVoxelFallback`](../../shaders/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl) | Splats temporal history before checking the pending candidate and tracing the voxel ray |
 | 3 | [`GIReSTIRTemporalReuse`](../../shaders/pass/composite/GIReSTIRTemporalReuse.comp.glsl) | Reprojects previous reservoirs, samples, hit normals, and material |
 | 4 | [`GIReSTIRDuplicationMapDecorrelate`](../../shaders/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl) | Optional decorrelation |
 | 5 | [`GIReSTIRPairedSpatialReuse`](../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4 | Pairwise reuse in batches of seven base samples; accumulates the specular BRDF-ratio resolve |
