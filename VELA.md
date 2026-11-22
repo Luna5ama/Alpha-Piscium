@@ -138,6 +138,6 @@
 
 ### 2.1 曝光与 DRT
 
-在 `2.1/dev` 实施直方图曝光、四种 DRT 和 SDR／HDR 共享 Look，默认使用 Skibidi 与中性 Look。按[曝光与 DRT 规格](docs/roadmap.md#21-曝光与-drt)核对固定输入的 SDR 输出与 EV，验证暗洞、雪地和小面积强光的曝光响应。Blender AgX 在中性 Look 下与现版对照后交用户决定。本修订接续 `4789a2c9` 的 [HDR Mod 实机输出](docs/roadmap.md#hdr-mod-输出) 和原曝光与 SDR 工作。接续 `80131f3d` 的[显示色域缩限](docs/roadmap.md#显示色域缩限)，Skibidi 使用自身压缩，在 SDR 和 HDR 下核对默认 Display P3、其他预设与 D65 自定义三原色 xy。边界测试以 Skibidi 输出为准，后续共享 Look 允许越界。其他 DRT 按自身压缩能力接入。沿用已取得的 SDR 对照，核对预设与同坐标自定义模式，并用模组提供的实际参考白和峰值验收 HDR 高光。本修订接续 `2d020326` 的色域缩限规格，补验共享 Look 在参考白以上高光的响应，以及只调 UI 亮度时场景外观的一致性。统一时域重建的算法选型可独立推进。
+在 `2.1/dev` 实施直方图曝光、四种 DRT 和 SDR／HDR 共享 Look，默认使用 Skibidi 与中性 Look。按[曝光与 DRT 规格](docs/roadmap.md#21-曝光与-drt)核对固定输入的 SDR 输出与 EV，验证暗洞、雪地和小面积强光的曝光响应。用户已在实现会话看过对照并选定 Blender 5.0 AgX；本修订接续 `f50b019c` 的实现和已有画面对照。本修订接续 `4789a2c9` 的 [HDR Mod 实机输出](docs/roadmap.md#hdr-mod-输出) 和原曝光与 SDR 工作。接续 `80131f3d` 的[显示色域缩限](docs/roadmap.md#显示色域缩限)，Skibidi 使用自身压缩，在 SDR 和 HDR 下核对默认 Display P3、其他预设与 D65 自定义三原色 xy。边界测试以 Skibidi 输出为准，后续共享 Look 允许越界。其他 DRT 按自身压缩能力接入。沿用已取得的 SDR 对照，核对预设与同坐标自定义模式，并用模组提供的实际参考白和峰值验收 HDR 高光。本修订接续 `2d020326` 的色域缩限规格，补验共享 Look 在参考白以上高光的响应，以及只调 UI 亮度时场景外观的一致性。统一时域重建沿自研／深改路线独立研究，比较结果与实验提案见[2.1 策略对照](https://github.com/Luna5ama/Alpha-Piscium/blob/92150474026c39e317f8598855dfef2bbdddc3b7/docs/rendering/post-processing.md#21-时域重建策略对照)。
 
-<!-- vela:ready {"item":"exposure-drt-2-1","rev":"f50b019c52b6263a75e7b6224d4b253fbfc33780","spec":"docs/roadmap.md","after":[]} -->
+<!-- vela:ready {"item":"exposure-drt-2-1","rev":"ab9a01bf6d5454f0d34eda4e3f4fbd2872c5d487","spec":"docs/roadmap.md","after":[]} -->
