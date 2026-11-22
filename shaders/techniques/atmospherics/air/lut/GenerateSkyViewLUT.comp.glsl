@@ -120,7 +120,7 @@ void main() {
     ScatteringResult result = scatteringResult_init();
 
     if (layerIndex == 0) {
-        result = clouds_skyRay(atmosphere, gbufferModelViewInverse[3].xyz, rayDir);
+        result = clouds_skyRay(atmosphere, gbufferModelViewInverse[3].xyz, rayDir, SETTING_SKY_SAMPLES);
     } else {
         vec2 heights = layerIndex == 1 ? vec2(-100.0, SETTING_CLOUDS_CI_HEIGHT) : vec2(SETTING_CLOUDS_CI_HEIGHT, 100.0);
         vec2 layerBound = heights + atmosphere.bottom;
