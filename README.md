@@ -47,7 +47,7 @@ Files under the `scripts` directory are licensed under the MIT License. All othe
 
 ## Development
 
-Alpha Piscium keeps pass entry points, reusable rendering techniques, generated bindings, and developer tooling separate. The [developer documentation](docs/README.md) links to the [project structure](docs/development/project-structure.md), [generator workflows](docs/development/generators.md), and [pipeline dependencies](docs/rendering/pipeline.md).
+Alpha Piscium keeps pass entry points, reusable rendering techniques, generated bindings, and developer tooling separate. Start with the [project knowledge index for agents](docs/README.md) to find design decisions, evidence and open work. For the implementation on this branch, see the [project structure](docs/development/project-structure.md), [generator workflows](docs/development/generators.md), and [pipeline dependencies](docs/rendering/pipeline.md).
 
 Project outline:
 
