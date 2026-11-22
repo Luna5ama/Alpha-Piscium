@@ -76,6 +76,17 @@ changing the sampling sequence requires updating reprojection conventions as wel
 
 **比较口径。** 对每种算法重放同一段帧序列，固定几何动画、相机、抖动、曝光、DRT 与锐化。原生 1080p 和 720p 输入到 1080p 分别比较；先看重建输出，再看同设置最终画面。用相同场景时刻的高采样参考核对栅栏的可见覆盖率和高光亮度，再逐帧记录遮挡解除后的残影消退帧数、静态区域亮度波动与运动中的细节。另列整条重建链的 GPU 毫秒、图集显存和物理 image 数。在 Iris 1.10.4 上核对原生、超分两种模式及法线贴图开关。以上为实验设计，方案优劣待同段实测。
 
+#### 当前帧的空间重建
+
+FSR 3.1 原型把当前帧的抖动位置计入采样距离，用 Lanczos 权重估计每个输出像素的颜色，再与重投影历史合成。候选接口沿用输出像素坐标和本帧抖动，返回当前颜色估计及其累积权重。沿边借来的多个邻域样本仍属于一次抖动相位。比较空间算法时，固定历史重投影、裁剪和锐化，让原生 TAA 与超分都能单独查看历史权重为零时的结果。[原型的坐标与滤波](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/techniques/ffx/fsr3upscaler/ffx_fsr3upscaler_upsample.glsl#L122-L212)
+
+- **沿轮廓取样。** FSR 1 的 EASU 根据邻域梯度确定滤波方向。原版接收已抗锯齿的画面，AMD 建议在感知域运行。AP 的候选用压缩亮度估计方向，按本帧抖动定位原始样本，以同一组权重重建场景线性 HDR 颜色。[AMD FSR 1](https://gpuopen.com/fidelityfx-superresolution/)
+- **选择值得修的边。** SMAA 1x 的斜线、拐角识别和 CMAA2 的保守形状检测都值得单独试。用连续的阶梯轮廓支持定向滤波，方向不明确时退回普通采样。用 FXAA 比较廉价边缘平滑能做到什么，同时保留 AP 当前 TAA 后接 FXAA 的成片对照。[SMAA](https://www.iryoku.com/smaa/) · [Intel CMAA2](https://www.intel.com/content/www/us/en/developer/articles/technical/conservative-morphological-anti-aliasing-20.html) · [NVIDIA FXAA](https://developer.download.nvidia.com/assets/gamedev/files/sdk/11/FXAA_WhitePaper.pdf) · [AP 的 FXAA](../../shaders/pass/composite/FXAA.comp.glsl)
+
+历史是否重投影到同一表面、当前邻域能否辨出轮廓，分别判断。门柱移开露出的铁栏立即丢弃门柱历史，由当前样本重建。已有可靠历史的静止铁栏继续累积各抖动相位的样本，颜色 AABB 从空间平滑前的邻域取值，防止逐帧收窄颜色范围。粗糙玻璃仍可累积有效历史。单帧孤立高亮提供的方向证据不足，以运动中的真实小灯与 GI 亮点检验能否避免把两者拉成长边。锐化在历史写入之后进行。
+
+先从已有捕获中找相机、抖动和输入一致的片段，建立原生 TAA 与 FSR 原型的基线。空间候选沿同一条横移轨迹露出细栅栏，再停住。先强制历史权重为零，在锐化前比较原型和候选的首帧轮廓、各抖动相位的断线与闪烁。然后恢复相同的历史策略，逐帧检查遮挡解除、停稳后的纹理对比度、玻璃噪声和 GI 亮点。沿用上面的两档分辨率与整链 GPU 计时，再决定保留哪些空间策略。
+
 ## Bloom
 
 `SETTING_BLOOM_SHAPE` offers Standard (0, default), Diamond Four (1), Horizontal Streak (2), Cross Four (3),
