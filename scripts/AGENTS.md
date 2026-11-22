@@ -11,7 +11,7 @@ Run Kotlin entry points from `scripts/`. For a new option-controlled pass, follo
 | Included GLSL only | Reload the pack in Iris. |
 | Offline texture or LUT | Verify dimensions, binary format and channels against the texture declaration and shader readers. See the [offline tools](../docs/development/offline-tools.md). |
 
-Review the generated wrappers, option and Textile bindings, languages and final shader properties affected by the change. Commit tracked outputs with the owning source. Keep intermediate property fragments, caches, local Java/output configuration and release credentials out of Git.
+Review the generated wrappers, option and Textile bindings, languages and final shader properties affected by the change. Commit tracked outputs with the owning source. Keep intermediate property fragments, caches, local Java/output configuration and release credentials out of Git. For a fitted Bloom shape, use the [kernel fitting workflow](../docs/development/offline-tools.md#bloom-kernel-fitting) and its matching [shape fitter](fit-bloom-shape.py).
 
 ## Package or release
 
