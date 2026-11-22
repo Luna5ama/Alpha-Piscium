@@ -144,6 +144,12 @@ programs {
         pass("/pass/begin/ClearVoxelData.comp.glsl") {
             constDefine("VOXEL_CLEAR_ALL", 1)
         }
+        for (stage in 0..3) {
+            pass("/pass/setup/SkibidiGamut.comp.glsl") {
+                constDefine("SKIBIDI_BAKE_STAGE", stage)
+                cond("SETTING_DRT_TYPE == 0 && SETTING_TARGET_GAMUT != 0")
+            }
+        }
     }
 
     ProgramType.BEGIN {
@@ -374,11 +380,8 @@ programs {
         )
         pass(
             "/techniques/rtwsm/GetWarp.comp.glsl",
-            "/pass/composite/ExposureMip.comp.glsl"
+            "/pass/composite/ExposureGather.comp.glsl"
         )
-        pass("/pass/composite/ExposureGather.comp.glsl") {
-            cond("defined(SETTING_DEBUG_AE)")
-        }
         pass("/techniques/rtwsm/Write2DWarp.comp.glsl")
         pass("/pass/composite/OverlayComposite.comp.glsl")
     }

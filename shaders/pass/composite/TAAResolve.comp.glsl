@@ -199,7 +199,7 @@ void main() {
                 );
                 #endif
             }
-            prevColor = max(prevResult.rgb, 0.0);
+            prevColor = agxInvertible_forward(max(prevResult.rgb, 0.0));
             lastFrameAccum = prevResult.a;
         }
         float newFrameAccum = lastFrameAccum + 1.0;
@@ -335,9 +335,7 @@ void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec3 color = max(texelFetch(usam_main, texelPos, 0).rgb, 0.0);
-        float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 0u), frameCounter);
-        color = dither_fp16(color, ditherNoise);
-        color = min(agxInvertible_inverse(color), FP16_MAX);
+        color = min(color * exp2(global_aeData.cameraEV), FP16_MAX);
         imageStore(uimg_main, texelPos, vec4(color, 1.0));
     }
 }

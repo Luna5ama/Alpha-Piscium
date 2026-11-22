@@ -3055,17 +3055,6 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     empty()
-                    slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.25, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Overall Brightness Method Weight"
-                            comment =
-                                "Influence of overall scene brightness on exposure. Higher = adjusts more to keep average brightness consistent."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "平均亮度权重"
-                            comment = "整体场景亮度对曝光的影响。数值越高 = 更多地调整以保持平均亮度一致。"
-                        }
-                    }
                     slider("SETTING_EXPOSURE_AVG_LUM_TIME", 3.0, 0.0..10.0 step 0.25) {
                         lang {
                             name = "Overall Brightness Adapt Speed"
@@ -3077,7 +3066,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             comment = "基于整体亮度的曝光适应速度。数值越低 = 调整越快。"
                         }
                     }
-                    slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 40, 1..255) {
+                    slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 8, 1..255) {
                         lang {
                             name = "Dark Scene Target Brightness"
                             comment =
@@ -3088,7 +3077,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             comment = "黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。"
                         }
                     }
-                    slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 140, 1..255) {
+                    slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 96, 1..255) {
                         lang {
                             name = "Bright Scene Target Brightness"
                             comment =
@@ -3101,7 +3090,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     }
                     slider(
                         "SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE",
-                        -2.0,
+                        0.0,
                         -4.0..4.0 step 0.1
                     ) {
                         lang {
@@ -3115,90 +3104,26 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     empty()
-                    slider("SETTING_EXPOSURE_HS_MIX", 1.0, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Highlight/Shadow Areas Method Weight"
-                            comment =
-                                "Influence of brightest and darkest areas on exposure. Higher = prevents over/underexposure of extremes."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "高光/阴影区域权重"
-                            comment = "最亮和最暗区域对曝光的影响。数值越高 = 防止极端的过曝/欠曝。"
-                        }
-                    }
-                    slider("SETTING_EXPOSURE_HS_TIME", 2.0, 0.0..10.0 step 0.25) {
-                        lang {
-                            name = "Highlight/Shadow Areas Adapt Speed"
-                            comment =
-                                "How quickly exposure adapts to bright and dark regions. Lower = faster adjustment."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "高光/阴影区域适应速度"
-                            comment = "曝光适应明亮和黑暗区域的速度。数值越低 = 调整越快。"
-                        }
-                    }
-                    slider("SETTING_EXPOSURE_HS_MIN_EV_DELTA", -1.5, -4.0..0.0 step 0.1) {
-                        lang {
-                            name = "Highlight/Shadow Areas EV Delta Min"
-                            comment = "How much stops can exposure adjust downwards for highlights/shadows."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "高光/阴影区域EV最低变化"
-                            comment = "曝光可以为高光/阴影向下调整多少档位。"
-                        }
-                    }
-                    slider("SETTING_EXPOSURE_HS_MAX_EV_DELTA", 1.5, 0.0..4.0 step 0.1) {
-                        lang {
-                            name = "Highlight/Shadow Areas EV Delta Max"
-                            comment = "How much stops can exposure adjust upwards for highlights/shadows."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "高光/阴影区域EV最高变化"
-                            comment = "曝光可以为高光/阴影向上调整多少档位。"
-                        }
-                    }
-                    slider("SETTING_EXPOSURE_H_LUM", 225, 1..255) {
-                        lang {
-                            name = "Highlight Area Threshold"
-                            comment =
-                                "Brightness level considered 'highlight'. Exposure adjusts to prevent these areas from being too bright."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "高光区域阈值"
-                            comment = "被视为“高光“的亮度级别。曝光调整以防止这些区域过亮。"
-                        }
-                    }
                     slider("SETTING_EXPOSURE_H_PERCENT", 5.0, 0.5..10.0 step 0.5) {
                         lang {
                             name = "Highlight Area %"
                             comment =
-                                "Keeps this percentage of bright pixels from overexposing. Higher values darken overall to preserve bright details."
+                                "Fraction of weighted samples trimmed at the bright end before metering."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "高光区域占比"
-                            comment = "保持此百分比的明亮像素不过曝。数值越高，整体变暗以保留明亮细节。"
-                        }
-                    }
-                    slider("SETTING_EXPOSURE_S_LUM", 33, 0..255) {
-                        lang {
-                            name = "Shadow Area Threshold"
-                            comment =
-                                "Brightness level considered 'shadow'. Exposure adjusts to keep these areas visible."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "阴影区域阈值"
-                            comment = "被视为“阴影”的亮度级别。曝光调整以保持这些区域可见。"
+                            comment = "从测光直方图亮端剔除的累计权重百分比。"
                         }
                     }
                     slider("SETTING_EXPOSURE_S_PERCENT", 3.0, 0.5..10.0 step 0.5) {
                         lang {
                             name = "Shadow Area %"
                             comment =
-                                "Keeps this percentage of dark pixels from becoming pure black. Higher values brighten overall to reveal shadow detail."
+                                "Fraction of weighted samples trimmed at the dark end before metering."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "阴影区域占比"
-                            comment = "保持此百分比的暗像素不变成纯黑。数值越高，整体变亮以显示阴影细节。"
+                            comment = "从测光直方图暗端剔除的累计权重百分比。"
                         }
                     }
                 }
@@ -3209,30 +3134,63 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "色调映射"
                     }
-                    slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 16.5, 4.0..32.0 step 0.5) {
+                    toggle("SETTING_DRT_TYPE", 0, 0..3) {
                         lang {
-                            name = "Dynamic Range"
-                            comment =
-                                "Range of brightness levels preserved from dark to bright. Higher values maintain more detail in extremes but may look flat."
+                            name = "Display Rendering Transform"
+                            0 value "Skibidi"
+                            1 value "Blender AgX"
+                            2 value "OpenDRT"
+                            3 value "PsychoV30"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "动态范围"
-                            comment = "从暗到亮保留的亮度级别范围。数值越高，在极端情况下保留更多细节，但可能看起来平淡。"
+                            name = "显示渲染变换"
+                        }
+                    }
+                    toggle("SETTING_TARGET_GAMUT", 1, 0..3) {
+                        lang {
+                            name = "DRT Target Gamut"
+                            0 value "sRGB / Rec.709"
+                            1 value "Display P3"
+                            2 value "Rec.2020"
+                            3 value "Custom D65"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) { name = "DRT 目标色域" }
+                    }
+                    screen(2) {
+                        lang { name = "Custom D65 Primaries" }
+                        lang(Locale.SIMPLIFIED_CHINESE) { name = "自定义 D65 原色" }
+                        slider("SETTING_TARGET_RX", 680, 1..999) {
+                            lang { name = "R x (× 0.001)" }
+                        }
+                        slider("SETTING_TARGET_RY", 320, 1..999) {
+                            lang { name = "R y (× 0.001)" }
+                        }
+                        slider("SETTING_TARGET_GX", 265, 1..999) {
+                            lang { name = "G x (× 0.001)" }
+                        }
+                        slider("SETTING_TARGET_GY", 690, 1..999) {
+                            lang { name = "G y (× 0.001)" }
+                        }
+                        slider("SETTING_TARGET_BX", 150, 1..999) {
+                            lang { name = "B x (× 0.001)" }
+                        }
+                        slider("SETTING_TARGET_BY", 60, 1..999) {
+                            lang { name = "B y (× 0.001)" }
                         }
                     }
                     empty()
-                    toggle("SETTING_TONE_MAPPING_LOOK", 3, 0..3) {
+                    toggle("SETTING_TONE_MAPPING_LOOK", 0, 0..3) {
                         lang {
-                            name = "AgX Preset"
+                            name = "SDR Look"
                             comment =
                                 "Pre-configured color grading styles. Choose Custom to manually adjust colors below."
-                            0 value "Default"
+                            0 value "Neutral"
                             1 value "Golden"
                             2 value "Punchy"
                             3 value "Custom"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "风格"
+                            name = "SDR 风格"
                             comment = "预配置的调色风格。选择自定义以手动调整下面的颜色。"
                             0 value "默认"
                             1 value "金色"
@@ -3887,26 +3845,6 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 }
             }
             empty()
-            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 1, 0..8) {
-                lang {
-                    name = "Tone Mapping Color Space"
-                    comment =
-                        "Color space for tone mapping operations. Rec. 2020 works better with AgX tone mapping."
-                    0 value "CIE XYZ"
-                    1 value "sRGB"
-                    2 value "Rec. 709"
-                    3 value "Rec. 2020"
-                    4 value "DCI-P3"
-                    5 value "Adobe RGB (1998)"
-                    6 value "ACES2065-1"
-                    7 value "ACEScg"
-                    8 value "Color McSpaceFace"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "色调映射色彩空间"
-                    comment = "用于色调映射操作的色彩空间。Rec. 2020与AgX色调映射配合更好。"
-                }
-            }
             empty()
             toggle("SETTING_COLOR_GRADING_COLOR_SPACE", 1, 1..8) {
                 lang {

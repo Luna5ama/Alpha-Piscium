@@ -10,7 +10,7 @@
 #define COLORS_COLORSPACES_ACES_AP1 7
 #define COLORS_COLORSPACES_COLOR_MCSPACEFACE 8
 
-#define _colors_colorspaces_convert(a, b, x) colors_colorspaces_ ## a ## _to_ ## b ##(x)
+#define _colors_colorspaces_convert(a, b, x) colors_colorspaces_ ## a ## _to_ ## b(x)
 #define colors_colorspaces_convert(a, b, x) _colors_colorspaces_convert(a, b, x)
 #define _colors_colorspaces_luma(a, x) colors_colorspaces_ ## a ## _luma(x)
 #define colors_colorspaces_luma(a, x) _colors_colorspaces_luma(a, x)

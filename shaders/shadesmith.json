@@ -64,7 +64,6 @@
         "transient_screenPixelSize": "R32F",
         "transient_caustics_input": "R32F",
         "transient_geomNormalMip": "RGB10_A2",
-        "transient_mainMipTemp": "RGBA32UI",
         "transient_gi_diffuseBlurExponent": "RGBA8",
         "transient_caustics_final": "R32F",
         "transient_gi_shadowHint": "R32F",
@@ -83,6 +82,11 @@
         "history_avgViewZ": "R32F"
     },
     "fixed": {
+        "persistent_drtGeometry": {
+            "format": "R32F",
+            "width": 145,
+            "height": 81
+        },
         "persistent_multiSctrLUT": {
             "format": "RGBA16F",
             "width": 32,

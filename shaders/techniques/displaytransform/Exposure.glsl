@@ -1,105 +1,23 @@
-/*
-    References:
-        [SOB22] Sobotka, Troy. "AgX". 2022.
-            https://sobotka.github.io/AgX
-        [WRE23] Wrensch, Benjamin. "Minimal AgX Implementation". IOLITE Development Blog. 2023.
-            MIT License. Copyright (c) 2024 Missing Deadlines (Benjamin Wrensch)
-            https://iolite-engine.com/blog_posts/minimal_agx_implementation
-        [LIN24] linlin, "AgX". 2024.
-            MIT License. Copyright (c) 2024 linlin
-            https://github.com/bWFuanVzYWth/AgX
+// One workgroup accumulates one weighted histogram before merging with the frame.
+shared uint meterBins[256];
+const float METER_MIN_LOG = -24.0;
+const float METER_BIN_WIDTH = 40.0 / 256.0;
 
-        You can find full license texts in /licenses
+void meterScene(ivec2 pixel, vec3 scene) {
+    float Y = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, scene);
+    if (isnan(Y) || isinf(Y)) return;
+    float logY = log2(max(Y, exp2(METER_MIN_LOG)));
+    uint bin = uint(clamp((logY - METER_MIN_LOG) / METER_BIN_WIDTH, 0.0, 255.0));
 
-    Other Credits:
-        - GeforceLegend - Optimized AgX curve function (https://github.com/GeForceLegend)
-*/
+    vec2 weights = transient_exposureWeights_fetch(pixel).xy;
+    vec2 ndc = (vec2(pixel) + 0.5) * uval_mainImageSizeRcp * 2.0 - 1.0;
+    float center = pow(max(1.0 - length(ndc), 0.0), SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE);
+    float w = weights.x * exp2(weights.y * SETTING_EXPOSURE_EMISSIVE_WEIGHTING);
+    w *= 1.0 + SETTING_EXPOSURE_CENTER_WEIGHTING * center;
 
-// All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
-//   https://github.com/sobotka/AgX
-
-#include "/util/Colors.glsl"
-#include "/util/Rand.glsl"
-
-shared vec3 shared_sum[16];
-#ifdef SETTING_DEBUG_AE
-shared uint shared_lumHistogram[256];
-#endif
-
-void _displaytransform_exposure_init() {
-    #ifdef SETTING_DEBUG_AE
-    shared_lumHistogram[gl_LocalInvocationIndex] = 0u;
-    #endif
-    if (gl_LocalInvocationIndex < 16) {
-        shared_sum[gl_LocalInvocationIndex] = vec3(0.0);
-    }
-    barrier();
-}
-
-void _displaytransform_exposure_apply(inout vec4 color) {
-    color.rgb *= exp2(global_aeData.expValues.z);
-}
-
-const float SHADOW_LUMA_THRESHOLD = SETTING_EXPOSURE_S_LUM / 255.0;
-const float HIGHLIGHT_LUMA_THRESHOLD = SETTING_EXPOSURE_H_LUM / 255.0;
-
-void _displaytransform_exposure_update(bool valid, inout vec4 color) {
-    float groupNoise = rand_stbnVec1(ivec2(gl_WorkGroupID.xy), frameCounter);
-    if (valid) {
-        ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-
-        const float BASE_VIEWZ_WEIGHT = exp2(SETTING_EXPOSURE_DISTANCE_WEIGHTING);
-        float emissive = transient_solidAlbedo_fetch(texelPos).a;
-        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
-
-        float pixelWeight = 1.0;
-        pixelWeight *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
-        pixelWeight *= BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + abs(viewZ));
-
-        float lumimance = colors_colorspaces_luma(COLORS_OUTPUT_COLORSPACE, saturate(color.rgb));
-        uint not0Flag = uint(any(greaterThan(color.rgb, vec3(0.0))));
-
-        {
-            uint highlightFlag = not0Flag;
-            highlightFlag &= uint(lumimance >= HIGHLIGHT_LUMA_THRESHOLD);
-            uint shadowFlag = not0Flag;
-            shadowFlag &= uint(lumimance <= SHADOW_LUMA_THRESHOLD);
-
-            float highlightV = float(highlightFlag) * pixelWeight;
-            float shadowV = float(shadowFlag) * pixelWeight;
-            float totalV = float(not0Flag) * pixelWeight;
-
-            vec3 sumV = vec3(highlightV, shadowV, totalV);
-            vec3 sum = subgroupAdd(sumV);
-            if (subgroupElect()) {
-                shared_sum[gl_SubgroupID] = sum;
-            }
-        }
-
-        #ifdef SETTING_DEBUG_AE
-        {
-            uint binIndex = clamp(uint(lumimance * 256.0), 0u, 255u);
-            atomicAdd(shared_lumHistogram[binIndex], 1u);
-        }
-        #endif
-
-        barrier();
-
-        if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
-            vec3 partialSum = shared_sum[gl_SubgroupInvocationID];
-            vec3 sum = subgroupAdd(partialSum);
-            if (subgroupElect()) {;
-                atomicAdd(global_aeData.highlightCount, uint(sum.x + groupNoise));
-                atomicAdd(global_aeData.shadowCount, uint(sum.y + groupNoise));
-                atomicAdd(global_aeData.weightSum, uint(sum.z + groupNoise));
-            }
-        }
-    }
-
-    #ifdef SETTING_DEBUG_AE
-    uint lumV = shared_lumHistogram[gl_LocalInvocationIndex];
-    if (lumV > 0u) {
-        atomicAdd(global_aeData.lumHistogram[gl_LocalInvocationIndex], lumV);
-    }
-    #endif
+    // Bound even a one-bin full-screen histogram at the configured resolution.
+    uint maxUnits = 0xffffffffu / (uint(uval_mainImageSizeI.x) * uint(uval_mainImageSizeI.y));
+    float maxWeight = (1.0 + SETTING_EXPOSURE_CENTER_WEIGHTING) * exp2(max(0.0, SETTING_EXPOSURE_EMISSIVE_WEIGHTING));
+    uint units = uint(round(w * min(256.0, float(maxUnits - 1u) / maxWeight)));
+    atomicAdd(meterBins[bin], units);
 }

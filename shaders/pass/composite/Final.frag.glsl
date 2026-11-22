@@ -9,5 +9,7 @@ void main() {
     ivec2 texelPos = ivec2(gl_FragCoord.xy);
     float ditherNoise = rand_IGN(texelPos, frameCounter);
     rt_out = texelFetch(usam_main, texelPos, 0);
+    #if !defined(HDR_MOD_INSTALLED) || !defined(HDR_ENABLED)
     rt_out = dither_u8(rt_out, ditherNoise);
+    #endif
 }

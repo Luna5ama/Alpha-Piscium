@@ -18,7 +18,7 @@ void rcas_storeOutput(ivec2 texelPos, vec4 color) {
         debugOutput(texelPos, color);
         #endif
         color.a = 1.0;
-        color.rgb = min(agxInvertible_inverse(color.rgb), FP16_MAX);
+        color.rgb = min(agxInvertible_inverse(color.rgb) * exp2(global_aeData.cameraEV), FP16_MAX);
         imageStore(uimg_main, texelPos, color);
     }
 }

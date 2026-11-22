@@ -1,4 +1,5 @@
 #include "/util/Colors.glsl"
+#include "/util/AgxInvertible.glsl"
 
 layout(local_size_x = 16, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -33,7 +34,7 @@ void main() {
         vec4 dataM = s_data[lp.y][lp.x];
 
         // Write pre-FXAA TAA output to history (before any FXAA smoothing)
-        history_taa_store(texelPos, dataM);
+        history_taa_store(texelPos, vec4(min(agxInvertible_inverse(dataM.rgb), FP16_MAX), dataM.a));
 
         vec3 colM  = dataM.rgb;
         vec3 colN  = s_data[lp.y - 1][lp.x    ].rgb;

@@ -148,7 +148,6 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         #elif SETTING_DEBUG_RC_MODE == 10
         outputColor.rgb = vec3(rcLookup.debug);
         #endif
-        outputColor.rgb *= exp2(global_aeData.expValues.z);
         outputColor.a = 1.0;
     }
     #endif

@@ -25,9 +25,9 @@
 #define COLORS_TF_PQ     6
 #define COLORS_TF_HLG    7
 
-#define _colors_oetf(a, x) colors_oetf_## a ##(x)
+#define _colors_oetf(a, x) colors_oetf_## a(x)
 #define colors_oetf(a, x) _colors_oetf(a, x)
-#define _colors_eotf(a, x) colors_eotf_## a ##(x)
+#define _colors_eotf(a, x) colors_eotf_## a(x)
 #define colors_eotf(a, x) _colors_eotf(a, x)
 
 

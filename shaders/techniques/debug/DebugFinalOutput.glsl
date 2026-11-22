@@ -164,44 +164,19 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     #ifdef SETTING_DEBUG_AE
     printString((_A, _u, _t, _o, _space, _E, _x, _p, _o, _s, _u, _r, _e));
     printLine();
-    printString((_D, _y, _n, _a, _m, _i, _c, _space, _R, _a, _n, _g, _e, _colon, _space));
-    printFloat(SETTING_TONE_MAPPING_DYNAMIC_RANGE);
+    printString((_M, _e, _t, _e, _r, _space, _l, _o, _g, _Y, _colon, _space));
+    printFloat(global_aeData.meteredLogY);
     printLine();
-    printString((_A, _v, _g, _space, _C, _o, _l, _o, _r, _colon, _space));
-    printVec3(global_aeData.screenAvgLum.xyz);
+    printString((_T, _a, _r, _g, _e, _t, _space, _E, _V, _colon, _space));
+    printFloat(global_aeData.targetEV);
     printLine();
-    printString((_A, _v, _g, _space, _L, _u, _m, _a, _colon, _space));
-    printFloat(global_aeData.screenAvgLum.w);
-    printLine();
-    printString((_H, _i, _g, _h, _l, _i, _g, _h, _t, _space, _P, _e, _r, _c, _e, _n, _t, _colon, _space));
-    {
-        text.fpPrecision = 2;
-        printFloat(global_aeData.hsPercents.x * 100.0);
-        printLine();
-        printString((_S, _h, _a, _d, _o, _w, _space, _P, _e, _r, _c, _e, _n, _t, _colon, _space));
-        printFloat(global_aeData.hsPercents.y * 100.0);
-        printLine();
-        text.fpPrecision = DEFAULT_FP_PRECISION;
-    }
-    printLine();
-    printString((_E, _V));
-    printLine();
-    printString((_A, _V, _G, _colon, _space));
-    printFloat(global_aeData.expValues.x);
-    printLine();
-    printString((_H, _I, _S, _colon, _space));
-    printFloat(global_aeData.expValues.y);
-    printLine();
-    printString((_M, _I, _X, _colon, _space));
-    printFloat(global_aeData.expValues.z);
-    printLine();
-    printFloat(global_historyResetFactor);
-    printLine();
+    printString((_C, _a, _m, _e, _r, _a, _space, _E, _V, _colon, _space));
+    printFloat(global_aeData.cameraEV);
     printLine();
     if (inViewPort(ivec4(0, 0, 1024, 256), debugTexCoord)) {
         uint binIndex = min(uint(debugTexCoord.x * 256.0), 255u);
-        float binCount = float(global_aeData.lumHistogram[binIndex]);
-        float maxBinCount = float(global_aeData.lumHistogramMaxBinCount);
+        float binCount = float(global_aeData.debugHistogram[binIndex]);
+        float maxBinCount = float(max(global_aeData.maxBinWeight, 1u));
         float percentage = binCount / maxBinCount;
         if (debugTexCoord.y < percentage) {
             outputColor.rgb = interpolateTurbo(percentage);

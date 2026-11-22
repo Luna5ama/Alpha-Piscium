@@ -25,7 +25,7 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
         float solidViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
-        vec4 exposureWeights = vec4(1.0);
+        vec4 exposureWeights = vec4(1.0, 0.0, 0.0, 0.0);
 
         const float BASE_VIEWZ_WEIGHT = exp2(SETTING_EXPOSURE_DISTANCE_WEIGHTING);
         exposureWeights.x *= sqrt(BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + log2(1.0 + abs(solidViewZ))));
@@ -40,7 +40,7 @@ void main() {
             Material material = material_decode(gData);
 
             float emissive = gData.pbrSpecular.a;
-            exposureWeights.y *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
+            exposureWeights.y = emissive;
 
 
 //            WTF is this even correct?

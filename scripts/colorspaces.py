@@ -78,7 +78,7 @@ for idx, code_name in enumerate(color_space_code_name.values()):
     print(f"#define {package_name.upper()}_{code_name} {idx}")
 
 print("")
-print(f"#define _{package_name}_convert(a, b, x) {package_name}_ ## a ## _to_ ## b ##(x)")
+print(f"#define _{package_name}_convert(a, b, x) {package_name}_ ## a ## _to_ ## b(x)")
 print(f"#define {package_name}_convert(a, b, x) _{package_name}_convert(a, b, x)")
 print(f"#define _{package_name}_luma(a, x) {package_name}_ ## a ## _luma(x)")
 print(f"#define {package_name}_luma(a, x) _{package_name}_luma(a, x)")

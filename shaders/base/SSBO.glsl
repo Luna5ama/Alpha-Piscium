@@ -4,19 +4,13 @@
 #endif
 
 struct AEData {
-    vec4 lastScreenAvgLum;
-    vec4 screenAvgLum;
-
-    vec4 expValues;
-    vec2 hsPercents;
-    uint shadowCount;
-    uint highlightCount;
-    uint weightSum;
-
+    float cameraEV;
+    float targetEV;
+    float meteredLogY;
+    uint histogram[256];
     #ifdef SETTING_DEBUG_AE
-    uint lumHistogram[256];
-    uint lumHistogramMaxBinCount;
-    float finalAvgLum;
+    uint debugHistogram[256];
+    uint maxBinWeight;
     #endif
 };
 

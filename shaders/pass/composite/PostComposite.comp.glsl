@@ -7,7 +7,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #include "/techniques/debug/DebugOutput.glsl"
-#include "/techniques/displaytransform/DisplayTransform.glsl"
+#include "/techniques/displaytransform/DRT.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Coords.glsl"
 #include "/util/FullScreenComp.glsl"
@@ -22,7 +22,6 @@ layout(rgba16f) restrict uniform image2D uimg_main;
 #endif
 
 void main() {
-    displaytransform_init();
 
     bool valid = all(lessThan(texelPos, uval_mainImageSizeI));
     vec4 outputColor = vec4(0.0);
@@ -66,16 +65,7 @@ void main() {
         outputColor.rgb = mix(scopticColor, outputColor.rgb, saturate(mesopicFactor + float(scopticLuminance <= EPSILON)));
         #endif
 
-        vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-        vec2 ndcPos = screenPos * 2.0 - 1.0;
-        float centerFactor = pow(saturate(1.0 - length(ndcPos)), SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE);
-        outputColor.a *= 1.0 + centerFactor * SETTING_EXPOSURE_CENTER_WEIGHTING;
-        outputColor.a = abs(outputColor.a);
-    }
-
-    displaytransform_apply(valid, outputColor);
-
-    if (valid) {
+        _displaytransform_DRT_apply(outputColor);
         imageStore(uimg_main, texelPos, outputColor);
     }
 }

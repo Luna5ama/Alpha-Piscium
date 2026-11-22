@@ -10,7 +10,12 @@ void main() {
         voxel_tintHistory[i] = vec4(1.0, 1.0, 1.0, 0.0);
         for (int j = 0; j < voxel_tintSamples[i].length(); ++j) voxel_tintSamples[i][j] = 0u;
     }
-    global_aeData.expValues = vec4(SETTING_EXPOSURE_MIN_EV, SETTING_EXPOSURE_MIN_EV, SETTING_EXPOSURE_MIN_EV, 0.0);
+    #ifdef SETTING_EXPOSURE_MANUAL
+    global_aeData.cameraEV = float(SETTING_EXPOSURE_MANUAL_EV_COARSE) + SETTING_EXPOSURE_MANUAL_EV_FINE;
+    #else
+    global_aeData.cameraEV = SETTING_EXPOSURE_MIN_EV;
+    #endif
+    for (int i = 0; i < 256; ++i) global_aeData.histogram[i] = 0u;
     global_shadowAABBMin = ivec3(INT32_MAX);
     global_shadowAABBMax = ivec3(INT32_MIN);
     global_shadowAABBMinHistory = vec3(FLT_MAX);

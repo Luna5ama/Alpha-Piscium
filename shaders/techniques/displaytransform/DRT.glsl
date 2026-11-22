@@ -1,82 +1,65 @@
-/*
-    References:
-        [SOB22] Sobotka, Troy. "AgX". 2022.
-            https://sobotka.github.io/AgX
-        [WRE23] Wrensch, Benjamin. "Minimal AgX Implementation". IOLITE Development Blog. 2023.
-            MIT License. Copyright (c) 2024 Missing Deadlines (Benjamin Wrensch)
-            https://iolite-engine.com/blog_posts/minimal_agx_implementation
-        [LIN24] linlin, "AgX". 2024.
-            MIT License. Copyright (c) 2024 linlin
-            https://github.com/bWFuanVzYWth/AgX
-
-        You can find full license texts in /licenses
-
-    Other Credits:
-        - GeforceLegend - Optimized AgX curve function (https://github.com/GeForceLegend)
-*/
-
 #include "/util/Colors.glsl"
+#include "TargetGamut.glsl"
 #include "PrimaryColorCalibration.glsl"
 #include "HSLColorMixer.glsl"
 
-// All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
-//   https://github.com/sobotka/AgX
-vec3 agxDefaultContrastApprox(vec3 x) {
-    const float scale0 = 59.507875;
-    const float scale1 = 69.862789;
+#if defined(HDR_MOD_INSTALLED) && defined(HDR_ENABLED)
+#define AP_HDR_OUTPUT
+uniform float HdrGamePaperWhiteBrightness;
+uniform float HdrGamePeakBrightness;
+uniform float HdrUIBrightness;
 
-    x -= 20.0 / 33.0;
-    vec3 type = vec3(floatBitsToUint(x) >> 31);
+float hdrPeakRatio() {
+    return max(HdrGamePeakBrightness / max(HdrGamePaperWhiteBrightness, 1.0), 1.0);
+}
+#endif
 
-    vec3 scale = scale1 + (scale0 - scale1) * type;
-    vec3 power0 = 13.0 / 4.0 - 0.25 * type;
-    vec3 power1 = -4.0 / 13.0 + (4.0 / 13.0 - 1.0 / 3.0) * type;
+#if SETTING_DRT_TYPE == 0
+#include "Skibidi.glsl"
+#elif SETTING_DRT_TYPE == 1
+#ifdef AP_HDR_OUTPUT
+#include "AgXHDR.glsl"
+#else
+#include "AgXSDR.glsl"
+#endif
+#elif SETTING_DRT_TYPE == 2
+#include "OpenDRT.glsl"
+#else
+#include "Psychov30.glsl"
+#endif
 
-    x = 2.0 * x * pow(1.0 + scale * pow(abs(x), power0), power1) + 0.5;
-    return x;
+// Linear BT.709/D65. HDR RGB is signed and relative to game paper white.
+vec3 displayLinear(vec3 scene) {
+    vec3 ap0 = colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_COLORSPACES_ACES_AP0, scene);
+    #if SETTING_DRT_TYPE == 0
+    return drt_skibidi_ap0(ap0);
+    #elif SETTING_DRT_TYPE == 1
+    vec3 encoded = blenderAgX(vec4(ap0, 1.0)).rgb;
+    #ifdef AP_HDR_OUTPUT
+    // Blender's reference HLG display is 1000 nits with 203-nit diffuse white.
+    const float a = 0.17883277, b = 0.28466892, c = 0.55991073;
+    vec3 e = mix(encoded * encoded / 3.0, (exp((encoded - c) / a) + b) / 12.0, greaterThan(encoded, vec3(0.5)));
+    vec3 rgb = e * pow(max(dot(e, vec3(.2627, .6780, .0593)), 0.0), .2);
+    float m = max(rgb.r, max(rgb.g, rgb.b));
+    float level = m <= .203 ? m / .203 : mix(1.0, hdrPeakRatio(), clamp((m - .203) / .797, 0.0, 1.0));
+    rgb *= level / max(m, 1e-20);
+    return colors_colorspaces_convert(COLORS_COLORSPACES_REC2020, COLORS_COLORSPACES_SRGB, rgb);
+    #else
+    return colors_eotf(COLORS_TF_SRGB, clamp(encoded, 0.0, 1.0));
+    #endif
+    #elif SETTING_DRT_TYPE == 2
+    return drt_openDRT(colors_colorspaces_convert(COLORS_COLORSPACES_ACES_AP0, COLORS_COLORSPACES_CIE_XYZ, ap0));
+    #elif defined(AP_HDR_OUTPUT)
+    return drt_psychov(ap0, hdrPeakRatio(), uint(!targetIsRec709()));
+    #else
+    return drt_psychov(ap0, 1.0, uint(samePrimaries(targetGamutToXYZ(), rec2020ToXYZ())));
+    #endif
 }
 
-vec3 agx(vec3 val) {
-    const mat3 agx_mat = mat3(
-        0.842479062253094, 0.0423282422610123, 0.0423756549057051,
-        0.0784335999999992, 0.878468636469772, 0.0784336,
-        0.0792237451477643, 0.0791661274605434, 0.879142973793104
-    );
-
-    // Input transform
-    val = agx_mat * val;
-
-    // Log2 space encoding
-    const float EV_RANGE = SETTING_TONE_MAPPING_DYNAMIC_RANGE;
-    const float EV_RANGE_HALF = EV_RANGE * 0.5;
-    val = clamp(log2(val), -EV_RANGE_HALF, EV_RANGE_HALF);
-    val = (val + EV_RANGE_HALF) / EV_RANGE;
-
-    // Apply sigmoid function approximation
-    val = agxDefaultContrastApprox(val);
-
+vec3 displayLook(vec3 val) {
+    #if SETTING_TONE_MAPPING_LOOK == 0
     return val;
-}
-
-vec3 agxEotf(vec3 val) {
-    const mat3 agx_mat_inv = mat3(
-        1.19687900512017, -0.0528968517574562, -0.0529716355144438,
-        -0.0980208811401368, 1.15190312990417, -0.0980434501171241,
-        -0.0990297440797205, -0.0989611768448433, 1.15107367264116
-    );
-
-    // Inverse input transform (outset)
-    val = agx_mat_inv * val;
-
-    // sRGB IEC 61966-2-1 2.2 Exponent Reference EOTF Display
-    // NOTE: We're linearizing the output here. Comment/adjust when
-    // *not* using a sRGB render target
-    val = colors_eotf(COLORS_TF_SRGB, val);
-
-    return val;
-}
-
-vec3 agxLook(vec3 val) {
+    #else
     // Default
     vec3 offset = vec3(0.0);
     vec3 slope = vec3(1.0);
@@ -102,31 +85,38 @@ vec3 agxLook(vec3 val) {
     #endif
 
     // ASC CDL
-    val = pow(max(val * slope + offset, 0.0), power);
+    vec3 adjusted = val * slope + offset;
+    #ifdef AP_HDR_OUTPUT
+    val = sign(adjusted) * pow(abs(adjusted), power);
+    #else
+    val = pow(max(adjusted, 0.0), power);
+    #endif
 
-    float luma = colors_colorspaces_luma(COLORS_DRT_WORKING_COLORSPACE, val);
+    #ifdef AP_HDR_OUTPUT
+    float luma = colors_colorspaces_luma(COLORS_COLORSPACES_SRGB, val);
+    #else
+    float luma = colors_colorspaces_luma(COLORS_OUTPUT_COLORSPACE, val);
+    #endif
 
     return luma + sat * (val - luma);
-}
-
-
-vec3 _displaytransform_DRT_AgX(vec3 color) {
-    color = agx(color);
-    color = agxLook(color);
-    color = agxEotf(color);
-    return color;
+    #endif
 }
 
 void _displaytransform_DRT_apply(inout vec4 color) {
-    color.rgb = max(color.rgb, 0.0);
-
-    color.rgb = colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_DRT_WORKING_COLORSPACE, color.rgb);
-    color.rgb = max(color.rgb, 0.0);
-    color.rgb = _displaytransform_DRT_AgX(color.rgb);
-
+    color.rgb = displayLinear(color.rgb);
+    #ifdef AP_HDR_OUTPUT
+    #if SETTING_TONE_MAPPING_LOOK != 0
+    // One maps to the scene paper white. Retain signed wide-gamut channels and highlights above one.
+    vec3 encoded = sign(color.rgb) * colors_oetf(COLORS_TF_SRGB, abs(color.rgb));
+    encoded = displayLook(encoded);
+    color.rgb = sign(encoded) * colors_eotf(COLORS_TF_SRGB, abs(encoded));
+    #endif
+    vec3 scaled = color.rgb * (HdrGamePaperWhiteBrightness / max(HdrUIBrightness, 1.0));
+    color.rgb = sign(scaled) * colors_oetf(COLORS_TF_SRGB, abs(scaled));
+    #else
     #if defined(SETTING_PRIMARY_COLOR_CALIBRATION) || defined(SETTING_HCM_COLOR_MIXER)
     {
-        color.rgb = colors_colorspaces_convert(COLORS_DRT_WORKING_COLORSPACE, COLORS_GRADING_COLORSPACE, color.rgb);
+        color.rgb = colors_colorspaces_convert(COLORS_COLORSPACES_SRGB, COLORS_GRADING_COLORSPACE, color.rgb);
 
         #ifdef SETTING_PRIMARY_COLOR_CALIBRATION
         color.rgb = displaytransform_primarycolorcalibration_apply(color.rgb);
@@ -151,11 +141,12 @@ void _displaytransform_DRT_apply(inout vec4 color) {
     }
     #else
     {
-        color.rgb = colors_colorspaces_convert(COLORS_DRT_WORKING_COLORSPACE, COLORS_OUTPUT_COLORSPACE, color.rgb);
+        color.rgb = colors_colorspaces_convert(COLORS_COLORSPACES_SRGB, COLORS_OUTPUT_COLORSPACE, color.rgb);
         color.rgb = saturate(color.rgb);
         color.rgb = colors_oetf(COLORS_OUTPUT_TF, color.rgb);
     }
     #endif
 
-    color.rgb = saturate(color.rgb);
+    color.rgb = saturate(displayLook(saturate(color.rgb)));
+    #endif
 }
