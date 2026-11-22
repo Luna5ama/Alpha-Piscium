@@ -182,7 +182,7 @@ def reuse_stages(fixture, frames, bundle, spatial_terms=False):
             error_name + "_abs_p99": float(np.quantile(np.abs(error), 0.99))}
 
 
-def measure(fixture, frames, witness, maps=None, bundle=None):
+def measure(fixture, frames, witness, maps=None, bundle=None, raw_luminance=False):
     metadata = json.loads(fixture["metadata"].item())
     ids = metadata.get("pose_ids", metadata.get("frames"))
     positions = metadata.get("target_yx_in_crop")
@@ -224,7 +224,8 @@ def measure(fixture, frames, witness, maps=None, bundle=None):
         g = geometry[j]
         solid = (g[..., 2] > 0) & (g[..., 0] <= 0.1) & (g[..., 1] == 0)
         assert half_matches(meta[..., 0][solid], g[..., 0][solid]) and half_matches(depth[solid], g[..., 2][solid])
-        raw_y, y = raw @ LUMA, display @ LUMA
+        raw_y = raw[..., 0] if raw_luminance else raw @ LUMA
+        y = display @ LUMA
         assert np.isfinite(y).all() and np.isfinite(raw_y).all()
         if witness:
             fresh_y, weight = tile(4) @ LUMA, meta[..., 2]
@@ -243,7 +244,8 @@ def measure(fixture, frames, witness, maps=None, bundle=None):
                 target_weight.append(float(weight[box].mean()))
         if i < len(frames) - 64:
             continue
-        raw_signatures.append(hashlib.sha256(raw[box].copy().tobytes()).digest())
+        raw_samples = raw_y if raw_luminance else raw
+        raw_signatures.append(hashlib.sha256(raw_samples[box].copy().tobytes()).digest())
         if maps is not None:
             means[0] += raw_y / 64
             means[1] += y / 64

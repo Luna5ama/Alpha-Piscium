@@ -299,6 +299,8 @@ references, camera poses, validity masks, geometry and three closed-loop traces.
 `1de39c9ae6f45bbbb9741134bb240adb68a76811ed43491474b57cf34e83d0a8`. Fixture metadata lists the six capture
 jobs. Vibris job `026d1698-6586-4863-ac20-468fa977c178` contains both writeback endpoints,
 `b3a17152-d4fe-4d42-9af2-11447cb7d539` the midpoint and `57a4ba61-785b-4490-8ccb-aac8bf92c8b4` the timings.
+The two endpoint sequences, native result and shader log are also preserved under `agent_inputs/gi-denoiser/`
+in `native-3bce264e-6ea1-3c6e-8f1a-69e3e825a831.zip`. All 468 entries were checked against the native manifest.
 Job `0ea5a021-c624-42a2-afa1-4e6b877e1a27` produced the two-pose test fixture `spec-contact-x0p5-test.npz`
 in the same directory, SHA-256 `98d1fff3df9a9f584ea3946f2bd543aacd9733a56553f3c60fb9a3987ad24b24`. Pass
 the mirror fixture and then the test fixture to the Python weight probe to reproduce all three fixed-history scores.
@@ -421,6 +423,90 @@ Compare helpful and harmful writebacks while moving, high-energy recovery, ordin
 A candidate that passes standalone GI also needs normal TAA and comparable 720p pass timings. Preserve an
 experimental rejection if the stationary discrimination does not survive feedback or motion. Upstream spatial
 estimator weighting remains a separately measured design decision.
+
+**Measured result.** Both fresh-history writebacks failed standalone GI. They recovered some mirror highlight
+energy, increased ordinary flicker and left longer bright excursions on independently dark surfaces.
+The contact highlight stayed close to the raw ReSTIR output. The rejection applies to using this evidence
+to feed sharper values back into GI history.
+
+The GLSL probe transported mean fresh luminance and effective age through the existing specular virtual-point
+footprint. It premultiplied each donor's mean by its age and bilateral weight, normalized the sum, and applied
+the GI reset factor to the transported age. A newly exposed or invalid receiver started at zero age. Each
+eligible pixel then contributed the original AP sample, including zero contributions as in the reference.
+The age cap of 8 or 32 gives an exponential mean once full. Before adding the current observation, the probe
+required at least four prior frames of effective support. It wrote a 50% blend toward pre-blur GI when the prior
+mean exceeded the midpoint and the proposed increase exceeded both 0.001 and 1% of displayed luminance.
+Both spatial passes still filtered the current display.
+
+The cameras followed the original half-block translation. We rescored the final 64 held frames and ran a fresh
+production control in each room. The independent 192-draw highlight references were 0.825 and 2.185. Flicker
+is frame-difference RMS on the original midtone controls. Dark excursions count samples above 0.5 on pixels
+where both reference halves are below 0.05. Durations are censored at the 64-frame observation window.
+
+| History writeback | Mirror highlight | Mirror flicker | Mirror excursions / P95 frames | Contact highlight | Contact flicker | Contact excursions / P95 frames |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Production in this run | 0.438 | 0.00857 | 0.257% / 27 | 1.115 | 0.02872 | 21.94% / 64 |
+| Previous single-frame upward control | 0.469 | 0.00891 | 0.356% / 45 | 1.165 | 0.03070 | 22.81% / 64 |
+| 8-frame fresh history | 0.551 | 0.01056 | 0.427% / 45 | 1.132 | 0.02929 | 22.52% / 64 |
+| 32-frame fresh history | 0.553 | 0.01066 | 0.432% / 46 | 1.131 | 0.02932 | 22.74% / 64 |
+
+Both candidates missed the three-consecutive-frame recovery criterion of staying within 20% of reference.
+For the mirror,
+raw ReSTIR minus reference was −0.179 throughout. Displayed minus raw improved from −0.208 to −0.095 or
+−0.093. In the contact room raw minus reference was about −1.045 in all three new runs. Displayed minus raw
+changed from −0.025 to −0.008 or −0.009. The feedback altered the smaller loss there.
+
+For each eligible proposed increase, both independent 96-draw halves had to agree whether the actual half
+blend moved luminance closer to their reference. The label boundary is one quarter of the way from displayed
+to pre-blur luminance. Each pair below gives the percentage of confirmed helpful proposals accepted and the
+percentage of confirmed harmful proposals accepted. Mirror motion covers frames 1–8. The contact fixture
+has an independent moving-pose comparison only at the arrival frame, before the stationary hold.
+
+| Evidence age cap | Mirror moving | Mirror held | Contact arrival | Contact held |
+| --- | ---: | ---: | ---: | ---: |
+| 8 frames | 69.0% / 6.8% | 90.7% / 4.8% | 55.6% / 9.2% | 94.2% / 2.8% |
+| 32 frames | 67.6% / 7.3% | 97.1% / 3.4% | 55.5% / 19.4% | 94.7% / 7.2% |
+
+At contact arrival, extending the history accepted 303 of 546 helpful proposals and 199 of 1,028 harmful
+ones. The shorter history accepted 302 of 543 and 96 of 1,043. These counts use each candidate's own
+feedback trajectory. The compact fixture also retains counts for the full pre-blur proposal to compare
+with the earlier stationary experiment.
+
+**Exposure and reset.** During the ordinary translation, previous depth identified 348 mirror and 134 contact
+pixel-frames whose entire receiver footprint had contained closer geometry. All started with one current
+observation, zero prior age and zero writeback. A separate abrupt half-block step injected a one-frame zero at
+the GI reset producer. All 48,092 eligible mirror pixels and 8,820 contact pixels discarded their prior state.
+After recovery we turned the camera 120° and back. In the contact room all 57,600 and then all 8,820 eligible
+pixels rejected history on those turns; writeback resumed five frames after the return. In the tilted mirror
+view the frusta partially overlapped. A separate projection of displayed receiver depth using the actual GPU
+matrices found 20,384 and 45,223 pixels securely outside the previous view. None retained age or accepted a
+writeback. Projection excluded a 0.005 NDC boundary band. The reset diagnostic shaders injected the pulse
+on the abrupt translation.
+
+**Cost and reproducibility.** The logical persistent state is two FP16 values per pixel, or 3.52 MiB at
+1280×720. The probe read four packed evidence donors on eligible valid footprints, gathered previous receiver
+depth, and stored one updated evidence record. It shaded each valid original candidate once more, transported
+fresh shading and reprojected evidence through scratch images, and issued a second regular-history store on
+accepted pixels. The experiment reused existing scratch and capture images. The standalone rejection closed
+the study before normal-TAA comparisons and GPU timings.
+
+All nine measured jobs loaded the pinned shader tree at `a1b54c51` with their respective diagnostic patch,
+reported 105 linked programs, froze the same world, and restored the prior scene, settings and shader source.
+Use `scripts/gi_specular_fresh_history.py` with a reference fixture and a job ID to recheck the HDR byte
+planes, poses, geometry, age recurrence and metrics. Local fixture
+`agent_inputs/gi-denoiser/fresh-history-218056a8.npz` retains all five source patches, both reference
+hashes, job receipts, counts, final mean images and highlight time series. Its SHA-256 is
+`73ba6ebf72dd0f49754cdd0616cf8691183d6973d25f02cd870c20938150363d`.
+
+| Capture | Mirror job | Contact job |
+| --- | --- | --- |
+| Production | `e68f48dc-9b6d-41e1-a787-aa6ae476ff32` | `40af7030-1f24-43cd-8305-6e8817d5186d` |
+| 8 frames | `22580a0a-2f26-49e4-82ad-b8756f258125` | `7ef5702e-1860-49a0-8d6f-ac4e15333dbd` |
+| 32 frames | `a0136e10-7764-4b6e-91f6-5503bef86ac7` | `82fb8f26-de5e-4460-98aa-46e6133ba4d0` |
+| Reset and turns | `406f11d9-6d9d-48dd-a1b4-939763a1703e` | `8475651b-183b-43ce-9094-2c3cdfc9a580` |
+| Warm turns with independent projection | `131f10b7-0fdb-46d2-b712-29a4d82983d1` | Included in the contact reset trajectory without the extra projection planes |
+
+<!-- vela:evidence {"run":"218056a8-0440-4e45-a6c7-eb90293d0949","path":"fresh-history.json"} -->
 
 ## Estimator contracts
 
