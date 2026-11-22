@@ -64,6 +64,12 @@
 
 <!-- vela:ready {"item":"unified-cloud-volumes","rev":"3acdf23721948b78ca21e50f09d5ec8c03c88fee","spec":"docs/rendering/atmosphere-clouds.md","after":["stratocumulus-altocumulus-shapes@ca28802c7edebcd463fe86ef10b8981b9985f335"]} -->
 
+### 主光体积散射的自适应极线采样
+
+为现有空气、薄霾和单段水接入完整自适应布点、重建与断层补算。在相同成本下比较未遮挡入散射和考虑实际遮挡的细分判据，观察窄光束、半影、轮廓漏光及移动稳定性。[实施范围与对照](docs/rendering/atmosphere-clouds.md#主光体积散射的自适应极线采样)
+
+<!-- vela:ready {"item":"adaptive-epipolar-scattering","rev":"87cf8fc1b391564b9dc48cf2fc045d86529a2b23","spec":"docs/rendering/atmosphere-clouds.md","after":["procedural-cloud-shapes@8eafcf48395cc45eaec34bb0e7cfe26ffa064150"]} -->
+
 ### 云光照的物理输运对照
 
 比较同一介质的实时散射与离线参考。固定双塔用于诊断，下一组在已接收的程序化云形上核对误差和实机成本。[云光照规格](docs/rendering/atmosphere-clouds.md#云光照的物理对照) · [在途实验的云形版本](docs/rendering/atmosphere-clouds.md#两项光照实验如何跟进云形)
