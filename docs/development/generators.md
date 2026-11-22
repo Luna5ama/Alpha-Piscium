@@ -34,7 +34,7 @@ alone, run `kotlin programs.main.kts`.
    For a toggle, use `cond("defined(SETTING_EXAMPLE)")`. Use a value comparison for a numeric setting.
    `cond` generates the `program.<name>.enabled` branches. Use `define` for a regular shader define,
    `constDefine` for Iris's const section, and `indirect` for a dispatch buffer index and offset. Iris
-   `workGroups` and `workGroupRender` values must be literals or macros expanding to literals.
+   `workGroups` and `workGroupsRender` values must be literals or macros expanding to literals.
 3. Regenerate from the repository root with
 
    ```powershell
