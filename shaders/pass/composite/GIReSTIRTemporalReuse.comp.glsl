@@ -605,7 +605,7 @@ void sampleTemporalSplat(
         #endif
         finalPackedHitNormal = restir_isFinite(selectedHitNormal)
             && dot(selectedHitNormal, selectedHitNormal) > 1e-8
-            ? nzpacking_packNormalOct32(selectedHitNormal)
+            ? nzpacking_packNormalOct32(selectedHitNormal) & ~1u
             : 0u;
         finalPrimaryViewPos = primaryGeometry.currentPrimary;
     }
@@ -735,11 +735,14 @@ void main() {
             vec3 targetNormal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
             vec4 initialRadianceAndDistance = transient_restir_initialCandidate_fetch(texelPos);
             uvec4 initialDirectionAndPdf = transient_restir_initialCandidateDirection_fetch(texelPos);
-            float hitDistance = initialRadianceAndDistance.w;
+            uvec2 initialGeometry = initialRadianceAndDistance.w > 0.0
+                ? transient_restir_spatialInput_fetch(texelPos).xy : uvec2(0u);
+            float hitDistance = initialRadianceAndDistance.w > 0.0
+                ? uintBitsToFloat(initialGeometry.x) : initialRadianceAndDistance.w;
             vec3 hitRadiance = initialRadianceAndDistance.rgb;
             vec3 sampleDirView = nzpacking_unpackNormalOct32(initialDirectionAndPdf.x);
             float samplePdf = uintBitsToFloat(initialDirectionAndPdf.y);
-            uint initialPackedHitNormal = transient_restir_initialCandidateNormal_fetch(texelPos).x;
+            uint initialPackedHitNormal = initialGeometry.y;
             ResampleMaterial storedMaterial = resampleMaterial_unpack(
                 transient_restir_resampleMaterial_fetch(texelPos)
             );
@@ -966,7 +969,7 @@ void main() {
                         finalSample = vec4(backupSource.sampleValue.rgb, backupPHat);
                         finalPackedHitNormal = restir_isFinite(backupShift.hitNormal)
                             && dot(backupShift.hitNormal, backupShift.hitNormal) > 1e-8
-                            ? nzpacking_packNormalOct32(backupShift.hitNormal)
+                            ? nzpacking_packNormalOct32(backupShift.hitNormal) & ~1u
                             : 0u;
                         finalPrimaryViewPos = backupTargetPrimary;
                     }

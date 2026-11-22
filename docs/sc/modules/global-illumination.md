@@ -2,7 +2,7 @@
 
 语言：简体中文 | [English](../../en/modules/global-illumination.md)
 
-当前 GI 是屏幕空间 ReSTIR/SST 管线，配合 environment probe 和独立的时空降噪。pass 顺序以 [
+当前 GI 是对不透明表面做屏幕与体素混合求交的 ReSTIR 管线，配合 environment probe 和独立的时空降噪。pass 顺序以 [
 `scripts/programs.main.kts`](../../../scripts/programs.main.kts) 为准；共享算法集中在 [
 `shaders/techniques/gi/`](../../../shaders/techniques/gi/)，入口集中在 [
 `shaders/pass/composite/`](../../../shaders/pass/composite/)。
@@ -12,7 +12,7 @@
 | 路径                                                                                                                                                                                                                        | 职责                               |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------|
 | [`shaders/techniques/gi/Common.glsl`](../../../shaders/techniques/gi/Common.glsl)                                                                                                                                         | GI 公共数据、坐标与基础访问                  |
-| [`InitialSample.glsl`](../../../shaders/techniques/gi/InitialSample.glsl), [`RaySort.glsl`](../../../shaders/techniques/gi/RaySort.glsl), [`FinishTrace.comp.glsl`](../../../shaders/techniques/gi/FinishTrace.comp.glsl) | 初始样本、长 SST 路径的排序与完成              |
+| [`InitialSample.glsl`](../../../shaders/techniques/gi/InitialSample.glsl), [`HybridTrace.glsl`](../../../shaders/techniques/gi/HybridTrace.glsl) | 方向采样、分段 Hi-Z 求交和次级着色 |
 | [`Reservoir.glsl`](../../../shaders/techniques/gi/Reservoir.glsl), [`PairwiseMISMetadata.glsl`](../../../shaders/techniques/gi/PairwiseMISMetadata.glsl)                                                                  | reservoir 编码与 pairwise reuse 元数据 |
 | [`ResampleMaterial.glsl`](../../../shaders/techniques/gi/ResampleMaterial.glsl)                                                                                                                                           | reuse 时的材质表示                     |
 | [`Reproject.glsl`](../../../shaders/techniques/gi/Reproject.glsl), [`ReprojectInfo.glsl`](../../../shaders/techniques/gi/ReprojectInfo.glsl)                                                                              | history 重投影                      |
@@ -48,8 +48,8 @@ RGBA16F）。[`ClearEnvProbe`](../../../shaders/pass/begin/ClearEnvProbe.comp.gl
 
 | 顺序 | Pass                                                                                                                                                                                                                         | 说明                                    |
 |----|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------|
-| 1  | [`GIReSTIRInitalSampleRayGenTrace`](../../../shaders/pass/composite/GIReSTIRInitalSampleRayGenTrace.comp.glsl)                                                                                                               | 生成初始候选并开始 SST                         |
-| 2  | [`GIReSTIRInitalSampleRaySort`](../../../shaders/pass/composite/GIReSTIRInitalSampleRaySort.comp.glsl), [`GIReSTIRInitalSampleRayFinishTrace`](../../../shaders/pass/composite/GIReSTIRInitalSampleRayFinishTrace.comp.glsl) | 仅 initial SST steps ≥ 64；排序并完成长路径     |
+| 1 | [`GIReSTIRInitalSampleHiZ`](../../../shaders/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl) | 生成方向和 PDF |
+| 2 | [`GIReSTIRInitalSampleVoxelFallback`](../../../shaders/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl) | 投射历史主表面，解析整条射线并着色最近命中 |
 | 3  | [`GIReSTIRTemporalReuse`](../../../shaders/pass/composite/GIReSTIRTemporalReuse.comp.glsl)                                                                                                                                   | 从上一帧 reservoir、样本、hit normal 与材质重投影   |
 | 4  | [`GIReSTIRDuplicationMapDecorrelate`](../../../shaders/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl)                                                                                                           | 可选 decorrelation                      |
 | 5  | [`GIReSTIRPairedSpatialReuse`](../../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4                                                                                                                   | pairwise spatial reuse；每批最多覆盖 7 个基础样本；累积 specular BRDF-ratio resolve |
@@ -64,12 +64,12 @@ dispatch。`history_restir_reservoirTemporal`、`history_restir_primary`、`hist
 将当前 temporal reservoir 与 primary 数据复制到各自固定的 history tile。所有 tile 定义见 [
 `shaders/shadesmith.json`](../../../shaders/shadesmith.json)。
 
-Spatial shading 会立即写入临时的 diffuse/specular 结果。需要 voxel visibility 的 neighbor 选择会把 octahedral 编码的
+Spatial shading 会立即写入临时的 diffuse/specular 结果。需要混合可见性 的 neighbor 选择会把 octahedral 编码的
 `resultY` 方向、hit distance 以及 ratio 混合参数（ratio specular 与 ReSTIR 权重）存入
 `transient_restir_pairwiseMISMetadata`；随后每个 16×16 tile 按 world-direction octant 与 Morton 位置排序，
 把自己的 ray 作为一段连续区间追加到 SSBO 1，数量由 `global_restirVisibilityRayCount` 记录（在
 [`UpdateGlobalData`](../../../shaders/pass/begin/UpdateGlobalData.comp.glsl) 中重置）。Trace pass 按屏幕大小的队列容量启动，
-超出计数的线程直接退出，并且只把未通过 voxel visibility 测试的临时结果替换为零 diffuse 和仅含 ratio 部分的 specular。
+超出计数的线程直接退出，并且只把未通过 hybrid visibility 测试的临时结果替换为零 diffuse 和仅含 ratio 部分的 specular。
 
 Specular 为 `mix(ratioSpec, restirSpec, roughness)`，roughness 为中心像素的线性 GGX roughness。Ratio resolve 覆盖中心像素以及
 所有 spatial 批次中同平面 paired 像素的 temporal 样本。每个样本以中心材质计算其自身帧的 specular 估计 `L·W·f_o`，并以样本自身的
@@ -108,9 +108,10 @@ HistoryFix 使用 5x5 tent 核过滤方差（可分离权重 `[1, 2, 3, 2, 1]`�
 
 ## 估计器约定
 
-- 体素追踪区分三种结果（[`VoxelTrace.glsl`](../../../shaders/techniques/voxel/VoxelTrace.glsl) 中的
-  `voxel_traceExhausted`）：命中；离开网格，按天空着色（网格边界假设）；步数耗尽，对初始候选是合法的零辐射样本，辐射缓存（RC）
-  候选和重验证则丢弃它。
+- 屏幕区间覆盖视锥内的盒前和离网尾段，以及从原始主表面起算的前四格与网格的交集。用像素深度和几何法线细化屏幕交点，再与首个体素命中仲裁。所有距离都从原始主表面起算。
+- 纯屏幕段耗尽、体素未查通时，保留原 PDF 并返回零贡献。正常走完才查询环境探针。冻结参考模式取天空。
+- 已确认体素归属的命中可取当前 RC 面。RC 无效时可取同一命中像素的重投影漫反射。RC 有效的零予以保留。仅屏幕可见的端点参与当帧着色和空间复用，写回时清空其历史 reservoir 和 primary。
+- 正距离以 FP32 位存入时间复用前的现有 spatial-input tile，FP16 候选通道保存表面标记或结束状态。有限重连需要查通到端点容差。
 - RC face 把零辐射样本计入 M 和控制变量权重，但不会选中它们，因此一个 face 可能有有效的 estimate 却没有选中的样本（[
   `RadianceCache.glsl`](../../../shaders/techniques/gi/RadianceCache.glsl) 中的 `rc_reservoirValid` 与
   `rc_reservoirHasSample`）。

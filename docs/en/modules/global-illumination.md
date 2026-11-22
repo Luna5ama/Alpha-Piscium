@@ -2,7 +2,7 @@
 
 Language: English | [简体中文](../../sc/modules/global-illumination.md)
 
-The current GI path is a screen-space ReSTIR/SST pipeline backed by an environment probe and a separate spatiotemporal
+The current GI path is an opaque-surface ReSTIR pipeline with screen and voxel intersection backed by an environment probe and a separate spatiotemporal
 denoiser. Pass order comes from [`scripts/programs.main.kts`](../../../scripts/programs.main.kts); shared algorithms
 live under [`shaders/techniques/gi/`](../../../shaders/techniques/gi/) and entry points are in [
 `shaders/pass/composite/`](../../../shaders/pass/composite/).
@@ -12,7 +12,7 @@ live under [`shaders/techniques/gi/`](../../../shaders/techniques/gi/) and entry
 | Path                                                                                                                                                                                                                      | Responsibility                                 |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------|
 | [`shaders/techniques/gi/Common.glsl`](../../../shaders/techniques/gi/Common.glsl)                                                                                                                                         | Common GI data and accessors                   |
-| [`InitialSample.glsl`](../../../shaders/techniques/gi/InitialSample.glsl), [`RaySort.glsl`](../../../shaders/techniques/gi/RaySort.glsl), [`FinishTrace.comp.glsl`](../../../shaders/techniques/gi/FinishTrace.comp.glsl) | Initial sampling and long-SST sort/finish      |
+| [`InitialSample.glsl`](../../../shaders/techniques/gi/InitialSample.glsl), [`HybridTrace.glsl`](../../../shaders/techniques/gi/HybridTrace.glsl) | Direction sampling, segmented Hi-Z tracing and secondary lighting |
 | [`Reservoir.glsl`](../../../shaders/techniques/gi/Reservoir.glsl), [`PairwiseMISMetadata.glsl`](../../../shaders/techniques/gi/PairwiseMISMetadata.glsl)                                                                  | Reservoir encoding and pairwise-reuse metadata |
 | [`ResampleMaterial.glsl`](../../../shaders/techniques/gi/ResampleMaterial.glsl)                                                                                                                                           | Material representation used during reuse      |
 | [`Reproject.glsl`](../../../shaders/techniques/gi/Reproject.glsl), [`ReprojectInfo.glsl`](../../../shaders/techniques/gi/ReprojectInfo.glsl)                                                                              | History reprojection                           |
@@ -50,8 +50,8 @@ The runtime resources are `uimg_envProbe`, declared as 1024×768 RGBA32UI in [
 
 | Order | Pass                                                                                                                                                                                                                         | Notes                                                              |
 |-------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
-| 1     | [`GIReSTIRInitalSampleRayGenTrace`](../../../shaders/pass/composite/GIReSTIRInitalSampleRayGenTrace.comp.glsl)                                                                                                               | Generates initial candidates and starts SST                        |
-| 2     | [`GIReSTIRInitalSampleRaySort`](../../../shaders/pass/composite/GIReSTIRInitalSampleRaySort.comp.glsl), [`GIReSTIRInitalSampleRayFinishTrace`](../../../shaders/pass/composite/GIReSTIRInitalSampleRayFinishTrace.comp.glsl) | Only for initial SST steps ≥ 64; sorts and completes long paths    |
+| 1 | [`GIReSTIRInitalSampleHiZ`](../../../shaders/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl) | Sample a direction and its PDF |
+| 2 | [`GIReSTIRInitalSampleVoxelFallback`](../../../shaders/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl) | Splat previous primaries, resolve the full ray and shade the nearest hit |
 | 3     | [`GIReSTIRTemporalReuse`](../../../shaders/pass/composite/GIReSTIRTemporalReuse.comp.glsl)                                                                                                                                   | Reprojects previous reservoirs, samples, hit normals, and material |
 | 4     | [`GIReSTIRDuplicationMapDecorrelate`](../../../shaders/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl)                                                                                                           | Optional decorrelation                                             |
 | 5     | [`GIReSTIRPairedSpatialReuse`](../../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4                                                                                                                   | Pairwise reuse in batches of seven base samples; accumulates the specular BRDF-ratio resolve |
@@ -73,7 +73,7 @@ weight) in `transient_restir_pairwiseMISMetadata`; each 16×16 tile then appends
 rays to SSBO 1 as one contiguous run ordered by world-direction octant and Morton position, counted by
 `global_restirVisibilityRayCount` (reset in [`UpdateGlobalData`](../../../shaders/pass/begin/UpdateGlobalData.comp.glsl)).
 The trace pass launches over the screen-sized queue capacity, exits past that count, and replaces only provisional
-results that fail the voxel visibility test with zero diffuse and the ratio-only specular.
+results that fail the hybrid visibility test with zero diffuse and the ratio-only specular.
 
 Specular is `mix(ratioSpec, restirSpec, roughness)`, with the linear GGX roughness of the center. The ratio resolve
 runs over the center's and every same-plane paired pixel's temporal sample, across all spatial batches. Each sample
@@ -116,10 +116,10 @@ and average view-Z. Tile lifetime and format changes belong in [
 
 ## Estimator contracts
 
-- Voxel traces distinguish three outcomes (`voxel_traceExhausted` in [
-  `VoxelTrace.glsl`](../../../shaders/techniques/voxel/VoxelTrace.glsl)): a hit, a grid exit that is shaded as sky (the
-  grid-boundary assumption), and step exhaustion, which is a legal zero-radiance sample for initial candidates and is
-  dropped by radiance cache (RC) candidates and revalidation.
+- Screen intervals cover the visible ray before and after the voxel grid, plus the first four blocks from the primary inside the grid. A refined pixel-plane intersection competes with the first voxel hit. Each distance is relative to the original primary.
+- An exhausted screen-only interval or unverified voxel traversal contributes zero with the original PDF. A completed miss queries the environment probe. Frozen-reference mode uses the sky.
+- A verified voxel owner can use the current RC face. If it is unavailable, a confirmed hit pixel can supply reprojected diffuse history. A valid zero from RC wins. Screen-only endpoints contribute to the current frame and spatial reuse. Their history reservoir and primary are cleared at writeback.
+- Positive distances are written as FP32 bits to the existing spatial-input tile before temporal reuse. The FP16 candidate channel stores the surface marker or termination state. Finite reconnections require verified coverage through the endpoint tolerance.
 - RC faces count zero-radiance samples in M and in the control-variate weight but never select them, so a face can hold
   a valid estimate without a selected sample (`rc_reservoirValid` versus `rc_reservoirHasSample` in [
   `RadianceCache.glsl`](../../../shaders/techniques/gi/RadianceCache.glsl)).
