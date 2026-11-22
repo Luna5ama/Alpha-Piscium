@@ -58,6 +58,12 @@
 
 <!-- vela:ready {"item":"cloud-light-transport-comparison","rev":"d2f1ef0fe2b1ac9a962a062fe7d2af7f922611ba","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
 
+### 学习式云散射独立实验
+
+交给独立的 GPT-6.2 Astra、max 执行会话，在 48–72 小时预算内比较小型神经网络与小 LUT 对不同液态积云高阶散射的预测，使用同密度路径追踪参考。可与云形及物理输运实验同时开工。[实验规格、预算与交付](docs/rendering/atmosphere-clouds.md#学习式云散射独立实验)
+
+<!-- vela:ready {"item":"cloud-learned-multiple-scattering","rev":"9356e3e28a49b7c5be4b93b179b38a66ce28e082","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
+
 ### 从目标核几何自适应拟合 DPF Bloom
 
 让离线生成器从完整 RGB 核分配各层的采样位置、权重及数量。用 User 8 原配方及相同像素的无标注核图，对照旧半分辨率画质，并在 720p、1080p 和 1440p 核对独立 Bloom 的 4× COD 耗时上限。[实现与验收规格](docs/development/offline-tools.md#geometry-driven-dpf-fitting)
