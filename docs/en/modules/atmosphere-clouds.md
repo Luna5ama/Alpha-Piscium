@@ -387,11 +387,15 @@ Integrated analytic chords across 1,024² pixel centres give 1,642,924 m³ for o
 
 Moving the camera along the same orthographic rays adds only vacuum. At 2, 6 and 12 km, all three 32³ source estimates miss the isolated tower under both lights. At 64³ the new layout hits only the side-light probes at 2 km and only the backlight probes at 6 km. At 12 km both miss. Fine local paths still sample the density directly.
 
+On the same rays, the original 300 m light column can move sideways by at most 5.57 m, including its four-times-solar-radius jitter. The gap to the neighbor is 27 m. Only its 50 m coverage-normal probe can sense the neighbor, on 9/112 rim pixels, 1/16 notch pixels and 0/58 core pixels. The core's paired solar response is therefore exactly zero in this model. At the calibrated density its local ambient transmittance is exp(−27.82075) and the default multiple-scattering feedback gain is 19.9903. Even assigning every sky sample the peak of the stronger Cornette–Shanks lobe gives sky-only radiance below 1.1 × 10⁻¹⁰ sr⁻¹ in real arithmetic. The eight reference streams give 0.010078 ± 0.000002, 0.010946 ± 0.000005 and 0.014874 ± 0.000002 sr⁻¹ on the isolated rim, notch and core (one standard error). Reproduce the bounds with `cloud-reference-report.py <neighbor-run> --column-check <output.json>`.
+
 [Generate the comparison patches](../../../scripts/test/cloud-iris-fixture.py) from the neighbor run's `reference.json`. The column baseline `fb8c36487` is the parent of the cloud rewrite and has the same camera-lighting shader as the frozen specification `d2f1ef0f` (blob `4fa191b0e`). Compare it with transport `c09cfdc76` and the layer-scaled grid. Choose `--sun side|back`, with optional `--neighbor` and `--sky`, for the calibrated camera. The measurement copies the cloud pass's stored half-float radiance and transmittance to `colortex0` at `composite9`. Use a 0.3 km layer, the analytic phase (ratio zero), 1,000 blocks per kilometre and fixed exposure. For frame times and motion, `--world-origin X_M Z_M` places the same density in the ordinary perspective path with game lighting. Count the added transport passes, cloud render, history, an unaffected workload and the complete frame separately. The fixed-volume times bound this candidate's cost in that scene. The 1.30× acceptance also needs a same-scene whole-frame comparison after the new cloud shapes are integrated.
 
 The user kept terrain compositing outside this lighting experiment. [SkyComposite](../../../shaders/techniques/atmospherics/SkyComposite.glsl) reads the accumulated cloud only for sky-depth pixels. From above, a ray ending on terrain therefore omits the overlying low cloud. Compare unoccluded rays to the physical reference and record this visibility limit for the terrain-backed view.
 
 <!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"grid.json"} -->
+<!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"column.json"} -->
+<!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"iris-inputs.json"} -->
 
 ## Air, depth layers, and composition
 

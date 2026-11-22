@@ -159,7 +159,10 @@ vec3 fixtureOrigin(ivec2 texel, ivec2 size) {{
         render = section(render, '        float cuMidHeight =', '            #define CLOUDS_CU_DENSITY',
                          f'        float cuOrigin2RayStart = {(near-cz)*.001};\n        float cuRayLen = {(far-near)*.001};\n        const float CLOUDS_CU_MAX_RAY_LENGTH = 50.0;\n        {{\n')
         path = CLOUD + 'amblut/Gather.comp.glsl'
-        edited[path] = re.sub(r'vec3 inSctr = [^;]+;', f'vec3 inSctr = vec3(rayDir.y > 0.0 ? {sky} : 0.0);', read(path))
+        gather = re.sub(r'vec3 inSctr = [^;]+;', f'vec3 inSctr = vec3(rayDir.y > 0.0 ? {sky} : 0.0);', read(path))
+        # This 1024-thread legacy pass allocated 16 partial sums. The RTX
+        # fixture has 32 subgroups. Leave native timing patches untouched.
+        edited[path] = gather.replace('shared_inSctrSum[16]', 'shared_inSctrSum[32]')
         render = render.replace('SUN_ANGULAR_RADIUS * 4.0', f'{angle} * 4.0')
         path = CLOUD + 'Common.glsl'
         edited[path] = re.sub(r'vec3 tLightToSample = [^;]+;', 'vec3 tLightToSample = vec3(1.0);', read(path))

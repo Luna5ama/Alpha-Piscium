@@ -56,6 +56,46 @@ def stats(values):
             'relative_standard_error': se / abs(mean) if mean else None}
 
 
+def check_column(path, manifest, raw, x, y, masks):
+    """Bound the original light column's response with the calibrated medium and default column settings."""
+    shapes = np.asarray(manifest['ellipsoids_center_radius'], dtype=float)
+    offset = np.asarray(manifest['neighbor_offset_m'], dtype=float)
+    lateral_reach = 300 * np.sin(np.radians(4 * manifest['sun_angular_radius_degrees']))
+    centers_x, radii_x = shapes[:, 0, 0], shapes[:, 1, 0]
+    gap = offset[0] + min(centers_x-radii_x) - max(centers_x+radii_x)
+    if gap <= lateral_reach or np.any(offset[1:] != 0):
+        raise ValueError('expected disjoint tower projections outside the jittered solar columns')
+
+    # Only the +X coverage-normal tap can reach the neighbor. Intersect its
+    # XZ projection with each occupied camera chord before counting a pixel.
+    touched = np.zeros_like(x, dtype=bool)
+    for center, radius in shapes:
+        disk = 1 - ((x-center[0])/radius[0])**2 - ((y-center[1])/radius[1])**2
+        half = radius[2] * np.sqrt(np.maximum(disk, 0))
+        for other, axes in shapes:
+            lateral = 1 - ((x+50-other[0]-offset[0])/axes[0])**2
+            projected = axes[2] * np.sqrt(np.maximum(lateral, 0))
+            touched |= np.minimum(center[2]+half, other[2]+projected) > np.maximum(center[2]-half, other[2]-projected)
+
+    sigma = 1000 * manifest['extinction_per_metre']
+    albedo = manifest['single_scattering_albedo']
+    feedback = albedo * -np.expm1(-2**-1.5 * sigma)
+    feedback *= 1 - .05 * np.clip((feedback-.9)/.1, 0, 1)
+    # Maximum of the two Cornette-Shanks lobes (g = +0.9 and -0.6).
+    g = .9
+    peak = 3/(4*np.pi) * (1-g*g) / ((2+g*g)*(1-g)**3)
+    sky_limit = 4*np.pi * peak * manifest['upper_hemisphere_sky_radiance'] * np.exp(-sigma) * albedo/(1-feedback)
+    report = {'column_revision': 'fb8c36487e24b20bc5f50f8b1890a3849a1f7306',
+              'tower_gap_m': gap, 'light_column_lateral_reach_m': lateral_reach, 'normal_probe_m': 50,
+              'ambient_transmittance': np.exp(-sigma), 'ambient_feedback_gain': 1/(1-feedback),
+              'sky_only_radiance_upper_bound_per_sr': sky_limit, 'regions': {}}
+    for name, mask in masks.items():
+        sky = raw[2, :, -1][:, mask, :2].sum(axis=-1).mean(axis=-1)
+        report['regions'][name] = {'pixels': int(mask.sum()), 'potential_neighbor_normal_pixels': int((mask & touched).sum()),
+                                   'reference_isolated_sky_per_sr': stats(sky)}
+    path.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
+
+
 def report_neighbor(directory, archived, manifest, raw, masks):
     from matplotlib.colors import AsinhNorm, SymLogNorm
 
@@ -176,6 +216,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', type=Path)
     parser.add_argument('--compare', type=Path, help='independent earlier reference run with identical physical inputs')
+    parser.add_argument('--column-check', type=Path, help='write the light-column support and sky-response bounds for the paired tower')
     args = parser.parse_args()
     directory = args.directory
     manifest = json.loads((directory / 'reference.json').read_text(encoding='utf-8'))
@@ -190,6 +231,9 @@ def main():
     }
     assert all(np.any(mask) for mask in masks.values())
     if manifest['neighbors']:
+        if args.column_check:
+            check_column(args.column_check, manifest, raw, x, y, masks)
+            return
         if args.compare is None:
             parser.error('the neighbor comparison requires --compare pointing to the archived guided solar run')
         report_neighbor(directory, args.compare, manifest, raw, masks)
