@@ -1,17 +1,48 @@
-# Changing shader behavior
+# SHADER INSTRUCTIONS
 
-## Find the executing pass
+## Overview
 
-Read this branch's [program list](../scripts/programs.main.kts) for the entry, enabled settings, defines and dispatch. Follow its includes into the implementation. The [pipeline topic](../docs/rendering/pipeline.md) explains producer and consumer dependencies. For opaque GI, follow [direction generation](pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl) into the [voxel tracing pass](pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl) before attributing cost or a missed hit.
+This tree contains the installable Iris shader pack: GLSL entry points, reusable rendering modules, shared bindings and
+utilities, and runtime assets.
 
-Put new stage entries in [pass/](pass/) and reusable rendering code in its [technique](techniques/). Put helpers used by multiple modules in [util/](util/). Follow existing Iris wrappers to their entry. Voxy supplies its own [opaque](voxy_opaque.glsl) and [translucent](voxy_translucent.glsl) fragment hooks.
+## Where to Look
 
-## Preserve the rendering contract
+Use [programs.main.kts](../scripts/programs.main.kts) for compute pass order and enable conditions.
+The [pipeline dependencies](../docs/rendering/pipeline.md) explain how the stages fit together. The [internal index](../docs/README.md)
+links to resource contracts and validation targets for each rendering topic.
 
-- For a resource change, trace its format, binding, coordinates, packing and lifetime through allocation, clear, writes and every read. For history, include jitter, current and previous transforms, reprojection and reset. Edit the owning [tile layout](shadesmith.json) or [Iris declarations](../scripts/shaders.properties) and regenerate through the [scripts guide](../scripts/AGENTS.md).
-- For sampling changes, keep the proposal, PDF, weighting and visibility test consistent. Preserve the distinction between a miss and an exhausted trace where they contribute differently. Use direct computation, explicit selection or shared memory for runtime indexing of local or constant arrays.
-- Give Iris `workGroups` and `workGroupsRender` literal components or macros that expand to literals. Select variants with the preprocessor. Entries grouped in one `pass(...)` may execute concurrently. Put a consumer that depends on another entry's writes in a later slot.
+## Placement and Naming
 
-## Check the result
+- `pass/` contains only entrypoint shaders and is the standard location for new entries.
+- Existing Bloom, RTWSM, and atmospheric compute entries under `techniques/` stay in place, but are not a template for
+  new placement.
+- Put module-local implementation in `techniques/<module>/` and only cross-module helpers in `util/`. Debug code belongs
+  under `techniques/debug/`.
+- Use `.glsl` for shared code without `main`. Entry shaders use `comp.glsl`, `frag.glsl`, `geom.glsl`, or `vert.glsl`.
+  Root `.csh`, `.fsh`, `.gsh`, and `.vsh` files exist for Iris compatibility or generated program wrappers.
+- `gbuffers_*`, `shadow*`, `dh_*`, and `final.*` include implementations under `pass/`. Voxy entry points implement
+  `voxy_emitFragment` directly and do not include the general geometry pass.
 
-An edit to included GLSL can be reloaded directly in Iris. Check enabled and disabled setting branches and use a scene that exposes the change. For temporal work, include motion, disocclusion and history reset. Inspect an affected intermediate alongside the final image when later filters could mask an error.
+## Estimator and GPU Rules
+
+- Keep estimator, PDF, weight, MIS, and bias logic explicit. Do not hide estimator changes behind clamps or fallbacks.
+- Prefer physically meaningful names and justified algorithms over heuristic patches.
+- Prioritize mathematical correctness and GPU performance; deliberate redundancy is acceptable when it is faster.
+- Never index `const` arrays or local variable arrays with runtime indices. Use shared memory, if-chains, or direct
+  computation.
+- Iris `workGroups` and `workGroupRender` values must be literals or macros expanding to literals. Select alternate
+  values with preprocessor branches, not expressions such as `VOXEL_POOL_SIZE * 16` in the directive.
+
+## Data Contracts
+
+- Change shared declarations, formats and lifetimes, packing and coordinates, clears, producers, and every consumer as
+  one contract.
+- Keep temporal and feedback state aligned across current/previous transforms, jitter and motion, history resolution and
+  encoding, resets, and filtering/confidence logic.
+- Register new `SETTING_*` values in `scripts/options.main.kts`, including screen/profile placement and English and
+  Chinese language entries, before using them in GLSL or `cond(...)`.
+
+## Validation
+
+Exercise relevant setting/profile branches, motion and disocclusion, history reset, edge conditions, and the
+module-specific cases linked from the [internal index](../docs/README.md).

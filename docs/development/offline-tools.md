@@ -46,9 +46,45 @@ For runtime texture generators, check binary size/layout and synchronize the `cu
 type in [`scripts/shaders.properties`](../../scripts/shaders.properties). On the shader side, synchronize sampler
 dimensionality, integer/float access class, and any hard-coded channel assumptions.
 
-### Temporal coverage of clustered STBN directions
+## Bloom kernel fitting
 
-The clustering experiment reduced GPU time in two 720p scenes, but pixels repeatedly sampled nearly the same direction across frames. The pack retains the original cosine-direction texture. The [64-frame measurements and offline tool](https://github.com/Luna5ama/Alpha-Piscium/blob/404e864abdb4c750e161efb617b57a041a20157e/experiments/stbn-clustering-20261020.md) document this decision.
+[`fit-bloom.py`](../../scripts/fit-bloom.py) calibrates the shared five-tap downsample and eight-tap upsample
+against a four-scale Gaussian proxy and writes [`BloomTaps.glsl`](../../shaders/techniques/BloomTaps.glsl).
+It checks unit mass and centroids across all 256 proxy phases. The runtime separately combines eight levels with
+equal weights. [`fit-bloom-shape.py`](../../scripts/fit-bloom-shape.py) uses the actual raw level-1 Bloom carrier
+for sparse fitting and emits [`BloomShapeTaps.glsl`](../../shaders/techniques/BloomShapeTaps.glsl).
+[`bloom_shape_targets.py`](../../scripts/bloom_shape_targets.py) defines the directional taps and the glyph
+targets. The glyph fits translate by whole level-1 texels to center their visual bounds. The
+[`Trollface input`](../../scripts/assets/trollface-source.png) is Carlos Ramirez's drawing, sourced from the
+[Wikipedia file page](https://en.wikipedia.org/wiki/File:Trollface.png).
+
+Both tools require Python, NumPy and SciPy; shape input also uses Pillow. Run from the repository root at low
+process priority. Recalibrate the shared taps only when intentionally changing the standard kernel; then refit the
+shape carrier as well:
+
+```powershell
+python -B scripts/fit-bloom.py
+python -B scripts/fit-bloom-shape.py --builtins --output shaders/techniques/BloomShapeTaps.glsl
+```
+
+For a custom target, create an output directory and use either input form:
+
+```powershell
+python -B scripts/fit-bloom-shape.py --image <weights.png> --carrier bloom --mip 1 --tap-budget 64 --output <fit.json> --glsl <shape.glsl>
+python -B scripts/fit-bloom-shape.py --function <kernel.py> --size 129 --carrier bloom --mip 1 --tap-budget 64 --output <fit.json> --glsl <shape.glsl>
+```
+
+PNG input is opaque 8/16-bit grayscale containing raw linear weights. Function input is trusted Python defining
+`psf(x, y)` and returning an array matching the coordinate grids. Both require odd dimensions, finite nonnegative
+weights and positive total mass. The middle texel is the origin; x points right and y down, in full-resolution
+pixels. Inputs normalize to unit mass. JSON gather offsets use mip texels; GLSL flips y for atlas coordinates and
+merges adjacent fitted taps into equivalent bilinear reads. Runtime GLSL export requires `--carrier bloom --mip 1`.
+Call the generated `bloom_shapePrepare()` from every invocation before checking output bounds.
+
+Custom output is a filter fragment for a maintainer to evaluate, not an automatic player-facing option. `--report`
+adds a JSON report for `--builtins`. Keep generated source with the generator change; temporary fit reports stay in
+ignored output directories. Recheck input phases, edge behavior and Iris rendering after changing weights. See
+[Bloom](../rendering/post-processing.md#bloom) for the runtime contract and accepted cost.
 
 ## Binary texture helpers
 

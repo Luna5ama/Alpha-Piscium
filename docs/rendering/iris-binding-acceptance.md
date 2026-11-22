@@ -1,6 +1,6 @@
 # Iris 1.10.4 绑定验收
 
-`2.0/dev` 已合入受验的 SSBO 布局。[受验修订与原始记录](https://github.com/Luna5ama/Alpha-Piscium/blob/688cb0db70f9e56b35476933e4ea70e2a208a34e/docs/sc/development/iris-binding-acceptance.md)
+2.0 独立候选。[受验修订与原始记录](https://github.com/Luna5ama/Alpha-Piscium/blob/688cb0db70f9e56b35476933e4ea70e2a208a34e/docs/sc/development/iris-binding-acceptance.md)
 
 基线 `5ba8718d4`，实现 `3e7f6be0`，冻结规格为 `a6867d91:docs/roadmap.md` 的 2.0 发布范围。绑定 3 先放面 UV、sprite key 与方向模型，再放砖元数据。绑定 5 先放双侧 RC 间接表、计数与活动索引，需要路径引导时追加统计区。绑定 6 独立存储 reservoir。屏幕步进调试数据位于绑定 2 的可选末段。原 9、10、11 已从声明、实际读写方和生成属性移除。Voxy 的 `colortex16/17/18` 专用目标沿用原分配。
 
@@ -19,7 +19,3 @@
 Shadesmith 与 Kotlin 重新生成属性，ReSTIR-CV 布局检查通过。全量 ReSTIR-CV 脚本有四条时间及空间估计器断言失败，在原基线上复现相同四条。上述旧新版实机分别核对了该变更涉及的分配与使用路径。
 
 本地验收归档 `binding-iris.zip` 保存旧版加载日志、只读探针、三组 GPU 回读和画面，以及现版设置回执与图像。SHA-256 为 `74d9bf75db6201007dc30ccd7bbae4f309de7874e7793403b9276dbff53fafbc`。
-
-集成发布时还需检查成品 ZIP。Shadesmith 展平源码时只保留首次包含的文件。在初始采样中先包含路径引导，会把共享缓存类型包在引导开关内，关闭引导后 `composite21` 的缓存查询便无法编译。初始采样现在先包含缓存采样，再包含可选的路径引导。离线回归对成品的 `composite20–30` 逐一编译，覆盖 RC、路径引导和空间复用三个开关的八种组合。检查脚本与逐项结果位于项目的 `builds/release-2.0-input268/`。
-
-实机复测使用 `77cb79df` 的成品 ZIP，SHA-256 为 `20e371adc958a4d5edfea1bdef7c155c27004db43ca1e39da75cb784eed8a44a`。官方 Iris 1.10.4 与 Sodium 0.8.2 在 720p 镜面房固定镜位保持 RC 开启，路径引导开、关两组均加载该包并连续出帧。绑定 5 分别读到 69,206,032 与 52,428,816 字节，两侧缓存计数均非零。每组两帧的漫反射与镜面 GI 均有非零输出，读回均为有限值。运行 `4eff3986-2e45-47fc-b636-62d6c833c2c2` 中对应的设置、读回与截图以 `mirror-on-preset`、`mirror-off-preset` 标记。同一包的真实 Voxy 远景见[混合 GI 验收](hybrid-gi-acceptance.md#20dev-集成包复测)。

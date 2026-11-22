@@ -1,19 +1,139 @@
-# Working on Alpha Piscium
+# PROJECT KNOWLEDGE BASE
 
-Start with the [project knowledge index](docs/README.md) for the question you are answering. Check which branch implements the behavior and where the decision was tested. Follow the [shader guide](shaders/AGENTS.md) for rendering and the [scripts guide](scripts/AGENTS.md) for registration, generation and packaging.
+**Generated:** 2026-07-19
+**Commit:** 2fa383c3
+**Branch:** dev
 
-## Change the owner
+## Overview
 
-Trace the active path from its registration through the producer and consumers. Update the maintained source and its callers together. Extract a shared abstraction when two real uses need it. Remove replaced paths and unused options. Keep a compatibility path only for a required caller. Put derivable constraints in the existing code or generator and validate external inputs where they enter. Use the [topic record](docs/repository-structure.md) for the reason behind a choice, counterexamples and the conditions under which it holds.
+Alpha Piscium is an Iris-targeted Minecraft shader pack implemented in GLSL, with Kotlin and PowerShell tooling for
+program registration, options, generated bindings, packaging, and offline assets.
 
-For cross-version experiments and published work, use the shared topic and Vela publication links in the [knowledge index](docs/README.md). A candidate’s acceptance record identifies its tested revision and the remaining work for this branch.
+## Structure
 
-## Verify the claim
+```text
+shaders/
+├─ Base.glsl       common include root
+├─ base/           shared interfaces and generated bindings
+├─ pass/           standard home for shader entry points
+├─ techniques/     reusable rendering modules and existing direct compute entries
+├─ util/           cross-module GLSL helpers
+└─ textures/       runtime LUT, noise, sky, cloud, and sampling assets
+scripts/           generators, packaging, release, and offline asset tools
+docs/              project knowledge, maintainer workflows, and rendering-module maps
+```
 
-- Use the shared `1.21.11-Vibris` instance for routine visual regression, frame capture and GPU timing. Match the pack revision, scene, preset and affected options there. Record the Iris version actually loaded. Use a separate client for an explicit version comparison or when a specific compatibility or diagnostic difference requires it. For an Iris 1.10.4 compatibility check, reuse applicable evidence and test the affected allocation or output on that version with the relevant settings. Keep routine QA brief and leave final visual acceptance to the user.
-- For open performance work, use measured cost to choose the algorithm, sampling strategy or pass split. Compare image quality and GPU time on the same scene and settings. Reuse comparable measurements. Prefer 720p for initial comparisons when it exercises the workload. Measure the affected passes and any stage that could inherit their cost. Use a stable sentinel and matched, reverse-order pairs when timing drifts. Respect reservations and finish a measurement group before handing over its instance. Use Nsight for a deep GPU hotspot that Vibris timings cannot explain.
-- Check the configured game with `vibris_get_status` and reuse it when online. If Core is offline, `vibris_ensure_runtime` checks the target before launching it. See [Vibris startup](docs/development/vibris-startup.md). Restarting a running game or launcher requires an explicit user request.
+## Where to Look
 
-## Deliver
+| Task | Location | Notes |
+|------|----------|-------|
+| Compute pass order and enable conditions | `scripts/programs.main.kts` | Source of truth for numbered compute wrappers |
+| Settings, profiles, screens, localization | `scripts/options.main.kts` | Uses the DSL in `scripts/options.lib.kts` |
+| Iris properties and custom resources | `scripts/shaders.properties` | Hand-maintained source, unlike the generated shader-root file |
+| Textile tile layout | `shaders/shadesmith.json` | Owns generated `shaders/base/Textile.glsl` bindings |
+| Shader entry points | `shaders/pass/` | Grouped by setup, begin, geometry, shadowcomp, composite, and general |
+| Shared rendering implementations | `shaders/techniques/` | GI, atmospherics, RTWSM, display transform, FFX, and other modules |
+| Cross-module GLSL helpers | `shaders/util/` | Math, coordinates, sampling, material, packing, and color helpers |
+| Pipeline and rendering contracts | [`docs/README.md`](docs/README.md) | Pass dependencies, resources, limitations, and validation targets |
 
-Keep work in progress and other checkouts intact. Before committing, run `git diff --check` and `git diff --cached --check`. Store raw captures and full logs in an ignored run directory or the project artifact store. In the existing Git topic, record the conclusion, conditions, source revision and a retrievable evidence location. For authorized publication, merge the approved changes locally into the named target, run the affected checks, and push that branch directly. Read back the remote commit and entry points. If the remote rejects the push, report the exact rule to the maintainer. Open a pull request only on explicit user request. Report what changed, what was removed, what was verified and where the result is available.
+## Code Map
+
+| Symbol / entry | Location | Reach | Role |
+|----------------|----------|-------|------|
+| `Base.glsl` | `shaders/Base.glsl` | 24 direct include sites | Common compatibility, binding, and option interface root |
+| `Rand.glsl` / `Coords.glsl` / `Math.glsl` | `shaders/util/` | 35 / 36 / 41 include sites | Highest-fan-in shared helpers |
+| `ProgramScope.pass` | `scripts/programs.main.kts` | All generated compute wrappers | Records order, grouping, defines, conditions, and indirect dispatch |
+| `OptionBuilder` / `ScreenBuilder` | `scripts/options.lib.kts` | Settings, profiles, screens, languages | Builds option GLSL, localization, and final properties |
+| `main` entry families | `shaders/pass/` and `shaders/techniques/` | 53 standard / 23 existing direct entries | Runtime pass entry points |
+
+## Project Policy
+
+- Maintain internal project knowledge using Vela's [topic documents and run records](https://github.com/Endoqa/Vela/blob/main/vela-main-task/references/documents.md). Choose the language and format that suit the material.
+- Write clean, direct maintainer code with simple control flow, explicit logic, compact formatting, and coherent
+  ownership. When the existing organization obstructs the requested change, restructure it within scope instead of
+  accumulating local patches around awkward boundaries. Do not turn that restructuring into an unrelated redesign.
+  Never add spacing only to align declarations or operators.
+- When replacing a path, update callers directly and delete the old path, dead helpers, stale comments, and unused
+  settings. Do not preserve legacy behavior, parallel implementations, migration shims, adapters, aliases, fallbacks,
+  or old-data backfills unless explicitly required.
+- Do not add an abstraction without two real uses. Avoid speculative managers, factories, registries, services, generic
+  frameworks, and feature flags or options with one use. Do not encode maintainer judgment as hardcoded validators,
+  closed error-code sets, alias tables, or rule engines unless they are required product behavior.
+- Validate once at trust boundaries: user input, files, external APIs, GPU/driver output, and serialized data. Do not
+  duplicate checks or bookkeeping across layers, and do not add null/bounds checks, catch-all handling, or fallbacks for
+  impossible states; fail visibly.
+- Before adding an abstraction layer, configuration surface, more than about five new files, or any speculative option,
+  separate the requirement-sized implementation from the proposed additions and default to the requirement-sized one.
+  Error-handling rigor applies to real error paths in the requested change and does not justify expanding its scope.
+- If the user says a design is over-engineered, simplify or remove it rather than defending it. Do not add verbose
+  comments that explain obvious code.
+
+## Scoped Instructions
+
+- Shader implementation and placement rules: `shaders/AGENTS.md`.
+- Generator, packaging, and release rules: `scripts/AGENTS.md`.
+
+## Generated Files and Commands
+
+Run generators from `scripts/`. Ordinary `.glsl` edits require no generator because wrappers include source at runtime.
+
+| Maintained source or task | Command from `scripts/` | Result |
+|---------------------------|--------------------------|--------|
+| `programs.main.kts` | `kotlin options.main.kts` | Reruns programs, then aggregates wrappers and final properties |
+| `options.main.kts`, `options.lib.kts`, `shaders.properties`, `sponsors.txt` | `kotlin options.main.kts` | Rebuilds options, languages, wrappers, and final properties |
+| `../shaders/shadesmith.json` | `.\shadesmith.ps1` then `kotlin options.main.kts` | Rebuilds Textile/image bindings and final properties |
+| Test package | `kotlin make-zip.main.kts [version] [--no-commit-hash]` | Writes an ignored package under `../builds/` |
+
+On a fresh checkout, run Shadesmith once before the first options generation so the ignored image/atlas fragment exists.
+Except for that bootstrap and ZIP packaging, run Shadesmith only when `shaders/shadesmith.json` changes.
+Use `programs.main.kts` alone only for a quick wrapper-numbering preview; `options.main.kts` is the shortest complete
+generation because it invokes the program generator.
+
+Do not edit tracked generated wrappers, `shaders/base/{Options,TextOptions,Textile}.glsl`, `shaders/lang/*.lang`, or
+`shaders/shaders.properties` directly. Do not commit ignored `scripts/*.shaders.properties` fragments, `shadesmitth/`,
+or AOT caches.
+
+## Vibris MCP
+
+- Vibris MCP is available for work that needs a live Minecraft instance, including but not limited to compiling and
+  running shaders, measuring performance, comparing results, capturing runtime data, and related diagnostics.
+- Prefer Vibris for performance measurement and regression comparisons, using comparable test conditions.
+- Before accepting runtime evidence, verify that the intended shader pack, source revision, scene, preset, shader
+  configuration, and affected setting branches loaded successfully. Reject samples from failed compilation, the wrong
+  pack or revision, a changed scene, a missing pass, or a mismatched configuration.
+- Measure passes that execute the changed path, relevant sibling passes, and a stable workload sentinel. Do not
+  substitute whole-pipeline time for the affected pass unless the user requests it. Keep source ordering, scene,
+  shader configuration, warmup, sample count, and statistic comparable; use adjacent/reverse pairs or repeated rounds
+  when noise or drift matters.
+- Prioritize 720p presets over 1080p unless the user explicitly requests 1080p or 720p workload is too light to measure.
+- Use Nsight only when deeply optimizing shader code and Vibris measurements are not sufficient.
+- Never restart Minecraft or its launcher unless the user explicitly requests it. Exhaust safe non-restart recovery;
+  if Vibris remains unusable, stop and report the blocker instead of silently switching to replay or another runtime.
+
+## Validation
+
+- Keep routine QA brief; the user performs manual acceptance. Do deeper review or validation only when explicitly requested in the current turn.
+- Run `git diff --check` and `git diff --cached --check` before committing.
+- Keep tracked generated outputs in the same change as their maintained source.
+- Prefer IDE diagnostics. Use external validators such as `glslangValidator` only when explicitly requested or when IDE validation is unavailable.
+- No automated command replaces target-Iris compilation and visual validation. Check affected settings and profile
+  branches, history resets, and representative scenes.
+
+## Reference Sources
+
+Check the maintained project documentation before external sources:
+
+- [Internal documentation](docs/README.md) links to development workflows, rendering contracts, and topic evidence.
+- Generic Iris behavior is covered by the upstream documentation linked from that index.
+
+When present in the working environment, check repository-local references before external sources:
+
+- CG and rendering references: `agent_inputs/cg-resources/`
+- Iris shader documentation: `.agents/iris-docs/`
+
+## Final Response
+
+Summarize:
+- what changed
+- what old code was removed
+- what tests/checks were run, or why not
