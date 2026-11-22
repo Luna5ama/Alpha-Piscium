@@ -49,15 +49,30 @@ changing the sampling sequence requires updating reprojection conventions as wel
 
 2.1 研究 AP 自己的统一时域重建器，可以复用或大改 FSR 3.1 的阶段。原生 TAA 和降比例超分共用同一套历史判断。下表比较公开策略，右栏是待验证的 AP 实验。
 
+**AP 现有画面的三个条件。**
+
+- **静止细节。** 同一表面重投影可靠、画面稳定时，AP 原生 TAA 使用对历史改动最小的邻域颜色 AABB。它在 YCoCg 中取包围邻域颜色的范围；范围内的历史可以保留。用均值和标准差构造的方差盒可能排除真实的少数亮色，连续多帧会把细线和纹理对比压低。实现按相机速度和转向平滑改变裁剪方式，在方差椭球、方差 AABB 和颜色 AABB 间过渡。水面与截图模式另有处理。新重建器以普通静止表面的颜色 AABB 结果作清晰度基准。[裁剪实现](../../shaders/pass/composite/TAAResolve.comp.glsl#L245-L300) · [相机运动与裁剪选择](../../shaders/pass/begin/UpdateGlobalData.comp.glsl#L239-L328)
+- **粗糙玻璃。** 半透明屏幕空间反射与折射先合成进场景颜色，最终时域累积负责平均残余随机噪声。`649eaa672` 已同时移除透明表面向 reactive、composition mask 写入的专用覆盖，并撤下当时不可靠的独立 SST 时域降噪。现有原型随底层不透明深度和运动重投影，仍处理实体、overlay 与无效重投影。新方案须保留玻璃的累积机会，同时观察镜头横移时的视差错误和拖尾。[移除专用覆盖的提交](https://github.com/Luna5ama/Alpha-Piscium/commit/649eaa67287b9631d4411ec4cf4a1d8cd25b142c)
+- **移动时的 GI 亮点。** 用户报告 FSR 原型在 GI 降噪之后仍会显出零星噪点和 fireflies，镜头运动时尤其干扰观感，这是原型一直未合入的原因之一。代码里有可选的 GI anti-firefly，混合强度随重投影历史长度从 1 到 4 帧逐渐上升。短历史像素是待核对的线索；现有记录还没有把这些亮点逐帧归到具体阶段。[原型 anti-firefly](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/pass/composite/GIDenoiserAntiFireFly.comp.glsl#L89-L125)
+
 | 参考 | 能从原始资料确认的策略 | 在 AP 中怎样检验 |
 | --- | --- | --- |
 | Unreal TSR | 分析多帧亮度振荡，允许稳定的细密几何保留更多历史。像素动画能触发相同信号，Epic 提供材质标记，让这类像素跳过抗闪烁判断。[Epic TSR](https://dev.epicgames.com/documentation/en-us/unreal-engine/temporal-super-resolution-in-unreal-engine) | 缓慢横移镜头拍远处栅栏，另拍滚动纹理。用几何重投影与深度先排除遮挡变化，对可信表面再试短期振荡判断。记录细线断续与动画拖尾，检验这两个相反目标。 |
-| AMD FSR 3.1 | Reactive mask 可降低历史权重，transparency/composition mask 较温和，影响历史锁定和颜色裁剪。AP 原型将两个值都从实体反应标记与 overlay 覆盖生成，重投影无效时只额外提高前者。[AMD 输入说明](https://gpuopen.com/manuals/fidelityfx_sdk/techniques/super-resolution-upscaler/) · [AP 遮罩写入](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/pass/composite/FSR3MotionVectors.comp.glsl#L39-L50) | 保持累积器和纹理布局相同，分别改变 Z/W 两个通道的来源。对照移动实体离开后的背景、半透明粒子和水面反光。水面从原型现有接线起步，单独观察过度排斥历史是否让随机反射重新闪烁。 |
+| AMD FSR 3.1 | Reactive mask 可降低历史权重，transparency/composition mask 较温和，影响历史锁定和颜色裁剪。AP 原型将两个值都从实体反应标记与 overlay 覆盖生成，重投影无效时只额外提高前者。[AMD 输入说明](https://gpuopen.com/manuals/fidelityfx_sdk/techniques/super-resolution-upscaler/) · [AP 遮罩写入](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/pass/composite/FSR3MotionVectors.comp.glsl#L39-L50) | 把双通道对照限定在有相应信号的实体、粒子或 overlay。粗糙玻璃沿用已移除专用覆盖的接线，核对其历史累积。 |
 | Intel XeSS-SR | 支持低分辨率运动向量加深度，也接受已膨胀的输出分辨率向量。可用连续权重的 responsive mask 提示缺少可靠运动的像素，Intel 建议同时检查历史减少引起的闪烁。[Intel 开发指南](https://www.intel.com/content/www/us/en/developer/articles/technical/xess-sr-developer-guide.html) | 固定相机，让实体横穿静态墙。分开观察前景向量是否串入背景、实体自身是否缺运动数据。前者试深度引导的前景速度选择，后者先用连续权重降低历史；速度膨胀无法补出上一帧骨骼姿态。 |
 | NVIDIA DLSS Super Resolution | NVIDIA 公开说明 DLSS 4.5 在场景线性空间训练和推理；Streamline 的 SR 接口使用颜色、深度、运动和曝光信息。[NVIDIA 技术说明](https://www.nvidia.com/en-us/geforce/news/dlss-4-5-dynamic-multi-frame-gen-6x-2nd-gen-transformer-super-res/) · [Streamline 接口](https://github.com/NVIDIA-RTX/Streamline/blob/main/docs/ProgrammingGuideDLSS.md) | AP 原型把历史存为场景线性颜色，累积时临时进入可逆 AgX 域。固定采样、历史权重与锐化，对比在该域混合，以及在线性辐亮度域混合、用压缩亮度估计可信度。检查细小自发光和反射高光的能量、颜色与闪烁。这个实验用普通 shader 即可检验。 |
-| Playdead INSIDE TAA | 公开 shader 用当前邻域约束重投影历史，并让亮度差调节历史权重。[Playdead 实现](https://github.com/playdeadgames/temporal/blob/master/Assets/Shaders/TemporalReprojection.shader) | AP 原生 TAA 已有邻域与方差裁剪。把它作为低成本对照，检验额外的亮度统计或历史状态到底改善了哪些镜头。[AP 原生 TAA](../../shaders/pass/composite/TAAResolve.comp.glsl) |
+| Playdead INSIDE TAA | 公开 shader 用当前邻域约束重投影历史，并让亮度差调节历史权重。[Playdead 实现](https://github.com/playdeadgames/temporal/blob/master/Assets/Shaders/TemporalReprojection.shader) | AP 原生 TAA 已有邻域与方差裁剪。分别对照 Playdead 的简化路径和 AP 随运动变化的裁剪，检查静止的颜色 AABB 能保住多少细节。[AP 原生 TAA](../../shaders/pass/composite/TAAResolve.comp.glsl) |
+| Qualcomm Snapdragon GSR 2 | 提供二阶段和三阶段的时域超分版本；三阶段版本把激活判定独立出来。利用深度不一致、亮度历史与局部颜色范围控制重投影。[SGSR 2 开发说明](https://github.com/SnapdragonGameStudios/snapdragon-gsr/blob/main/sgsr/v2/README.md) | 作为较轻的累积器对照。保持相同的 GI、玻璃输入与静态颜色 AABB 基线，比较额外一段历史分析能换来多少运动稳定性，再看 GPU 成本。 |
+| SMAA T2x | 边缘形态判断与时间方向的子像素采样相结合，公开实现可检查空间边缘恢复的贡献。[SMAA 作者项目](https://www.iryoku.com/smaa/) | 用作原生分辨率的边缘对照。先看远处细线与像素纹理在镜头停稳后的对比度；GI 时间降噪由单独的实验评价。 |
+| Adaptive Temporal Antialiasing（ATAA） | 为普通 TAA 难以重建的区域选择性追加光线采样，提高那些位置的观测质量。[ATAA 论文](https://research.nvidia.com/publication/2018-08_Adaptive-Temporal-Antialiasing) | 若短历史区的 GI 输入本身仍有稀疏离群值，可试在少量高风险像素增加 GI 采样。将新增的追踪毫秒计入总成本；原论文的硬件光追路径与 AP 的输入不同。 |
+| 联合降噪与超采样（HPG 2022） | 一套低分辨率特征提取器服务多个滤波阶段，联合输出降噪后的高分辨率结果。[Thomas 等人的论文](https://momentsingraphics.de/HPG2022.html) | 先用解析方案验证共享信息的价值：把已有的 GI 方差或有效历史长度提供给重建器，同一段镜头上与“只看最终颜色”对照。训练网络是另一项工作。 |
+| 自适应时域滤波 A-SVGF | 对稀疏位置用相同随机序列重算着色，估计真实变化的时间梯度，帮助区分光照变化与采样噪声。[Schied 等人的论文](https://momentsingraphics.de/HPG2018.html) | 作为 GI 侧的诊断参考。在固定种子和变化种子的配对回放里，观察疑似 firefly 是否跟着采样跳、真实发光点能否在运动中持续；直接使用论文梯度还需要可重放的着色样本。未来借用该信号时把额外采样计入预算。 |
 
-**建议的实验顺序。** 先保留 [FSR 原型](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/techniques/ffx/fsr3upscaler/README.md#integration-contract) 的采样与累积，用现有通道拆分遮罩语义。随后分别试验可信表面的细线抗闪烁、线性 HDR 累积；各自与原型比较后，再组合有效改动。固定相机时移动的手部和实体能直接暴露缺少物体运动的代价，必要时再研究补运动数据。多帧历史回捞和更高分辨率历史涉及额外显存，可在遮挡再显露仍有可复现缺口时单独测试。
+**建议的实验顺序。**
+
+1. 用同一段静止、缓慢横移、停下的轨迹，保存 GI 降噪前后、最终时域重建输入／输出及锐化后的帧。用高采样的同一场景时刻作为参照，在重投影对齐后记录虚假亮点的数量、亮度偏差与寿命。跟踪真实小灯或镜面高光作对照，记录其峰值与覆盖率。先判断噪点在哪个阶段出现、在哪个阶段变得显眼。
+2. 保留粗糙玻璃现有历史路径。在静止玻璃测帧间亮度波动，横移时看玻璃与背景的拖尾；同时以静止的栅栏、远处细线和高反差纹理对照现有颜色 AABB，记录边缘对比、线条覆盖率和停稳后的收敛。抑制移动亮点的候选须同时通过这两组对照。
+3. 若 GI 输出已有离群亮点，先比较借用有效历史／方差、局部处理短历史区或追加少量 GI 样本。若亮点主要在重建或锐化时被放大，分别比较当前样本的可信度、历史裁剪与线性 HDR 混合。实体和 overlay 的 Z/W 遮罩语义、TSR 式细线保护各自独立对照。组合有效改动后再评估累计成本和副作用。
 
 **比较口径。** 对每种算法重放同一段帧序列，固定几何动画、相机、抖动、曝光、DRT 与锐化。原生 1080p 和 720p 输入到 1080p 分别比较；先看重建输出，再看同设置最终画面。用相同场景时刻的高采样参考核对栅栏的可见覆盖率和高光亮度，再逐帧记录遮挡解除后的残影消退帧数、静态区域亮度波动与运动中的细节。另列整条重建链的 GPU 毫秒、图集显存和物理 image 数。在 Iris 1.10.4 上核对原生、超分两种模式及法线贴图开关。以上为实验设计，方案优劣待同段实测。
 
