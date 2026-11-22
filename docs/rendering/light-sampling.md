@@ -62,10 +62,7 @@ CDF 对照的每种方法、每个获取顺序都保留四个 32 帧块，使用
 - Anchor 取舍来自原实验检出的 `builds/light-sampling/20261109-selection-review/walkthrough.md` 和 `selection.json`。
   上表对应 `moving4-g16-anchor`、`moving4-g32-anchor`、`ls3-anchor` 和 `ls5-anchor`。旧产物中用同目录
   `walkthrough-images.json` 核对画面对照及缩图哈希。取舍、可比条件和关键数值已随本页入 Git。
-- 完整冻结候选的收据在实验分支 `2.0/light-sampling` 的 `d8c32aa521814631b6f1a6b5189e2aa1da31c131`。
-  在持有该分支的检出可用 `git show d8c32aa52:experiments/light-sampling/20261108-eight-hour-exploration.json` 查看
-  `stage12_closeout` 的原始记录索引，用 `git show d8c32aa52:docs/en/modules/light-sampling-design.md` 或
-  `git show d8c32aa52:docs/sc/modules/light-sampling-design.md` 查当轮完整设计与过程。实验交付提交 `c3dee240b`
+- 实验分支 `2.0/light-sampling` 的[冻结记录索引](https://github.com/Luna5ama/Alpha-Piscium/blob/d8c32aa521814631b6f1a6b5189e2aa1da31c131/experiments/light-sampling/20261108-eight-hour-exploration.json)列出 `stage12_closeout` 的原始记录。[设计与实验过程](https://github.com/Luna5ama/Alpha-Piscium/blob/d8c32aa521814631b6f1a6b5189e2aa1da31c131/docs/sc/modules/light-sampling-design.md)保留当轮的场景、配置和判断条件。实验交付提交 `c3dee240b`
   索引了 76 张候选对照图和 11 个预设基线对照。
 - 冻结实验的图像经过独立逐像素或哈希复核，旧 FOV 标记已修正。交互浏览器验收当时跳过。历史对照与完整捕获留在实验检出的
   忽略产物目录。
