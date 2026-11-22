@@ -30,7 +30,8 @@ const uint VOXEL_UNALLOCATED = 0xFFFFFFFFu;
 // ---------------------------------------------------------------------------
 // SSBO 3 – Brick Metadata
 //   [0]                          : allocation count
-//   [1   .. VOXEL_GRID_BRICKS]   : occupancy flags (0=empty, 1=occupied this frame)
+//   [1   .. VOXEL_GRID_BRICKS]   : previous-frame occupancy for allocation. During raster,
+//       allocated bricks use the word to mark pairs of leaves missing from the previous root.
 //   [VOXEL_GRID_BRICKS+1 .. 2*VOXEL_GRID_BRICKS] : allocation IDs (<POOL=valid, 0xFFFFFFFF=unallocated)
 //   [2*VOXEL_GRID_BRICKS+1 .. 2*VOXEL_GRID_BRICKS+NUM_DIST_BUCKETS] : per-bucket counts (allocator inter-pass)
 // ---------------------------------------------------------------------------

@@ -7,6 +7,12 @@
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 #include "/util/HardcodedPBR.glsl"
 
+#ifdef SHADOW_PASS_VOXELIZE
+layout(std430, binding = 8) restrict readonly buffer VoxelTreeData {
+    uvec2 voxel_tree[];
+};
+#endif
+
 layout(r32i) uniform iimage2D uimg_fr32f;
 
 in vec2 mc_Entity;
@@ -89,22 +95,19 @@ void main() {
             if (all(greaterThanEqual(brickRelCoord, ivec3(0))) &&
                     all(lessThan(brickRelCoord, ivec3(VOXEL_GRID_SIZE)))) {
 
-                // Mark brick occupied for this frame
-                voxel_brickOccupancy[brickMorton] = 1u;
-
-                if (allocID != VOXEL_UNALLOCATED) {
+                if (allocID == VOXEL_UNALLOCATED) {
+                    voxel_brickOccupancy[brickMorton] = 1u;
+                } else {
                     ivec3 blockInBrick = blockWorldPos & ivec3(VOXEL_BRICK_SIZE - 1);
                     uint blockMorton = voxel_blockMorton(blockInBrick);
                     uint matIdx = voxel_materialIndex(allocID, blockMorton);
-                    // Only write a non-zero material ID; 0 means "no entity mapping".
-                    // atomicMax ensures a real ID beats the cleared-to-0 state.
-                    if (materialID != 0u) {
-                        uint materialData = (materialID << 1u) | uint(hardcoded.isFullCube);
-                        atomicMax(voxel_materials[matIdx], materialData);
-                    } else {
-                        // Block exists but has no material ID mapping: write a
-                        // Placeholder material ID 1 so the tree knows the voxel is solid.
-                        atomicMax(voxel_materials[matIdx], 1u << 1u);
+                    uint leaf = blockMorton >> 6u;
+                    // Unmapped geometry contributes occupancy through placeholder material 1.
+                    uint materialData = materialID != 0u ? (materialID << 1u) | uint(hardcoded.isFullCube) : 2u;
+                    atomicMax(voxel_materials[matIdx], materialData);
+                    uint previous = voxel_tree[uint(VOXEL_TREE_OFFSET_L2) + brickMorton][leaf >> 5u];
+                    if ((previous & (1u << (leaf & 31u))) == 0u) {
+                        atomicOr(voxel_brickOccupancy[brickMorton], 1u << (leaf >> 1u));
                     }
                 }
             }

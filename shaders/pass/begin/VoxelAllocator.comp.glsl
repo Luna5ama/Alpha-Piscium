@@ -1,10 +1,10 @@
 // Brick Allocator – single 1024-thread workgroup, distance-prioritised.
 //
 // Runs every frame in a begin pass, AFTER VoxelCounterReset.
-// Reads the occupancy flags left by the PREVIOUS frame's shadow pass, remaps
+// Reads the previous frame's finalized brick occupancy flags, remaps
 // them from the old camera's coordinate space to the current camera's, assigns
 // allocation IDs 0..VOXEL_POOL_SIZE-1 prioritising bricks closest to the camera,
-// then clears occupancy so the current frame's shadow pass can write fresh flags.
+// then clears the words for the current frame's voxelization.
 //
 // The remapping is critical: occupancy was written using Morton indices relative
 // to the previous frame's camera brick position.  The shadow pass this frame
