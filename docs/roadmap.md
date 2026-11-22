@@ -43,7 +43,7 @@ Skibidi DRT 沿用自身的色域压缩，选项只设置目标色域。压缩�
 
 ## 2.1 原生 TAA 与超分辨率
 
-原生 TAA 和超分都须支持 Iris 1.10.4。2.1 采用自研或深度改造的路线，以 `2.0/fsr3` 的 FSR 3.1 原型为基线。比较 TSR、XeSS-SR、DLSS Super Resolution 和其他公开方案的策略，分项验证后组合。[2.1 策略对照与首轮实验](https://github.com/Luna5ama/Alpha-Piscium/blob/92150474026c39e317f8598855dfef2bbdddc3b7/docs/rendering/post-processing.md#21-时域重建策略对照)
+原生 TAA 和超分都须支持 Iris 1.10.4。2.1 采用自研或深度改造的路线，以 `2.0/fsr3` 的 FSR 3.1 原型为基线。比较 TSR、XeSS-SR、DLSS Super Resolution 和其他公开方案的策略，分项验证后组合。用户在原型中看到 GI 降噪后仍有零星亮点，镜头移动时尤其明显。合入前用运动序列核对亮点与真实小高光，保留粗糙玻璃的最终时域累积，以及现有 TAA 在静止表面使用颜色 AABB 的清晰度。[2.1 策略对照与首轮实验](https://github.com/Luna5ama/Alpha-Piscium/blob/8181f6aeac4e278b7d52d46f1e1871eb52a8f9cf/docs/rendering/post-processing.md#21-时域重建策略对照)
 
 首版重建用的 Shadesmith tile 统一按输出分辨率分配。渲染分辨率的数据只读写 tile 内的有效区域，邻域采样和过滤也以有效区域为界。输出分辨率的颜色历史使用完整 tile，跨帧轮换。优先复用已有的同格式图集，减少物理 custom image 声明；沿用原型时，重建深度可接入现有 `R32UI` 图集，颜色历史可接入 `RGBA16F` 图集。
 
