@@ -21,3 +21,9 @@ MCP 连接 `127.0.0.1:50051`。专用实例为 PCL 的 `1.21.11-Vibris`，相邻
 Vibris `de750971e5bc` 已并排安装。AP 工作树的只读查询先返回 `SERVER_OFFLINE`，随后 `vibris_ensure_runtime` 在 17.516 秒内启动专用实例并返回 `online`。普通 `vibris_get_status` 返回 `operational=true`、`can_accept_job=true`。新客户端复用了同一个 Java 进程，既有 bridge 也可查询在线状态。
 
 7 项相关 Release CTest 通过，覆盖跨客户端并发只启动一次、超时与断连重试、计划重启等待及目标身份核对。原始调用与部署配置见本机 `I:/code/vibris/build/vibris-on-demand-start/restart-entry/REPORT.md`。
+
+## 专用游戏的 Windows GPU 调度实验
+
+用户于 2026-11-22 在项目讨论确认将调度接入 Vibris。Windows 专用游戏进程启动后空闲时使用 WDDM Idle（0），执行实际游戏任务时使用 Realtime（5）。以游戏实际执行作业的生命周期为准，覆盖相邻作业、排队、完成、取消和失败。队列真正空闲时回到 Idle。仅调整已核对身份的专用游戏进程的 GPU 调度类，保留 CPU 调度与其他进程设置。[Windows 调度接口](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/d3dkmthk/nf-d3dkmthk-d3dkmtsetprocessschedulingpriorityclass)
+
+交付包括实现修订、开发机部署工件、可复跑的生命周期测试和实机记录。按进程身份、作业 ID 和时刻将设置返回值及读回值与实际边界对齐。设置被拒、读回不符和计时受干扰分别记录。在完整 GI 测量组结束后启用策略，保留运行中的游戏及启动器。同一组使用同一策略；在可比后台负载下分别报告实际档位和配对计时的波动。若当前实例需重载才能接入，记录已验证的路径、剩余实机条件及可用时间。共享 GPU 和游戏继续按项目租约交接。
