@@ -24,7 +24,6 @@ layout(local_size_x = 16, local_size_y = 16) in;
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
-layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(r32ui) uniform restrict uimage2D uimg_r32ui;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
@@ -1150,30 +1149,6 @@ void main() {
                 finalPackedHitNormal,
                 packHalf4x16(clamp(finalSample, 0.0, FP16_MAX))
             ));
-
-            #ifndef SETTING_GI_SPATIAL_REUSE
-            vec4 ssgiDiffOut = vec4(0.0);
-            vec4 ssgiSpecOut = vec4(0.0);
-            if (finalReservoirValid) {
-                vec3 winV = normalize(-finalPrimaryViewPos);
-                restir_shadeSample(
-                    finalSample.rgb,
-                    temporalReservoir.Y,
-                    temporalReservoir.avgWY,
-                    targetGeomNormal,
-                    targetNormal,
-                    winV,
-                    winV,
-                    storedMaterial,
-                    texelPos,
-                    ssgiDiffOut,
-                    ssgiSpecOut
-                );
-            }
-
-            transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);
-            transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
-            #endif
         }
         if (!finalReservoirValid) {
             temporalReservoir.Y.w = -1.0;
