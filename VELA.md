@@ -138,6 +138,6 @@
 
 ### 2.1 曝光与 DRT
 
-在 `2.1/dev` 实施直方图曝光、四种 DRT 和共享 SDR Look，默认使用 Skibidi 与中性 Look。按[曝光与 DRT 规格](docs/roadmap.md#21-曝光与-drt)核对固定输入的 SDR 输出与 EV，验证暗洞、雪地和小面积强光的曝光响应。Blender AgX 在中性 Look 下与现版对照后交用户决定。本修订接续 `4789a2c9` 的 [HDR Mod 实机输出](docs/roadmap.md#hdr-mod-输出) 和原曝光与 SDR 工作。Skibidi 加入默认 Display P3、支持自定义三原色 xy 的[显示色域缩限](docs/roadmap.md#显示色域缩限)。沿用已取得的 SDR 对照，核对预设与同坐标自定义模式，并用模组提供的实际参考白和峰值验收 HDR 高光。统一时域重建的算法选型可独立推进。
+在 `2.1/dev` 实施直方图曝光、四种 DRT 和共享 SDR Look，默认使用 Skibidi 与中性 Look。按[曝光与 DRT 规格](docs/roadmap.md#21-曝光与-drt)核对固定输入的 SDR 输出与 EV，验证暗洞、雪地和小面积强光的曝光响应。Blender AgX 在中性 Look 下与现版对照后交用户决定。本修订接续 `4789a2c9` 的 [HDR Mod 实机输出](docs/roadmap.md#hdr-mod-输出) 和原曝光与 SDR 工作。Skibidi 加入默认 Display P3、支持自定义三原色 xy 的[显示色域缩限](docs/roadmap.md#显示色域缩限)。接续 `b52f4b01` 的边界测试时以 Skibidi 输出为准，后续共享 Look 允许越界。沿用已取得的 SDR 对照，核对预设与同坐标自定义模式，并用模组提供的实际参考白和峰值验收 HDR 高光。统一时域重建的算法选型可独立推进。
 
-<!-- vela:ready {"item":"exposure-drt-2-1","rev":"b52f4b01f63e96d4a44598b1eeb0b2dd73186f5c","spec":"docs/roadmap.md","after":[]} -->
+<!-- vela:ready {"item":"exposure-drt-2-1","rev":"80131f3d7769f4a35be0ee5bb69b3b6692551703","spec":"docs/roadmap.md","after":[]} -->
