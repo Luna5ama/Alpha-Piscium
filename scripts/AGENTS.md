@@ -1,46 +1,18 @@
-# GENERATOR AND TOOLING INSTRUCTIONS
+# Changing generators and packaging
 
-## Overview
+Run Kotlin entry points from `scripts/`. For a new option-controlled pass, follow the [worked registration example](../docs/development/generators.md#add-a-compute-pass-controlled-by-a-setting). The [program list](programs.main.kts) owns order, grouping, conditions and indirect dispatch. The [options source](options.main.kts) owns settings, screens, profiles and player-facing translations. Edit the [DSL](options.lib.kts) when its behavior needs to change.
 
-This directory owns program registration, option generation, property aggregation, Shadesmith integration, packaging,
-release automation, and offline asset generation.
+## Build the tracked outputs
 
-## Where to Look
+| Change | Action from this directory |
+| --- | --- |
+| Pass registration, options, sponsors or [hand-maintained Iris properties](shaders.properties) | Run `kotlin options.main.kts`. It invokes the program generator and aggregates the property fragments. |
+| [Textile layout](../shaders/shadesmith.json) | Run `.\shadesmith.ps1`, then `kotlin options.main.kts`. Also run Shadesmith before the first options generation in a fresh checkout to create the image/atlas fragment. |
+| Included GLSL only | Reload the pack in Iris. |
+| Offline texture or LUT | Verify dimensions, binary format and channels against the texture declaration and shader readers. See the [offline tools](../docs/development/offline-tools.md). |
 
-| Source | Ownership |
-|--------|-----------|
-| `programs.main.kts` | Compute order, grouped wrappers, conditions, defines, and indirect dispatch |
-| `options.main.kts` | Settings, profiles, screens, translations, and version selection |
-| `options.lib.kts` | Options DSL implementation and final property aggregation |
-| `shaders.properties` | Hand-maintained textures, images, SSBOs, blending, and uniforms |
-| `shadesmith.ps1` / `shadesmith.jar` | Textile preprocessing and image/atlas property generation |
-| `make-zip.main.kts` | Test/release ZIP assembly |
-| `release.main.kts` | Branch, tag, push, upload, and announcement workflow |
+Review the generated wrappers, option and Textile bindings, languages and final shader properties affected by the change. Commit tracked outputs with the owning source. Keep intermediate property fragments, caches, local Java/output configuration and release credentials out of Git. For DPF editing and fitting, the [profile workflow](../docs/development/offline-tools.md#interactive-bloom-line-profile) identifies the generator and the held-out phases used to check its output.
 
-## Generator Rules
+## Package or release
 
-- Kotlin entrypoints use relative paths and must be launched from this directory. `shadesmith.ps1` self-locates through
-  `$PSScriptRoot` but should use the same documented working directory.
-- `pass(pathA, pathB, ...)` emits same-number suffix wrappers. With concurrent compute enabled, grouped entries must be
-  independent; never use suffix letters as an execution order.
-- Keep `define`, `constDefine`, `cond`, and `indirect` decisions explicit in the program declaration that owns the pass.
-- When removing or replacing a pass, remove the obsolete entry source and unused settings; let the generator replace
-  wrappers and property branches.
-
-## Local and Ignored State
-
-- Do not edit `programs.shaders.properties` or `shadesmith.shaders.properties`; both are ignored intermediates.
-- Local `config.properties` supports `JAVA_PATH` and `SHADESMITH_OUTPUT`. Keep it machine-local.
-- `tokens.properties` contains release credentials. Never commit it.
-
-## High-Side-Effect Tools
-
-- `release.main.kts` switches branches, creates and pushes tags, and calls publishing APIs. Run it only when the user
-  explicitly requests a release and the checkout is the exact content to publish.
-- Offline LUT/texture generators are not part of the normal GLSL loop. When changing their outputs, verify binary
-  dimensions/layout and synchronize `customTexture.*` declarations, sampler types, channel assumptions, and shader
-  constants.
-
-## Validation
-
-Review generated diffs for only the expected wrappers, option bindings, languages, properties, or Textile changes.
+For a local test ZIP, refresh any affected generated files, then run `kotlin make-zip.main.kts`. [Packaging](make-zip.kts) runs Shadesmith and assembles the pack under `../builds/`. Inspect the archive for the changed shader or asset. The [release script](release.main.kts) can switch branches, push tags, upload and announce a release. Run it only for an explicitly requested release from the intended revision.
