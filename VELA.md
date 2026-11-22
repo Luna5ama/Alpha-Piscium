@@ -48,9 +48,9 @@
 
 ### 程序化积云建模
 
-在现有 Iris 渲染路径接入可飞入的淡、中、浓积云。以全景、穿云与云上视角核对布局和保守边界，用同场景整帧耗时核对首版预算。形态参考和交付范围见[首版建模规格](docs/rendering/atmosphere-clouds.md#首版建模交付)。
+从实验分支已接收的 `033741ccc` 继续修整浅积云的底边、薄肩与云瓣，落实逐级向内的 LOD 侵蚀。以同镜位实机彩色图和透射图复核，整帧预算沿用首版原始基线。[本轮建模规格](docs/rendering/atmosphere-clouds.md#积云轮廓与细节层级修订)
 
-<!-- vela:ready {"item":"procedural-cloud-shapes","rev":"8532145674051de7192bfe3ee22c38a4ea38c7d8","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
+<!-- vela:ready {"item":"procedural-cloud-shapes","rev":"8eafcf48395cc45eaec34bb0e7cfe26ffa064150","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
 
 ### 云光照的物理输运对照
 
