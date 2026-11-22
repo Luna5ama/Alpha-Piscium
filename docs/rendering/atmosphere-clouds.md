@@ -52,6 +52,8 @@ When `SETTING_CLOUDS_CU` is enabled:
 | 2 | [`clouds/ss/Accum`](../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl) | Applies history accumulation, confidence/variance processing, and upscaling to the low-resolution result; this is the [`ss/Accum`](../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl) stage |
 | 3 | Later air/local composition | Reads the accumulated cloud scattering and transmittance |
 
+The directional sky LUT has three scattering/transmittance pairs. The first stores the complete sky from the camera. The other two store air below and above cirrus. A displaced environment ray checks parallax against the LUT's half-texel footprint and marches from the surface if the displacement is resolved. Opaque geometry clips the main ray. Water and glass split it into background and foreground segments. History stores extinction-weighted distance in kilometres for reprojection. [World-space cloud integration](../../shaders/techniques/atmospherics/clouds/CumulusRay.glsl) · [Environment rays](../../shaders/techniques/atmospherics/clouds/SkyRay.glsl)
+
 The main screen tiles are `transient_lowCloudRender`, `transient_lowCloudAccumulated`, and `history_lowCloud` (
 RGBA32UI). The hand-maintained property fragment declares custom cloud phase-LUT, cirrus, cumulus base/detail, and curl
 textures. High cirrus is sampled by the shared sky/cloud path rather than a separate compute program.
@@ -85,37 +87,10 @@ omitted `3/(4π)` normalization reference. The result is added independently of 
 multiple-scattering term; it does not replace or modify that term.
 
 The accumulated `phi_fwd` field is isotropic and follows the prefix estimator, but final view-path readout intentionally
-uses `msPhase = mix(UNIFORM_PHASE, layerParam.medium.phase, 0.7)` to retain controlled directional structure. This
+uses `msPhase = mix(UNIFORM_PHASE, medium.phase, 0.7)` to retain controlled directional structure. This
 rendering choice is layered after the isotropic field, not part of its transport recurrence.
 
-The receiver-local boundary weight is
-
-$$
-H(x,z)=\mathrm{thickness}\;\mathrm{saturate}(\mathrm{baseCoverage}_{raw}(x,z)),\qquad
-\Delta=\mathrm{clamp}(0.05/\_LOW\_BASE\_FREQ,0.025,0.2),
-$$
-
-$$
-\partial_xH=\frac{H(x+\Delta,z)-H(x-\Delta,z)}{2\Delta},\qquad
-\partial_zH=\frac{H(x,z+\Delta)-H(x,z-\Delta)}{2\Delta},\qquad
-N=\mathrm{normalize}(-\partial_xH,1,-\partial_zH),
-$$
-
-$$
-C_{top}^{raw}=\mathrm{saturate}\!\left(\frac{N\cdot\mathrm{renderParams.lightDir}+0.5}{1.5}\right),\qquad
-C_{top}=\mathrm{mix}(1,C_{top}^{raw},0.25),\qquad
-C_{bottom}=1-\exp\!\left(-\frac{\max(h_{local},0)}{0.1\,\mathrm{mix}(1,4,h_{column})}\right),\qquad
-B_{eff}=C_{top}C_{bottom}.
-$$
-
-Here `baseCoverage_raw` is the existing pre-height coverage value, `h_column = saturate(baseCoverage_raw)` reuses the
-receiver density lookup, and `h_local` is the normalized receiver height (`0` at the cumulus-layer base and `1` at its
-top). The constants correspond to `b = 0`, `p = 1`, and `H_bottom = 0.1`, matching the density model's existing normalized
-`0.1` bottom scale. `C_top` uses the actual `renderParams.lightDir`, not the cone-jittered light-march direction. The
-`0.25` confidence strength keeps the top factor in `[0.75,1]`; full-strength use of the coarse coverage normal exposes
-vertical bands in the cloud body. The gate is evaluated once per occupied receiver sample and multiplies every source
-weight before accumulation, intensity, and compression. It costs four extra coverage-proxy evaluations with no extra
-center lookup, and adds no pass, resource, texture resource, or density march.
+The receiver-local boundary multiplier uses the upward normal of the dominant cluster and the selected sun or moon direction. The top factor is `mix(1, saturate((dot(N, L) + 0.5) / 1.5), 0.25)`. The bottom factor is `1 - exp(-h / (0.1 * mix(1, 4, development)))`, where receiver height is normalized to its own cluster and development is measured against the configured thickness. Their product gates the eight diffusion samples. The direct-light column continues through the shared field beyond those bins until it exits the volume or reaches green-channel optical depth 5.3.
 
 The estimator is adapted from AshenOneArt's [HanPi Volume Cloud implementation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/VolumetricClouds.hlsl)
 and [forward-flux derivation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md).
@@ -227,3 +202,57 @@ $\rho_{\rm shape}$ 取局部形变、噪声侵蚀和密度过滤后的值。父�
 - 同底宽的三种积云里，淡积云较薄，固定米数的淡出容易吃掉宽底。对单个椭球，可先让 $w$ 取其最短半轴的一小部分，使过渡占各轴相近的比例。用淡积云核对云底是否仍连贯，再看浓积云冠部的小瓣是否仍分明。
 
 第一轮几何对照可固定体场，从几个开阔地面位置环视，检查远塔是否可辨、主次和蓝隙是否自然。挑一座塔飞近并绕到侧面，看宽底、侧塔和层间空隙的关系怎样随视角变化。再以俯视覆盖、侧面轮廓和透射图检查云列间隙、分级塔冠和层间净空。穿过 SKY-116 一类的近云缘，在同一体场换太阳方向，看背光凹槽是否来自真实密度。远级密度近似需要另查列光学厚度，直接填满粗包络会抹掉细级云隙。首版整帧预算仍为同场景现状的 1.30 倍。示意图只检查了几何包含关系，实际求值次数、掠射步数及整帧耗时待 Iris 对照。
+
+## 程序化积云实验记录
+
+2026-11-21，实验分支 `codex/procedural-cloud-shapes`，规格与对照基线 `85321456`，shader 候选 `478b66d2`。
+两套相互错开的 XZ 格生成独立云团，低频风带控制聚集方向和疏密。主塔、侧肩、次枝和冠瓣分别在父包络内裁边。
+格面限制跳空距离，体积重叠处取最大局部密度。照明复用既有介质、相函数、WDT22 和八采样点的局部各向同性多重散射。
+
+### 世界尺度与透射
+
+CPU SwiftShader 使用候选 GLSL 和包内四张噪声纹理。游戏日 7、第 6000 tick，默认风与云设置。
+20 × 20 km 体积内的 XZ 样本间隔为 156.25 m，垂直间隔为 26.79 m。下表为密度大于 0.04 的三个连通体。
+侧视图依次为淡、中、浓积云，每栏宽 3.9 km、高 2.6 km，白色为全透射，黑色接近不透光。
+
+| 形态 | 样本厚度 | 水平包围盒 X × Z |
+| --- | ---: | ---: |
+| 淡积云 | 241 m | 2.19 × 2.97 km |
+| 中积云 | 536 m | 1.09 × 1.25 km |
+| 浓积云 | 1,714 m | 2.19 × 2.19 km |
+
+![同尺度侧视透射，依次为淡、中、浓积云](figures/cumulus-field-sections.png)
+
+下图为世界眼点 `(52200, 102, 34800)` 的绿色通道透射。水平一圈，仰角从 −2° 到 55°，方位角从 +Z 向 +X 增长。
+仰角 22.27°、方位 138.87°、158.55°、174.73° 的透射分别为 0.00317、1.00000、0.00287，远级为 0.00312、1.00000、0.00288。
+512 × 128 条视线中，83.52% 的透射超过 0.99。
+
+![从海平面上方 40 米环视同一云场的透射](figures/cumulus-field-transmittance.png)
+
+- 同一 XZ 上，粗网格找到 38 列有两段密度且间隔超过 140 m。在随风坐标 `(-2.578125, 2.265625) km`，
+  每 0.732 m 取样的细级零密度间隙为海平面上 1087.01–1302.34 m，远级为 1087.74–1301.61 m。细级上下两段的透射为 0.00457 和 0.00000578。
+- 两次独立创建 CPU 管线，在相同时刻输出的全景缓冲逐字节相同。午夜前后各 40,960 个随机位置中，
+  父界外正密度、每个正跳距内部七个测试点的正密度、复制同团后的密度变化均为零。
+  另对两个时刻各 73,728 个位置使用视线、光线和反向查询，同位置同 LOD 的最大密度差为零。
+- 细远 LOD 全景的绝对透射差均值为 0.00036，P99 为 0.01083，最大为 0.08388。
+  5,120 条配对视线对照 12 m 等距积分，绝对差均值为 0.00057，P99 为 0.01239，最大为 0.08838。边缘缩短步长前，同组掠射线的最大误差约 0.94。
+- CPU 驱动缺少着色器 FP64。用 GLM 编译世界原点函数的算术，风开关各 75 组，覆盖世界边界、跨午夜及从不同相机原点查询同一点。
+  启风时与双精度参考的最大位置差为 0.116 m，同一时刻重新求值逐位相同。
+  12 个入口在默认、关风、关卷云、关积云四组设置下通过 GLSL 静态编译。
+
+### Iris 验收镜位与量测
+
+实机基准用 `cloud-6-720p`，晴天、1280 × 720、第 6000 tick、默认设置。
+核对加载的 shader、世界时刻、相机、配置与暖机，按基线／候选／候选／基线配对采样。
+记录整帧 GPU 时间、天空视图 LUT、积云积分与累积、受影响的 GI 和透明合成 pass，以及固定工作量的透射 LUT `begin1_b`。整帧上限为基线的 1.30 倍。
+
+现有六个云预设都在低处，Vibris 单次相机移动每轴最多 16 方块。绕塔与穿层使用独立的实际世界镜位。
+第 0 天、第 6000 tick 时，`X = −778.125, Z = 3465.625` 的下层占世界 Y 约 822–1138，上层占 Y 约 1358–2148。
+可在 Y 约 1250 分别仰视和俯视，在 Y 约 1358 以短路径穿过云底，再从 Y 约 3300 俯瞰塔及地面。记录实际游戏眼点。
+该运行的 `iris-scenes.json` 备有 16 个候选镜位，涵盖八个绕塔方位、三个进近距离及五个穿层或俯视位置。
+目标 Iris 编译、固定时刻重载、环视、绕塔、穿云、俯视与整帧／pass 配对时间等待 GPU 租约。
+
+<!-- vela:evidence {"run":"d93e4589-1ab6-4287-9fa3-181ffd46cb98","path":"field-sections.png"} -->
+<!-- vela:evidence {"run":"d93e4589-1ab6-4287-9fa3-181ffd46cb98","path":"sky-transmittance.png"} -->
+<!-- vela:evidence {"run":"d93e4589-1ab6-4287-9fa3-181ffd46cb98","path":"geometry.json"} -->
+<!-- vela:evidence {"run":"d93e4589-1ab6-4287-9fa3-181ffd46cb98","path":"cpu-reproduction.zip"} -->
