@@ -46,6 +46,10 @@ For runtime texture generators, check binary size/layout and synchronize the `cu
 type in [`scripts/shaders.properties`](../../scripts/shaders.properties). On the shader side, synchronize sampler
 dimensionality, integer/float access class, and any hard-coded channel assumptions.
 
+### Temporal coverage of clustered STBN directions
+
+The clustering experiment reduced GPU time in two 720p scenes, but pixels repeatedly sampled nearly the same direction across frames. The pack retains the original cosine-direction texture. The [64-frame measurements and offline tool](https://github.com/Luna5ama/Alpha-Piscium/blob/404e864abdb4c750e161efb617b57a041a20157e/experiments/stbn-clustering-20261020.md) document this decision.
+
 ## Binary texture helpers
 
 [`bintex.main.kts`](../../scripts/bintex.main.kts) is a standalone converter for one or more inputs into a binary
