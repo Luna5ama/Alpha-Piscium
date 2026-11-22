@@ -373,8 +373,5 @@ vec3 _sk_si5(vec3 repaired, float powerScale) {
     if (radius > 1e-13 * max(aab.x, 1e-30) && neutral > 0.0 && neutral < _SKM_PEAK) {
         rgb = _sk_chromaticSection(aab, r, neutral, w, _sk_skinWeight(repaired), repaired, cone, response);
     }
-    return inverse(rec709ToXYZ()) * targetGamutToXYZ() * clamp(rgb, 0.0, 1.0);
+    return clamp(rgb, 0.0, 1.0);
 }
-
-// Allocate SDR chroma along a constant-luminance ray using the EO12 outer
-// radius, then restore warm chroma and round green and red near the boundary.
