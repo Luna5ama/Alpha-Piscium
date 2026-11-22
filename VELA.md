@@ -4,6 +4,7 @@
 
 | 主题 | 设计归属 |
 | --- | --- |
+| [2.0 屏幕空间与体素混合 GI](docs/rendering/hybrid-gi.md) | Alpha Piscium 屏幕空间 GI 设计会话，负责分段求交、命中取光及重连可见性 |
 | [新一代降噪](docs/rendering/global-illumination.md#moving-mirror-pilot) | Alpha Piscium 降噪设计会话 |
 | [DPF Bloom](docs/development/offline-tools.md#geometry-driven-dpf-fitting) | Alpha Piscium Bloom 设计会话，负责目标核、拟合方法及画质与耗时验收 |
 | [Light Sampling](docs/rendering/light-sampling.md) | Alpha Piscium 选灯设计会话，沿用已有实验执行者 |
@@ -14,6 +15,12 @@
 本机的会话链接和协调入口见 `.vela/local/design-sessions.md`。
 
 ## 已发布修订
+
+### 2.0 屏幕空间与体素混合 GI
+
+在 `2.0/dev` 为不透明表面接入分段追踪。验收近处实体与体素墙的遮挡次序、Voxy 远景穿越网格的前后段、RC 与上一帧漫反射历史的取光，以及空间重连。此项在 2.0 发布前完成。[实现与实机验收规格](docs/rendering/hybrid-gi.md)
+
+<!-- vela:ready {"item":"screen-space-gi-2-0","rev":"48c9e1f0f04b128fba89561194af40c2318a6484","spec":"docs/rendering/hybrid-gi.md","after":[]} -->
 
 ### AP 内部文档迁移
 
