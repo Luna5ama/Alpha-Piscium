@@ -50,7 +50,7 @@ Discord 服务器：https://discord.gg/E2Uq2MmHgq
 
 ## 开发
 
-Alpha Piscium 将 pass 入口、可复用渲染模块、生成绑定和开发脚本分开维护。可从[开发文档](docs/README.md)查阅[项目结构](docs/development/project-structure.md)、[生成流程](docs/development/generators.md)和[管线依赖](docs/rendering/pipeline.md)。
+Alpha Piscium 将 pass 入口、可复用渲染模块、生成绑定和开发脚本分开维护。新会话可从[面向 agent 的项目知识入口](docs/README.md)查找设计取舍、实测和已发布的工作。本分支的实现见[项目结构](docs/development/project-structure.md)、[生成流程](docs/development/generators.md)和[管线依赖](docs/rendering/pipeline.md)。
 
 项目结构大纲：
 

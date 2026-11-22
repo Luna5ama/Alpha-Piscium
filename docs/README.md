@@ -1,6 +1,10 @@
-# Alpha Piscium 开发文档
+# Alpha Piscium 项目知识 · Agent 入口
 
-本分支是2.1 开发版，保留已提交的拟合及相机造型 Bloom。 [版本路线图](roadmap.md)列出 1.10 至 2.9 的范围及两个 2.0 候选的实机验收。
+此页对应 2.1 开发版，保留已提交的拟合及相机造型 Bloom。[版本路线图](roadmap.md)列出 1.10 至 2.9 的范围及两个 2.0 候选的实机验收。
+
+新会话先按问题找本版的维护源、设计取舍和实测条件。已授权的工作产生新结论时，直接写回所属主题。[查找与更新主题](repository-structure.md)
+
+跨版本的设计、实验和反例见[完整项目知识库](https://github.com/Luna5ama/Alpha-Piscium/blob/codex/whole-bloom-dpf/docs/README.md)。各版本共用一个[工作发布索引 VELA.md](https://github.com/Luna5ama/Alpha-Piscium/blob/codex/whole-bloom-dpf/VELA.md)。[项目配置](https://github.com/Luna5ama/Alpha-Piscium/blob/codex/whole-bloom-dpf/.vela/project.toml)中的 `records = "docs"` 指向主题记录，`index = "VELA.md"` 指向发布索引。
 
 ## 修改 Shader Pack
 
