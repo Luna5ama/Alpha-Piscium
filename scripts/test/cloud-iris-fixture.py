@@ -73,6 +73,9 @@ def main():
     density = 1000 * m['density_inside_union']
     sun = glvec(m['light_directions_to_sun'][1 if args.sun == 'back' else 0])
     angle = math.radians(m['sun_angular_radius_degrees'])
+    # The shader's SUN_ILLUMINANCE is L_disc * solid angle. The path
+    # tracer specifies irradiance on a plane normal to the disc axis.
+    beam = f"vec3({2*m['sun_normal_irradiance']/(1+math.cos(angle))})"
     sky = m['upper_hemisphere_sky_radiance'] if args.sky else 0.
     width, height = m['shape'][4], m['shape'][3]
     xs, ys, cz = m['camera']['x'], m['camera']['y_top_bottom'], m['camera']['z']
@@ -153,7 +156,7 @@ vec3 fixtureOrigin(ivec2 texel, ivec2 size) {{
     mainRayParams.rayStartHeight = length(mainRayParams.rayStart);
     mainRayParams.rayEndHeight = length(mainRayParams.rayEnd);
     vec3 lightDir = {sun};
-    vec3 lightIlluminance = vec3(1.0);
+    vec3 lightIlluminance = {beam};
 """
         render = section(render, '    vec2 texelPosF =', '    CloudRenderParams renderParams =', main_ray)
         render = section(render, '        float cuMidHeight =', '            #define CLOUDS_CU_DENSITY',
@@ -181,14 +184,14 @@ vec3 fixtureOrigin(ivec2 texel, ivec2 size) {{
         transport = body(read(path), 'vec3 ct_boundary(', f'    return vec3(omega.y < 0.0 ? {sky} : 0.0);')
         edited[path] = body(transport, 'vec3 ct_worldCenter(', f'    return vec3(0.0, 0.0, {cz*.001});')
         path = CLOUD + 'LocalTransport.glsl'
-        edited[path] = body(read(path), 'vec3 ct_beamIncident(', '    return light == 0 ? vec3(1.0) : vec3(0.0);')
+        edited[path] = body(read(path), 'vec3 ct_beamIncident(', f'    return light == 0 ? {beam} : vec3(0.0);')
         path = 'shaders/pass/begin/CloudTransportPrepare.comp.glsl'
         edited[path] = re.sub(r'vec3 airTr = [^;]+;', 'vec3 airTr = vec3(1.0);', read(path))
     edited[rpath] = render
     if not legacy:
         for path in (rpath, CLOUD + 'LocalTransport.glsl', 'shaders/pass/begin/CloudTransportPrepare.comp.glsl'):
             for key, value in (('uval_sunDirWorld', sun), ('uval_moonDirWorld', 'vec3(0.0, -1.0, 0.0)'),
-                               ('SUN_ILLUMINANCE', 'vec3(1.0)'), ('MOON_ILLUMINANCE', 'vec3(0.0)'),
+                               ('SUN_ILLUMINANCE', beam), ('MOON_ILLUMINANCE', 'vec3(0.0)'),
                                ('SUN_ANGULAR_RADIUS', str(angle))):
                 edited[path] = edited[path].replace(key, value)
     # Capture the half values the normal cloud pass stored. DirectLighting

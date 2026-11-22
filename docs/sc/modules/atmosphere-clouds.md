@@ -345,11 +345,13 @@ Vela 登记运行及作业源码。生产云体一致性、邻塔影响、天空
 
 [Iris 对照脚本](../../../scripts/test/cloud-iris-fixture.py)从邻云运行的 `reference.json` 生成补丁。光柱基线 `fb8c36487` 是重写前的直接父提交，相机光照 shader 与规格修订 `d2f1ef0f` 相同（blob `4fa191b0e`）。与它对照的是 `c09cfdc76` 输运和按层厚分配格宽的候选。正交校准使用 `--sun side|back`，按需加 `--neighbor`、`--sky`。`composite9` 将已打包的半精度云辐亮度与透射复制到 `colortex0` 供读取。层厚用 0.3 km，相函数混合比为零，尺度为每千米 1,000 方块，曝光固定。性能和运动对照用 `--world-origin X_M Z_M` 在原透视路径中放入同一密度，沿用游戏光源。分别统计新增输运 pass、云渲染、历史积累、稳定的对照 pass 及整帧。固定样本用于衡量候选在该场景下的开销，新云形接入后还须用改造前同场景整帧复查 1.30 倍约定。
 
+两条路径均接收与参考相同的有限太阳盘。着色器入口使用太阳辐亮度乘立体角，单位法向辐照度在该入口应填写 `2 / (1 + cos(角半径))`。使用运行 `7a42496c-59bb-4bf5-8e91-8f520e82ef83` 内换算后的补丁哈希。光柱的正交校准在天空归约时为 RTX 上 1,024 个调用的 32 个子组预留部分和，原版仅分配了 16 项。原生性能对照保留基线 shader 的天空计算。
+
 用户选择将地形深度合成留在本次光照工作范围之外。[SkyComposite](../../../shaders/techniques/atmospherics/SkyComposite.glsl) 仅在天空深度像素读取累积云结果。云上俯视时，终点为地形的射线会漏掉前方低云。该视角记录可见性限制，无遮挡射线可与物理参考比较。
 
 <!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"grid.json"} -->
 <!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"column.json"} -->
-<!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"iris-inputs.json"} -->
+<!-- vela:evidence {"run":"7a42496c-59bb-4bf5-8e91-8f520e82ef83","path":"iris-inputs.json"} -->
 
 ## 空气、深度层与合成
 

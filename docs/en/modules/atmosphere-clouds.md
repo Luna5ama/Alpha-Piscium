@@ -391,11 +391,13 @@ On the same rays, the original 300 m light column can move sideways by at most 5
 
 [Generate the comparison patches](../../../scripts/test/cloud-iris-fixture.py) from the neighbor run's `reference.json`. The column baseline `fb8c36487` is the parent of the cloud rewrite and has the same camera-lighting shader as the frozen specification `d2f1ef0f` (blob `4fa191b0e`). Compare it with transport `c09cfdc76` and the layer-scaled grid. Choose `--sun side|back`, with optional `--neighbor` and `--sky`, for the calibrated camera. The measurement copies the cloud pass's stored half-float radiance and transmittance to `colortex0` at `composite9`. Use a 0.3 km layer, the analytic phase (ratio zero), 1,000 blocks per kilometre and fixed exposure. For frame times and motion, `--world-origin X_M Z_M` places the same density in the ordinary perspective path with game lighting. Count the added transport passes, cloud render, history, an unaffected workload and the complete frame separately. The fixed-volume times bound this candidate's cost in that scene. The 1.30× acceptance also needs a same-scene whole-frame comparison after the new cloud shapes are integrated.
 
+Both paths take the same finite sun as the reference. The shader multiplies solar radiance by disc solid angle, so unit normal irradiance corresponds to `2 / (1 + cos(radius))` at that input. Use the corrected patch hashes in run `7a42496c-59bb-4bf5-8e91-8f520e82ef83`. In the calibrated column fixture, the ambient gather has space for the RTX's 32 subgroup sums for 1,024 invocations. The original allocation had 16 entries. The native timing fixture keeps the baseline shaders' ordinary sky calculation.
+
 The user kept terrain compositing outside this lighting experiment. [SkyComposite](../../../shaders/techniques/atmospherics/SkyComposite.glsl) reads the accumulated cloud only for sky-depth pixels. From above, a ray ending on terrain therefore omits the overlying low cloud. Compare unoccluded rays to the physical reference and record this visibility limit for the terrain-backed view.
 
 <!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"grid.json"} -->
 <!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"column.json"} -->
-<!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"iris-inputs.json"} -->
+<!-- vela:evidence {"run":"7a42496c-59bb-4bf5-8e91-8f520e82ef83","path":"iris-inputs.json"} -->
 
 ## Air, depth layers, and composition
 
