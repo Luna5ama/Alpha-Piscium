@@ -42,7 +42,7 @@ check the tile capacity, dispatch, and indexing in [the epipolar code](../../sha
 
 ## Cloud passes
 
-The [first procedural cloud-modeling revision](#首版建模交付) defines the geometry and its integration into the current renderer.
+The [current cumulus revision](#积云轮廓与细节层级修订) builds on the [first procedural cloud implementation](#首版建模交付).
 The [cloud-lighting experiment](#云光照的物理对照) uses the same density for its real-time candidate and transport reference.
 
 When `SETTING_CLOUDS_CU` is enabled:
@@ -193,6 +193,15 @@ epipolar resolution, cloud upscale, history length, and march steps.
 每一层细节经过形变、侵蚀与过滤后仍须包含在当前父包络内。整团随风运动，局部可升腾、偏移。重载光影或重进存档时，相同世界位置、游戏时刻与设置应得到相同云形。底宽、塔高、瓣数、噪声与 LOD 细节交给实现者按实拍试调。用户选中的动画构图是 `anime-sky-01` 和 `anime-sky-03`，实拍是 `SKY-031`、`SKY-032`、`SKY-106` 和 `Cu-ref-02/03/05/07/09/10`。整幅图可用于观察主次、蓝隙、宽底和偏塔，具体云团的位置、高矮和数目允许变化。跨检出查看时从主检出的 `agent_inputs/cloud-references/` 打开图库。
 
 交付以可运行的 shader 和同场景对照为准。用开阔地环视、绕塔飞近、穿云及云上俯视检查三种积云的轮廓与遮挡。用透射图核对塔间和层间的空隙，在动画与远近 LOD 交替处核对保守边界。在固定游戏时刻重载，比较云形。按相同场景、分辨率和设置对照改动前后的整帧 GPU 时间，首版上限为原来的 1.30 倍，同时记录云相关 pass 以便定位开销。实现、实机对照和可恢复的修正可连续推进，遇到影响美术目标、支持范围或帧时间上限的取舍时交回设计讨论。
+
+### 积云轮廓与细节层级修订
+
+接续 `procedural-cloud-shapes` 已接收的首版。用户认可这次云形的改善并授权继续推进。实现起点是原云形分支 `codex/procedural-cloud-shapes` 上的 `033741ccc`，对应的 Iris 实机记录在 `3a09d43af`。沿用该执行会话和实验检出。淡积云薄肩已经局部断开，浓积云已能分出塔腰和高低不同的冠瓣。下一轮集中在以下两处。
+
+- **云底与云瓣。** 从 `ground-180` 右侧浅云的平行亮边入手。沿用同镜位的彩色原图和云透射，配合同一朵云换角度或单独显示父团，定位是哪段云体造成的。前后云团真实叠置形成的边应保留。对同一团上反复出现的整齐底边和圆瓣，依照 Cu-hum-01、Cu-hum-03 调整浅肩厚度、疏密和云瓣之间的缺口，使部分背风薄肩出现断续碎絮，保住云芯和局部平坦的凝结底。若彩色亮边只由光照或重建产生，保留对应透射和镜位，交给该环节处理。用 `ground-0` 和绕塔侧视核对中、浓积云的根、腰和冠部仍有各自的体量。[首版同镜位对照](../../agent_inputs/cloud-references/experiments/2026-11-cumulus/06-iris-same-pose.png)
+- **细节只向内侵蚀。** 在同一世界位置、游戏时刻和设置下，每个更细 LOD 的正密度区域须包含在相邻粗级之内，过渡档也要成立。云芯和薄边的密度值可随过滤变化。`033741ccc` 已在未扭曲坐标上裁父包络，但碎絮侵蚀在近处取 `(1 - wisp) * 0.025`，远处取 `0.018`，两项大小会互换。沿用已有场和纹理即可，例如让粗级确定支撑、细级再减去非负侵蚀。粗级还要保住可辨的蓝隙和层间净空。空区继续用有保守界的几何跳过，包络内积分标量密度。交付时给出包含关系为何成立，并在动画、轮廓和 LOD 过渡处用实际场值复核。
+
+交付使用相同种子、游戏时刻、光照和曝光，把 `033741ccc` 与候选在上述 Iris 镜位的彩色原图及对应云透射并排，再看一朵调参时没用过的云。复用首版穿云、云上和固定时刻重载证据，仅复测受改动影响的路径。性能沿用 `cloud-6-720p` 同设置和原始基线 `853214567`，整帧上限仍为其 1.30 倍，另记录受影响的积云 pass。已有实机原件见运行 `c34c098d-766d-4cf5-aac6-dee89f00ee62` 的 `iris-comparison.png` 和 `measurements.json`。原执行者可自主迭代直至交付对照，影响美术方向、云种范围或帧时间上限的取舍再交回讨论。
 
 ### XZ 分布与垂直叠置
 
