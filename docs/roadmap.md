@@ -17,6 +17,10 @@ DPF Bloom 已拆出 2.0。`2.0/dev@5ba8718d4` 恢复了 `0bf3a72ba` 的普通 Bl
 
 2.1 重构曝光与显示变换。玩家可选 **Skibidi DRT（默认）**、AgX、OpenDRT 或 Psychov30（RenoDX test30）。Skibidi DRT 在上游收尾，移植时固定所采用的修订。AgX 先用相同输入、曝光、Look 和显示设备对照当前实现与 Blender 的 AgX，再决定是否升级。[Blender AgX 参考](https://docs.blender.org/manual/en/4.5/render/color_management.html)
 
+**自动曝光测光。** 四种 DRT 共用一套相机曝光。在应用相机 EV、Bloom 和 DRT 之前，按场景线性亮度建立加权直方图。按累计测光权重裁掉最暗和最亮的两端，从保留区间求平均，驱动自动曝光。固定场景切换 DRT 或改变 Bloom 强度时，目标 EV 应一致。
+
+建议以 `log2(Y)` 分桶，对保留部分求加权平均，再用目标中灰与测得亮度的档差计算目标 EV。百分位落在桶内时按重叠权重计入。最后限制 EV 范围并做时间适应。低端与高端裁剪比例分别用暗洞出口、雪地和小面积强光对照后选定。
+
 参考 `drt-bench`，先在场景线性光上应用一次曝光，再按所选 DRT 的输入色彩空间转换。基准中 Skibidi 直接接收线性 ACES AP0，AgX 与 OpenDRT 经 XYZ 接入。Psychov30 的独立对照从 AP0 经 D60→D65 白点适配转为线性 BT.709，输出再做 sRGB 编码。移植时用相同输入和 EV 核对各自的 SDR 输出，避免重复施加曝光或输出编码。[AP 基准入口](https://github.com/Luna5ama/drt-bench/blob/a910d635b0d1b44ba193ec9eea023358dc841ac9/shaders/ap/main.glsl) · [Psychov30 对照入口](https://github.com/Luna5ama/drt-bench/blob/a910d635b0d1b44ba193ec9eea023358dc841ac9/tools/drt_compare_psychov.py)
 
 ## 版本范围
