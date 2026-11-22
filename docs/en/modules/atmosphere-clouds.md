@@ -393,6 +393,8 @@ On the same rays, the original 300 m light column can move sideways by at most 5
 
 Both paths take the same finite sun as the reference. The shader multiplies solar radiance by disc solid angle, so unit normal irradiance corresponds to `2 / (1 + cos(radius))` at that input. Use the corrected patch hashes in run `7a42496c-59bb-4bf5-8e91-8f520e82ef83`. In the calibrated column fixture, the ambient gather has space for the RTX's 32 subgroup sums for 1,024 invocations. The original allocation had 16 entries. The native timing fixture keeps the baseline shaders' ordinary sky calculation.
 
+After verifying the loaded source, settings and scene in the Vibris receipt, run `cloud-reference-report.py <neighbor-run> --iris-readout <case>.mean.bin <output.json>`. It averages within each reference ray's framebuffer bin before giving all reference rays equal weight. The report includes linear RGB error, reference uncertainty, transmittance error and the vacuum background check. Its regional GPU standard-error bound permits spatially correlated samples.
+
 The user kept terrain compositing outside this lighting experiment. [SkyComposite](../../../shaders/techniques/atmospherics/SkyComposite.glsl) reads the accumulated cloud only for sky-depth pixels. From above, a ray ending on terrain therefore omits the overlying low cloud. Compare unoccluded rays to the physical reference and record this visibility limit for the terrain-backed view.
 
 <!-- vela:evidence {"run":"bb2ea177-6c80-4ec0-bb82-4ca3a1ab350e","path":"grid.json"} -->

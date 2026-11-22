@@ -96,6 +96,67 @@ def check_column(path, manifest, raw, x, y, masks):
     path.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
 
 
+def compare_iris_readout(mean_file, output, raw, tau, masks):
+    """Compare a calibrated composite9 accumulation to the matching linear source basis."""
+    case = mean_file.name.removesuffix('.mean.bin')
+    method, sun, tower, lamp = case.split('-')
+    if sun not in ('side', 'back') or tower not in ('solo', 'pair') or lamp not in ('solar', 'sky'):
+        raise ValueError(f'unrecognized calibrated source in {case}')
+    info = json.loads(mean_file.with_suffix('.json').read_text(encoding='utf-8'))
+    frames = info['accumulation']
+    if (frames['pass_id'] != 'composite/composite9' or not frames['standard_batch_means_se']
+            or info['scalar_type'] != 'FLOAT32' or info['channel_count'] != 4 or info['units'] != 'native'
+            or info['region'] != {'x': 0, 'y': 0, 'width': 320, 'height': 180}):
+        raise ValueError('expected a complete native-unit RGBA accumulation at the calibrated low-cloud pass')
+    nx, ny = info['width'], info['height']
+    height, width = tau.shape
+    # OpenGL row zero samples the bottom of the tower. The CPU image stores
+    # its top row first. Each reference ray gets equal weight even when the
+    # number of framebuffer texels in successive Y bins alternates.
+    ix = ((np.arange(nx)+.5)*width/nx).astype(int)
+    iy = height-1-((np.arange(ny)+.5)*height/ny).astype(int)
+    bins = (iy[:, None]*width+ix).ravel()
+    counts = np.bincount(bins, minlength=tau.size)
+
+    def read_bins(statistic):
+        file = mean_file.with_name(f'{case}.{statistic}.bin')
+        rows = np.fromfile(file, dtype='<f4').reshape(nx*ny, 4)
+        if not np.isfinite(rows).all():
+            raise ValueError(f'nonfinite {statistic} in {file}')
+        channels = [np.bincount(bins, weights=channel)/counts for channel in rows.T]
+        return np.stack(channels, axis=-1).reshape(height, width, 4)
+
+    measured = read_bins('mean')
+    se = read_bins('stderr')
+    light = 0 if sun == 'side' else 1
+    basis = [light]
+    if lamp == 'sky':
+        basis.append(2)
+    if tower == 'pair':
+        basis.extend([v + 3 for v in basis])
+    reference = raw[basis, :, -1, :, :, :2].sum(axis=(0, -1))
+    difference = measured[:, :, :3] - reference.mean(axis=0)[:, :, None]
+    expected_t = np.exp(-tau)
+    report = {'case': case, 'method': method, 'basis_indices': basis, 'pass': frames['pass_id'],
+              'mean_sha256': hashlib.sha256(mean_file.read_bytes()).hexdigest(),
+              'frames': frames['frames'], 'batches': frames['batches'],
+              'vacuum_max_abs_rgb': float(np.max(np.abs(measured[~masks['cloud'], :3]))),
+              'vacuum_max_abs_transmittance_error': float(np.max(np.abs(measured[~masks['cloud'], 3]-1))),
+              'regions': {}}
+    for name, mask in masks.items():
+        report['regions'][name] = {
+            'reference': stats(reference[:, mask].mean(axis=1)),
+            'iris_mean_rgb': measured[mask, :3].mean(axis=0).tolist(),
+            'iris_minus_reference_rgb': difference[mask].mean(axis=0).tolist(),
+            'image_rmse_rgb': np.sqrt((difference[mask]**2).mean(axis=0)).tolist(),
+            'transmittance_mae': float(np.abs(measured[mask, 3]-expected_t[mask]).mean()),
+            # Sum marginal batch errors with equal reference-pixel weights.
+            # This allows arbitrary spatial correlation in the GPU samples.
+            'iris_mean_se_upper_bound_rgb': se[mask, :3].mean(axis=0).tolist(),
+        }
+    output.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')
+
+
 def report_neighbor(directory, archived, manifest, raw, masks):
     from matplotlib.colors import AsinhNorm, SymLogNorm
 
@@ -217,6 +278,8 @@ def main():
     parser.add_argument('directory', type=Path)
     parser.add_argument('--compare', type=Path, help='independent earlier reference run with identical physical inputs')
     parser.add_argument('--column-check', type=Path, help='write the light-column support and sky-response bounds for the paired tower')
+    parser.add_argument('--iris-readout', type=Path, nargs=2, metavar=('MEAN_BIN', 'OUTPUT_JSON'),
+                        help='compare a named calibrated Iris mean and its sibling stderr with the paired reference')
     args = parser.parse_args()
     directory = args.directory
     manifest = json.loads((directory / 'reference.json').read_text(encoding='utf-8'))
@@ -231,6 +294,9 @@ def main():
     }
     assert all(np.any(mask) for mask in masks.values())
     if manifest['neighbors']:
+        if args.iris_readout:
+            compare_iris_readout(*args.iris_readout, raw, tau, masks)
+            return
         if args.column_check:
             check_column(args.column_check, manifest, raw, x, y, masks)
             return
