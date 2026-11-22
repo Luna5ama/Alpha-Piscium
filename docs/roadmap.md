@@ -17,6 +17,10 @@
 
 建议以 `log2(Y)` 分桶，对保留部分求加权平均，再用目标中灰与测得亮度的档差计算目标 EV。百分位落在桶内时按重叠权重计入。最后限制 EV 范围并做时间适应。低端与高端裁剪比例分别用暗洞出口、雪地和小面积强光对照后选定。
 
+**时域重建与相机曝光。** 原生 TAA 与超分共用 FSR 3.1 的重建路径。FSR 逐帧计算重建所需的曝光，历史保存未施加相机 EV 的场景线性颜色。重建后应用一次相机 EV，再进入 Bloom。重建与锐化使用的可逆 AgX 数学变换独立于显示 DRT。只改变显示 DRT 或 Look 时可沿用重建历史。[FSR 原型的接线](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/techniques/ffx/fsr3upscaler/README.md#integration-contract)
+
+**共享 Look。** 四种 DRT 共用 AgX 风格的 Look 及其参数（RGB 斜率、偏移、幂和饱和度）。2.1 的 SDR 接线方案在已经过输出传递函数编码的显示 RGB 上应用一次 Look，再量化输出；以 sRGB 为基准验证。选择中性 Look 时应能复现各 DRT 的无 Look 基线。可参考 bench 的[共享运算](https://github.com/Luna5ama/drt-bench/blob/84325c18c548e4a49e87b8ef845c4ffd79164265/shaders/ap/techniques/drt/Common.glsl)和 [OpenDRT 的编码后接法](https://github.com/Luna5ama/drt-bench/blob/84325c18c548e4a49e87b8ef845c4ffd79164265/shaders/ap/techniques/drt/OpenDRT.glsl#L233-L262)。四路共用这一位置是 AP 的整合方案。
+
 参考 `drt-bench`，先在场景线性光上应用一次曝光，再按所选 DRT 的输入色彩空间转换。基准中 Skibidi 直接接收线性 ACES AP0，AgX 与 OpenDRT 经 XYZ 接入。Psychov30 的独立对照从 AP0 经 D60→D65 白点适配转为线性 BT.709，输出再做 sRGB 编码。移植时用相同输入和 EV 核对各自的 SDR 输出，避免重复施加曝光或输出编码。[AP 基准入口](https://github.com/Luna5ama/drt-bench/blob/a910d635b0d1b44ba193ec9eea023358dc841ac9/shaders/ap/main.glsl) · [Psychov30 对照入口](https://github.com/Luna5ama/drt-bench/blob/a910d635b0d1b44ba193ec9eea023358dc841ac9/tools/drt_compare_psychov.py)
 
 ## 版本范围
