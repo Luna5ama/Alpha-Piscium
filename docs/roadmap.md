@@ -15,7 +15,7 @@ DPF Bloom 已拆出 2.0。`2.0/dev@5ba8718d4` 恢复了 `0bf3a72ba` 的普通 Bl
 
 ## 2.1 曝光与 DRT
 
-**曝光与 DRT 的设计已确认，可在 `2.1/dev` 开工。** 默认使用 **Skibidi DRT + 中性 Look**，保留 Skibidi 自身的饱和度。玩家也可选择 AgX、OpenDRT 或 Psychov30（RenoDX test30）。Skibidi DRT 在上游收尾，移植时固定所采用的修订。AgX 先用固定输入、相同 EV、中性 Look 和同一 SDR 显示设备对照当前实现与 Blender 的 AgX，再决定是否升级。[Blender AgX 参考](https://docs.blender.org/manual/en/4.5/render/color_management.html)
+**曝光与 DRT 的设计已确认，可在 `2.1/dev` 开工。** 默认使用 **Skibidi DRT + 中性 Look**，保留 Skibidi 自身的饱和度。玩家也可选择 AgX、OpenDRT 或 Psychov30（RenoDX test30）。Skibidi DRT 在上游收尾，移植时固定所采用的修订。用户已在实现会话看过固定输入的对照，选定 Blender 5.0 AgX 替换原有 AgX。移植结果沿用该版参考核对。[Blender 5.0 色彩配置](https://github.com/blender/blender/blob/v5.0.0/release/datafiles/colormanagement/config.ocio)
 
 **自动曝光测光。** 四种 DRT 共用一套相机曝光。在应用相机 EV、Bloom 和 DRT 之前，按场景线性亮度建立加权直方图。按累计测光权重裁掉最暗和最亮的两端，从保留区间求平均，驱动自动曝光。固定场景切换 DRT 或改变 Bloom 强度时，目标 EV 应一致。四种 DRT 共用一条随场景亮度变化的测光目标曲线，暗场目标较低，亮场目标较高。充分适应后，无火把洞穴里的石壁仍可辨认且明显偏暗，日照雪地仍显明亮。
 
@@ -43,7 +43,7 @@ Skibidi DRT 沿用自身的色域压缩，选项只设置目标色域。压缩�
 
 ## 2.1 原生 TAA 与超分辨率
 
-原生 TAA 和超分都须支持 Iris 1.10.4。`2.0/fsr3` 的 FSR 3.1 原型作为对照，允许大改其算法，也可自研统一的时域重建器。选型时在同一段相机运动下比较细线闪烁、遮挡解除和运动拖影，并记录相同输入、输出尺寸下的 GPU 耗时和显存占用。
+原生 TAA 和超分都须支持 Iris 1.10.4。2.1 采用自研或深度改造的路线，以 `2.0/fsr3` 的 FSR 3.1 原型为基线。比较 TSR、XeSS-SR、DLSS Super Resolution 和其他公开方案的策略，分项验证后组合。[2.1 策略对照与首轮实验](https://github.com/Luna5ama/Alpha-Piscium/blob/92150474026c39e317f8598855dfef2bbdddc3b7/docs/rendering/post-processing.md#21-时域重建策略对照)
 
 首版重建用的 Shadesmith tile 统一按输出分辨率分配。渲染分辨率的数据只读写 tile 内的有效区域，邻域采样和过滤也以有效区域为界。输出分辨率的颜色历史使用完整 tile，跨帧轮换。优先复用已有的同格式图集，减少物理 custom image 声明；沿用原型时，重建深度可接入现有 `R32UI` 图集，颜色历史可接入 `RGBA16F` 图集。
 
