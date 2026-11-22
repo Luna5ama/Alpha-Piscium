@@ -80,3 +80,9 @@
 从能分开细芒的半分辨率滤波核出发，自动找出可在多处复用的局部形状，剩余部分直接采样。在相近成本下与直接合并采样点对照，检查三种核的细芒、笔画、暗谷和宽光晕。[压缩实验规格](docs/development/offline-tools.md#compressing-a-reference-bloom-filter)
 
 <!-- vela:ready {"item":"dpf-bloom-reference-compression","rev":"f17d8f14afb3737b00a00de9c4e4ff69d3cdec9d","spec":"docs/development/offline-tools.md","after":["dpf-bloom-upsampling-replay@0389c911c759335bc778581c3c9595afd8879e03"]} -->
+
+### 按可见断段分配 DPF Bloom 采样
+
+从 RGB 核图跟踪细芒和弯曲笔画，按重建结果里连续缺失的部分放置采样。用原成本比较 User 8、旋转版和 67 的峰谷、末端和宽光晕。画质通过后接续普通导出、实机截图及三档 COD 计时。由现有 DPF 实现会话按 Sol High 执行。[实现与验收规格](docs/development/offline-tools.md#allocating-dpf-samples-along-visible-features)
+
+<!-- vela:ready {"item":"dpf-bloom-feature-continuity","rev":"e1f10bebd1e1f13f681306ac67b638a5d0bb84f4","spec":"docs/development/offline-tools.md","after":["dpf-bloom-reference-compression@f17d8f14afb3737b00a00de9c4e4ff69d3cdec9d"]} -->
