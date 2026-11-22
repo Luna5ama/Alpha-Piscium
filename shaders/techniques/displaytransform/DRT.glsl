@@ -36,12 +36,14 @@ vec3 displayLinear(vec3 scene) {
     #elif SETTING_DRT_TYPE == 1
     vec3 encoded = blenderAgX(vec4(ap0, 1.0)).rgb;
     #ifdef AP_HDR_OUTPUT
-    // Blender's reference HLG display is 1000 nits with 203-nit diffuse white.
+    // The Blender formation LUT specifies a 1000-nit peak and 100-nit reference white.
     const float a = 0.17883277, b = 0.28466892, c = 0.55991073;
     vec3 e = mix(encoded * encoded / 3.0, (exp((encoded - c) / a) + b) / 12.0, greaterThan(encoded, vec3(0.5)));
     vec3 rgb = e * pow(max(dot(e, vec3(.2627, .6780, .0593)), 0.0), .2);
     float m = max(rgb.r, max(rgb.g, rgb.b));
-    float level = m <= .203 ? m / .203 : mix(1.0, hdrPeakRatio(), clamp((m - .203) / .797, 0.0, 1.0));
+    const float referenceWhite = 100.0 / 1000.0;
+    float level = m <= referenceWhite ? m / referenceWhite
+        : mix(1.0, hdrPeakRatio(), clamp((m - referenceWhite) / (1.0 - referenceWhite), 0.0, 1.0));
     rgb *= level / max(m, 1e-20);
     return colors_colorspaces_convert(COLORS_COLORSPACES_REC2020, COLORS_COLORSPACES_SRGB, rgb);
     #else

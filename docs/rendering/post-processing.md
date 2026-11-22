@@ -1,8 +1,7 @@
 # Post-processing and Display Transform
 
 Post-processing begins after GI, air/water volumes, and translucency are composed. The main chain is optional DOF,
-temporal resolve, spatial antialiasing/sharpening, bloom, post composition, exposure, overlay, and final display
-transform.
+metering, temporal resolve, spatial antialiasing/sharpening, camera exposure, Bloom, the display transform, overlay and final output.
 
 ## Code map
 
@@ -14,7 +13,7 @@ transform.
 | [`FXAA.comp.glsl`](../../shaders/pass/composite/FXAA.comp.glsl) | Spatial antialiasing |
 | [`RCAS.comp.glsl`](../../shaders/pass/composite/RCAS.comp.glsl), [`techniques/ffx/fsr1/`](../../shaders/techniques/ffx/fsr1/) | RCAS sharpening |
 | [`techniques/Bloom.comp.glsl`](../../shaders/techniques/Bloom.comp.glsl) | Bloom downsample/upsample pyramid |
-| [`ExposureMip.comp.glsl`](../../shaders/pass/composite/ExposureMip.comp.glsl), [`ExposureGather.comp.glsl`](../../shaders/pass/composite/ExposureGather.comp.glsl) | Auto-exposure weights, mip, and statistics |
+| [`Exposure.glsl`](../../shaders/techniques/displaytransform/Exposure.glsl), [`ExposureGather.comp.glsl`](../../shaders/pass/composite/ExposureGather.comp.glsl) | Weighted log-luminance histogram and camera adaptation |
 | [`PostComposite.comp.glsl`](../../shaders/pass/composite/PostComposite.comp.glsl), [`OverlayComposite.comp.glsl`](../../shaders/pass/composite/OverlayComposite.comp.glsl) | Main post composition and overlay |
 | [`techniques/displaytransform/`](../../shaders/techniques/displaytransform/) | Exposure, DRT, and display transform |
 | [`Final`](../../shaders/pass/composite/Final.frag.glsl) | Final screen output |
@@ -33,10 +32,10 @@ manual-focus distance, focus time, and focus-plane debug.
 
 | Order | Pass | Purpose |
 | --- | --- | --- |
-| 1 | [`TAAPrepare`](../../shaders/pass/composite/TAAPrepare.comp.glsl) | Produces temporal input, luma difference, and supporting data |
+| 1 | [`TAAPrepare`](../../shaders/pass/composite/TAAPrepare.comp.glsl) | Meters unexposed post-DOF scene color and encodes the temporal input |
 | 2 | [`TAAResolve`](../../shaders/pass/composite/TAAResolve.comp.glsl) | Uses `history_taa`, motion/reprojection data, and current-frame input to write `transient_taaOutput` |
-| 3 | [`FXAA`](../../shaders/pass/composite/FXAA.comp.glsl) | Writes `transient_fxaaOutput` |
-| 4 | [`RCAS`](../../shaders/pass/composite/RCAS.comp.glsl) | Performs final spatial sharpening |
+| 3 | [`FXAA`](../../shaders/pass/composite/FXAA.comp.glsl) | Saves the unexposed scene-linear TAA history and writes `transient_fxaaOutput` |
+| 4 | [`RCAS`](../../shaders/pass/composite/RCAS.comp.glsl) | Sharpens, decodes to scene linear, and applies the common camera EV |
 
 All four passes are present in the program list; settings select behavior inside the shaders rather than
 enabling/disabling separate program numbers.
@@ -130,7 +129,7 @@ PNG/function input are maintained by
 [`fit-bloom-shape.py`](../../scripts/fit-bloom-shape.py); see [kernel fitting](../development/offline-tools.md#bloom-kernel-fitting).
 
 Highlight compression belongs to the first Bloom downsample, after AA decoding. RGB and luma modes retain their
-existing curves. AA retains its original log encoding and dark-value floor without Bloom rolloff; decoded writes in
+existing curves. AA uses fixed log encoding with an exact zero; decoded writes in
 [`RCAS`](../../shaders/pass/composite/RCAS.comp.glsl) and the TAA-off path of
 [`TAAResolve`](../../shaders/pass/composite/TAAResolve.comp.glsl) clamp to the RGBA16F limit of 65504.
 
@@ -167,31 +166,36 @@ symmetry. Odd viewport sizes, boundary energy and phase centroids have CPU cover
 rendering and other GPUs remain unmeasured. Shape fitting error describes the added raw-level-1 branch, not the
 complete Bloom result.
 
-## Post composition and exposure
+## Camera exposure
 
-| Order | Pass | Purpose |
+[`TAAPrepare`](../../shaders/pass/composite/TAAPrepare.comp.glsl) accumulates a 256-bin weighted histogram of post-DOF scene luminance over 40 stops starting at −24 EV. Distance, emissive and center weights feed workgroup-local bins and then the frame SSBO. [`ExposureGather`](../../shaders/pass/composite/ExposureGather.comp.glsl) trims each tail by cumulative weight, retains partial boundary bins and computes the weighted mean log luminance. The target gray rises from the night setting to the daylight setting. The reducer clamps the resulting EV, updates temporal adaptation, then leaves the histogram empty for the next frame.
+
+Reprojection reads unexposed scene-linear history from the previous frame. FXAA stores the new history before spatial filtering. RCAS applies the camera multiplier after reconstruction. The TAA-disabled path applies the same multiplier in TAAResolve. Bloom and all four DRTs therefore see the same camera exposure. The histogram debug view shows the retained frame's bin weights, target EV and camera EV.
+
+## Display transform
+
+[`PostComposite`](../../shaders/pass/composite/PostComposite.comp.glsl) adds Bloom and calls [`DRT`](../../shaders/techniques/displaytransform/DRT.glsl). The default is Skibidi v41 with neutral Look and Display P3 target primaries. SDR grading retains the primary calibration and HSL mixer, converts to the chosen output primaries and transfer function, then applies the common Look to encoded RGB. Final output dithers SDR to eight bits.
+
+| DRT | Input and reference | Target gamut |
 | --- | --- | --- |
-| 1 | [`PostComposite`](../../shaders/pass/composite/PostComposite.comp.glsl) | Combines the main color, DOF, bloom, and other post inputs; the RTWSM companion pass owns independent resources |
-| 2 | [`ExposureMip`](../../shaders/pass/composite/ExposureMip.comp.glsl) | Builds luminance/weight levels |
-| 3 | [`ExposureGather`](../../shaders/pass/composite/ExposureGather.comp.glsl) | Reduces exposure statistics |
-| 4 | [`OverlayComposite`](../../shaders/pass/composite/OverlayComposite.comp.glsl) | Composes the overlay |
+| Skibidi v41 | Linear AP0. The source model and SDR/SDR-style HDR curves come from drt-bench `280aa5e31fdfb412bea24f9746b9417fedfd67d5`. | Native radial allocation in the chosen D65 RGB space. |
+| Blender AgX | Blender 5.0.0 `a37564c4df7a9b604809e5192918400e46a0205f` OCIO transforms from ACES2065-1 to sRGB AgX or Rec.2100-HLG AgX HDR 1000 nits. The 57³ LUTs use tetrahedral interpolation. | View-defined primaries. |
+| OpenDRT | Standard v1.1.0 from the same drt-bench revision, via XYZ. | Uses the selected display basis for its output rendering. |
+| Psychov30 | RenoDX `6d563066956190c8b9a2c7a907398bfac3629a3c` test30, via linear BT.709 with white-point adaptation. | Uses the existing 709 or 2020 operator. Other targets use the native SDR or HDR default. |
 
-The exposure screen controls manual EV, minimum/maximum EV, emissive/distance/center weighting, average-luminance time
-and target range, highlight/shadow percentiles, and adaptation parameters. `transient_exposureWeights` carries per-pixel
-weights.
+For Skibidi, preset D65 and user-entered primary coordinates feed the same gamut matrix. An invalid triangle falls back to Display P3. Rec.709 uses the pinned v41 scalar fields. For other targets [`SkibidiGamut`](../../shaders/pass/setup/SkibidiGamut.comp.glsl) generates the per-hue boundary seeds, red cusp and EO12 fit when Iris runs setup. Its coefficients and weighted bins occupy 670,728 bytes after the 16 KiB global block in SSBO 0. The persistent 145 × 81 tile begins at (0, 256) in the fixed R32F image. Expanding that image from 256 × 264 to 256 × 345 costs 82,944 bytes. The setup passes use Iris dispatch barriers for SSBO, image and texture fetch visibility.
 
-## Final display transform
+When HDR Mod supplies both presence and enable macros, DRTs read game paper white and peak in nits. The Look uses signed sRGB relative to game paper white, including pixels above white. At handoff AP scales by game paper white divided by UI white, then applies signed sRGB encoding in BT.709 primaries. The mod consumes floating-point output and handles monitor primaries and transfer. The SDR path applies whenever either macro is absent. [HDR Mod shaderpack interface](https://github.com/rrtt217/Minecraft-HDR-Mod/wiki/For-Shaderpack-Devs)
 
-Root [`final.fsh`](../../shaders/final.fsh) includes [
-`Final.frag.glsl`](../../shaders/pass/composite/Final.frag.glsl). That entry point uses [
-`Exposure.glsl`](../../shaders/techniques/displaytransform/Exposure.glsl), [
-`DRT.glsl`](../../shaders/techniques/displaytransform/DRT.glsl), and [
-`DisplayTransform.glsl`](../../shaders/techniques/displaytransform/DisplayTransform.glsl) to convert internal working
-color space to DRT working space, then applies tone mapping and the output color space/transfer function.
+### 2.1 validation record
 
-After tone mapping, the result is converted to the configured color-grading color space. [`PrimaryColorCalibration`](../../shaders/techniques/displaytransform/PrimaryColorCalibration.glsl) adjusts its linear RGB primaries, then the configured grading transfer function is applied and [`HSLColorMixer`](../../shaders/techniques/displaytransform/HSLColorMixer.glsl) adjusts eight hue bands. The result is decoded and converted to the monitor output space. Both stages have independent toggles.
+The fixed-input comparison uses the three ACES sample frames 0017, 0061 and 0067 plus gray, primary and signed probes, at −2, 0 and +2 EV in AP0, neutral Look, sRGB output and Rec.709 target. Across these exposures the largest 8-bit channel difference was one code for Skibidi and Blender AgX, and zero for OpenDRT and Psychov30. Blender uses the user's chosen 5.0 view. Rebuild its textures and shaders with OpenColorIO 2.6.0 and [the AgX generator](../../scripts/generate-agx.py). The Blender color configuration credits Troy Sobotka, Zijun Eary Zhou, Mark Faderbauer and Sakari Kapanen. [Pinned Blender configuration](https://github.com/blender/blender/blob/a37564c4df7a9b604809e5192918400e46a0205f/release/datafiles/colormanagement/config.ocio)
 
-Related settings cover material transfer/color space, internal working space, DRT working space, color-grading color space/transfer function, tone-map look/dynamic range/offset/slope/power/saturation, and monitor color space/transfer function.
+In an isolated GL dispatch, preset P3 and manual (680,320), (265,690), (150,60) in thousandths produced identical tables and SDR/HDR sample values on llvmpipe. The 65 × 37 weighted-histogram fixture yielded +7.355 EV for the dark uniform scene and the same scene with a small bright emitter, −0.456 EV for bright snow, and +6.668 EV for a dark cave with a bright exit. These are synthetic input levels. The scene response and cost in normal gameplay still require matched measurements.
+
+Minecraft 1.21.11, Iris 1.10.6-vibris.3, HDR Mod 2.3.4 and RTX 3080 Ti ran the 1280 × 720 night arcade scene with manual EV 0 and Skibidi targeting Display P3. Both captures used candidate `f4213de6508a678531ba8fa0a7da6d30c684d533` with a diagnostic strip inserted before the production DRT. The recovered game paper white, peak and UI white were 203, 1000 and 284 nits respectively. Neutral gray rose monotonically to 998.7 nits. The closest sampled code to paper white decoded to 203.54 nits. In 162 colored highlight samples above paper white the median largest-channel change from neutral to Punchy was 708.3 nits. These are shader handoff values reconstructed from RGBA16F. The SSBO readback verified manual EV 0 in both jobs.
+
+The AgX choice image, input identifiers and baseline script are in project Vela run `16da9e19-35a7-47c4-a356-a2884c76c57f`. Run `d2481554-868d-4549-9ccc-efb659257cee` contains the numerical comparison, generated tables, histogram tests, game chart, two hashed RGBA16F/SSBO readbacks and game receipts. Raw files are under `.vela/local/runs/<run UUID>/` in the main project checkout. Remaining game checks include changing UI white alone, disabled and missing mod SDR fallback, DRT/Bloom metering, adapted dark and bright scenes, and matched pass timings.
 
 ### Skibidi 色域 LUT 的重载成本
 
