@@ -45,6 +45,22 @@ TAA settings cover enable, jitter, current/history filters, and CAS sharpness. C
 are generated from the R2 frame sequence in [`scripts/shaders.properties`](../../scripts/shaders.properties);
 changing the sampling sequence requires updating reprojection conventions as well.
 
+### 2.1 时域重建策略对照
+
+2.1 研究 AP 自己的统一时域重建器，可以复用或大改 FSR 3.1 的阶段。原生 TAA 和降比例超分共用同一套历史判断。下表比较公开策略，右栏是待验证的 AP 实验。
+
+| 参考 | 能从原始资料确认的策略 | 在 AP 中怎样检验 |
+| --- | --- | --- |
+| Unreal TSR | 分析多帧亮度振荡，允许稳定的细密几何保留更多历史。像素动画能触发相同信号，Epic 提供材质标记，让这类像素跳过抗闪烁判断。[Epic TSR](https://dev.epicgames.com/documentation/en-us/unreal-engine/temporal-super-resolution-in-unreal-engine) | 缓慢横移镜头拍远处栅栏，另拍滚动纹理。用几何重投影与深度先排除遮挡变化，对可信表面再试短期振荡判断。记录细线断续与动画拖尾，检验这两个相反目标。 |
+| AMD FSR 3.1 | Reactive mask 可降低历史权重，transparency/composition mask 较温和，影响历史锁定和颜色裁剪。AP 原型将两个值都从实体反应标记与 overlay 覆盖生成，重投影无效时只额外提高前者。[AMD 输入说明](https://gpuopen.com/manuals/fidelityfx_sdk/techniques/super-resolution-upscaler/) · [AP 遮罩写入](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/pass/composite/FSR3MotionVectors.comp.glsl#L39-L50) | 保持累积器和纹理布局相同，分别改变 Z/W 两个通道的来源。对照移动实体离开后的背景、半透明粒子和水面反光。水面从原型现有接线起步，单独观察过度排斥历史是否让随机反射重新闪烁。 |
+| Intel XeSS-SR | 支持低分辨率运动向量加深度，也接受已膨胀的输出分辨率向量。可用连续权重的 responsive mask 提示缺少可靠运动的像素，Intel 建议同时检查历史减少引起的闪烁。[Intel 开发指南](https://www.intel.com/content/www/us/en/developer/articles/technical/xess-sr-developer-guide.html) | 固定相机，让实体横穿静态墙。分开观察前景向量是否串入背景、实体自身是否缺运动数据。前者试深度引导的前景速度选择，后者先用连续权重降低历史；速度膨胀无法补出上一帧骨骼姿态。 |
+| NVIDIA DLSS Super Resolution | NVIDIA 公开说明 DLSS 4.5 在场景线性空间训练和推理；Streamline 的 SR 接口使用颜色、深度、运动和曝光信息。[NVIDIA 技术说明](https://www.nvidia.com/en-us/geforce/news/dlss-4-5-dynamic-multi-frame-gen-6x-2nd-gen-transformer-super-res/) · [Streamline 接口](https://github.com/NVIDIA-RTX/Streamline/blob/main/docs/ProgrammingGuideDLSS.md) | AP 原型把历史存为场景线性颜色，累积时临时进入可逆 AgX 域。固定采样、历史权重与锐化，对比在该域混合，以及在线性辐亮度域混合、用压缩亮度估计可信度。检查细小自发光和反射高光的能量、颜色与闪烁。这个实验用普通 shader 即可检验。 |
+| Playdead INSIDE TAA | 公开 shader 用当前邻域约束重投影历史，并让亮度差调节历史权重。[Playdead 实现](https://github.com/playdeadgames/temporal/blob/master/Assets/Shaders/TemporalReprojection.shader) | AP 原生 TAA 已有邻域与方差裁剪。把它作为低成本对照，检验额外的亮度统计或历史状态到底改善了哪些镜头。[AP 原生 TAA](../../shaders/pass/composite/TAAResolve.comp.glsl) |
+
+**建议的实验顺序。** 先保留 [FSR 原型](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/techniques/ffx/fsr3upscaler/README.md#integration-contract) 的采样与累积，用现有通道拆分遮罩语义。随后分别试验可信表面的细线抗闪烁、线性 HDR 累积；各自与原型比较后，再组合有效改动。固定相机时移动的手部和实体能直接暴露缺少物体运动的代价，必要时再研究补运动数据。多帧历史回捞和更高分辨率历史涉及额外显存，可在遮挡再显露仍有可复现缺口时单独测试。
+
+**比较口径。** 对每种算法重放同一段帧序列，固定几何动画、相机、抖动、曝光、DRT 与锐化。原生 1080p 和 720p 输入到 1080p 分别比较；先看重建输出，再看同设置最终画面。用相同场景时刻的高采样参考核对栅栏的可见覆盖率和高光亮度，再逐帧记录遮挡解除后的残影消退帧数、静态区域亮度波动与运动中的细节。另列整条重建链的 GPU 毫秒、图集显存和物理 image 数。在 Iris 1.10.4 上核对原生、超分两种模式及法线贴图开关。以上为实验设计，方案优劣待同段实测。
+
 ## Bloom
 
 `SETTING_BLOOM_SHAPE` offers Standard (0, default), Diamond Four (1), Horizontal Streak (2), Cross Four (3),
