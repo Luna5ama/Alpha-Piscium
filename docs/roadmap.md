@@ -13,6 +13,12 @@
 
 DPF Bloom 已拆出 2.0。`2.0/dev@5ba8718d4` 恢复了 `0bf3a72ba` 的普通 Bloom、层级选项与生成的 pass，并保留后续 RCAS 和 TAA resolve 对 FP16 输出的限幅。`2.1/dev@cd33a99c9` 保留已提交的拟合 Bloom 和相机造型。完整 DPF 生成器、User 8 拟合与网页剖面在实验检出继续，候选达到画质与性能要求后再决定整合。云与统一体积渲染留在设计线。各专题可以先做设计和实验，合入由对应版本的发布范围与验收决定。
 
+## 2.1 曝光与 DRT
+
+2.1 重构曝光与显示变换。玩家可选 **Skibidi DRT（默认）**、AgX、OpenDRT 或 Psychov30（RenoDX test30）。Skibidi DRT 在上游收尾，移植时固定所采用的修订。AgX 先用相同输入、曝光、Look 和显示设备对照当前实现与 Blender 的 AgX，再决定是否升级。[Blender AgX 参考](https://docs.blender.org/manual/en/4.5/render/color_management.html)
+
+参考 `drt-bench`，先在场景线性光上应用一次曝光，再按所选 DRT 的输入色彩空间转换。基准中 Skibidi 直接接收线性 ACES AP0，AgX 与 OpenDRT 经 XYZ 接入。Psychov30 的独立对照从 AP0 经 D60→D65 白点适配转为线性 BT.709，输出再做 sRGB 编码。移植时用相同输入和 EV 核对各自的 SDR 输出，避免重复施加曝光或输出编码。[AP 基准入口](https://github.com/Luna5ama/drt-bench/blob/a910d635b0d1b44ba193ec9eea023358dc841ac9/shaders/ap/main.glsl) · [Psychov30 对照入口](https://github.com/Luna5ama/drt-bench/blob/a910d635b0d1b44ba193ec9eea023358dc841ac9/tools/drt_compare_psychov.py)
+
 ## 版本范围
 
 | 版本 | 范围 |
@@ -21,12 +27,12 @@ DPF Bloom 已拆出 2.0。`2.0/dev@5ba8718d4` 恢复了 `0bf3a72ba` 的普通 Bl
 | 1.10.x | 修复同一资源包混用不同纹理分辨率时的视差映射。 |
 | 2.0 | 已有方块体素化和不透明表面的世界空间 GI。发布前须完成旧版 Iris 兼容和已可开工的[屏幕空间与体素混合 GI](rendering/hybrid-gi.md)。 |
 | 2.0.x | 优化 GI 管线，收回部分性能回退。 |
-| 2.1 | 重构 DRT 与曝光管线，用 FSR 3.1 统一 TAA 和超分辨率，加入 DPF Bloom。 |
+| 2.1 | [曝光与 DRT](#21-曝光与-drt) 重构，默认使用 Skibidi DRT。用 FSR 3.1 统一 TAA 和超分辨率，加入 DPF Bloom。 |
 | 2.2 | 为世界空间 GI 加入镂空材质和生物群系染色材质，例如草与树叶。 |
 | 2.3 | 为半透明表面加入体素追踪的世界空间反射与折射。 |
 | 2.4 | 改善 ReSTIR GI 采样与降噪的画质和时域稳定性。 |
 | 2.5 | 支持 Super Resolution 模组，并通过该模组支持 DLSS Ray Reconstruction。 |
-| 2.6 | 加入 Skibidi DRT、OpenDRT 和 HDR 模组支持。 |
+| 2.6 | 加入 HDR 模组支持。 |
 | 2.7 | 重写积云形状，加入层积云和雨层云，改善低云光照。 |
 | 2.8 | 将云影投射到地形与体积，加入体积屏幕空间阴影，让反射与 GI 的照明考虑云层。 |
 | 2.9 | 重写卷云，加入高积云与地雾。 |
