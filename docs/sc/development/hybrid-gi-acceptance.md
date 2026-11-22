@@ -29,3 +29,6 @@ Vela 运行 `e04d872b-8670-4d47-8fa4-04c669e1804f` 的 `gi-iris.zip` 包含原�
 
 <!-- vela:evidence {"run":"e04d872b-8670-4d47-8fa4-04c669e1804f","path":"gi-iris.zip"} -->
 <!-- vela:evidence {"run":"e04d872b-8670-4d47-8fa4-04c669e1804f","path":"screen-trace-check.py"} -->
+<!-- vela:evidence {"run":"e04d872b-8670-4d47-8fa4-04c669e1804f","path":"entity-motion.png"} -->
+<!-- vela:evidence {"run":"e04d872b-8670-4d47-8fa4-04c669e1804f","path":"prefilter-final.png"} -->
+<!-- vela:evidence {"run":"e04d872b-8670-4d47-8fa4-04c669e1804f","path":"wall-control.png"} -->
