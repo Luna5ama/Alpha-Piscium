@@ -375,12 +375,6 @@ Across all twelve phases, the low-cost shared User 8 filter retains 3.17–3.38%
 at 144 pixels both budgets retain only 4.79–5.11%. At phase (165, 90) the low-cost value at 128 pixels is
 `1.78e-6` in linear luminance, down from `5.33e-5`. The visible break persists as the sampled span grows.
 
-Keep the existing User 8 preset. The next layout worth comparing would give sampling priority to a visible
-gap along a continuous feature of the target, from the core through the tip. Detect that feature from the RGB
-image and compare its cross-section with the neighboring dark pixels. Local width can guide which fine detail
-to keep at high resolution and which smooth halo to move to a coarser level. The existing direct and shared
-results provide same-read controls for this proposed comparison.
-
 <!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"protocol.json"} -->
 <!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"cost-quality.json"} -->
 <!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"comparison.html"} -->
@@ -409,6 +403,41 @@ results provide same-read controls for this proposed comparison.
 <!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"bitmap-line-y24.png"} -->
 <!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"bitmap-line-y24-regression.png"} -->
 <!-- vela:evidence {"run":"42f19587-f64f-47ce-8cc3-cb2b86841457","path":"bitmap-p9-native.png"} -->
+
+### Allocating DPF samples along visible features
+
+Use the gaps in the **reconstructed image** to choose where a sample is worth adding, moving or sharing. The
+previous search ranked a tap by the coefficient-grid error it removed. On the positive horizontal User 8 ray,
+all 49 native samples at x=96 through 144 fall below half the reference line contrast in both low-cost layouts
+at every one of the 12 archived phases. The longest such run at the intermediate cost is five pixels. Here
+contrast means linear Rec.709 luminance at `(x,0)` minus the brighter of `(x,-4)` and `(x,4)`. The minimum
+reference contrast on this interval exceeds `2.54e-5`. Use this line as a regression check. The half-contrast
+threshold describes the length of a gap and does not set the visual acceptance bar.
+
+- Trace continuous ridges from the full RGB target. Use local orientation, transverse width and contrast to
+  follow a thin line through its tip or around a curved stroke. Respect real gaps, branches and differences
+  between channels. The allocator takes pixels as its input. Preset identity, authored angles and review probe
+  coordinates are for validation only. A target with a smooth halo can have no ridge to protect.
+- Use the longest visibly deficient stretches on training or monitor phases to propose placements **during
+  layout selection**. Check both sides of the ridge so that widening it or drawing an isolated bright point
+  cannot repair a gap in the score. Use absolute linear RGB deficits and same-exposure images to judge weak
+  signals. Compare one fine-level allocation with the same search allowed to move locally smooth energy to a
+  coarser level. Base that choice on local width and the composed native response. A narrow tip can be far
+  from the center. Preserve total channel energy across level transfers and measure the core and outer halo.
+- Reuse the frozen reference grids, renderer, low-cost direct/shared outputs and 12 phase controls from the
+  [reference compression run](../../.vela/local/runs/42f19587-f64f-47ce-8cc3-cb2b86841457/comparison.html).
+  Use the same spatial DPF representation and per-input read limits, with intermediate writes accounted for
+  separately. Start at the low cost. The existing intermediate cost can bracket a failure. Reserve fresh phases
+  before choosing placements. For User 8, its 9.5° rotation and 67, show the detected paths, worst continuous
+  gap, neighboring peaks and valleys, RGB along the tips, weak strokes, core and pooled halo. Include the worst
+  native images at the original exposure and state the actual per-level reads and writes.
+
+The original half-resolution star fits and saved 67 are the quality controls. If the candidate preserves all
+three, exercise normal Fit and Export on User 8 and on a separate unseen recipe and its identical unannotated
+RGB raster. Check the exported responses against the targets. Load the generated User 8 via Iris Custom for a
+matched full-frame 1080p Small Lamps capture and standalone Bloom timings at 1440p, 1080p and 720p against COD,
+aiming for 3× with a 4× cap. If native quality still falls short, return the measured cost/quality comparison and
+the remaining break. Keep the current game presets during evaluation.
 
 
 ### DPF implementation evidence, 2026-11-21
