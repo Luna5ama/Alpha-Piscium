@@ -113,18 +113,18 @@ def assert_vec_close(actual: Vec3, expected: Vec3) -> None:
 
 
 def check_buffer_sizes(failures: list[str], name: str, text: str) -> None:
-    require(failures, "4 uvec4 records" in text, f"{name}: binding 11 comment must name 4 uvec4 records")
+    require(failures, "4 uvec4 records" in text, f"{name}: binding 6 comment must name 4 uvec4 records")
     for pool_size, expected_size in POOL_SIZES:
-        pattern = rf"#(?:if|elif)\s+SETTING_RC_POOL_SIZE\s*==\s*{pool_size}\s*\n\s*bufferObject\.11={expected_size}"
+        pattern = rf"#(?:if|elif)\s+SETTING_RC_POOL_SIZE\s*==\s*{pool_size}\s*\n\s*bufferObject\.6={expected_size}"
         require(
             failures,
             re.search(pattern, text) is not None,
-            f"{name}: SETTING_RC_POOL_SIZE {pool_size} must size binding 11 to {expected_size}",
+            f"{name}: SETTING_RC_POOL_SIZE {pool_size} must size binding 6 to {expected_size}",
         )
     require(
         failures,
-        re.search(r"#else\s*\n\s*bufferObject\.11=134217728", text) is not None,
-        f"{name}: fallback binding 11 size must be 134217728",
+        re.search(r"#else\s*\n\s*bufferObject\.6=134217728", text) is not None,
+        f"{name}: fallback binding 6 size must be 134217728",
     )
     for old_size in ("6291456", "12582912", "25165824", "50331648", "100663296"):
         require(failures, old_size not in text, f"{name}: old 3-record binding size {old_size} remains")

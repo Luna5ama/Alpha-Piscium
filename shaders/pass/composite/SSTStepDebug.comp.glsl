@@ -1,7 +1,5 @@
 #include "/util/Coords.glsl"
-layout(std430, binding = 11) buffer TestBuffer {
-    vec4 ssbo_testBuffer[];
-};
+#include "/techniques/debug/SSTStepBuffer.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);

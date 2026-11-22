@@ -5,9 +5,7 @@
 #include "/techniques/gi/RadianceCache.glsl"
 
 #ifdef SETTING_DEBUG_SST_STEPS
-layout(std430, binding = 11) buffer TestBuffer {
-    vec4 ssbo_testBuffer[];
-};
+#include "/techniques/debug/SSTStepBuffer.glsl"
 #endif
 
 void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
