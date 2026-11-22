@@ -1,4 +1,8 @@
+#ifndef INCLUDE_clouds_Cirrus_glsl
+#define INCLUDE_clouds_Cirrus_glsl
+
 #include "Common.glsl"
+#include "amblut/API.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Mat2.glsl"
 #include "/util/noise/ValueNoise.glsl"
@@ -36,3 +40,20 @@ float clouds_ci_density(vec3 rayPos) {
 
     return coverage * density;
 }
+float clouds_ci_distance(AtmosphereParameters atmosphere, vec3 origin, vec3 direction) {
+    float t = raySphereIntersectNearest(origin, direction, vec3(0.0), atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT);
+    float ground = raySphereIntersectNearest(origin, direction, vec3(0.0), atmosphere.bottom - PLANET_RADIUS_OFFSET);
+    return ground >= 0.0 && ground < t ? -1.0 : t;
+}
+
+ScatteringResult clouds_ci_layer(AtmosphereParameters atmosphere, vec3 atmPos, CloudRenderParams light, vec2 ambUV) {
+    vec3 noisePos = atmPos;
+    noisePos.xz += (vec2(cameraPositionInt.xz) + cameraPositionFract.xz) / float(SETTING_ATM_D_SCALE);
+    float density = clouds_ci_density(noisePos);
+    if (density <= 0.0001) return scatteringResult_init();
+    return clouds_computeLighting(atmosphere, light, clouds_ci_medium(light.cosLightTheta),
+        clouds_amblut_sample(ambUV, CLOUDS_AMBLUT_LAYER_CIRRUS), atmPos, 1.0,
+        density, density * 0.5, vec3(0.0), vec3(0.0));
+}
+
+#endif

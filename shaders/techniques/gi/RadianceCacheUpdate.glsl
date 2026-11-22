@@ -6,7 +6,7 @@
 
 #include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/gi/PathGuiding.glsl"
-#include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/atmospherics/clouds/SkyRay.glsl"
 #include "/techniques/gi/HitDirectLighting.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
@@ -151,22 +151,16 @@ bool rc_loadPreviousHitReservoir(
     return rc_loadFaceReservoir(rc_previousSide(), level, worldCellCoord, faceId, reservoir);
 }
 
-vec3 rc_sampleMissRadiance(vec3 rayDir) {
-    AtmosphereParameters atmosphere = getAtmosphereParameters();
-    SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
-    return atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
-}
-
 bool rc_isFiniteRadiance(vec3 radiance) {
     return all(lessThanEqual(abs(radiance), vec3(FLT_MAX)));
 }
 
 // valid: the radiance is finite; it may be zero.
-vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
+vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 rayOrigin, vec3 outgoingDir, out bool valid) {
     valid = false;
     // Callers reject exhausted traces, so a miss here left the voxel grid and is treated as sky.
     if (!hit.hit) {
-        vec3 missRadiance = rc_sampleMissRadiance(-outgoingDir);
+        vec3 missRadiance = clouds_offscreenRadiance(rayOrigin - cameraPosition, -outgoingDir);
         valid = rc_isFiniteRadiance(missRadiance);
         return valid ? missRadiance : vec3(0.0);
     }
@@ -247,7 +241,7 @@ bool rc_revalidateHistoryReservoir(
     }
 
     bool radianceValid = false;
-    vec3 radiance = rc_sampleHitRadiance(hit, -sampleDir, radianceValid);
+    vec3 radiance = rc_sampleHitRadiance(hit, rayOrigin, -sampleDir, radianceValid);
     float newTargetWeight = rc_luminance(radiance);
     if (!radianceValid
         || newTargetWeight <= 0.0
@@ -406,7 +400,7 @@ RCCandidate rc_generateCandidate(uint entryIndex, ivec3 worldCellCoord, uint lev
     }
 
     bool radianceValid = false;
-    vec3 radiance = rc_sampleHitRadiance(hit, -worldDir, radianceValid);
+    vec3 radiance = rc_sampleHitRadiance(hit, rayOrigin, -worldDir, radianceValid);
     if (!radianceValid) {
         return candidate;
     }
@@ -498,7 +492,7 @@ bool rc_generateSpatialCandidate(
         }
 
         bool radianceValid = false;
-        vec3 radiance = rc_sampleHitRadiance(hit, -shiftedDir, radianceValid);
+        vec3 radiance = rc_sampleHitRadiance(hit, targetOrigin, -shiftedDir, radianceValid);
         float targetWeight = rc_luminance(radiance);
         float sourceTargetWeight = rc_luminance(sourceReservoir.radiance);
         if (

@@ -3,55 +3,52 @@
 
 #include "/util/Colors.glsl"
 #include "/util/Rand.glsl"
+#include "/techniques/textile/CSR32F.glsl"
+
+float clouds_ss_translucentZ(ivec2 texel) {
+    float water = texelFetch(usam_csr32f, csr32f_tile1_texelToTexel(texel), 0).r;
+    float glass = texelFetch(usam_csr32f, csr32f_tile3_texelToTexel(texel), 0).r;
+    return -min(water, glass);
+}
+
+float clouds_ss_segmentStart(float surfaceZ, vec3 solidView) {
+    return surfaceZ > max(-65536.0, solidView.z) ? length(solidView) * (surfaceZ / solidView.z) * 0.001 : 0.0;
+}
 
 #if SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 0
 #define UPSCALE_FACTOR 1.0
 #define DOWNSCALE_DIVIDE(x) x
 #define RENDER_MULTIPLIER 1.0
-#define CHECK_MIP_LEVEL 3
-#define CHECK_MIP_FACTOR 8.0
 
 #elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 1
 #define UPSCALE_FACTOR 1.5
 #define DOWNSCALE_DIVIDE(x) (x * 2 / 3)
 #define RENDER_MULTIPLIER 0.6666666667
-#define CHECK_MIP_LEVEL 3
-#define CHECK_MIP_FACTOR 8.0
 
 #elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 2
 #define UPSCALE_FACTOR 2.0
 #define DOWNSCALE_DIVIDE(x) (x / 2)
 #define RENDER_MULTIPLIER 0.5
-#define CHECK_MIP_LEVEL 4
-#define CHECK_MIP_FACTOR 16.0
 
 #elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 3
 #define UPSCALE_FACTOR 2.5
 #define DOWNSCALE_DIVIDE(x) (x * 2 / 5)
 #define RENDER_MULTIPLIER 0.4
-#define CHECK_MIP_LEVEL 4
-#define CHECK_MIP_FACTOR 16.0
 
 #elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 4
 #define UPSCALE_FACTOR 3.0
 #define DOWNSCALE_DIVIDE(x) (x / 3)
 #define RENDER_MULTIPLIER 0.3333333333
-#define CHECK_MIP_LEVEL 5
-#define CHECK_MIP_FACTOR 32.0
 
 #elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 5
 #define UPSCALE_FACTOR 3.5
 #define DOWNSCALE_DIVIDE(x) (x * 2 / 7)
 #define RENDER_MULTIPLIER 0.2857142857
-#define CHECK_MIP_LEVEL 5
-#define CHECK_MIP_FACTOR 32.0
 
 #elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 6
 #define UPSCALE_FACTOR 4.0
 #define DOWNSCALE_DIVIDE(x) (x / 4)
 #define RENDER_MULTIPLIER 0.25
-#define CHECK_MIP_LEVEL 6
-#define CHECK_MIP_FACTOR 64.0
 
 #endif
 
@@ -73,6 +70,7 @@ struct CloudSSHistoryData {
     vec3 inScattering;
     vec3 transmittance;
     float hLen;
+    float distanceKm;
 };
 
 CloudSSHistoryData clouds_ss_historyData_init() {
@@ -80,6 +78,7 @@ CloudSSHistoryData clouds_ss_historyData_init() {
     data.inScattering = vec3(0.0);
     data.transmittance = vec3(1.0);
     data.hLen = 0.0;
+    data.distanceKm = 0.0;
     return data;
 }
 
@@ -88,19 +87,22 @@ void clouds_ss_historyData_pack(out uvec4 packedData, CloudSSHistoryData data) {
     packedData.x = packHalf2x16(data.inScattering.xy);
     packedData.y = packHalf2x16(vec2(data.inScattering.z, data.transmittance.x));
     packedData.z = packHalf2x16(data.transmittance.yz);
-    packedData.w = floatBitsToUint(data.hLen);
+    packedData.w = packHalf2x16(vec2(data.hLen, data.distanceKm));
 }
 
 void clouds_ss_historyData_unpack(uvec4 packedData, out CloudSSHistoryData data) {
     if (packedData == uvec4(0u)) {
         data = clouds_ss_historyData_init();
+        return;
     }
     vec2 temp1 = unpackHalf2x16(packedData.x);
     vec2 temp2 = unpackHalf2x16(packedData.y);
     vec2 temp3 = unpackHalf2x16(packedData.z);
     data.inScattering = vec3(temp1.xy, temp2.x);
     data.transmittance = vec3(temp2.y, temp3.xy);
-    data.hLen = uintBitsToFloat(packedData.w);
+    vec2 depthHistory = unpackHalf2x16(packedData.w);
+    data.hLen = depthHistory.x;
+    data.distanceKm = depthHistory.y;
 }
 
 #endif

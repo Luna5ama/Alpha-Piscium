@@ -1,6 +1,6 @@
 #define MATERIAL_TRANSLUCENT a
 
-#include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/atmospherics/clouds/SkyRay.glsl"
 #include "/techniques/EnvProbe.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/SST2.glsl"
@@ -102,7 +102,6 @@ void main() {
             const float SQRT_1_2 = 0.7071067812;
             vec2 nv = SQRT_2 * noiseV - SQRT_1_2;
             nv = pow3(nv) + 0.5;
-            AtmosphereParameters atmosphere = getAtmosphereParameters();
 
             vec3 refractStartPosView = startViewPos + offsetDir * min(1.0, startViewPos.z - solidViewZ);
             SSTRay refractRay = sstray_setup(texelPos, refractStartPosView, refractDir);
@@ -115,8 +114,7 @@ void main() {
             if (isEyeInWater == 1) {
                 vec3 refractDirWorld = coords_dir_viewToWorld(refractDir);
                 if (refractDirWorld.y > 0.0) {
-                    SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, refractDirWorld);
-                    refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+                    refractColor = clouds_offscreenRadiance(coords_pos_viewToWorld(refractStartPosView, gbufferModelViewInverse), refractDirWorld);
                     if (refractHit) {
                         vec2 refractCoord = refractHitScreen2D;
                         vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
@@ -158,9 +156,7 @@ void main() {
             EnvProbeData envData = envProbe_decode(persistent_envProbe_fetch(envTexel));
             vec3 reflectColor = envData.radiance.rgb;
             if (envProbe_isSky(envData) && (!isWater || reflectDirWorld.y > 0.0)) {
-                AtmosphereParameters atmosphere = getAtmosphereParameters();
-                SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);
-                reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+                reflectColor = clouds_offscreenRadiance(coords_pos_viewToWorld(startViewPos, gbufferModelViewInverse), reflectDirWorld);
                 reflectColor *= linearStep(-1.0, 0.0, reflectDirWorld.y);
             }
             if (reflectRay.currT < 0.0 && reflectRay.currT > -1.0) {

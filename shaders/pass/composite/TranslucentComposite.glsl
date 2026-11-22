@@ -6,6 +6,9 @@
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/atmospherics/LocalComposite.glsl"
+#ifdef SETTING_CLOUDS_CU
+#include "/techniques/atmospherics/clouds/ScreenRay.glsl"
+#endif
 #include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/FullScreenComp.glsl"
@@ -124,6 +127,11 @@ void main() {
             outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
         }
         ScatteringResult sctrResult = atmospherics_localComposite(2, texelPos);
+        #ifdef SETTING_CLOUDS_CU
+        ScatteringResult cloud = clouds_screen_front(texelPos, startViewZ, solidViewZ);
+        if (startViewZ > max(-65536.0, solidViewZ)) outputColor.rgb = scatteringResult_apply(cloud, outputColor.rgb);
+        clouds_screen_localAir(cloud, sctrResult);
+        #endif
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
 
         imageStore(uimg_main, texelPos, outputColor);

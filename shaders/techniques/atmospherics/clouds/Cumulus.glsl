@@ -1,223 +1,170 @@
-/*
-    References:
-        [QUI13a] Quilez, Inigo. "Voronoi - smooth ". 2014.
-            MIT License. Copyright (c) 2014 Inigo Quilez.
-            https://www.shadertoy.com/view/ldB3zc#
+#ifndef INCLUDE_clouds_Cumulus_glsl
+#define INCLUDE_clouds_Cumulus_glsl
 
-        You can find full license texts in /licenses
-*/
-#include "Common.glsl"
-#include "/util/AxisAngle.glsl"
-#include "/util/Rand.glsl"
-#include "/util/Mat2.glsl"
-#include "/util/noise/ValueNoise.glsl"
-#include "/util/noise/GradientNoise.glsl"
+#include "/util/Hash.glsl"
 
-const float _LOW_BASE_FREQ = exp2(SETTING_CLOUDS_LOW_BASE_FREQ);
-const float _LOW_CURL_FREQ = exp2(SETTING_CLOUDS_LOW_CURL_FREQ);
-const float _LOW_BILLOWY_FREQ = exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ - 1.0);
-const float _LOW_BILLOWY_CURL_STR = exp2(SETTING_CLOUDS_LOW_BILLOWY_CURL_STR - 2.0);
-const float _HIGH_BILLOWY_FREQ = exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ);
-const float _HIGH_BILLOWY_CURL_STR = exp2(SETTING_CLOUDS_HIGH_BILLOWY_CURL_STR - 1.0);
-const float _LOW_WISPS_FREQ = exp2(SETTING_CLOUDS_LOW_WISPS_FREQ);
-const float _LOW_WISPS_CURL_STR = exp2(SETTING_CLOUDS_LOW_WISPS_CURL_STR - 2.0);
+const float CU_CELL_SIZE = 4.8 * exp2(-SETTING_CLOUDS_LOW_BASE_FREQ);
+const float CU_RANGE = 50.0;
+const float CU_DENSITY = 96.0 * SETTING_CLOUDS_CU_DENSITY;
 
-
-/*
-b_{i}
--1.755622
-3.6801126
--163.09651
-320.59657
--163.29147
-0.01273534
-*/
-float _clouds_cu_heightCurveWisp(vec4 xs) {
-    // https://www.desmos.com/calculator/2c5574fcdc
-    const float a0 = -1.755622;;
-    const vec4 as = vec4(3.6801126, -163.09651, 320.59657, -163.29147);
-    const float a5 = 0.01273534;
-    return exp2(dot(as, xs) + a0) + a5;
+// Geometry uses kilometres relative to sea level, independently of the air LUT's artistic scale.
+vec3 clouds_cu_origin(vec3 sceneOffset) {
+    dvec2 xz = (dvec2(cameraPositionInt.xz) + dvec2(cameraPositionFract.xz)) * 0.001lf;
+    #ifdef SETTING_CLOUDS_CU_WIND
+    double seconds = double(worldDay) * 1200.0lf + double(worldTime) * 0.05lf;
+    xz -= seconds * double(exp2(SETTING_CLOUDS_CU_WIND_SPEED)) * dvec2(0.006, 0.004);
+    #endif
+    // Both cell lattices and the regional pattern repeat on this period. Reduce before converting to float.
+    vec2 local = vec2(mod(xz, double(CU_CELL_SIZE) * 256.0lf));
+    float altitude = float(cameraPositionInt.y - 62) + cameraPositionFract.y;
+    return vec3(local.x, altitude * 0.001, local.y) + sceneOffset * 0.001;
 }
 
-/*
-c_{i}
--2.8940248
-20.938597
--83.765418
-114.27168
--53.99707
-*/
-float _clouds_cu_heightCurveBillowy(vec4 xs) {
-    // https://www.desmos.com/calculator/2c5574fcdc
-    const float a0 = -2.8940248;
-    const vec4 as = vec4(20.938597, -83.765418, 114.27168, -53.99707);
-    return exp2(dot(as, xs) + a0);
+vec2 clouds_cu_altitudes() {
+    return max(vec2(0.0), SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * vec2(-0.19, 1.28));
 }
 
-float worleyNoise(vec2 x, uint seed) {
-    uvec2 centerCellID = uvec2(ivec2(floor(x)));
-    vec2 centerOffset = fract(x);
+bool clouds_cu_interval(vec3 origin, vec3 direction, float limit, out vec2 interval) {
+    vec2 heights = clouds_cu_altitudes();
+    interval = vec2(0.0, min(limit, CU_RANGE));
+    if (SETTING_CLOUDS_CU_THICKNESS <= 0.0 || SETTING_CLOUDS_CU_COVERAGE <= 0.0 || CU_DENSITY <= 0.0) return false;
+    if (direction.y == 0.0) return origin.y >= heights.x && origin.y <= heights.y && interval.y > 0.0;
+    vec2 t = (heights - origin.y) / direction.y;
+    interval.x = max(interval.x, min(t.x, t.y));
+    interval.y = min(interval.y, max(t.x, t.y));
+    return interval.x < interval.y;
+}
 
-    // Initialize results
-    float f1 = 0.0;
-    float f2 = 0.0;
-    float m = 1.0;
+struct CuField {
+    float bound;
+    float density;
+    float bulk;
+    float height;
+    float development;
+    vec3 normal;
+};
 
-    for (int ix = -1; ix <= 1; ++ix) {
-        for (int iy = -1; iy <= 1; ++iy) {
-            ivec2 idOffset = ivec2(ix, iy);
-            uvec2 cellID = centerCellID + (idOffset + 2);
+float clouds_cu_bud(vec3 p) {
+    float parent = 1.0 - length(p);
+    if (parent <= 0.0) return 0.0;
+    float core = 1.0 - length((p + vec3(0.0, 0.17, 0.0)) / vec3(0.79, 0.81, 0.81));
+    float a = 1.0 - length((p - vec3(-0.36, 0.25, -0.20)) / vec3(0.51, 0.56, 0.54));
+    float b = 1.0 - length((p - vec3(0.34, 0.18, 0.21)) / vec3(0.54, 0.54, 0.52));
+    float c = 1.0 - length((p - vec3(0.04, 0.57, -0.09)) / vec3(0.46, 0.45, 0.51));
+    return min(parent - 0.004, max(max(core, c), max(a, b)));
+}
 
-            uvec3 hashPos = uvec3(cellID, seed);
-            vec3 hashValF = hash_uintToFloat(hash_33_q3(hashPos));
-            vec2 cellCenter = hashValF.xy + vec2(idOffset);
+float clouds_cu_crown(vec3 p, float parentInterior, vec3 drift) {
+    if (parentInterior <= 0.0) return 0.0;
+    vec3 q = p - drift;
+    q.x -= 0.11 * (p.y + 0.2);
+    float core = 1.0 - length((q - vec3(0.0, -0.19, 0.0)) / vec3(0.88, 0.86, 0.86));
+    float left = clouds_cu_bud((q - vec3(-0.39, 0.25, -0.16)) / vec3(0.57, 0.53, 0.62));
+    float right = clouds_cu_bud((q - vec3(0.36, 0.22, 0.20)) / vec3(0.55, 0.62, 0.60));
+    float top = clouds_cu_bud((q - vec3(-0.08, 0.54, 0.11)) / vec3(0.51, 0.49, 0.52));
+    return min(parentInterior - 0.004, max(max(core, top), max(left, right)));
+}
 
-            float cellDistance = distance(centerOffset, cellCenter);
-            float v = pow2(hashValF.z) * saturate(1.0 - cellDistance);
+void clouds_cu_cluster(vec3 pos, vec3 direction, bool lower, float lod, bool density, inout CuField field) {
+    float size = lower ? CU_CELL_SIZE * 0.5 : CU_CELL_SIZE;
+    vec2 grid = pos.xz / size + (lower ? vec2(0.37, 0.61) : vec2(0.0));
+    // Select the forward cell at an exact face. Every possible footprint is inset from these faces.
+    vec2 cell = floor(grid + sign(direction.xz) * 0.000002);
+    vec2 uv = grid - cell;
+    vec2 toFace = mix(uv, 1.0 - uv, greaterThan(direction.xz, vec2(0.0)));
+    vec2 exitDistance = toFace * size / max(abs(direction.xz), vec2(1e-20));
+    if (direction.x != 0.0) field.bound = min(field.bound, max(exitDistance.x, 0.0));
+    if (direction.z != 0.0) field.bound = min(field.bound, max(exitDistance.y, 0.0));
 
-            const float w = 0.35;
-            const float wRcp = 1.4285714286; // 1.0 / w * 0.5
-            float h = hashValF.z * saturate((m - cellDistance) * wRcp + 0.5);
-            float wh = w * h;
-            m = mix(m, cellDistance, h) - fma(wh, -h, wh) / (1.0 + 3.0 * w);
+    uvec2 id = uvec2(ivec2(cell)) & uvec2(lower ? 511u : 255u);
+    vec4 seed = hash_uintToFloat(hash_44_q1(uvec4(id + uvec2(871u, 2137u), lower ? 43u : 17u, 521u)));
+    // Oblique, anisotropic coordinates group candidates into finite, broken streets.
+    vec2 region = (vec2(id) + 0.5) * (lower ? 0.5 : 1.0);
+    vec2 bandUV = vec2(dot(region, vec2(2.0, 1.0)), dot(region, vec2(-3.0, 6.0))) / 256.0;
+    float band = textureLod(usam_cumulusBase, bandUV, 0.0).r;
+    float coverage = SETTING_CLOUDS_CU_COVERAGE;
+    float chance = clamp(coverage * (lower ? 1.45 : 1.20) + (band - 0.35) * 1.55, 0.0, 1.0);
+    if (seed.w >= chance) return;
 
-            f2 = max(f2, min(f1, v));
-            f1 = max(f1, v);
-        }
+    float growth = smoothstep(0.18, 0.94, seed.z + (band - 0.35) * 0.42);
+    float radius = size * mix(0.17, 0.42, mix(seed.y, coverage, 0.36));
+    float margin = radius / size + 0.026;
+    vec2 center = mix(vec2(margin), vec2(1.0 - margin), seed.xy);
+    vec2 delta = (uv - center) * size;
+    float base = max(0.0, SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS *
+        (lower ? mix(-0.19, -0.035, band) : mix(0.015, 0.25, band)));
+    float height = SETTING_CLOUDS_CU_THICKNESS * (lower ? mix(0.085, 0.32, growth) : mix(0.13, 1.0, growth * growth));
+    float y = pos.y - base;
+    float parentBox = max(length(delta) - radius, max(-y, y - height));
+    if (parentBox > 0.0) {
+        field.bound = min(field.bound, parentBox);
+        return;
     }
 
-    return saturate(1.0 - m - f2);
-}
+    float angle = 6.2831853 * seed.x;
+    vec2 axis = vec2(cos(angle), sin(angle));
+    vec2 across = vec2(-axis.y, axis.x);
+    vec3 p = vec3(dot(delta, axis) / radius, y / height, dot(delta, across) / radius);
+    float sideTop = mix(0.44, 0.79, seed.y);
+    vec3 qb = (p - vec3(0.0, 0.10, 0.0)) / vec3(1.0, 0.19, 0.72);
+    vec3 qm = (p - vec3(0.18 + 0.10 * seed.y, 0.50, 0.02)) / vec3(0.45, 0.51, 0.43);
+    vec3 qs = (p - vec3(-0.32, 0.5 * sideTop, -0.06)) / vec3(0.42, 0.51 * sideTop, 0.39);
+    vec3 qy = (p - vec3(0.49, 0.21, -0.13)) / vec3(0.37, 0.25, 0.34);
+    vec4 interior = 1.0 - vec4(length(qb), length(qm), length(qs), length(qy));
+    vec4 shortestAxis = min(radius * vec4(0.72, 0.43, 0.39, 0.34), height * vec4(0.19, 0.51, 0.51 * sideTop, 0.25));
+    vec4 distances = -interior * shortestAxis;
+    float bound = max(parentBox, min(min(distances.x, distances.y), min(distances.z, distances.w)));
+    field.bound = min(field.bound, bound);
+    if (bound >= 0.0 || !density) return;
 
-float coverageNoise(vec2 pos) {
-    pos *= _LOW_BASE_FREQ;
-    float higherOctave = texture(usam_cumulusBase, pos / 32.0).x;
-    const float freq = 0.35;
-    float baseNoise = worleyNoise(pos * freq, 0x1919810u);
-    return baseNoise + higherOctave * 0.75;
-}
+    // Local coordinates keep all noises attached to their parent across tile and world-time wraps.
+    vec3 noisePos = vec3(dot(delta, axis), y, dot(delta, across)) + 8.0 * seed.xyz;
+    vec3 curl = textureLod(usam_cumulusCurl, noisePos * (0.57 * exp2(SETTING_CLOUDS_LOW_CURL_FREQ)), 0.0).xyz;
+    vec3 drift = curl * (0.07 * exp2(SETTING_CLOUDS_LOW_BILLOWY_CURL_STR));
+    #ifdef SETTING_CLOUDS_CU_WIND
+    float phase = (float((worldDay % 4 + 4) % 4) + float(worldTime) / 24000.0) * (6.2831853 * 0.25);
+    drift += 0.045 * sin(phase + 6.2831853 * seed.yzx);
+    #endif
+    float floorHeight = 0.025 + 0.020 * curl.z;
+    float baseShape = min(interior.x - 0.004, (p.y - floorHeight) / 0.19);
+    float shape = max(baseShape, clouds_cu_crown(qm, interior.y, drift));
+    shape = max(shape, clouds_cu_crown(qs, interior.z, -drift.zxy));
+    shape = max(shape, clouds_cu_crown(qy, interior.w, drift.yzx));
+    if (shape <= 0.0) return;
 
-float clouds_cu_baseCoverage(vec2 pos) {
-    float baseCoverage = coverageNoise(pos);
-    const float COVERAGE = SETTING_CLOUDS_CU_COVERAGE;
-    float COVERAGE_P = pow2(COVERAGE);
-    baseCoverage = max(baseCoverage - (1.0 - COVERAGE_P) * 0.8, 0.0);
-    return baseCoverage * (1.0 - pow2(1.0 - COVERAGE));
-}
-
-float clouds_cu_isotropicMSBoundaryWeight(vec3 rayPos, float localHeight, float columnHeight, vec3 lightDir) {
-    float sampleStep = clamp(0.05 / _LOW_BASE_FREQ, 0.025, 0.2);
-    float coverageXP = saturate(clouds_cu_baseCoverage(rayPos.xz + vec2(sampleStep, 0.0)));
-    float coverageXN = saturate(clouds_cu_baseCoverage(rayPos.xz - vec2(sampleStep, 0.0)));
-    float coverageZP = saturate(clouds_cu_baseCoverage(rayPos.xz + vec2(0.0, sampleStep)));
-    float coverageZN = saturate(clouds_cu_baseCoverage(rayPos.xz - vec2(0.0, sampleStep)));
-    float dHdx = (coverageXP - coverageXN) * SETTING_CLOUDS_CU_THICKNESS / (2.0 * sampleStep);
-    float dHdz = (coverageZP - coverageZN) * SETTING_CLOUDS_CU_THICKNESS / (2.0 * sampleStep);
-    vec3 normal = normalize(vec3(-dHdx, 1.0, -dHdz));
-    float rawCTop = saturate((dot(normal, lightDir) + 0.5) / 1.5);
-    float cTop = mix(1.0, rawCTop, 0.25);
-    float cBottom = 1.0 - exp(-max(localHeight, 0.0) / (0.1 * mix(1.0, 4.0, columnHeight)));
-    return cTop * cBottom;
-}
-
-float detailNoiseB(vec3 pos, vec3 curl) {
-    vec3 lowFreqPos = pos * _LOW_BILLOWY_FREQ + curl * _LOW_BILLOWY_CURL_STR;
-    float lowFreq = texture(usam_cumulusDetail1, lowFreqPos).x;
-    vec3 highFreqPos = pos * _HIGH_BILLOWY_FREQ + curl * _HIGH_BILLOWY_CURL_STR;
-    float highFreq = texture(usam_cumulusDetail2, highFreqPos).x;
-    return pow2(1.0 - lowFreq) * 0.4 + pow3(1.0 - highFreq) * 0.2;
-}
-
-float detailNoiseW(vec3 pos) {
-    pos *= _LOW_WISPS_FREQ;
-    return texture(usam_cumulusDetail2, pos).x;
-}
-
-vec3 detailCurlNoise(vec3 pos) {
-    pos *= 0.5;
-    pos *= _LOW_CURL_FREQ;
-    return texture(usam_cumulusCurl, pos).xyz;
-}
-
-bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float densityOut, out float densityLodOut, out float coverageOut) {
-    float baseCoverage = clouds_cu_baseCoverage(rayPos.xz);
-    coverageOut = saturate(baseCoverage);
-    densityOut = baseCoverage;
-    const float COVERAGE = SETTING_CLOUDS_CU_COVERAGE;
-    float COVERAGE_SQRT = sqrt(COVERAGE);
-
-    float x1 = heightFraction;
-    float x2 = x1 * x1;
-    float x3 = x1 * x2;
-    float x4 = x1 * x3;
-    vec4 xs = vec4(x1, x2, x3, x4);
-
-    // TODO: expose these as settings
-    const float CONE_FACTOR = mix(5.0, 0.1, SETTING_CLOUDS_LOW_CONE_FACTOR);
-    const float CONE_TOP_FACTOR = mix(3.0, 9.0, SETTING_CLOUDS_LOW_CONE_FACTOR);
-    const float TOP_CURVE_FACTOR = float(SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR);
-    const float BOTTOM_CURVE_FACTOR = float(SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR);
-
-    densityOut *= 1.5 - pow(heightFraction, CONE_FACTOR);
-    densityOut *= exp2(-(heightFraction) * CONE_TOP_FACTOR);
-    densityOut *= saturate(1.0 - exp2(TOP_CURVE_FACTOR * (heightFraction - 1.0)));
-    densityOut *= saturate(1.0 - exp2(-BOTTOM_CURVE_FACTOR * heightFraction));
-    densityLodOut = densityOut;
-    densityLodOut *= 1.0 + heightFraction * 16.0;
-
-    const float CU_BASE_DENSITY_THRESHOLD = 0.02;
-//    return densityOut > CU_BASE_DENSITY_THRESHOLD;
-
-    if (densityOut > CU_BASE_DENSITY_THRESHOLD) {
-        #if !defined(SETTING_SCREENSHOT_MODE) && defined(SETTING_CLOUDS_CU_WIND)
-        rayPos += uval_cuDetailWind;
-        #endif
-
-        #define DETAIL_NOISE 1
-
-        vec3 curlPos = rayPos;
-        curlPos.y *= 1.3;
-        vec3 detailCurl = detailCurlNoise(curlPos);
-        detailCurl *= 0.2 + 0.3 * pow2(heightFraction);
-        detailCurl *= linearStep(mix(CU_BASE_DENSITY_THRESHOLD, 1.0, pow5(1.0 - heightFraction)), 0.0, densityOut);
-
-        float detail1Billowy = detailNoiseB(rayPos, detailCurl);
-
-        float bottomDetail = 1.0 - detail1Billowy * smoothstep(0.1, 0.0, heightFraction) * 2.0;
-        float hc3 = _clouds_cu_heightCurveBillowy(xs);
-        detail1Billowy *= hc3;
-        detail1Billowy *= COVERAGE_SQRT;
-        #if DETAIL_NOISE
-        densityOut = linearStep(saturate(detail1Billowy), 1.0, densityOut);
-        #endif
-
-        float detail1Wisp = detailNoiseW(rayPos + detailCurl * _LOW_WISPS_CURL_STR);
-
-        detail1Wisp *= COVERAGE_SQRT;
-        float hc2 = _clouds_cu_heightCurveWisp(xs);
-        detail1Wisp *= hc2;
-
-        #if DETAIL_NOISE
-        densityOut = linearStep(saturate(detail1Wisp), 1.0, densityOut);
-        #endif
-
-        float hardEdgeBlend = linearStep(0.0, 0.3, heightFraction);
-        float minDetailDensity = mix(0.005, 0.02, hardEdgeBlend);
-        float edgeDesnityRange = mix(0.05, 0.01, hardEdgeBlend);
-        densityOut *= sqrt(smoothstep(minDetailDensity, minDetailDensity + edgeDesnityRange, densityOut));
-
-        // Make cloud top more dense
-        // TODO: Expose height density modifier as setting
-        densityOut *= 1.0 + heightFraction * 16.0;
-        // Add some shapes to the bottom, using multipcation because subtraction only affect sides
-        densityOut *= bottomDetail;
-
-        if (densityOut > 0.0) {
-            return true;
-        }
+    float billow = textureLod(usam_cumulusDetail1, noisePos * (0.75 * exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ)) + drift, 0.0).r;
+    float fine = textureLod(usam_cumulusDetail2, noisePos * (2.6 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ))
+        + curl * (0.11 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_CURL_STR)), 0.0).r;
+    float wisp = textureLod(usam_cumulusDetail2, noisePos * (5.1 * exp2(SETTING_CLOUDS_LOW_WISPS_FREQ))
+        + curl * (0.05 * exp2(SETTING_CLOUDS_LOW_WISPS_CURL_STR)), 0.0).r;
+    float erosion = (1.0 - sqrt(billow)) * 0.24 + (1.0 - fine) * 0.062;
+    erosion += mix((1.0 - wisp) * 0.025, 0.018, lod);
+    float outer = -parentBox / min(radius, height) - 0.0005;
+    float bulk = clamp(min(shape, outer) / 0.11, 0.0, 1.0);
+    float rho = clamp(min(shape - erosion, outer) / 0.11, 0.0, 1.0) * mix(0.55, 1.15, smoothstep(0.015, 0.35, p.y));
+    if (rho > field.density) {
+        field.density = rho;
+        field.bulk = bulk;
+        field.height = p.y;
+        field.development = height / max(float(SETTING_CLOUDS_CU_THICKNESS), 0.001);
+        vec2 slope = (axis * qm.x + across * qm.z) * (height / radius);
+        field.normal = normalize(vec3(slope.x, 1.0, slope.y));
     }
-
-    densityOut = 0.0;
-    return false;
 }
+
+CuField clouds_cu_field(vec3 pos, vec3 direction, float lod, bool density) {
+    CuField field = CuField(CU_RANGE, 0.0, 0.0, 0.0, 0.0, vec3(0.0, 1.0, 0.0));
+    clouds_cu_cluster(pos, direction, false, lod, density, field);
+    clouds_cu_cluster(pos, direction, true, lod, density, field);
+    return field;
+}
+
+// Positive bounds skip empty space. Near a silhouette the integration bin shrinks before its jittered probe.
+float clouds_cu_bin(vec3 pos, vec3 direction, float target, out bool empty) {
+    float d = clouds_cu_field(pos, direction, 0.0, false).bound;
+    const float edgeStep = 0.42 / float(SETTING_CLOUDS_LOW_STEP_MIN);
+    empty = d > edgeStep;
+    return empty ? d : min(target, edgeStep + 0.48 * abs(d));
+}
+
+#endif

@@ -1,6 +1,9 @@
 #include "/util/BitPacking.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
+#ifdef SETTING_CLOUDS_CU
+#include "/techniques/atmospherics/clouds/ScreenRay.glsl"
+#endif
 
 layout(local_size_x = 64) in;
 
@@ -26,6 +29,9 @@ void main() {
             noiseV
         );
 
+        #ifdef SETTING_CLOUDS_CU
+        clouds_screen_localAir(clouds_screen_front(texelPos, clouds_ss_translucentZ(texelPos), viewZ), sctrResult);
+        #endif
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
         outputColor.rgb *= sctrResult.transmittance;
         outputColor.rgb += sctrResult.inScattering;

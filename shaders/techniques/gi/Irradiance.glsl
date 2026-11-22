@@ -1,7 +1,7 @@
 #ifndef INCLUDE_techniques_restir_Irradiance_glsl
 #define INCLUDE_techniques_restir_Irradiance_glsl a
 
-#include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/atmospherics/clouds/SkyRay.glsl"
 #include "/techniques/EnvProbe.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Material.glsl"
@@ -16,9 +16,7 @@ vec3 restir_irradiance_sampleIrradianceMiss(ivec2 texelPos, vec3 rayOriginScene,
     EnvProbeData envData = envProbe_decode(persistent_envProbe_fetch(envTexel));
 
 
-    AtmosphereParameters atmosphere = getAtmosphereParameters();
-    SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, worldDirection);
-    vec3 skyIrradiance = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+    vec3 skyIrradiance = clouds_offscreenRadiance(rayOriginScene, worldDirection);
     #ifdef SETTING_GI_MC_SKYLIGHT_ATTENUATION
     float lmCoordSky = transient_lmCoord_fetch(texelPos).y;
     float skyLightFactor = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));

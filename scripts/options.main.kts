@@ -2130,11 +2130,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         lang {
                             name = "Coverage"
                             comment =
-                                "How much of the sky is covered by clouds. 0 = clear sky, 1 = completely overcast."
+                                "Controls how many cloud groups form and how wide their bases grow. Zero gives a clear sky."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "云层覆盖率"
-                            comment = "云覆盖天空的程度。0 = 晴空，1 = 完全阴天。"
+                            comment = "调节云团的疏密与底宽。设为零时天空无积云。"
                         }
                     }
                     slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.9, 0.0..1.0 step 0.05) {
@@ -2160,11 +2160,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         lang {
                             name = "Wind Speed"
                             comment =
-                                "Speed of cloud movement. Negative values move clouds in the opposite direction."
+                                "A value of 1 doubles wind speed. A value of -1 halves it."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "风速"
-                            comment = "云移动的速度。负值使云向相反方向移动。"
+                            comment = "设为 1 时风速加倍，设为 -1 时风速减半。"
                         }
                     }
                 }
@@ -2175,40 +2175,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "建模高级设置"
                     }
-                    slider("SETTING_CLOUDS_LOW_CONE_FACTOR", 0.5, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Cone Factor"
-                            comment =
-                                "Controls the how pointed the cloud structures are. Higher values create sharper clouds."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "锥体因子"
-                            comment = "控制云顶尖锐程度。数值越高，云越尖锐。"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR", 48, powerOfTwoAndHalfRange(4..10)) {
-                        lang {
-                            name = "Top Curve Factor"
-                            comment =
-                                "Controls the shape curve of cloud tops. Higher values creates more angular top."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "云顶曲线因子"
-                            comment = "控制云顶的形状曲线。数值越高，云顶越有棱角。"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR", 128, powerOfTwoAndHalfRange(4..10)) {
-                        lang {
-                            name = "Bottom Curve Factor"
-                            comment =
-                                "Controls the shape curve of cloud bottoms. Higher values creates more angular bottoms."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "云底曲线因子"
-                            comment = "控制云底的形状曲线。数值越高，云底越有棱角。"
-                        }
-                    }
-                    empty()
                     slider("SETTING_CLOUDS_LOW_BASE_FREQ", 0.0, -4.0..4.0 step 0.1) {
                         lang {
                             name = "Base Noise Frequency"

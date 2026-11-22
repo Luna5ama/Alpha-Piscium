@@ -99,10 +99,8 @@ restir_InitialCandidate restir_initialCandidate_makeVoxelFallback(vec3 rayDirVie
     return candidate;
 }
 
-vec3 restir_initialSample_sampleSky(ivec2 texelPos, vec3 worldDirection) {
-    AtmosphereParameters atmosphere = getAtmosphereParameters();
-    SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, worldDirection);
-    vec3 skyRadiance = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+vec3 restir_initialSample_sampleSky(ivec2 texelPos, vec3 sceneOrigin, vec3 worldDirection) {
+    vec3 skyRadiance = clouds_offscreenRadiance(sceneOrigin, worldDirection);
     #ifdef SETTING_GI_MC_SKYLIGHT_ATTENUATION
     float lmCoordSky = transient_lmCoord_fetch(texelPos).y;
     float skyLightFactor = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));
@@ -201,7 +199,7 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     if (!hit.hit) {
         candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_SKY_MISS;
         candidate.radiance = restir_initialSample_sanitizeRadiance(
-            restir_initialSample_sampleSky(texelPos, rayWorldDir)
+            restir_initialSample_sampleSky(texelPos, rayOriginWorld - cameraPosition, rayWorldDir)
         );
         return candidate;
     }

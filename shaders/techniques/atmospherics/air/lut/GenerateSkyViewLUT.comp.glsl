@@ -13,52 +13,17 @@
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
-const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 4);
+const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 3);
 
 /*const*/
 #define ATMOSPHERE_RAYMARCHING_SKY a
 /*const*/
 #include "../Raymarching.glsl"
+#include "../../clouds/SkyRay.glsl"
 
 layout(rgba16f) restrict uniform writeonly image3D uimg_skyViewLUT;
 
 const float BOTTOM_OFFSET = 8.0;
-
-bool setupRayEndC(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
-    const vec3 earthCenter = vec3(0.0);
-    float rayStartHeight = length(params.rayStart);
-
-    // Check if ray origin is outside the atmosphere
-    if (rayStartHeight > atmosphere.top) {
-        float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-        if (tTop < 0.0) {
-            return false; // No intersection with atmosphere: stop right away
-        }
-        vec3 upVector = params.rayStart / rayStartHeight;
-        vec3 upOffset = upVector * -PLANET_RADIUS_OFFSET;
-        params.rayStart += rayDir * tTop + upOffset;
-    }
-
-    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom - BOTTOM_OFFSET);
-    float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-    float rayLen = 0.0;
-
-    if (tBottom < 0.0) {
-        if (tTop < 0.0) {
-            return false; // No intersection with earth nor atmosphere: stop right away
-        } else {
-            rayLen = tTop;
-        }
-    } else {
-        if (tTop > 0.0) {
-            rayLen = min(tTop, tBottom);
-        }
-    }
-
-    params.rayEnd = params.rayStart + rayDir * rayLen;
-
-    return true;
-}
 
 bool setupRayEndLayered(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir, vec2 layerBound) {
     const vec3 earthCenter = vec3(0.0);
@@ -128,12 +93,6 @@ bool setupRayEndLayered(AtmosphereParameters atmosphere, inout RaymarchParameter
     return true;
 }
 
-const vec2[3] LAYER_BOUNDS = {
-    vec2(-100.0, SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5),
-    vec2(SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5, SETTING_CLOUDS_CI_HEIGHT),
-    vec2(SETTING_CLOUDS_CI_HEIGHT, 100.0)
-};
-
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     vec2 screenPos = (texelPos + 0.5) / SKYVIEW_LUT_SIZE_F;
@@ -141,7 +100,6 @@ void main() {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
     vec3 rayStart = atmosphere_viewToAtm(atmosphere, vec3(0.0));
-    float viewHeight = length(rayStart);
 
     // Decode UV -> lat/lon -> world-space ray direction
     float lat, lon;
@@ -162,21 +120,16 @@ void main() {
     ScatteringResult result = scatteringResult_init();
 
     if (layerIndex == 0) {
-        if (setupRayEndC(atmosphere, params, rayDir)) {
-            params.rayStart = params.rayStart + rayDir * (shadowDistance / SETTING_ATM_D_SCALE);
-            result = raymarchSky(atmosphere, params, scatteringParams, BOTTOM_OFFSET);
-        }
+        result = clouds_skyRay(atmosphere, gbufferModelViewInverse[3].xyz, rayDir);
     } else {
-        vec2 layerBound = LAYER_BOUNDS[layerIndex - 1] + atmosphere.bottom;
+        vec2 heights = layerIndex == 1 ? vec2(-100.0, SETTING_CLOUDS_CI_HEIGHT) : vec2(SETTING_CLOUDS_CI_HEIGHT, 100.0);
+        vec2 layerBound = heights + atmosphere.bottom;
         layerBound = min(layerBound, vec2(atmosphere.top));
 
         if (setupRayEndLayered(atmosphere, params, rayDir, layerBound)) {
             result = raymarchSky(atmosphere, params, scatteringParams, BOTTOM_OFFSET);
         }
     }
-
-    result.inScattering = result.inScattering;
-    result.transmittance = result.transmittance;
 
     ivec3 writePos = ivec3(texelPos, layerIndex * 2);
     imageStore(uimg_skyViewLUT, writePos, vec4(result.inScattering, 0.0));

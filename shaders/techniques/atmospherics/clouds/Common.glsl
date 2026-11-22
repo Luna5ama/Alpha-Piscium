@@ -27,17 +27,10 @@
 */
 
 #include "Mediums.glsl"
+#include "/util/Celestial.glsl"
 #include "/techniques/atmospherics/air/Constants.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/util/Colors.glsl"
-
-struct CloudMainRayParams {
-    vec3 rayStart;
-    vec3 rayDir;
-    vec3 rayEnd;
-    float rayStartHeight;
-    float rayEndHeight;
-};
 
 struct CloudRenderParams {
     vec3 lightDir;
@@ -45,95 +38,33 @@ struct CloudRenderParams {
     float cosLightTheta;
 };
 
-CloudRenderParams cloudRenderParams_init(CloudMainRayParams rayParam, vec3 lightDir, vec3 lightIrradiance) {
-    CloudRenderParams params;
-    params.lightDir = normalize(lightDir);
-    params.lightIrradiance = lightIrradiance;
-    params.cosLightTheta = dot(rayParam.rayDir, lightDir);
-    return params;
+CloudRenderParams clouds_renderParams(vec3 direction, float jitter) {
+    float angle = fract(sunAngle + 0.25);
+    float daylight = smoothstep(0.23035, 0.24035, angle) * (1.0 - smoothstep(0.75965, 0.76965, angle));
+    bool sun = daylight + (jitter - 0.5) * 0.2 >= 0.5;
+    vec3 lightDir = sun ? uval_sunDirWorld : uval_moonDirWorld;
+    return CloudRenderParams(lightDir, sun ? SUN_ILLUMINANCE : MOON_ILLUMINANCE, dot(direction, lightDir));
 }
 
-struct CloudRaymarchLayerParam {
-    CloudParticpatingMedium medium;
-    vec3 ambientIrradiance;
-    vec2 layerRange;
-    vec3 rayStart;
-    vec3 rayEnd;
-    vec4 rayStep;
-};
-
-CloudRaymarchLayerParam clouds_raymarchLayerParam_init(
-    CloudMainRayParams mainRayParam,
-    CloudParticpatingMedium medium,
-    vec3 ambientIrradiance,
-    vec2 layerRange,
-    float origin2RayOffset,
-    float rayLength,
-    uint stepCount
-) {
-    CloudRaymarchLayerParam param;
-    param.medium = medium;
-    param.ambientIrradiance = ambientIrradiance;
-    param.layerRange = layerRange;
-    param.rayStart = mainRayParam.rayStart + mainRayParam.rayDir * origin2RayOffset;
-    param.rayEnd = param.rayStart + mainRayParam.rayDir * rayLength;
-    param.rayStep = vec4(param.rayEnd - param.rayStart, rayLength) * rcp(float(stepCount + 1u));
-    return param;
-}
-
-struct CloudRaymarchAccumState {
-    vec3 totalInSctr;
-    vec3 totalTransmittance;
-};
-
-CloudRaymarchAccumState clouds_raymarchAccumState_init() {
-    CloudRaymarchAccumState state;
-    state.totalInSctr = vec3(0.0);
-    state.totalTransmittance = vec3(1.0);
-    return state;
-}
-
-struct CloudRaymarchStepState {
-    vec4 origin;
-    vec4 position;
-    float height;
-    vec4 rayStep;
-    vec3 upVector;
-};
-
-CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam layerParam) {
-    CloudRaymarchStepState state;
-    state.origin = vec4(layerParam.rayStart, 0.0);
-    state.position = state.origin;
-    state.height = length(state.position.xyz);
-    state.upVector = state.position.xyz / state.height;
-    state.rayStep = layerParam.rayStep;
-    return state;
-}
-
-void clouds_raymarchStepState_update(inout CloudRaymarchStepState state, float stepCount) {
-    state.position = state.origin + state.rayStep * stepCount;
-    state.height = length(state.position.xyz);
-    state.upVector = state.position.xyz / state.height;
-}
-
-void clouds_computeLighting(
+ScatteringResult clouds_computeLighting(
     AtmosphereParameters atmosphere,
     CloudRenderParams renderParams,
-    CloudRaymarchLayerParam layerParam,
-    CloudRaymarchStepState stepState,
+    CloudParticpatingMedium medium,
+    vec3 ambientIrradiance,
+    vec3 atmPos,
+    float stepLength,
     float sampleDensity,
     float sampleDensityLod,
     vec3 lightOpticalDepth,
-    vec3 sampleIsotropicMSIrradiance,
-    inout CloudRaymarchAccumState accumState
+    vec3 sampleIsotropicMSIrradiance
 ) {
-    float cosLightZenith = dot(stepState.upVector, renderParams.lightDir);
-    vec3 tLightToSample = atmospherics_air_lut_sampleTransmittance(atmosphere, cosLightZenith, stepState.height);
+    float height = length(atmPos);
+    float cosLightZenith = dot(atmPos / height, renderParams.lightDir);
+    vec3 tLightToSample = atmospherics_air_lut_sampleTransmittance(atmosphere, cosLightZenith, height);
 
-    vec3 sampleScattering = layerParam.medium.scattering * sampleDensity;
-    vec3 sampleExtinction = layerParam.medium.extinction * sampleDensity;
-    vec3 sampleOpticalDepth = sampleExtinction * stepState.rayStep.w;
+    vec3 sampleScattering = medium.scattering * sampleDensity;
+    vec3 sampleExtinction = medium.extinction * sampleDensity;
+    vec3 sampleOpticalDepth = sampleExtinction * stepLength;
     // See [SCH17]
     vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
@@ -145,16 +76,16 @@ void clouds_computeLighting(
 
     // TODO: Expose the density mix as setting
     float ambLightDesnity = mix(sampleDensityLod, sampleDensity, 0.8);
-    vec3 ambLightOpticalDepth = layerParam.medium.extinction * ambLightDesnity;
+    vec3 ambLightOpticalDepth = medium.extinction * ambLightDesnity;
     vec3 ambientTransmittance = exp(-ambLightOpticalDepth);
 
-    vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
+    vec3 sampleAmbientIrradiance = ambientIrradiance;
     sampleAmbientIrradiance *= ambientTransmittance;
 
     vec3 sampleIrradiance = sampleLightIrradiance;
-    sampleIrradiance *= layerParam.medium.phase;
+    sampleIrradiance *= medium.phase;
     sampleIrradiance += sampleAmbientIrradiance;
-    vec3 msPhase = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, 0.7);
+    vec3 msPhase = mix(vec3(UNIFORM_PHASE), medium.phase, 0.7);
     sampleIrradiance += renderParams.lightIrradiance * tLightToSample * sampleIsotropicMSIrradiance * msPhase;
 
     vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
@@ -169,8 +100,7 @@ void clouds_computeLighting(
 
     vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
 
-    accumState.totalInSctr += sampleInSctrInt * accumState.totalTransmittance;
-    accumState.totalTransmittance *= sampleTransmittance;
+    return ScatteringResult(sampleTransmittance, sampleInSctrInt);
 }
 
 

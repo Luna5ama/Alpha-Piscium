@@ -80,11 +80,14 @@ float atmosphere_height(AtmosphereParameters atmosphere, float worldPosY) {
     return worldHeight * (1.0 / float(SETTING_ATM_ALT_SCALE)) + atmosphere.bottom;
 }
 
-vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {
-    vec3 feetPlayer = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+vec3 atmosphere_sceneToAtm(AtmosphereParameters atmosphere, vec3 feetPlayer) {
     vec3 world = feetPlayer + cameraPosition;
     float height = atmosphere_height(atmosphere, world.y);
     return vec3(feetPlayer.x, 0.0, feetPlayer.z) * (1.0 / float(SETTING_ATM_D_SCALE)) + vec3(0.0, height, 0.0);
+}
+
+vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {
+    return atmosphere_sceneToAtm(atmosphere, (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz);
 }
 
 float atmosphere_heightNoClamping(AtmosphereParameters atmosphere, vec3 worldPos) {

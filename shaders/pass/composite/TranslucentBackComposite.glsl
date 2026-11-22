@@ -3,6 +3,7 @@
 #define GLOBAL_DATA_MODIFIER buffer
 
 #include "/techniques/atmospherics/LocalComposite.glsl"
+#include "/techniques/atmospherics/clouds/ss/Common.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
@@ -89,6 +90,14 @@ void main() {
             ScatteringResult sctrResult = atmospherics_localComposite(1, texelPos);
             outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
         }
+
+        #ifdef SETTING_CLOUDS_CU
+        if (solidViewZ > -65536.0) {
+            CloudSSHistoryData cloud;
+            clouds_ss_historyData_unpack(history_lowCloud_fetch(texelPos), cloud);
+            outputColor.rgb = cloud.inScattering + cloud.transmittance * outputColor.rgb;
+        }
+        #endif
 
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
 
