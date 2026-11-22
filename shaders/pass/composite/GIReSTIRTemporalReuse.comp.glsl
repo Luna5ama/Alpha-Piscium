@@ -684,19 +684,8 @@ float evaluateTemporalConfidence(
     float canonicalConfidence
 ) {
     vec2 gatherPos = vec2(gatherTexelPos);
-    uvec4 primaries = history_restir_primary_gatherTexel(gatherPos, 0);
     uvec4 confidenceBits = history_restir_reservoirTemporal_gatherTexel(gatherPos, 1);
-    uvec4 avgWYBits = history_restir_reservoirTemporal_gatherTexel(gatherPos, 2);
-    uvec4 hitDistanceBits = history_restir_reservoirTemporal_gatherTexel(gatherPos, 3);
-    vec4 confidence = uintBitsToFloat(confidenceBits);
-    const uvec4 exponentMask = uvec4(0x7f800000u);
-    uvec4 valid = uvec4(notEqual(primaries, uvec4(0u)))
-        & uvec4(greaterThan(confidence, vec4(0.0)))
-        & uvec4(lessThan(confidenceBits, exponentMask))
-        & uvec4(greaterThan(uintBitsToFloat(avgWYBits), vec4(0.0)))
-        & uvec4(lessThan(avgWYBits, exponentMask))
-        & uvec4(notEqual(hitDistanceBits & exponentMask, exponentMask));
-    vec4 previousConfidence = mix(vec4(0.0), confidence, bvec4(valid));
+    vec4 previousConfidence = uintBitsToFloat(confidenceBits);
     float historyConfidence = dot(bilinearWeights, previousConfidence);
     return min(canonicalConfidence + historyConfidence, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
 }
