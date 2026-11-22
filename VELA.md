@@ -114,7 +114,7 @@
 
 ### GI 算法与体素追踪四小时性能实验
 
-从 2.0/dev 已落地的 GI 管线出发，按相当画质下每帧节省的 GI 毫秒验收，记录代表性场景、时域质量和跨 pass 成本。[实验规格](docs/rendering/global-illumination.md#four-hour-gi-performance-experiment-2026-11-22)
+从 2.0/dev 已落地的 GI 管线出发，按相当画质下每帧节省的 GI 毫秒验收。排期补充 `a6867d91`：两项 2.0 发布工作用完资源后，从优化者同时取得 GPU 和专用实例起连续四小时，到点一次交付。[实验规格](docs/rendering/global-illumination.md#four-hour-gi-performance-experiment-2026-11-22)
 
 <!-- vela:ready {"item":"gi-algorithm-optimization-4h-20261122","rev":"3ea4b5db2402f507b626d187e5858fe7331cc9d0","spec":"docs/rendering/global-illumination.md","after":[]} -->
 
@@ -123,3 +123,9 @@
 专用游戏执行任务时调到 Realtime，空闲时回到 Idle。按完整测量组边界部署并核对实际档位与作业时序。[实施范围与验收](docs/development/vibris-startup.md#专用游戏的-windows-gpu-调度实验)
 
 <!-- vela:ready {"item":"vibris-gpu-priority-20261122","rev":"1d4b04b4a7759f844db8ef6e4e0e687a480bcc58","spec":"docs/development/vibris-startup.md","after":[]} -->
+
+### 2.0 在旧 Iris 上的 GI 缓冲绑定
+
+在 2.0/dev 修复超出旧版范围的绑定，在 Iris 1.10.4 实机核实加载、体素化和不透明表面 GI。与 2.0 混合 GI 同属第一顺位。[范围与资源交接](docs/roadmap.md#20-离发布还差什么)
+
+<!-- vela:ready {"item":"iris-2-0-compatibility","rev":"a6867d919e70ea2fd02d704f6f2b575257f7b189","spec":"docs/roadmap.md","after":[]} -->
