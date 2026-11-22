@@ -264,7 +264,7 @@ changing each row's downsample, injection or shared features. All eight archived
 phases were retained. The static four-cell boards, original 21-point y=24 line,
 extended line covering the rotated neighboring peak, RGB direction profiles and
 8x8 pooled wide views are in the local
-[replay report](../../.vela/local/runs/984195dd-5f4f-4d9f-95ab-f075a3ef3c42/replay.html).
+replay report at `.vela/local/runs/984195dd-5f4f-4d9f-95ab-f075a3ef3c42/replay.html`.
 
 The main missing fine peaks and weak bitmap stroke follow the sample-allocation
 row. With control upsampling, compact User 8 still has only 36.0-37.8% of the
@@ -311,7 +311,7 @@ in [the experiment record](../../experiments/dpf-bloom-20261108.md).
 Start the next experiment from the half-resolution stage that already resolves the rays. Its direct samples
 specify how much RGB light each neighboring half-resolution texel contributes. Build this grid by spreading
 each saved tap over its bilinear footprint, using the positions and channel weights from the frozen renderer.
-The [replay report](../../.vela/local/runs/984195dd-5f4f-4d9f-95ab-f075a3ef3c42/replay.html) supplies the
+The replay report at `.vela/local/runs/984195dd-5f4f-4d9f-95ab-f075a3ef3c42/replay.html` supplies the
 three control filters, the rejected compact fits and the eight-phase native and pooled comparisons.
 
 User 8 illustrates the cost of direct sampling. In its control grid, 560 texels exceed 0.1% of the largest
@@ -363,7 +363,7 @@ does not establish a visual or GPU feasibility limit.
 The bounded six-pattern search therefore produced a negative result for keeping
 the full reference quality at these costs. It does not establish a general
 limit of shared spatial filters. The local
-[cost/quality report](../../.vela/local/runs/42f19587-f64f-47ce-8cc3-cb2b86841457/comparison.html)
+cost/quality report at `.vela/local/runs/42f19587-f64f-47ce-8cc3-cb2b86841457/comparison.html`
 contains target/control/native figures, per-channel ray profiles, both valleys,
 new-phase results and exact coefficients. The detailed method and source
 identities are in [the experiment record](../../experiments/dpf-bloom-20261108.md).
@@ -425,7 +425,7 @@ threshold describes the length of a gap and does not set the visual acceptance b
   coarser level. Base that choice on local width and the composed native response. A narrow tip can be far
   from the center. Preserve total channel energy across level transfers and measure the core and outer halo.
 - Reuse the frozen reference grids, renderer, low-cost direct/shared outputs and 12 phase controls from the
-  [reference compression run](../../.vela/local/runs/42f19587-f64f-47ce-8cc3-cb2b86841457/comparison.html).
+  [reference compression run](../../experiments/dpf-bloom-20261108.md#2026-11-21-compression-from-the-reference-d1-coefficient-grid).
   Use the same spatial DPF representation and per-input read limits, with intermediate writes accounted for
   separately. Start at the low cost. The existing intermediate cost can bracket a failure. Reserve fresh phases
   before choosing placements. For User 8, its 9.5° rotation and 67, show the detected paths, worst continuous
@@ -452,7 +452,7 @@ kernels, and the 67 weak stroke reached close to its intended brightness.
 The native gate still fails. The star rays have visible beading and missing
 stretches, the split User 8 layout has a separate 27-pixel tracked break, and
 both layouts have higher pooled outer-halo error than the star controls. The
-[comparison](../../.vela/local/runs/44758c93-76de-4f66-9a63-90228267ee65/comparison.html)
+local comparison at `.vela/local/runs/44758c93-76de-4f66-9a63-90228267ee65/comparison.html`
 contains the detected paths, same-exposure counterexamples, RGB peak and flank
 samples, and measured coefficient counts at each level. See the
 [experiment record](../../experiments/dpf-bloom-20261108.md) for the conditional

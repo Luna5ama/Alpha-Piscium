@@ -201,7 +201,7 @@ epipolar resolution, cloud upscale, history length, and march steps.
 
 接续 `procedural-cloud-shapes` 已接收的首版。用户认可这次云形的改善并授权继续推进。实现起点是原云形分支 `codex/procedural-cloud-shapes` 上的 `033741ccc`，对应的 Iris 实机记录在 `3a09d43af`。沿用该执行会话和实验检出。淡积云薄肩已经局部断开，浓积云已能分出塔腰和高低不同的冠瓣。下一轮集中在以下两处。
 
-- **云底与云瓣。** 从 `ground-180` 右侧浅云的平行亮边入手。沿用同镜位的彩色原图和云透射，配合同一朵云换角度或单独显示父团，定位是哪段云体造成的。前后云团真实叠置形成的边应保留。对同一团上反复出现的整齐底边和圆瓣，依照 Cu-hum-01、Cu-hum-03 调整浅肩厚度、疏密和云瓣之间的缺口，使部分背风薄肩出现断续碎絮，保住云芯和局部平坦的凝结底。若彩色亮边只由光照或重建产生，保留对应透射和镜位，交给该环节处理。用 `ground-0` 和绕塔侧视核对中、浓积云的根、腰和冠部仍有各自的体量。[首版同镜位对照](../../agent_inputs/cloud-references/experiments/2026-11-cumulus/06-iris-same-pose.png)
+- **云底与云瓣。** 从 `ground-180` 右侧浅云的平行亮边入手。沿用同镜位的彩色原图和云透射，配合同一朵云换角度或单独显示父团，定位是哪段云体造成的。前后云团真实叠置形成的边应保留。对同一团上反复出现的整齐底边和圆瓣，依照 Cu-hum-01、Cu-hum-03 调整浅肩厚度、疏密和云瓣之间的缺口，使部分背风薄肩出现断续碎絮，保住云芯和局部平坦的凝结底。若彩色亮边只由光照或重建产生，保留对应透射和镜位，交给该环节处理。用 `ground-0` 和绕塔侧视核对中、浓积云的根、腰和冠部仍有各自的体量。本机对照图位于 `agent_inputs/cloud-references/experiments/2026-11-cumulus/06-iris-same-pose.png`。[首版同镜位实机记录](https://github.com/Luna5ama/Alpha-Piscium/blob/3a09d43aff0cfd8317093b219ed80940003809ec/docs/rendering/atmosphere-clouds.md)
 - **细节只向内侵蚀。** 在同一世界位置、游戏时刻和设置下，每个更细 LOD 的正密度区域须包含在相邻粗级之内，过渡档也要成立。云芯和薄边的密度值可随过滤变化。`033741ccc` 已在未扭曲坐标上裁父包络，但碎絮侵蚀在近处取 `(1 - wisp) * 0.025`，远处取 `0.018`，两项大小会互换。沿用已有场和纹理即可，例如让粗级确定支撑、细级再减去非负侵蚀。粗级还要保住可辨的蓝隙和层间净空。空区继续用有保守界的几何跳过，包络内积分标量密度。交付时给出包含关系为何成立，并在动画、轮廓和 LOD 过渡处用实际场值复核。
 
 交付使用相同种子、游戏时刻、光照和曝光，把 `033741ccc` 与候选在上述 Iris 镜位的彩色原图及对应云透射并排，再看一朵调参时没用过的云。复用首版穿云、云上和固定时刻重载证据，仅复测受改动影响的路径。性能沿用 `cloud-6-720p` 同设置和原始基线 `853214567`，整帧上限仍为其 1.30 倍，另记录受影响的积云 pass。已有实机原件见运行 `c34c098d-766d-4cf5-aac6-dee89f00ee62` 的 `iris-comparison.png` 和 `measurements.json`。原执行者可自主迭代直至交付对照，影响美术方向、云种范围或帧时间上限的取舍再交回讨论。
@@ -210,7 +210,7 @@ epipolar resolution, cloud upscale, history length, and march steps.
 
 ### 层积云与高积云的建模交付
 
-下一个实验交给原云形建模会话，从 `8e09035ce` 的世界云场扩展到**层积云（Sc）及液态高积云（Ac）的层状形态**。在有限 XZ 云区中塑出有厚度的云片。层积云参考 Sc-01、Sc-02、Sc-07 的相连大块、云卷与俯视缺口；高积云参考 Ac-01、Ac-03、Ac-07 的成片小块、波列与片间透光。自摄 SKY-033 和 SKY-200 用来比对大片蓝天如何夹在疏密不同的云区之间。局部底高、厚度、云块间距和连通性分别可变，使同一片天空能出现近处较厚的云卷、中层断开的云片，以及其间的空气。具体尺度与形状构造由建模者对照片试调。[实拍索引](../../agent_inputs/cloud-references/index.html) · [WMO 层积云](https://cloudatlas.wmo.int/en/stratocumulus-sc.html) · [WMO 高积云](https://cloudatlas.wmo.int/en/clouds-genera-altocumulus.html)
+下一个实验交给原云形建模会话，从 `8e09035ce` 的世界云场扩展到**层积云（Sc）及液态高积云（Ac）的层状形态**。在有限 XZ 云区中塑出有厚度的云片。层积云参考 Sc-01、Sc-02、Sc-07 的相连大块、云卷与俯视缺口；高积云参考 Ac-01、Ac-03、Ac-07 的成片小块、波列与片间透光。自摄 SKY-033 和 SKY-200 用来比对大片蓝天如何夹在疏密不同的云区之间。局部底高、厚度、云块间距和连通性分别可变，使同一片天空能出现近处较厚的云卷、中层断开的云片，以及其间的空气。具体尺度与形状构造由建模者对照片试调。本机实拍选样（`agent_inputs/cloud-references/index.html`） · [WMO 层积云](https://cloudatlas.wmo.int/en/stratocumulus-sc.html) · [WMO 高积云](https://cloudatlas.wmo.int/en/clouds-genera-altocumulus.html)
 
 沿用一方块一米、固定世界和时间可重建的动画、逐级向内侵蚀、保守跳空和世界位置标量密度。主视线、太阳和屏幕外查询要读到相同的云。先交一组可复现的混合天空，用地面广角、层间视角和云上俯视对照实拍，并检查穿层时的厚度、云隙以及与积云的前后遮挡。交付同时留下光照两线可取用的形状提交、种子、时刻、区域与相机，以及可比对的透射。用同一混合场景切换新增云场量出增量；沿用 `cloud-6-720p` 和 `853214567` 核对合计整帧 1.30 倍上限。其余云型的形状路线见下节，游戏天气仍按既定顺序后续接入。
 
@@ -234,7 +234,7 @@ epipolar resolution, cloud upscale, history length, and march steps.
 | 卷积云 Cc · Cc-01、Cc-04、Cc-06 | 在有限高空片区内组织细小云粒或波纹，方向、间距、连通性沿云区缓变。薄带里允许有真空孔隙。 | 地面可见细碎浅纹，飞近能穿过独立云粒或缝隙。与较低的高积云同框时，从真实尺寸和距离得到两种视大小。 |
 | 积雨云 Cb · Cb-01、Cb-03、Cb-06/07 | 同一个深对流系统内，由低处宽底、上升塔和侧塔向上延伸。成熟塔在局部平衡高度附近向下风侧横展成形，塔尖可局部冒出砧顶。早期只需显出开始变平滑的塔顶。 | 从塔心选一条贯通路径，低底到云砧的实际密度连续。从只受砧缘覆盖的位置向上看，砧下有清楚的净空。绕到另一侧仍可认出砧与母塔的连接。 |
 
-照片编号可在[逐图索引](../../agent_inputs/cloud-references/index.html)按云属检索。高空冰云依照片的丝状、幕状和粒状区分。层云的平底、高层云的厚薄梯度与雨层云的深厚云身也独立控制。[WMO 卷云](https://cloudatlas.wmo.int/en/clouds-genera-cirrus.html) · [卷层云](https://cloudatlas.wmo.int/clouds-genera-cirrostratus.html) · [卷积云](https://cloudatlas.wmo.int/en/definition-cirrocumulus-cc.html) · [层云](https://cloudatlas.wmo.int/en/definition-stratus-st.html) · [高层云](https://cloudatlas.wmo.int/en/altostratus-as.html) · [雨层云](https://cloudatlas.wmo.int/en/nimbostratus-ns.html) · [积雨云](https://cloudatlas.wmo.int/en/clouds-genera-cumulonimbus.html)
+照片编号可在本机选样目录（`agent_inputs/cloud-references/index.html`）按云属检索。高空冰云依照片的丝状、幕状和粒状区分。层云的平底、高层云的厚薄梯度与雨层云的深厚云身也独立控制。[WMO 卷云](https://cloudatlas.wmo.int/en/clouds-genera-cirrus.html) · [卷层云](https://cloudatlas.wmo.int/clouds-genera-cirrostratus.html) · [卷积云](https://cloudatlas.wmo.int/en/definition-cirrocumulus-cc.html) · [层云](https://cloudatlas.wmo.int/en/definition-stratus-st.html) · [高层云](https://cloudatlas.wmo.int/en/altostratus-as.html) · [雨层云](https://cloudatlas.wmo.int/en/nimbostratus-ns.html) · [积雨云](https://cloudatlas.wmo.int/en/clouds-genera-cumulonimbus.html)
 
 **深对流的连接。** 先为主上升枝选凝结底、可达顶高和随高度偏移的轴线，沿轴布置宽度有变化、彼此搭接的塔段。云砧从主枝顶端发出，随离根距离扩展并逐渐变薄，侧塔也接入同一母体。给连接颈部保留正密度核心，再在外围侵蚀和冰化。验收看实际密度与透射，仅有包络相交还不足以证明塔与砧连通。仅砧缘覆盖的列只登记上方的有云区间。若有另一片过境的中云，它保有自己的种子、底顶与深度。
 

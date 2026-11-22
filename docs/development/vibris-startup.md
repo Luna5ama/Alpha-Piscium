@@ -32,6 +32,6 @@ Vibris `de750971e5bc` 已并排安装。AP 工作树的只读查询先返回 `SE
 
 ### 已部署的调度与配对测量
 
-2026-11-22，专用游戏 PID 54872 启动空闲时为 Idle（0）。洛杉矶时间 02:09:39，720p 作业 `9227f95c-3421-473c-85a2-7cbf42c93256` 开始，读回 Realtime（5）。02:10:34 作业完成并排空队列，读回 Idle（0）。进程外的 WDDM 读数与 Core 事件一致，CPU 调度类保持 Normal。安装包和构建包的 SHA-256 一致，启动器已恢复。[实机边界日志](I:/code/vibris/build/gpu-priority-20261122/gpu-boundary-events.log)
+2026-11-22，专用游戏 PID 54872 启动空闲时为 Idle（0）。洛杉矶时间 02:09:39，720p 作业 `9227f95c-3421-473c-85a2-7cbf42c93256` 开始，读回 Realtime（5）。02:10:34 作业完成并排空队列，读回 Idle（0）。进程外的 WDDM 读数与 Core 事件一致，CPU 调度类保持 Normal。安装包和构建包的 SHA-256 一致，启动器已恢复。本机实测日志位于 `I:/code/vibris/build/gpu-priority-20261122/gpu-boundary-events.log`。[已部署的 Vibris 修订](https://github.com/Luna5ama/vibris/commit/25eec03c07195cb13ebcf7518975c20e9437db3a)
 
 普通外部 GPU 负载存在时可以直接提交配对测量。同一游戏实例串行使用，显式独占的测量保留预约窗口。每臂记录后台负载和哨兵耗时，按相近负载比较同场景、同配置的正反序配对，并标出负载突变或哨兵漂移的组。此次实机作业验证了调度类切换；有竞争时的计时稳定性仍需匹配负载的重复配对。
