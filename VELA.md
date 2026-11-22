@@ -117,3 +117,9 @@
 从 2.0/dev 已落地的 GI 管线出发，按相当画质下每帧节省的 GI 毫秒验收，记录代表性场景、时域质量和跨 pass 成本。[实验规格](docs/rendering/global-illumination.md#four-hour-gi-performance-experiment-2026-11-22)
 
 <!-- vela:ready {"item":"gi-algorithm-optimization-4h-20261122","rev":"3ea4b5db2402f507b626d187e5858fe7331cc9d0","spec":"docs/rendering/global-illumination.md","after":[]} -->
+
+### Vibris 作业期间的 Windows GPU 优先级
+
+专用游戏执行任务时调到 Realtime，空闲时回到 Idle。按完整测量组边界部署并核对实际档位与作业时序。[实施范围与验收](docs/development/vibris-startup.md#专用游戏的-windows-gpu-调度实验)
+
+<!-- vela:ready {"item":"vibris-gpu-priority-20261122","rev":"1d4b04b4a7759f844db8ef6e4e0e687a480bcc58","spec":"docs/development/vibris-startup.md","after":[]} -->
