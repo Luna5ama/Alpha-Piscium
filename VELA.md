@@ -58,6 +58,12 @@
 
 <!-- vela:ready {"item":"stratocumulus-altocumulus-shapes","rev":"ca28802c7edebcd463fe86ef10b8981b9985f335","spec":"docs/rendering/atmosphere-clouds.md","after":["procedural-cloud-shapes@8eafcf48395cc45eaec34bb0e7cfe26ffa064150"]} -->
 
+### 统一体积云与多层合成
+
+原云形建模会话在层积云与高积云的可飞入云场上接续七属。先以两束不同高度的卷云打通远山、天空和水面的实际光路，再用跨高度积雨云检查塔心连通与砧下净空。空气、雾与云按各段真实深度共同衰减和散射。[七属云形与空间查询](docs/rendering/atmosphere-clouds.md#十种云共用的世界体积) · [天空、雾和单段水](docs/rendering/atmosphere-clouds.md#多层云与大气雾和水的合成)
+
+<!-- vela:ready {"item":"unified-cloud-volumes","rev":"3acdf23721948b78ca21e50f09d5ec8c03c88fee","spec":"docs/rendering/atmosphere-clouds.md","after":["stratocumulus-altocumulus-shapes@ca28802c7edebcd463fe86ef10b8981b9985f335"]} -->
+
 ### 云光照的物理输运对照
 
 比较同一介质的实时散射与离线参考。固定双塔用于诊断，下一组在已接收的程序化云形上核对误差和实机成本。[云光照规格](docs/rendering/atmosphere-clouds.md#云光照的物理对照) · [在途实验的云形版本](docs/rendering/atmosphere-clouds.md#两项光照实验如何跟进云形)
