@@ -56,6 +56,122 @@ def stats(values):
             'relative_standard_error': se / abs(mean) if mean else None}
 
 
+def report_neighbor(directory, archived, manifest, raw, masks):
+    from matplotlib.colors import AsinhNorm, SymLogNorm
+
+    reference = json.loads((archived / 'reference.json').read_text(encoding='utf-8'))
+    identity = ('fixture', 'dtype', 'channels', 'camera', 'light_directions_to_sun', 'sun_angular_radius_degrees',
+                'sun_normal_irradiance', 'density_inside_union', 'extinction_per_metre', 'single_scattering_albedo',
+                'phase', 'ellipsoids_center_radius', 'continuation_guiding', 'roulette', 'random', 'ground')
+    if any(manifest[key] != reference[key] for key in identity):
+        raise ValueError('archived physical inputs or primary sampler differ')
+    old = np.fromfile(archived / 'radiance.bin', dtype='<f8').reshape(reference['shape'])
+    levels = np.array(manifest['spp_per_replicate'])
+    indices = [reference['spp_per_replicate'].index(n) for n in levels]
+    if not np.array_equal(raw[:2], old[:, :, indices]):
+        raise ValueError('primary solar samples differ from the archived checkpoints')
+    if (raw[3:5, ..., 0] != 0).any() or (raw[3:5, ..., 1] < 0).any() or (raw[5, ..., 0] > 0).any():
+        raise ValueError('separated geometry violates solar-order or sky-occlusion identities')
+    sources = raw[..., :2]
+    images = []
+    report = {
+        'work_item': 'cloud-light-transport-comparison@d2f1ef0fe2b1ac9a962a062fe7d2af7f922611ba',
+        'units': 'scattered radiance / normal solar irradiance [sr^-1]',
+        'source_sha256': {n: hashlib.sha256((ROOT / 'scripts/test' / n).read_bytes()).hexdigest()
+                          for n in ('cloud-reference.cpp', 'cloud-reference-report.py')},
+        'input_sha256': {n: hashlib.sha256((directory / n).read_bytes()).hexdigest()
+                         for n in ('reference.json', 'radiance.bin')},
+        'archived_solar_run': archived.name,
+        'archived_radiance_sha256': hashlib.sha256((archived / 'radiance.bin').read_bytes()).hexdigest(),
+        'solar_checkpoints_bit_identical': True,
+        'geometry_clearance_m': manifest['x_clearance_m'],
+        'sky': {'upper_hemisphere_radiance': manifest['upper_hemisphere_sky_radiance'], 'lower_hemisphere_radiance': 0},
+        'total_paths_per_pixel': (levels * raw.shape[1]).tolist(),
+        'pixels_per_region': {name: int(mask.sum()) for name, mask in masks.items()},
+        'regions': {},
+    }
+    for label, sun, use_sky in (('Side / sun', 0, False), ('Side / sun + sky', 0, True),
+                                ('Back / sun', 1, False), ('Back / sun + sky', 1, True)):
+        alone = sources[sun]
+        delta = sources[sun + 3]
+        if use_sky:
+            alone = alone + sources[2]
+            delta = delta + sources[5]
+        def final_image(groups):
+            return groups[:, -1].sum(axis=-1).mean(axis=0)
+        images.append((label, final_image(alone), final_image(alone + delta), final_image(delta)))
+        regions = {}
+        for name, mask in masks.items():
+            base = alone[:, :, mask, :].mean(axis=2)
+            change = delta[:, :, mask, :].mean(axis=2)
+            total = change.sum(axis=-1)
+            previous = total[:, -2]
+            tail = (total[:, -1]*levels[-1] - previous*levels[-2]) / (levels[-1]-levels[-2])
+            regions[name] = {
+                'alone': stats(base[:, -1].sum(axis=-1)),
+                'with_neighbor': stats((base + change)[:, -1].sum(axis=-1)),
+                'delta': stats(total[:, -1]),
+                'delta_single': stats(change[:, -1, 0]),
+                'delta_multiple': stats(change[:, -1, 1]),
+                'delta_over_alone': float(total[:, -1].mean() / base[:, -1].sum(axis=-1).mean()),
+                'delta_by_budget': [stats(column) for column in total.T],
+                'last_disjoint_delta_change': stats(tail-previous),
+            }
+        report['regions'][label] = regions
+    report['sky_delta_by_order'] = {}
+    for name, mask in masks.items():
+        d = sources[5, :, -1][:, mask, :].mean(axis=1)
+        report['sky_delta_by_order'][name] = {'single': stats(d[:, 0]), 'multiple': stats(d[:, 1]), 'net': stats(d.sum(axis=1))}
+    (directory / 'neighbor.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+
+    vmax = max(row[2].max() for row in images)
+    limit = max(np.abs(row[3]).max() for row in images)
+    radiance_norm = AsinhNorm(linear_width=1e-4, vmin=0, vmax=vmax)
+    delta_norm = SymLogNorm(linthresh=1e-5, vmin=-limit, vmax=limit)
+    extent = [-100, 100, -10, 240]
+    fig, axes = plt.subplots(4, 3, figsize=(10, 12), constrained_layout=True)
+    for row, (label, alone, with_neighbor, difference) in enumerate(images):
+        for col, data in enumerate((alone, with_neighbor, difference)):
+            axis = axes[row, col]
+            view = axis.imshow(data, extent=extent, interpolation='nearest',
+                               cmap='RdBu_r' if col == 2 else 'gray', norm=delta_norm if col == 2 else radiance_norm)
+            if row == 0:
+                axis.set_title(('Main tower', 'Neighbor added', 'Paired change')[col])
+            if col == 0:
+                axis.set_ylabel(label + '\ny / m')
+            if row == 3:
+                axis.set_xlabel('x / m')
+            if row == 0 and col != 1:
+                fig.colorbar(view, ax=axes[:, col:col+1] if col == 2 else axes[:, :2],
+                             location='bottom', label=('Change (symlog)' if col == 2 else 'Radiance (asinh)') + ' / E_sun [1/sr]', shrink=.8)
+    fig.savefig(directory / 'neighbor.png', dpi=130)
+    plt.close(fig)
+
+    fig, axes = plt.subplots(3, 4, figsize=(12, 7.5), constrained_layout=True)
+    for row, region in enumerate(('upper_thin_rim', 'right_notch', 'core')):
+        mask = masks[region]
+        ys, xs = np.where(mask)
+        crop = np.s_[ys.min():ys.max()+1, xs.min():xs.max()+1]
+        for col, (label, _, _, difference) in enumerate(images):
+            axis = axes[row, col]
+            view = axis.imshow(np.ma.masked_where(~mask, difference)[crop], cmap='RdBu_r', norm=delta_norm,
+                               interpolation='nearest')
+            r = report['regions'][label][region]
+            lo, hi = r['delta']['confidence_95']
+            axis.set_xlabel(f"Δ {r['delta']['mean']:+.2e}\n95% [{lo:+.2e}, {hi:+.2e}]", fontsize=8)
+            axis.set_xticks([])
+            axis.set_yticks([])
+            if col == 0:
+                axis.set_ylabel(region.replace('_', ' '))
+            if row == 0:
+                axis.set_title(label)
+    fig.colorbar(view, ax=axes, shrink=.65, label='Paired change / E_sun [1/sr]')
+    fig.savefig(directory / 'neighbor-regions.png', dpi=140)
+    plt.close(fig)
+    for label, regions in report['regions'].items():
+        print(label, {name: (r['delta']['mean'], r['delta']['confidence_95']) for name, r in regions.items()})
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory', type=Path)
@@ -64,7 +180,7 @@ def main():
     directory = args.directory
     manifest = json.loads((directory / 'reference.json').read_text(encoding='utf-8'))
     raw = np.fromfile(directory / 'radiance.bin', dtype='<f8').reshape(manifest['shape'])
-    assert np.isfinite(raw).all() and np.min(raw[..., :2]) >= 0
+    assert np.isfinite(raw).all()
     x, y, tau = camera_geometry(manifest)
     masks = {
         'cloud': tau > 0,
@@ -73,6 +189,12 @@ def main():
         'core': (tau > 2.5) & (abs(x) < 25) & (y >= 70) & (y <= 160),
     }
     assert all(np.any(mask) for mask in masks.values())
+    if manifest['neighbors']:
+        if args.compare is None:
+            parser.error('the neighbor comparison requires --compare pointing to the archived guided solar run')
+        report_neighbor(directory, args.compare, manifest, raw, masks)
+        return
+    assert np.min(raw[..., :2]) >= 0
     values = np.stack((raw[..., 0], raw[..., 1], raw[..., 0] + raw[..., 1]), axis=-1)
     per_path_var = np.stack((raw[..., 2], raw[..., 3], raw[..., 2] + raw[..., 3] + 2 * raw[..., 4]), axis=-1)
     assert np.min(per_path_var) >= -1e-9

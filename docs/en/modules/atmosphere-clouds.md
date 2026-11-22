@@ -355,6 +355,29 @@ and Iris cost remain separate obligations; no live game or GPU measurements were
 <!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"reference.png"} -->
 <!-- vela:evidence {"run":"802ff939-d1e4-4654-bdc1-2c41fdb030b3","path":"convergence.png"} -->
 
+### Neighboring tower
+
+Run `046ae71f-2a18-44dd-a029-94bd57f95af6` adds a copy of the same eight ellipsoids at x + 180 m. The x gap between their bounding boxes is 27 m. The neighbor clears the camera crop by 4 m. Across each box's full depth along the solar axis, the nearest cone from any main-tower point still clears the neighbor by at least 25.997 m for side light and 26.508 m for backlight. Single solar scattering therefore has exactly zero change.
+
+[The path tracer](../../../scripts/test/cloud-reference.cpp) keeps the isolated solar samples and follows a second path when an escaping ray intersects the neighbor. It samples a collision conditional on its occurrence and weights the branch by the neighbor opacity. That branch subtracts the covered sky and traces further scattering through both towers, including returns to the main tower. The uniform upper hemisphere supplies horizontal sky irradiance equal to 10% of normal solar irradiance. The lower hemisphere is black. Only cloud-scattered radiance is measured. The eight independent streams reach 524,288 paths/pixel. The isolated solar means, variances and covariances match every archived guided checkpoint bit for bit.
+
+| Change in main-tower region mean | Upper thin rim | Right notch | Core |
+|---|---:|---:|---:|
+| Side sun only | +1.020% | +1.664% | +1.195% |
+| Side sun and sky | +0.348% | +0.601% | +0.553% |
+| Back sun only | +0.0000180% | +0.0000373% | +0.0000868% |
+| Back sun and sky | +0.0000212% | +0.0000411% | +0.0000886% |
+
+Each percentage divides the paired change by the isolated region mean under the same lighting. All twelve paired 95% intervals exclude zero. In side sun the notch increases by 8.73 × 10⁻⁵ [8.07, 9.39] × 10⁻⁵ sr⁻¹ in units of normal solar irradiance. In back sun its absolute increase is comparable, but the isolated notch is about 267.38 sr⁻¹. This scene gives little physical basis for an obvious backlit edge from the neighboring tower. For the whole cloud the sky-only single-scattering change is −9.49 × 10⁻⁶ sr⁻¹ and the multiple-scattering change is +9.23 × 10⁻⁶ sr⁻¹. The net sky-only interval [−6.85, +1.63] × 10⁻⁷ sr⁻¹ includes zero. The three regional net sky changes are positive for this upper-hemisphere boundary.
+
+Pass `neighbor` after the original `65536 8 4 0.2` arguments. Run [the reporter](../../../scripts/test/cloud-reference-report.py) with `--compare` pointing to guided run `2b8a366e-740b-4da8-b7b8-09cc28b1c15c`. It records per-order replicates, paired intervals, disjoint sample-block comparisons, a shared-exposure whole image and magnified region differences. These measurements apply to the fixed sample tower.
+
+<!-- vela:evidence {"run":"046ae71f-2a18-44dd-a029-94bd57f95af6","path":"reference.json"} -->
+<!-- vela:evidence {"run":"046ae71f-2a18-44dd-a029-94bd57f95af6","path":"radiance.bin"} -->
+<!-- vela:evidence {"run":"046ae71f-2a18-44dd-a029-94bd57f95af6","path":"neighbor.json"} -->
+<!-- vela:evidence {"run":"046ae71f-2a18-44dd-a029-94bd57f95af6","path":"neighbor.png"} -->
+<!-- vela:evidence {"run":"046ae71f-2a18-44dd-a029-94bd57f95af6","path":"neighbor-regions.png"} -->
+
 ## Air, depth layers, and composition
 
 | Stage               | Pass/code                                                                                                                                                  | Purpose                                                                                                          |

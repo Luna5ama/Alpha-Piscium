@@ -1,6 +1,6 @@
 // Continuous-angle CPU reference for a fixed finite cloud; no transport cache.
 // clang++ -O3 -std=c++20 -pthread cloud-reference.cpp -o reference.exe
-// reference.exe <output-directory> [maximum-spp=4096] [replicates=8] [threads=4] [guide-weight=0.2]
+// reference.exe <output-directory> [maximum-spp=4096] [replicates=8] [threads=4] [guide-weight=0.2] [neighbor]
 #include <algorithm>
 #include <array>
 #include <atomic>
@@ -20,6 +20,8 @@ constexpr double pi = 3.14159265358979323846;
 constexpr double extinction = 0.18547168941993848 * 0.15;
 constexpr double albedo = 0.18547160197076002 / 0.18547168941993848;
 constexpr double sunRadius = 0.266 * pi / 180;
+constexpr double neighborX = 180;
+constexpr double skyRadiance = 0.1 / pi;
 constexpr int width = 32, height = 40;
 
 struct Vec {
@@ -129,7 +131,8 @@ Chord intersect(const std::vector<Ellipsoid>& shapes, Vec origin, Vec direction)
     return result;
 }
 
-struct Sample { double ss[2]{}, ms[2]{}; uint64_t events = 0; };
+enum Source { Side, Back, Sky, DeltaSide, DeltaBack, DeltaSky, SourceCount };
+struct Sample { double ss[SourceCount]{}, ms[SourceCount]{}; uint64_t events = 0; };
 Vec continuation(Vec current, Random& rng, const Phase& phase, double guiding, double& ratio) {
     double selection = rng.uniform();
     Vec axis = selection < guiding/2 ? Vec{0,1,0} : selection < guiding ? Vec{0,0,1} : current;
@@ -139,26 +142,30 @@ Vec continuation(Vec current, Random& rng, const Phase& phase, double guiding, d
     ratio = p/q;
     return direction;
 }
-Sample trace(Vec origin, Random& rng, const Phase& phase, double guiding) {
+Sample trace(Vec origin, Random& primary, Random& extra, const Phase& phase, double guiding,
+             const std::vector<Ellipsoid>& both, bool compareNeighbor) {
     Sample result;
     Vec direction{0,0,1};
     Chord chord = intersect(tower, origin, direction);
     double opacity = -std::expm1(-extinction*chord.length);
     if (opacity == 0) return result;
-    double distance = chord.distance(-std::log1p(-rng.uniform()*opacity)/extinction);
+    double distance = chord.distance(-std::log1p(-primary.uniform()*opacity)/extinction);
     double throughput = opacity;
+    bool visitedNeighbor = false;
     // E_sun = 1 on a plane normal to the disc axis; L_disc * solid_angle = 2/(1+cos(radius)).
     double diskIntegral = 2/(1+std::cos(sunRadius));
     while (std::isfinite(distance)) {
+        Random& rng = visitedNeighbor ? extra : primary;
+        const auto& medium = visitedNeighbor ? both : tower;
         origin = origin + direction*distance;
         throughput *= albedo;
         ++result.events;
         double mu = 1-rng.uniform()*(1-std::cos(sunRadius)), phi = 2*pi*rng.uniform();
         for (int light = 0; light < 2; ++light) {
             Vec sun = orient(light == 0 ? Vec{0,1,0} : Vec{0,0,1}, mu, phi);
-            double transmittance = std::exp(-extinction*intersect(tower, origin, sun).length);
+            double transmittance = std::exp(-extinction*intersect(medium, origin, sun).length);
             double value = throughput*diskIntegral*phase.value(dot(direction,sun))*transmittance;
-            (result.events == 1 ? result.ss[light] : result.ms[light]) += value;
+            (result.events == 1 ? result.ss : result.ms)[(visitedNeighbor ? DeltaSide : Side)+light] += value;
         }
         // Roulette changes survival probabilities, never a fixed-order truncation.
         if (result.events >= 32) {
@@ -168,8 +175,24 @@ Sample trace(Vec origin, Random& rng, const Phase& phase, double guiding) {
         double ratio;
         direction = continuation(direction, rng, phase, guiding, ratio);
         throughput *= ratio;
-        chord = intersect(tower, origin, direction);
+        chord = intersect(medium, origin, direction);
         distance = chord.distance(-std::log(rng.uniform())/extinction);
+        if (!compareNeighbor || std::isfinite(distance)) continue;
+
+        double incident = direction.y > 0 ? skyRadiance : 0;
+        auto& order = result.events == 1 ? result.ss : result.ms;
+        order[visitedNeighbor ? DeltaSky : Sky] += throughput*incident;
+        if (visitedNeighbor || direction.x <= 0) break;
+
+        // The x slabs are disjoint. A ray that escaped the main tower can only
+        // meet the neighbor after its last main interval. Split off that collision.
+        chord = intersect(tower, origin-Vec{neighborX,0,0}, direction);
+        double blocked = -std::expm1(-extinction*chord.length);
+        if (blocked == 0) break;
+        throughput *= blocked;
+        order[DeltaSky] -= throughput*incident;
+        distance = chord.distance(-std::log1p(-extra.uniform()*blocked)/extinction);
+        visitedNeighbor = true;
     }
     return result;
 }
@@ -242,11 +265,14 @@ void checks(std::ostream& out, const Phase& phase, double guiding) {
 }
 
 int main(int argc, char** argv) {
-    if (argc < 2 || argc > 6) { std::cerr << "reference <output> [maximum-spp=4096] [replicates=8] [threads=4] [guide-weight=0.2]\n"; return 2; }
+    if (argc < 2 || argc > 7) { std::cerr << "reference <output> [maximum-spp] [replicates] [threads] [guide-weight] [neighbor]\n"; return 2; }
     int maximum = argc > 2 ? std::stoi(argv[2]) : 4096;
     int replicates = argc > 3 ? std::stoi(argv[3]) : 8;
     int threads = argc > 4 ? std::stoi(argv[4]) : 4;
     double guiding = argc > 5 ? std::stod(argv[5]) : 0.2;
+    bool compareNeighbor = argc == 7;
+    require(!compareNeighbor || std::string(argv[6]) == "neighbor", "unknown scene");
+    int sources = compareNeighbor ? SourceCount : 2;
     require(maximum >= 256 && replicates >= 4 && threads >= 1, "invalid sampling budget");
     require(std::isfinite(guiding) && guiding >= 0 && guiding < 1, "invalid mixture weight");
     std::filesystem::path output(argv[1]);
@@ -258,10 +284,24 @@ int main(int argc, char** argv) {
     std::ostringstream checked;
     checked << std::setprecision(17);
     checks(checked, phase, guiding);
+    std::vector<Ellipsoid> both = tower;
+    double minX = INFINITY, maxX = -INFINITY, minY = INFINITY, maxY = -INFINITY, minZ = INFINITY, maxZ = -INFINITY;
+    for (auto e : tower) {
+        minX = std::min(minX, e.center.x-e.radius.x); maxX = std::max(maxX, e.center.x+e.radius.x);
+        minY = std::min(minY, e.center.y-e.radius.y); maxY = std::max(maxY, e.center.y+e.radius.y);
+        minZ = std::min(minZ, e.center.z-e.radius.z); maxZ = std::max(maxZ, e.center.z+e.radius.z);
+        e.center.x += neighborX;
+        both.push_back(e);
+    }
+    double gap = minX+neighborX-maxX;
+    double sideClearance = gap-(maxY-minY)*std::tan(sunRadius);
+    double backClearance = gap-(maxZ-minZ)*std::tan(sunRadius);
+    require(both.size() <= Chord{}.segments.size(), "too many ray intervals");
+    require(minX+neighborX > 100 && std::min(sideClearance, backClearance) > 0, "neighbor violates projection separation");
     std::cout << "checks " << checked.str() << std::endl;
     auto start = std::chrono::steady_clock::now();
     size_t pixels = width*height, stride = pixels*5;
-    std::vector<double> image(2*replicates*levels.size()*stride);
+    std::vector<double> image(sources*replicates*levels.size()*stride);
     std::atomic<int> next{0}, finished{0};
     std::atomic<uint64_t> events{0}, maximumEvents{0};
     auto render = [&] {
@@ -273,16 +313,17 @@ int main(int argc, char** argv) {
             for (int x = 0; x < width; ++x) {
                 size_t pixel = y*width+x;
                 Random rng{0x219d681098b34102ULL + uint64_t(replicate)*0x82a2b175229d6a5bULL + pixel*0xd1342543de82ef95ULL};
+                Random extra{rng.state ^ 0x97192dadac86352bULL};
                 Vec origin{-100+(x+0.5)*200/width, 240-(y+0.5)*250/height, -450};
-                Moments moments[2];
+                Moments moments[SourceCount];
                 size_t level = 0;
                 for (int sample = 1; sample <= maximum; ++sample) {
-                    Sample value = trace(origin, rng, phase, guiding);
+                    Sample value = trace(origin, rng, extra, phase, guiding, both, compareNeighbor);
                     localEvents += value.events;
                     localMaximum = std::max(localMaximum, value.events);
-                    for (int light = 0; light < 2; ++light) moments[light].add(value.ss[light], value.ms[light]);
+                    for (int light = 0; light < sources; ++light) moments[light].add(value.ss[light], value.ms[light]);
                     if (sample == levels[level]) {
-                        for (int light = 0; light < 2; ++light)
+                        for (int light = 0; light < sources; ++light)
                             moments[light].write(image.data()+((light*replicates+replicate)*levels.size()+level)*stride+pixel*5, sample);
                         ++level;
                     }
@@ -306,7 +347,7 @@ int main(int argc, char** argv) {
     std::ofstream report(output/"reference.json");
     report << std::setprecision(17)
         << "{\n\"schema\":1,\"fixture\":\"ellipsoid-tower-v1\",\"units\":\"metres, radiance / E_sun in sr^-1\","
-        << "\"shape\":[2," << replicates << ',' << levels.size() << ',' << height << ',' << width << ",5],"
+        << "\"shape\":[" << sources << ',' << replicates << ',' << levels.size() << ',' << height << ',' << width << ",5],"
         << "\"dtype\":\"little-endian float64\",\"channels\":[\"single\",\"multiple\",\"single_variance_of_mean\",\"multiple_variance_of_mean\",\"covariance_of_mean\"],"
         << "\"light_directions_to_sun\":[[0,1,0],[0,0,1]],\"sun_angular_radius_degrees\":0.266,\"sun_normal_irradiance\":1,\"sky_radiance\":0,\"ground\":false,"
         << "\"camera\":{\"type\":\"orthographic pixel centres\",\"x\":[-100,100],\"y_top_bottom\":[240,-10],\"z\":-450,\"direction\":[0,0,1]},"
@@ -314,7 +355,16 @@ int main(int argc, char** argv) {
         << ",\"phase\":{\"type\":\"HG+Draine\",\"diameter_um\":11.54,\"gh\":" << phase.gh << ",\"gd\":" << phase.gd << ",\"alpha\":" << phase.alpha << ",\"wd\":" << phase.wd << "},"
         << "\"continuation_guiding\":{\"total_weight\":" << guiding << ",\"proposal\":\"(1-g)*physical_phase + g/2*(phase_about_side_sun_axis+phase_about_back_sun_axis)\",\"compensation\":\"physical_phase / proposal_pdf\"},"
         << "\"random\":{\"type\":\"SplitMix64\",\"base_hex\":\"219d681098b34102\",\"replicate_stride_hex\":\"82a2b175229d6a5b\",\"pixel_stride_hex\":\"d1342543de82ef95\"},"
-        << "\"roulette\":{\"starts_at_event\":32,\"survival\":0.98,\"fixed_depth_limit\":null},\"neighbors\":false,\"spp_per_replicate\":[";
+        << "\"roulette\":{\"starts_at_event\":32,\"survival\":0.98,\"fixed_depth_limit\":null},";
+    if (compareNeighbor) {
+        report << "\"neighbors\":true,\"neighbor_offset_m\":[" << neighborX << ",0,0],"
+               << "\"x_clearance_m\":{\"camera_crop\":" << minX+neighborX-100 << ",\"side_solar_cone\":" << sideClearance
+               << ",\"back_solar_cone\":" << backClearance << "},"
+               << "\"upper_hemisphere_sky_radiance\":" << skyRadiance << ",\"lower_hemisphere_sky_radiance\":0,"
+               << "\"sources\":[\"side\",\"back\",\"sky\",\"delta_side\",\"delta_back\",\"delta_sky\"],"
+               << "\"neighbor_split_seed_xor_hex\":\"97192dadac86352b\",";
+    } else report << "\"neighbors\":false,";
+    report << "\"spp_per_replicate\":[";
     for (size_t i = 0; i < levels.size(); ++i) report << (i ? "," : "") << levels[i];
     report << "],\"ellipsoids_center_radius\":[";
     for (size_t i = 0; i < tower.size(); ++i) {
