@@ -440,6 +440,57 @@ aiming for 3× with a 4× cap. If native quality still falls short, return the m
 the remaining break. Keep the current game presets during evaluation.
 
 
+### Feature-continuity result
+
+At the same low read caps, image-guided placements restored the reach of the
+previously truncated horizontal ray. The known User 8 regression stretch at
+x=96–144 went from a 49-pixel below-half-contrast run to 3 pixels in either
+layout, including the four new held-out positions. The probe was used only for
+evaluation. Allowing a D2 contribution reduced native RGB error for both star
+kernels, and the 67 weak stroke reached close to its intended brightness.
+
+The native gate still fails. The star rays have visible beading and missing
+stretches, the split User 8 layout has a separate 27-pixel tracked break, and
+both layouts have higher pooled outer-halo error than the star controls. The
+[comparison](../../.vela/local/runs/44758c93-76de-4f66-9a63-90228267ee65/comparison.html)
+contains the detected paths, same-exposure counterexamples, RGB peak and flank
+samples, and measured coefficient counts at each level. See the
+[experiment record](../../experiments/dpf-bloom-20261108.md) for the conditional
+gate decision, assumptions and evidence identities.
+
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"protocol.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"reproduce.md"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"reproducer-source.zip"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"comparison.html"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"summary.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"verification.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"quality-gate.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"diagnostics.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"user8-p1-fine.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"user8-p10-fine.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"rotated-p2-fine.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"bitmap-p1-fine.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"user8-metrics.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"user8-paths.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"user8-detected.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"user8-y24.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"user8-selection.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"user8-assessment.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"rotated-metrics.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"rotated-paths.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"rotated-detected.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"rotated-y24.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"rotated-selection.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"rotated-assessment.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"bitmap-metrics.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"bitmap-paths.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"bitmap-detected.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"bitmap-y24.png"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"bitmap-selection.json"} -->
+<!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"bitmap-assessment.json"} -->
+<!-- vela:evidence {"run":"5505c0ef-b6a3-4200-8aca-9009d3d9eeef","path":"invalid-attempt.json"} -->
+<!-- vela:evidence {"run":"e06c8d24-cf1c-4665-b150-732d0be56917","path":"invalid-attempt.json"} -->
+
 ### DPF implementation evidence, 2026-11-21
 
 The interactive line profile passed independent source and actual Edge browser
