@@ -127,2922 +127,407 @@ vec3 bloom_injection(vec2 center, vec4 tile) {
 const vec3 bloom_deepestWeight = vec3(0.125000000, 0.125000000, 0.125000000);
 #endif
 
-#elif SETTING_BLOOM_SHAPE == 1 // diamond-four, fitted candidate
-// Bloom DPF recipe 0143ad72f3fcc782d37cb4c70e7e6d64d42c05e06f82bdff77e861248c03fbfc
-vec3 bloom_filter(vec2 center, vec4 tile) {
-    vec3 value = vec3(0.0);
-#ifdef BLOOM_DOWNSAMPLE
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(0.215983973, 0.215983973, 0.215983973);
-    value += bloom_sample(center + vec2(-0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(-0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-#else
-#if BLOOM_PASS == 1
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(1.000000000, 1.000000000, 1.000000000);
-#elif BLOOM_PASS == 2
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822963, 0.067822956, 0.067822963);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822963, 0.067822956, 0.067822963);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822926, 0.067822918, 0.067822933);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822941, 0.067822933, 0.067822933);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177067, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177067, 0.182177052);
-#elif BLOOM_PASS == 3
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822956, 0.067822963, 0.067822956);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822956, 0.067822956, 0.067822956);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822956, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 4
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 5
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 6
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 7
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 8
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#endif
-#endif
-    return value;
-}
-
-#if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
-const int bloom_injectionCount = 304;
-shared vec2 bloom_injectionOffsets[bloom_injectionCount];
-shared vec3 bloom_injectionWeights[bloom_injectionCount];
-void bloom_prepareInjection() {
-    switch (gl_LocalInvocationIndex) {
-        case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.057669304, 0.057738747, 0.058123764);
-            bloom_injectionOffsets[32] = vec2(36.698011584, -25.696224349);
-            bloom_injectionWeights[32] = vec3(0.001700385, 0.001692732, 0.001613562);
-            bloom_injectionOffsets[64] = vec2(-14.908567206, 10.439091142);
-            bloom_injectionWeights[64] = vec3(0.007113414, 0.006989916, 0.006941104);
-            bloom_injectionOffsets[96] = vec2(-51.606578790, 36.135315490);
-            bloom_injectionWeights[96] = vec3(0.000559183, 0.000581624, 0.000545230);
-            bloom_injectionOffsets[128] = vec2(-29.817134412, -20.878182283);
-            bloom_injectionWeights[128] = vec3(0.002453500, 0.002436208, 0.002336589);
-            bloom_injectionOffsets[160] = vec2(8.027690034, 5.621049076);
-            bloom_injectionWeights[160] = vec3(0.014156546, 0.014074053, 0.014395477);
-            bloom_injectionOffsets[192] = vec2(44.725701618, 31.317273425);
-            bloom_injectionWeights[192] = vec3(0.001210893, 0.001206050, 0.001164897);
-            bloom_injectionOffsets[224] = vec2(5.000000000, 4.000000000);
-            bloom_injectionWeights[224] = vec3(0.000751923, 0.000680782, 0.000661652);
-            bloom_injectionOffsets[256] = vec2(2.000000000, -0.000000000);
-            bloom_injectionWeights[256] = vec3(0.000349008, 0.000459987, 0.000327674);
-            bloom_injectionOffsets[288] = vec2(-1.000000000, -4.000000000);
-            bloom_injectionWeights[288] = vec3(0.000016619, 0.000050933, 0.000054222);
-            break;
-        case 1u:
-            bloom_injectionOffsets[1] = vec2(1.146812862, -0.803007011);
-            bloom_injectionWeights[1] = vec3(0.019442348, 0.019346582, 0.019385589);
-            bloom_injectionOffsets[33] = vec2(37.844824446, -26.499231359);
-            bloom_injectionWeights[33] = vec3(0.001609547, 0.001599782, 0.001527726);
-            bloom_injectionOffsets[65] = vec2(-16.055380068, 11.242098152);
-            bloom_injectionWeights[65] = vec3(0.006409055, 0.006274776, 0.006195814);
-            bloom_injectionOffsets[97] = vec2(-52.753391652, 36.938322501);
-            bloom_injectionWeights[97] = vec3(0.000392758, 0.000414011, 0.000390067);
-            bloom_injectionOffsets[129] = vec2(-30.963947274, -21.681189294);
-            bloom_injectionWeights[129] = vec3(0.002299829, 0.002285843, 0.002188155);
-            bloom_injectionOffsets[161] = vec2(9.174502896, 6.424056087);
-            bloom_injectionWeights[161] = vec3(0.012889963, 0.012875978, 0.013137854);
-            bloom_injectionOffsets[193] = vec2(45.872514480, 32.120280436);
-            bloom_injectionWeights[193] = vec3(0.001158654, 0.001154692, 0.001115620);
-            bloom_injectionOffsets[225] = vec2(-5.000000000, 3.000000000);
-            bloom_injectionWeights[225] = vec3(0.002775750, 0.002887924, 0.002916931);
-            bloom_injectionOffsets[257] = vec2(5.000000000, -0.000000000);
-            bloom_injectionWeights[257] = vec3(0.000029947, 0.000173336, 0.000108248);
-            bloom_injectionOffsets[289] = vec2(0.000000000, -4.000000000);
-            bloom_injectionWeights[289] = vec3(0.000049389, 0.000057358, 0.000017387);
-            break;
-        case 2u:
-            bloom_injectionOffsets[2] = vec2(2.293625724, -1.606014022);
-            bloom_injectionWeights[2] = vec3(0.011997119, 0.012228891, 0.011754668);
-            bloom_injectionOffsets[34] = vec2(38.991637308, -27.302238370);
-            bloom_injectionWeights[34] = vec3(0.001526584, 0.001514229, 0.001450625);
-            bloom_injectionOffsets[66] = vec2(-17.202192930, 12.045105163);
-            bloom_injectionWeights[66] = vec3(0.005804268, 0.005674795, 0.005573949);
-            bloom_injectionOffsets[98] = vec2(-53.900204514, 37.741329512);
-            bloom_injectionWeights[98] = vec3(0.000382878, 0.000291638, 0.000275736);
-            bloom_injectionOffsets[130] = vec2(-32.110760136, -22.484196305);
-            bloom_injectionWeights[130] = vec3(0.002159751, 0.002147270, 0.002052695);
-            bloom_injectionOffsets[162] = vec2(10.321315758, 7.227063098);
-            bloom_injectionWeights[162] = vec3(0.011350673, 0.011329882, 0.011515142);
-            bloom_injectionOffsets[194] = vec2(47.019327342, 32.923287447);
-            bloom_injectionWeights[194] = vec3(0.001088661, 0.001065055, 0.001022454);
-            bloom_injectionOffsets[226] = vec2(-4.000000000, 3.000000000);
-            bloom_injectionWeights[226] = vec3(0.003146418, 0.003297533, 0.003261036);
-            bloom_injectionOffsets[258] = vec2(-5.000000000, -1.000000000);
-            bloom_injectionWeights[258] = vec3(0.000055548, 0.000000177, 0.000000073);
-            bloom_injectionOffsets[290] = vec2(1.000000000, -4.000000000);
-            bloom_injectionWeights[290] = vec3(0.000000000, 0.000030024, 0.000029132);
-            break;
-        case 3u:
-            bloom_injectionOffsets[3] = vec2(3.440438586, -2.409021033);
-            bloom_injectionWeights[3] = vec3(0.014170341, 0.014243797, 0.014523861);
-            bloom_injectionOffsets[35] = vec2(40.138450170, -28.105245381);
-            bloom_injectionWeights[35] = vec3(0.001454757, 0.001443302, 0.001386136);
-            bloom_injectionOffsets[67] = vec2(-18.349005792, 12.848112174);
-            bloom_injectionWeights[67] = vec3(0.005277473, 0.005156451, 0.005044731);
-            bloom_injectionOffsets[99] = vec2(-55.047017376, 38.544336523);
-            bloom_injectionWeights[99] = vec3(0.000150321, 0.000214348, 0.000149818);
-            bloom_injectionOffsets[131] = vec2(-33.257572998, -23.287203316);
-            bloom_injectionWeights[131] = vec3(0.002030198, 0.002020745, 0.001928856);
-            bloom_injectionOffsets[163] = vec2(11.468128620, 8.030070109);
-            bloom_injectionWeights[163] = vec3(0.010031186, 0.009961022, 0.010083473);
-            bloom_injectionOffsets[195] = vec2(48.166140204, 33.726294457);
-            bloom_injectionWeights[195] = vec3(0.000982826, 0.000977815, 0.000896403);
-            bloom_injectionOffsets[227] = vec2(-3.000000000, 3.000000000);
-            bloom_injectionWeights[227] = vec3(0.001031433, 0.000588278, 0.000961705);
-            bloom_injectionOffsets[259] = vec2(-3.000000000, -1.000000000);
-            bloom_injectionWeights[259] = vec3(0.001842209, 0.001846988, 0.001812697);
-            bloom_injectionOffsets[291] = vec2(2.000000000, -4.000000000);
-            bloom_injectionWeights[291] = vec3(0.000004696, 0.000043945, 0.000054870);
-            break;
-        case 4u:
-            bloom_injectionOffsets[4] = vec2(4.587251448, -3.212028044);
-            bloom_injectionWeights[4] = vec3(0.013116517, 0.013093615, 0.013358141);
-            bloom_injectionOffsets[36] = vec2(41.285263032, -28.908252392);
-            bloom_injectionWeights[36] = vec3(0.001385440, 0.001374999, 0.001321951);
-            bloom_injectionOffsets[68] = vec2(-19.495818654, 13.651119185);
-            bloom_injectionWeights[68] = vec3(0.004819791, 0.004710860, 0.004599229);
-            bloom_injectionOffsets[100] = vec2(-56.193830238, 39.347343534);
-            bloom_injectionWeights[100] = vec3(0.000107982, 0.000077593, 0.000098853);
-            bloom_injectionOffsets[132] = vec2(-34.404385860, -24.090210327);
-            bloom_injectionWeights[132] = vec3(0.001910205, 0.001903481, 0.001814272);
-            bloom_injectionOffsets[164] = vec2(12.614941482, 8.833077120);
-            bloom_injectionWeights[164] = vec3(0.008925940, 0.008841048, 0.008896662);
-            bloom_injectionOffsets[196] = vec2(49.312953066, 34.529301468);
-            bloom_injectionWeights[196] = vec3(0.000862550, 0.000882882, 0.000846806);
-            bloom_injectionOffsets[228] = vec2(-2.000000000, 3.000000000);
-            bloom_injectionWeights[228] = vec3(0.000306682, 0.000437354, 0.000271510);
-            bloom_injectionOffsets[260] = vec2(-2.000000000, -1.000000000);
-            bloom_injectionWeights[260] = vec3(0.000627849, 0.000447188, 0.001172747);
-            bloom_injectionOffsets[292] = vec2(3.000000000, -4.000000000);
-            bloom_injectionWeights[292] = vec3(0.000107328, 0.000097093, 0.000106593);
-            break;
-        case 5u:
-            bloom_injectionOffsets[5] = vec2(5.734064310, -4.015035054);
-            bloom_injectionWeights[5] = vec3(0.017448122, 0.017695028, 0.017969988);
-            bloom_injectionOffsets[37] = vec2(42.432075894, -29.711259403);
-            bloom_injectionWeights[37] = vec3(0.001324348, 0.001317175, 0.001268224);
-            bloom_injectionOffsets[69] = vec2(-20.642631516, 14.454126196);
-            bloom_injectionWeights[69] = vec3(0.004418475, 0.004324411, 0.004217737);
-            bloom_injectionOffsets[101] = vec2(-57.340643100, 40.150350545);
-            bloom_injectionWeights[101] = vec3(0.000032524, 0.000035980, 0.000029745);
-            bloom_injectionOffsets[133] = vec2(-35.551198722, -24.893217338);
-            bloom_injectionWeights[133] = vec3(0.001799160, 0.001792163, 0.001707440);
-            bloom_injectionOffsets[165] = vec2(13.761754344, 9.636084131);
-            bloom_injectionWeights[165] = vec3(0.007957472, 0.007856069, 0.007851251);
-            bloom_injectionOffsets[197] = vec2(50.459765928, 35.332308479);
-            bloom_injectionWeights[197] = vec3(0.000728296, 0.000719949, 0.000752550);
-            bloom_injectionOffsets[229] = vec2(2.000000000, 3.000000000);
-            bloom_injectionWeights[229] = vec3(0.000290440, 0.000502627, 0.000307163);
-            bloom_injectionOffsets[261] = vec2(-1.000000000, -1.000000000);
-            bloom_injectionWeights[261] = vec3(0.006080909, 0.006055448, 0.005718919);
-            bloom_injectionOffsets[293] = vec2(4.000000000, -4.000000000);
-            bloom_injectionWeights[293] = vec3(0.000711560, 0.000814102, 0.000725088);
-            break;
-        case 6u:
-            bloom_injectionOffsets[6] = vec2(6.880877172, -4.818042065);
-            bloom_injectionWeights[6] = vec3(0.016110756, 0.016144518, 0.016458003);
-            bloom_injectionOffsets[38] = vec2(43.578888756, -30.514266414);
-            bloom_injectionWeights[38] = vec3(0.001264975, 0.001257307, 0.001213345);
-            bloom_injectionOffsets[70] = vec2(-21.789444378, 15.257133207);
-            bloom_injectionWeights[70] = vec3(0.004065948, 0.003986830, 0.003882166);
-            bloom_injectionOffsets[102] = vec2(-58.487455962, 40.953357555);
-            bloom_injectionWeights[102] = vec3(0.000001853, 0.000001846, 0.000001848);
-            bloom_injectionOffsets[134] = vec2(-36.698011584, -25.696224349);
-            bloom_injectionWeights[134] = vec3(0.001700404, 0.001692721, 0.001613583);
-            bloom_injectionOffsets[166] = vec2(14.908567206, 10.439091142);
-            bloom_injectionWeights[166] = vec3(0.007113470, 0.006989970, 0.006941159);
-            bloom_injectionOffsets[198] = vec2(51.606578790, 36.135315490);
-            bloom_injectionWeights[198] = vec3(0.000559152, 0.000578083, 0.000547037);
-            bloom_injectionOffsets[230] = vec2(3.000000000, 3.000000000);
-            bloom_injectionWeights[230] = vec3(0.001062745, 0.000722470, 0.001015342);
-            bloom_injectionOffsets[262] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[262] = vec3(0.018407375, 0.018758189, 0.019067040);
-            bloom_injectionOffsets[294] = vec2(5.000000000, -4.000000000);
-            bloom_injectionWeights[294] = vec3(0.000754632, 0.000716596, 0.000635989);
-            break;
-        case 7u:
-            bloom_injectionOffsets[7] = vec2(8.027690034, -5.621049076);
-            bloom_injectionWeights[7] = vec3(0.014156362, 0.014075553, 0.014396129);
-            bloom_injectionOffsets[39] = vec2(44.725701618, -31.317273425);
-            bloom_injectionWeights[39] = vec3(0.001211048, 0.001206205, 0.001165024);
-            bloom_injectionOffsets[71] = vec2(-22.936257240, 16.060140218);
-            bloom_injectionWeights[71] = vec3(0.003757354, 0.003699667, 0.003592143);
-            bloom_injectionOffsets[103] = vec2(-1.146812862, -0.803007011);
-            bloom_injectionWeights[103] = vec3(0.019465333, 0.019346001, 0.019424248);
-            bloom_injectionOffsets[135] = vec2(-37.844824446, -26.499231359);
-            bloom_injectionWeights[135] = vec3(0.001609569, 0.001599774, 0.001527753);
-            bloom_injectionOffsets[167] = vec2(16.055380068, 11.242098152);
-            bloom_injectionWeights[167] = vec3(0.006409089, 0.006274807, 0.006195846);
-            bloom_injectionOffsets[199] = vec2(52.753391652, 36.938322501);
-            bloom_injectionWeights[199] = vec3(0.000390488, 0.000402077, 0.000391104);
-            bloom_injectionOffsets[231] = vec2(4.000000000, 3.000000000);
-            bloom_injectionWeights[231] = vec3(0.003109487, 0.003268054, 0.003184912);
-            bloom_injectionOffsets[263] = vec2(1.000000000, -1.000000000);
-            bloom_injectionWeights[263] = vec3(0.006026600, 0.006036293, 0.005675839);
-            bloom_injectionOffsets[295] = vec2(-5.000000000, -5.000000000);
-            bloom_injectionWeights[295] = vec3(0.000000000, 0.000000024, 0.000001129);
-            break;
-        case 8u:
-            bloom_injectionOffsets[8] = vec2(9.174502896, -6.424056087);
-            bloom_injectionWeights[8] = vec3(0.012889897, 0.012875594, 0.013137720);
-            bloom_injectionOffsets[40] = vec2(45.872514480, -32.120280436);
-            bloom_injectionWeights[40] = vec3(0.001158708, 0.001154816, 0.001115499);
-            bloom_injectionOffsets[72] = vec2(-24.083070102, 16.863147229);
-            bloom_injectionWeights[72] = vec3(0.003481658, 0.003433015, 0.003327057);
-            bloom_injectionOffsets[104] = vec2(-2.293625724, -1.606014022);
-            bloom_injectionWeights[104] = vec3(0.011986895, 0.012205740, 0.011797109);
-            bloom_injectionOffsets[136] = vec2(-38.991637308, -27.302238370);
-            bloom_injectionWeights[136] = vec3(0.001526622, 0.001514240, 0.001450673);
-            bloom_injectionOffsets[168] = vec2(17.202192930, 12.045105163);
-            bloom_injectionWeights[168] = vec3(0.005804285, 0.005674812, 0.005573966);
-            bloom_injectionOffsets[200] = vec2(53.900204514, 37.741329512);
-            bloom_injectionWeights[200] = vec3(0.000373078, 0.000257756, 0.000279656);
-            bloom_injectionOffsets[232] = vec2(5.000000000, 3.000000000);
-            bloom_injectionWeights[232] = vec3(0.002801834, 0.002835812, 0.002894050);
-            bloom_injectionOffsets[264] = vec2(2.000000000, -1.000000000);
-            bloom_injectionWeights[264] = vec3(0.000643972, 0.000521376, 0.001171625);
-            bloom_injectionOffsets[296] = vec2(-3.000000000, -5.000000000);
-            bloom_injectionWeights[296] = vec3(0.000044695, 0.000170271, 0.000000000);
-            break;
-        case 9u:
-            bloom_injectionOffsets[9] = vec2(10.321315758, -7.227063098);
-            bloom_injectionWeights[9] = vec3(0.011350742, 0.011329956, 0.011515218);
-            bloom_injectionOffsets[41] = vec2(47.019327342, -32.923287447);
-            bloom_injectionWeights[41] = vec3(0.001088825, 0.001065360, 0.001022828);
-            bloom_injectionOffsets[73] = vec2(-25.229882964, 17.666154240);
-            bloom_injectionWeights[73] = vec3(0.003240744, 0.003196201, 0.003094659);
-            bloom_injectionOffsets[105] = vec2(-3.440438586, -2.409021033);
-            bloom_injectionWeights[105] = vec3(0.014154038, 0.014244504, 0.014507976);
-            bloom_injectionOffsets[137] = vec2(-40.138450170, -28.105245381);
-            bloom_injectionWeights[137] = vec3(0.001454800, 0.001443335, 0.001386193);
-            bloom_injectionOffsets[169] = vec2(18.349005792, 12.848112174);
-            bloom_injectionWeights[169] = vec3(0.005277468, 0.005156449, 0.005044728);
-            bloom_injectionOffsets[201] = vec2(55.047017376, 38.544336523);
-            bloom_injectionWeights[201] = vec3(0.000135270, 0.000162791, 0.000164107);
-            bloom_injectionOffsets[233] = vec2(-5.000000000, 2.000000000);
-            bloom_injectionWeights[233] = vec3(0.000353014, 0.000328924, 0.000391447);
-            bloom_injectionOffsets[265] = vec2(3.000000000, -1.000000000);
-            bloom_injectionWeights[265] = vec3(0.001807347, 0.001872348, 0.001811420);
-            bloom_injectionOffsets[297] = vec2(-2.000000000, -5.000000000);
-            bloom_injectionWeights[297] = vec3(0.000000000, 0.000045707, 0.000000000);
-            break;
-        case 10u:
-            bloom_injectionOffsets[10] = vec2(11.468128620, -8.030070109);
-            bloom_injectionWeights[10] = vec3(0.010031171, 0.009961016, 0.010083460);
-            bloom_injectionOffsets[42] = vec2(48.166140204, -33.726294457);
-            bloom_injectionWeights[42] = vec3(0.000981834, 0.000976935, 0.000897918);
-            bloom_injectionOffsets[74] = vec2(-26.376695826, 18.469161251);
-            bloom_injectionWeights[74] = vec3(0.003022536, 0.002985234, 0.002885918);
-            bloom_injectionOffsets[106] = vec2(-4.587251448, -3.212028044);
-            bloom_injectionWeights[106] = vec3(0.013132723, 0.013135261, 0.013361987);
-            bloom_injectionOffsets[138] = vec2(-41.285263032, -28.908252392);
-            bloom_injectionWeights[138] = vec3(0.001385464, 0.001375014, 0.001321982);
-            bloom_injectionOffsets[170] = vec2(19.495818654, 13.651119185);
-            bloom_injectionWeights[170] = vec3(0.004819777, 0.004710848, 0.004599217);
-            bloom_injectionOffsets[202] = vec2(56.193830238, 39.347343534);
-            bloom_injectionWeights[202] = vec3(0.000106418, 0.000103393, 0.000094454);
-            bloom_injectionOffsets[234] = vec2(-4.000000000, 2.000000000);
-            bloom_injectionWeights[234] = vec3(0.000898461, 0.000785051, 0.000876036);
-            bloom_injectionOffsets[266] = vec2(4.000000000, -1.000000000);
-            bloom_injectionWeights[266] = vec3(0.000000250, 0.000000000, 0.000000803);
-            bloom_injectionOffsets[298] = vec2(-1.000000000, -5.000000000);
-            bloom_injectionWeights[298] = vec3(0.000184093, 0.000040838, 0.000151649);
-            break;
-        case 11u:
-            bloom_injectionOffsets[11] = vec2(12.614941482, -8.833077120);
-            bloom_injectionWeights[11] = vec3(0.008925859, 0.008840969, 0.008896579);
-            bloom_injectionOffsets[43] = vec2(49.312953066, -34.529301468);
-            bloom_injectionWeights[43] = vec3(0.000858754, 0.000881351, 0.000845511);
-            bloom_injectionOffsets[75] = vec2(-27.523508688, 19.272168261);
-            bloom_injectionWeights[75] = vec3(0.002819093, 0.002790209, 0.002690893);
-            bloom_injectionOffsets[107] = vec2(-5.734064310, -4.015035054);
-            bloom_injectionWeights[107] = vec3(0.017445957, 0.017685635, 0.017986219);
-            bloom_injectionOffsets[139] = vec2(-42.432075894, -29.711259403);
-            bloom_injectionWeights[139] = vec3(0.001324370, 0.001317194, 0.001268254);
-            bloom_injectionOffsets[171] = vec2(20.642631516, 14.454126196);
-            bloom_injectionWeights[171] = vec3(0.004418461, 0.004324398, 0.004217724);
-            bloom_injectionOffsets[203] = vec2(57.340643100, 40.150350545);
-            bloom_injectionWeights[203] = vec3(0.000031626, 0.000028400, 0.000034781);
-            bloom_injectionOffsets[235] = vec2(-3.000000000, 2.000000000);
-            bloom_injectionWeights[235] = vec3(0.004803277, 0.005557054, 0.005334364);
-            bloom_injectionOffsets[267] = vec2(5.000000000, -1.000000000);
-            bloom_injectionWeights[267] = vec3(0.000073816, 0.000000000, 0.000001630);
-            bloom_injectionOffsets[299] = vec2(0.000000000, -5.000000000);
-            bloom_injectionWeights[299] = vec3(0.000009603, 0.000279617, 0.000232174);
-            break;
-        case 12u:
-            bloom_injectionOffsets[12] = vec2(13.761754344, -9.636084131);
-            bloom_injectionWeights[12] = vec3(0.007957404, 0.007856009, 0.007851187);
-            bloom_injectionOffsets[44] = vec2(50.459765928, -35.332308479);
-            bloom_injectionWeights[44] = vec3(0.000723547, 0.000719837, 0.000748349);
-            bloom_injectionOffsets[76] = vec2(-28.670321550, 20.075175272);
-            bloom_injectionWeights[76] = vec3(0.002630808, 0.002611032, 0.002510156);
-            bloom_injectionOffsets[108] = vec2(-6.880877172, -4.818042065);
-            bloom_injectionWeights[108] = vec3(0.016112663, 0.016150767, 0.016464328);
-            bloom_injectionOffsets[140] = vec2(-43.578888756, -30.514266414);
-            bloom_injectionWeights[140] = vec3(0.001264983, 0.001257314, 0.001213354);
-            bloom_injectionOffsets[172] = vec2(21.789444378, 15.257133207);
-            bloom_injectionWeights[172] = vec3(0.004065934, 0.003986814, 0.003882151);
-            bloom_injectionOffsets[204] = vec2(58.487455962, 40.953357555);
-            bloom_injectionWeights[204] = vec3(0.000002881, 0.000002847, 0.000000489);
-            bloom_injectionOffsets[236] = vec2(-2.000000000, 2.000000000);
-            bloom_injectionWeights[236] = vec3(0.003528705, 0.003520858, 0.003961653);
-            bloom_injectionOffsets[268] = vec2(-5.000000000, -2.000000000);
-            bloom_injectionWeights[268] = vec3(0.000353184, 0.000413158, 0.000407347);
-            bloom_injectionOffsets[300] = vec2(1.000000000, -5.000000000);
-            bloom_injectionWeights[300] = vec3(0.000440290, 0.000031639, 0.000109765);
-            break;
-        case 13u:
-            bloom_injectionOffsets[13] = vec2(14.908567206, -10.439091142);
-            bloom_injectionWeights[13] = vec3(0.007113393, 0.006989900, 0.006941086);
-            bloom_injectionOffsets[45] = vec2(51.606578790, -36.135315490);
-            bloom_injectionWeights[45] = vec3(0.000553989, 0.000580454, 0.000546185);
-            bloom_injectionOffsets[77] = vec2(-29.817134412, 20.878182283);
-            bloom_injectionWeights[77] = vec3(0.002453504, 0.002436240, 0.002336612);
-            bloom_injectionOffsets[109] = vec2(-8.027690034, -5.621049076);
-            bloom_injectionWeights[109] = vec3(0.014157376, 0.014076039, 0.014396070);
-            bloom_injectionOffsets[141] = vec2(-44.725701618, -31.317273425);
-            bloom_injectionWeights[141] = vec3(0.001211047, 0.001206226, 0.001165033);
-            bloom_injectionOffsets[173] = vec2(22.936257240, 16.060140218);
-            bloom_injectionWeights[173] = vec3(0.003757357, 0.003699675, 0.003592151);
-            bloom_injectionOffsets[205] = vec2(-5.000000000, 5.000000000);
-            bloom_injectionWeights[205] = vec3(0.000000000, 0.000000205, 0.000001889);
-            bloom_injectionOffsets[237] = vec2(2.000000000, 2.000000000);
-            bloom_injectionWeights[237] = vec3(0.003502226, 0.003447051, 0.003930075);
-            bloom_injectionOffsets[269] = vec2(-4.000000000, -2.000000000);
-            bloom_injectionWeights[269] = vec3(0.000892965, 0.000770834, 0.000874404);
-            bloom_injectionOffsets[301] = vec2(2.000000000, -5.000000000);
-            bloom_injectionWeights[301] = vec3(0.000000000, 0.000061423, 0.000000020);
-            break;
-        case 14u:
-            bloom_injectionOffsets[14] = vec2(16.055380068, -11.242098152);
-            bloom_injectionWeights[14] = vec3(0.006409002, 0.006274721, 0.006195758);
-            bloom_injectionOffsets[46] = vec2(52.753391652, -36.938322501);
-            bloom_injectionWeights[46] = vec3(0.000371242, 0.000409081, 0.000395003);
-            bloom_injectionOffsets[78] = vec2(-30.963947274, 21.681189294);
-            bloom_injectionWeights[78] = vec3(0.002299832, 0.002285892, 0.002188182);
-            bloom_injectionOffsets[110] = vec2(-9.174502896, -6.424056087);
-            bloom_injectionWeights[110] = vec3(0.012889485, 0.012875051, 0.013137215);
-            bloom_injectionOffsets[142] = vec2(-45.872514480, -32.120280436);
-            bloom_injectionWeights[142] = vec3(0.001158677, 0.001154721, 0.001115399);
-            bloom_injectionOffsets[174] = vec2(24.083070102, 16.863147229);
-            bloom_injectionWeights[174] = vec3(0.003481669, 0.003433032, 0.003327077);
-            bloom_injectionOffsets[206] = vec2(-3.000000000, 5.000000000);
-            bloom_injectionWeights[206] = vec3(0.000090337, 0.000120557, 0.000000000);
-            bloom_injectionOffsets[238] = vec2(3.000000000, 2.000000000);
-            bloom_injectionWeights[238] = vec3(0.004837189, 0.005562563, 0.005269612);
-            bloom_injectionOffsets[270] = vec2(-3.000000000, -2.000000000);
-            bloom_injectionWeights[270] = vec3(0.004767360, 0.005404812, 0.005183463);
-            bloom_injectionOffsets[302] = vec2(3.000000000, -5.000000000);
-            bloom_injectionWeights[302] = vec3(0.000085226, 0.000106531, 0.000000093);
-            break;
-        case 15u:
-            bloom_injectionOffsets[15] = vec2(17.202192930, -12.045105163);
-            bloom_injectionWeights[15] = vec3(0.005804241, 0.005674768, 0.005573925);
-            bloom_injectionOffsets[47] = vec2(53.900204514, -37.741329512);
-            bloom_injectionWeights[47] = vec3(0.000331972, 0.000268734, 0.000290575);
-            bloom_injectionOffsets[79] = vec2(-32.110760136, 22.484196305);
-            bloom_injectionWeights[79] = vec3(0.002159800, 0.002147394, 0.002052790);
-            bloom_injectionOffsets[111] = vec2(-10.321315758, -7.227063098);
-            bloom_injectionWeights[111] = vec3(0.011350331, 0.011329593, 0.011514852);
-            bloom_injectionOffsets[143] = vec2(-47.019327342, -32.923287447);
-            bloom_injectionWeights[143] = vec3(0.001088660, 0.001065526, 0.001021961);
-            bloom_injectionOffsets[175] = vec2(25.229882964, 17.666154240);
-            bloom_injectionWeights[175] = vec3(0.003240764, 0.003196223, 0.003094687);
-            bloom_injectionOffsets[207] = vec2(-2.000000000, 5.000000000);
-            bloom_injectionWeights[207] = vec3(0.000016113, 0.000017727, 0.000016061);
-            bloom_injectionOffsets[239] = vec2(4.000000000, 2.000000000);
-            bloom_injectionWeights[239] = vec3(0.000920957, 0.000856836, 0.000931892);
-            bloom_injectionOffsets[271] = vec2(-2.000000000, -2.000000000);
-            bloom_injectionWeights[271] = vec3(0.003551175, 0.003728019, 0.003951613);
-            bloom_injectionOffsets[303] = vec2(5.000000000, -5.000000000);
-            bloom_injectionWeights[303] = vec3(0.000000000, 0.000000000, 0.000001413);
-            break;
-        case 16u:
-            bloom_injectionOffsets[16] = vec2(18.349005792, -12.848112174);
-            bloom_injectionWeights[16] = vec3(0.005277431, 0.005156410, 0.005044693);
-            bloom_injectionOffsets[48] = vec2(55.047017376, -38.544336523);
-            bloom_injectionWeights[48] = vec3(0.000193338, 0.000197813, 0.000191069);
-            bloom_injectionOffsets[80] = vec2(-33.257572998, 23.287203316);
-            bloom_injectionWeights[80] = vec3(0.002030222, 0.002020844, 0.001928916);
-            bloom_injectionOffsets[112] = vec2(-11.468128620, -8.030070109);
-            bloom_injectionWeights[112] = vec3(0.010030965, 0.009960845, 0.010083273);
-            bloom_injectionOffsets[144] = vec2(-48.166140204, -33.726294457);
-            bloom_injectionWeights[144] = vec3(0.000982414, 0.000977649, 0.000901641);
-            bloom_injectionOffsets[176] = vec2(26.376695826, 18.469161251);
-            bloom_injectionWeights[176] = vec3(0.003022555, 0.002985250, 0.002885943);
-            bloom_injectionOffsets[208] = vec2(-1.000000000, 5.000000000);
-            bloom_injectionWeights[208] = vec3(0.000061853, 0.000151037, 0.000132397);
-            bloom_injectionOffsets[240] = vec2(5.000000000, 2.000000000);
-            bloom_injectionWeights[240] = vec3(0.000340646, 0.000370250, 0.000371336);
-            bloom_injectionOffsets[272] = vec2(2.000000000, -2.000000000);
-            bloom_injectionWeights[272] = vec3(0.003525398, 0.003691158, 0.003963876);
-            break;
-        case 17u:
-            bloom_injectionOffsets[17] = vec2(19.495818654, -13.651119185);
-            bloom_injectionWeights[17] = vec3(0.004819767, 0.004710830, 0.004599205);
-            bloom_injectionOffsets[49] = vec2(56.193830238, -39.347343534);
-            bloom_injectionWeights[49] = vec3(0.000086362, 0.000084549, 0.000085826);
-            bloom_injectionOffsets[81] = vec2(-34.404385860, 24.090210327);
-            bloom_injectionWeights[81] = vec3(0.001910209, 0.001903600, 0.001814312);
-            bloom_injectionOffsets[113] = vec2(-12.614941482, -8.833077120);
-            bloom_injectionWeights[113] = vec3(0.008925779, 0.008840894, 0.008896499);
-            bloom_injectionOffsets[145] = vec2(-49.312953066, -34.529301468);
-            bloom_injectionWeights[145] = vec3(0.000861456, 0.000880368, 0.000853573);
-            bloom_injectionOffsets[177] = vec2(27.523508688, 19.272168261);
-            bloom_injectionWeights[177] = vec3(0.002819111, 0.002790225, 0.002690917);
-            bloom_injectionOffsets[209] = vec2(0.000000000, 5.000000000);
-            bloom_injectionWeights[209] = vec3(0.000058986, 0.000057274, 0.000079196);
-            bloom_injectionOffsets[241] = vec2(-5.000000000, 1.000000000);
-            bloom_injectionWeights[241] = vec3(0.000063388, 0.000002087, 0.000000050);
-            bloom_injectionOffsets[273] = vec2(3.000000000, -2.000000000);
-            bloom_injectionWeights[273] = vec3(0.004796891, 0.005430119, 0.005145579);
-            break;
-        case 18u:
-            bloom_injectionOffsets[18] = vec2(20.642631516, -14.454126196);
-            bloom_injectionWeights[18] = vec3(0.004418456, 0.004324380, 0.004217714);
-            bloom_injectionOffsets[50] = vec2(57.340643100, -40.150350545);
-            bloom_injectionWeights[50] = vec3(0.000040152, 0.000032932, 0.000029960);
-            bloom_injectionOffsets[82] = vec2(-35.551198722, 24.893217338);
-            bloom_injectionWeights[82] = vec3(0.001799133, 0.001792284, 0.001707441);
-            bloom_injectionOffsets[114] = vec2(-13.761754344, -9.636084131);
-            bloom_injectionWeights[114] = vec3(0.007957336, 0.007855941, 0.007851117);
-            bloom_injectionOffsets[146] = vec2(-50.459765928, -35.332308479);
-            bloom_injectionWeights[146] = vec3(0.000726514, 0.000717751, 0.000749421);
-            bloom_injectionOffsets[178] = vec2(28.670321550, 20.075175272);
-            bloom_injectionWeights[178] = vec3(0.002630850, 0.002611102, 0.002510226);
-            bloom_injectionOffsets[210] = vec2(1.000000000, 5.000000000);
-            bloom_injectionWeights[210] = vec3(0.000051602, 0.000130124, 0.000164472);
-            bloom_injectionOffsets[242] = vec2(-3.000000000, 1.000000000);
-            bloom_injectionWeights[242] = vec3(0.001755015, 0.001683295, 0.001684051);
-            bloom_injectionOffsets[274] = vec2(4.000000000, -2.000000000);
-            bloom_injectionWeights[274] = vec3(0.000912123, 0.000686364, 0.000980680);
-            break;
-        case 19u:
-            bloom_injectionOffsets[19] = vec2(21.789444378, -15.257133207);
-            bloom_injectionWeights[19] = vec3(0.004065932, 0.003986802, 0.003882150);
-            bloom_injectionOffsets[51] = vec2(58.487455962, -40.953357555);
-            bloom_injectionWeights[51] = vec3(0.000000882, 0.000001479, 0.000001622);
-            bloom_injectionOffsets[83] = vec2(-36.698011584, 25.696224349);
-            bloom_injectionWeights[83] = vec3(0.001700334, 0.001692791, 0.001613511);
-            bloom_injectionOffsets[115] = vec2(-14.908567206, -10.439091142);
-            bloom_injectionWeights[115] = vec3(0.007113341, 0.006989851, 0.006941034);
-            bloom_injectionOffsets[147] = vec2(-51.606578790, -36.135315490);
-            bloom_injectionWeights[147] = vec3(0.000555249, 0.000575148, 0.000550622);
-            bloom_injectionOffsets[179] = vec2(29.817134412, 20.878182283);
-            bloom_injectionWeights[179] = vec3(0.002453521, 0.002436281, 0.002336647);
-            bloom_injectionOffsets[211] = vec2(2.000000000, 5.000000000);
-            bloom_injectionWeights[211] = vec3(0.000092258, 0.000034741, 0.000045511);
-            bloom_injectionOffsets[243] = vec2(-2.000000000, 1.000000000);
-            bloom_injectionWeights[243] = vec3(0.000616768, 0.000763153, 0.001110696);
-            bloom_injectionOffsets[275] = vec2(5.000000000, -2.000000000);
-            bloom_injectionWeights[275] = vec3(0.000347095, 0.000559362, 0.000327570);
-            break;
-        case 20u:
-            bloom_injectionOffsets[20] = vec2(22.936257240, -16.060140218);
-            bloom_injectionWeights[20] = vec3(0.003757387, 0.003699721, 0.003592203);
-            bloom_injectionOffsets[52] = vec2(-1.146812862, 0.803007011);
-            bloom_injectionWeights[52] = vec3(0.019429414, 0.019237513, 0.019442901);
-            bloom_injectionOffsets[84] = vec2(-37.844824446, 26.499231359);
-            bloom_injectionWeights[84] = vec3(0.001609461, 0.001599816, 0.001527626);
-            bloom_injectionOffsets[116] = vec2(-16.055380068, -11.242098152);
-            bloom_injectionWeights[116] = vec3(0.006408984, 0.006274702, 0.006195740);
-            bloom_injectionOffsets[148] = vec2(-52.753391652, -36.938322501);
-            bloom_injectionWeights[148] = vec3(0.000374564, 0.000416715, 0.000401084);
-            bloom_injectionOffsets[180] = vec2(30.963947274, 21.681189294);
-            bloom_injectionWeights[180] = vec3(0.002299878, 0.002285988, 0.002188263);
-            bloom_injectionOffsets[212] = vec2(3.000000000, 5.000000000);
-            bloom_injectionWeights[212] = vec3(0.000000000, 0.000248406, 0.000000000);
-            bloom_injectionOffsets[244] = vec2(-1.000000000, 1.000000000);
-            bloom_injectionWeights[244] = vec3(0.006055621, 0.005930160, 0.005730589);
-            bloom_injectionOffsets[276] = vec2(-5.000000000, -3.000000000);
-            bloom_injectionWeights[276] = vec3(0.002779004, 0.002868015, 0.002876638);
-            break;
-        case 21u:
-            bloom_injectionOffsets[21] = vec2(24.083070102, -16.863147229);
-            bloom_injectionWeights[21] = vec3(0.003481697, 0.003433064, 0.003327117);
-            bloom_injectionOffsets[53] = vec2(-2.293625724, 1.606014022);
-            bloom_injectionWeights[53] = vec3(0.011982550, 0.012109802, 0.011885995);
-            bloom_injectionOffsets[85] = vec2(-38.991637308, 27.302238370);
-            bloom_injectionWeights[85] = vec3(0.001526432, 0.001514175, 0.001450434);
-            bloom_injectionOffsets[117] = vec2(-17.202192930, -12.045105163);
-            bloom_injectionWeights[117] = vec3(0.005804234, 0.005674758, 0.005573918);
-            bloom_injectionOffsets[149] = vec2(-53.900204514, -37.741329512);
-            bloom_injectionWeights[149] = vec3(0.000336749, 0.000315521, 0.000274861);
-            bloom_injectionOffsets[181] = vec2(32.110760136, 22.484196305);
-            bloom_injectionWeights[181] = vec3(0.002159841, 0.002147479, 0.002052859);
-            bloom_injectionOffsets[213] = vec2(5.000000000, 5.000000000);
-            bloom_injectionWeights[213] = vec3(0.000000000, 0.000000012, 0.000000803);
-            bloom_injectionOffsets[245] = vec2(0.000000000, 1.000000000);
-            bloom_injectionWeights[245] = vec3(0.018428946, 0.018905547, 0.019053277);
-            bloom_injectionOffsets[277] = vec2(-4.000000000, -3.000000000);
-            bloom_injectionWeights[277] = vec3(0.003146748, 0.003252661, 0.003210786);
-            break;
-        case 22u:
-            bloom_injectionOffsets[22] = vec2(25.229882964, -17.666154240);
-            bloom_injectionWeights[22] = vec3(0.003240783, 0.003196235, 0.003094707);
-            bloom_injectionOffsets[54] = vec2(-3.440438586, 2.409021033);
-            bloom_injectionWeights[54] = vec3(0.014167852, 0.014290374, 0.014555739);
-            bloom_injectionOffsets[86] = vec2(-40.138450170, 28.105245381);
-            bloom_injectionWeights[86] = vec3(0.001454576, 0.001443164, 0.001385906);
-            bloom_injectionOffsets[118] = vec2(-18.349005792, -12.848112174);
-            bloom_injectionWeights[118] = vec3(0.005277448, 0.005156425, 0.005044711);
-            bloom_injectionOffsets[150] = vec2(-55.047017376, -38.544336523);
-            bloom_injectionWeights[150] = vec3(0.000164458, 0.000184052, 0.000160604);
-            bloom_injectionOffsets[182] = vec2(33.257572998, 23.287203316);
-            bloom_injectionWeights[182] = vec3(0.002030237, 0.002020898, 0.001928946);
-            bloom_injectionOffsets[214] = vec2(-5.000000000, 4.000000000);
-            bloom_injectionWeights[214] = vec3(0.000761470, 0.000663434, 0.000634633);
-            bloom_injectionOffsets[246] = vec2(1.000000000, 1.000000000);
-            bloom_injectionWeights[246] = vec3(0.006003588, 0.005769067, 0.005678440);
-            bloom_injectionOffsets[278] = vec2(-3.000000000, -3.000000000);
-            bloom_injectionWeights[278] = vec3(0.001029013, 0.000659302, 0.001011708);
-            break;
-        case 23u:
-            bloom_injectionOffsets[23] = vec2(26.376695826, -18.469161251);
-            bloom_injectionWeights[23] = vec3(0.003022573, 0.002985264, 0.002885961);
-            bloom_injectionOffsets[55] = vec2(-4.587251448, 3.212028044);
-            bloom_injectionWeights[55] = vec3(0.013131353, 0.013149728, 0.013394704);
-            bloom_injectionOffsets[87] = vec2(-41.285263032, 28.908252392);
-            bloom_injectionWeights[87] = vec3(0.001385297, 0.001374894, 0.001321776);
-            bloom_injectionOffsets[119] = vec2(-19.495818654, -13.651119185);
-            bloom_injectionWeights[119] = vec3(0.004819778, 0.004710838, 0.004599215);
-            bloom_injectionOffsets[151] = vec2(-56.193830238, -39.347343534);
-            bloom_injectionWeights[151] = vec3(0.000105187, 0.000087417, 0.000094082);
-            bloom_injectionOffsets[183] = vec2(34.404385860, 24.090210327);
-            bloom_injectionWeights[183] = vec3(0.001910227, 0.001903691, 0.001814358);
-            bloom_injectionOffsets[215] = vec2(-4.000000000, 4.000000000);
-            bloom_injectionWeights[215] = vec3(0.000682643, 0.000732870, 0.000661823);
-            bloom_injectionOffsets[247] = vec2(2.000000000, 1.000000000);
-            bloom_injectionWeights[247] = vec3(0.000630995, 0.001468290, 0.001055001);
-            bloom_injectionOffsets[279] = vec2(-2.000000000, -3.000000000);
-            bloom_injectionWeights[279] = vec3(0.000283895, 0.000402667, 0.000252053);
-            break;
-        case 24u:
-            bloom_injectionOffsets[24] = vec2(27.523508688, -19.272168261);
-            bloom_injectionWeights[24] = vec3(0.002819129, 0.002790246, 0.002690937);
-            bloom_injectionOffsets[56] = vec2(-5.734064310, 4.015035054);
-            bloom_injectionWeights[56] = vec3(0.017439933, 0.017668892, 0.017970718);
-            bloom_injectionOffsets[88] = vec2(-42.432075894, 29.711259403);
-            bloom_injectionWeights[88] = vec3(0.001324197, 0.001317052, 0.001268043);
-            bloom_injectionOffsets[120] = vec2(-20.642631516, -14.454126196);
-            bloom_injectionWeights[120] = vec3(0.004418465, 0.004324387, 0.004217722);
-            bloom_injectionOffsets[152] = vec2(-57.340643100, -40.150350545);
-            bloom_injectionWeights[152] = vec3(0.000034736, 0.000032755, 0.000029987);
-            bloom_injectionOffsets[184] = vec2(35.551198722, 24.893217338);
-            bloom_injectionWeights[184] = vec3(0.001799116, 0.001792322, 0.001707428);
-            bloom_injectionOffsets[216] = vec2(-3.000000000, 4.000000000);
-            bloom_injectionWeights[216] = vec3(0.000104223, 0.000158675, 0.000112207);
-            bloom_injectionOffsets[248] = vec2(3.000000000, 1.000000000);
-            bloom_injectionWeights[248] = vec3(0.001722652, 0.001489531, 0.001720385);
-            bloom_injectionOffsets[280] = vec2(2.000000000, -3.000000000);
-            bloom_injectionWeights[280] = vec3(0.000272102, 0.000396762, 0.000306464);
-            break;
-        case 25u:
-            bloom_injectionOffsets[25] = vec2(28.670321550, -20.075175272);
-            bloom_injectionWeights[25] = vec3(0.002630837, 0.002611072, 0.002510197);
-            bloom_injectionOffsets[57] = vec2(-6.880877172, 4.818042065);
-            bloom_injectionWeights[57] = vec3(0.016110433, 0.016150814, 0.016463388);
-            bloom_injectionOffsets[89] = vec2(-43.578888756, 30.514266414);
-            bloom_injectionWeights[89] = vec3(0.001264843, 0.001257200, 0.001213202);
-            bloom_injectionOffsets[121] = vec2(-21.789444378, -15.257133207);
-            bloom_injectionWeights[121] = vec3(0.004065946, 0.003986815, 0.003882164);
-            bloom_injectionOffsets[153] = vec2(-58.487455962, -40.953357555);
-            bloom_injectionWeights[153] = vec3(0.000000000, 0.000001178, 0.000001126);
-            bloom_injectionOffsets[185] = vec2(36.698011584, 25.696224349);
-            bloom_injectionWeights[185] = vec3(0.001700324, 0.001692845, 0.001613506);
-            bloom_injectionOffsets[217] = vec2(-2.000000000, 4.000000000);
-            bloom_injectionWeights[217] = vec3(0.000042029, 0.000078988, 0.000056969);
-            bloom_injectionOffsets[249] = vec2(4.000000000, 1.000000000);
-            bloom_injectionWeights[249] = vec3(0.000000129, 0.000000037, 0.000000425);
-            bloom_injectionOffsets[281] = vec2(3.000000000, -3.000000000);
-            bloom_injectionWeights[281] = vec3(0.001066921, 0.000726860, 0.001068360);
-            break;
-        case 26u:
-            bloom_injectionOffsets[26] = vec2(29.817134412, -20.878182283);
-            bloom_injectionWeights[26] = vec3(0.002453515, 0.002436242, 0.002336618);
-            bloom_injectionOffsets[58] = vec2(-8.027690034, 5.621049076);
-            bloom_injectionWeights[58] = vec3(0.014157742, 0.014074765, 0.014395921);
-            bloom_injectionOffsets[90] = vec2(-44.725701618, 31.317273425);
-            bloom_injectionWeights[90] = vec3(0.001210939, 0.001206105, 0.001164931);
-            bloom_injectionOffsets[122] = vec2(-22.936257240, -16.060140218);
-            bloom_injectionWeights[122] = vec3(0.003757396, 0.003699732, 0.003592215);
-            bloom_injectionOffsets[154] = vec2(1.146812862, 0.803007011);
-            bloom_injectionWeights[154] = vec3(0.019409722, 0.019035215, 0.019398360);
-            bloom_injectionOffsets[186] = vec2(37.844824446, 26.499231359);
-            bloom_injectionWeights[186] = vec3(0.001609424, 0.001599839, 0.001527582);
-            bloom_injectionOffsets[218] = vec2(-1.000000000, 4.000000000);
-            bloom_injectionWeights[218] = vec3(0.000092575, 0.000071536, 0.000095991);
-            bloom_injectionOffsets[250] = vec2(5.000000000, 1.000000000);
-            bloom_injectionWeights[250] = vec3(0.000090086, 0.000011418, 0.000002440);
-            bloom_injectionOffsets[282] = vec2(4.000000000, -3.000000000);
-            bloom_injectionWeights[282] = vec3(0.003107193, 0.003238471, 0.003142973);
-            break;
-        case 27u:
-            bloom_injectionOffsets[27] = vec2(30.963947274, -21.681189294);
-            bloom_injectionWeights[27] = vec3(0.002299833, 0.002285864, 0.002188168);
-            bloom_injectionOffsets[59] = vec2(-9.174502896, 6.424056087);
-            bloom_injectionWeights[59] = vec3(0.012889745, 0.012875629, 0.013137517);
-            bloom_injectionOffsets[91] = vec2(-45.872514480, 32.120280436);
-            bloom_injectionWeights[91] = vec3(0.001158658, 0.001154712, 0.001115557);
-            bloom_injectionOffsets[123] = vec2(-24.083070102, -16.863147229);
-            bloom_injectionWeights[123] = vec3(0.003481704, 0.003433070, 0.003327123);
-            bloom_injectionOffsets[155] = vec2(2.293625724, 1.606014022);
-            bloom_injectionWeights[155] = vec3(0.011993401, 0.011750402, 0.011857813);
-            bloom_injectionOffsets[187] = vec2(38.991637308, 27.302238370);
-            bloom_injectionWeights[187] = vec3(0.001526354, 0.001514135, 0.001450335);
-            bloom_injectionOffsets[219] = vec2(0.000000000, 4.000000000);
-            bloom_injectionWeights[219] = vec3(0.000006431, 0.000099392, 0.000062264);
-            bloom_injectionOffsets[251] = vec2(-5.000000000, -0.000000000);
-            bloom_injectionWeights[251] = vec3(0.000056444, 0.000107115, 0.000172329);
-            bloom_injectionOffsets[283] = vec2(5.000000000, -3.000000000);
-            bloom_injectionWeights[283] = vec3(0.002793186, 0.002775363, 0.002922610);
-            break;
-        case 28u:
-            bloom_injectionOffsets[28] = vec2(32.110760136, -22.484196305);
-            bloom_injectionWeights[28] = vec3(0.002159772, 0.002147319, 0.002052733);
-            bloom_injectionOffsets[60] = vec2(-10.321315758, 7.227063098);
-            bloom_injectionWeights[60] = vec3(0.011350282, 0.011329530, 0.011514790);
-            bloom_injectionOffsets[92] = vec2(-47.019327342, 32.923287447);
-            bloom_injectionWeights[92] = vec3(0.001088627, 0.001065035, 0.001022705);
-            bloom_injectionOffsets[124] = vec2(-25.229882964, -17.666154240);
-            bloom_injectionWeights[124] = vec3(0.003240785, 0.003196232, 0.003094706);
-            bloom_injectionOffsets[156] = vec2(3.440438586, 2.409021033);
-            bloom_injectionWeights[156] = vec3(0.014185426, 0.014336360, 0.014547528);
-            bloom_injectionOffsets[188] = vec2(40.138450170, 28.105245381);
-            bloom_injectionWeights[188] = vec3(0.001454497, 0.001443105, 0.001385806);
-            bloom_injectionOffsets[220] = vec2(1.000000000, 4.000000000);
-            bloom_injectionWeights[220] = vec3(0.000054981, 0.000049967, 0.000047935);
-            bloom_injectionOffsets[252] = vec2(-3.000000000, -0.000000000);
-            bloom_injectionWeights[252] = vec3(0.000000000, 0.000000000, 0.000003619);
-            bloom_injectionOffsets[284] = vec2(-5.000000000, -4.000000000);
-            bloom_injectionWeights[284] = vec3(0.000765212, 0.000682196, 0.000652233);
-            break;
-        case 29u:
-            bloom_injectionOffsets[29] = vec2(33.257572998, -23.287203316);
-            bloom_injectionWeights[29] = vec3(0.002030214, 0.002020787, 0.001928885);
-            bloom_injectionOffsets[61] = vec2(-11.468128620, 8.030070109);
-            bloom_injectionWeights[61] = vec3(0.010031054, 0.009960921, 0.010083360);
-            bloom_injectionOffsets[93] = vec2(-48.166140204, 33.726294457);
-            bloom_injectionWeights[93] = vec3(0.000982861, 0.000977590, 0.000897367);
-            bloom_injectionOffsets[125] = vec2(-26.376695826, -18.469161251);
-            bloom_injectionWeights[125] = vec3(0.003022567, 0.002985256, 0.002885952);
-            bloom_injectionOffsets[157] = vec2(4.587251448, 3.212028044);
-            bloom_injectionWeights[157] = vec3(0.013122208, 0.013118023, 0.013362612);
-            bloom_injectionOffsets[189] = vec2(41.285263032, 28.908252392);
-            bloom_injectionWeights[189] = vec3(0.001385230, 0.001374846, 0.001321692);
-            bloom_injectionOffsets[221] = vec2(2.000000000, 4.000000000);
-            bloom_injectionWeights[221] = vec3(0.000049969, 0.000068096, 0.000053710);
-            bloom_injectionOffsets[253] = vec2(-2.000000000, -0.000000000);
-            bloom_injectionWeights[253] = vec3(0.000352166, 0.000730103, 0.000266810);
-            bloom_injectionOffsets[285] = vec2(-4.000000000, -4.000000000);
-            bloom_injectionWeights[285] = vec3(0.000697859, 0.000775374, 0.000712636);
-            break;
-        case 30u:
-            bloom_injectionOffsets[30] = vec2(34.404385860, -24.090210327);
-            bloom_injectionWeights[30] = vec3(0.001910208, 0.001903513, 0.001814283);
-            bloom_injectionOffsets[62] = vec2(-12.614941482, 8.833077120);
-            bloom_injectionWeights[62] = vec3(0.008925913, 0.008841024, 0.008896633);
-            bloom_injectionOffsets[94] = vec2(-49.312953066, 34.529301468);
-            bloom_injectionWeights[94] = vec3(0.000862804, 0.000882838, 0.000845973);
-            bloom_injectionOffsets[126] = vec2(-27.523508688, -19.272168261);
-            bloom_injectionWeights[126] = vec3(0.002819123, 0.002790242, 0.002690929);
-            bloom_injectionOffsets[158] = vec2(5.734064310, 4.015035054);
-            bloom_injectionWeights[158] = vec3(0.017445225, 0.017680202, 0.017977994);
-            bloom_injectionOffsets[190] = vec2(42.432075894, 29.711259403);
-            bloom_injectionWeights[190] = vec3(0.001324130, 0.001317004, 0.001267964);
-            bloom_injectionOffsets[222] = vec2(3.000000000, 4.000000000);
-            bloom_injectionWeights[222] = vec3(0.000134519, 0.000107228, 0.000119321);
-            bloom_injectionOffsets[254] = vec2(-1.000000000, -0.000000000);
-            bloom_injectionWeights[254] = vec3(0.020278167, 0.020495726, 0.021075223);
-            bloom_injectionOffsets[286] = vec2(-3.000000000, -4.000000000);
-            bloom_injectionWeights[286] = vec3(0.000112535, 0.000100366, 0.000121168);
-            break;
-        case 31u:
-            bloom_injectionOffsets[31] = vec2(35.551198722, -24.893217338);
-            bloom_injectionWeights[31] = vec3(0.001799161, 0.001792206, 0.001707451);
-            bloom_injectionOffsets[63] = vec2(-13.761754344, 9.636084131);
-            bloom_injectionWeights[63] = vec3(0.007957422, 0.007856016, 0.007851198);
-            bloom_injectionOffsets[95] = vec2(-50.459765928, 35.332308479);
-            bloom_injectionWeights[95] = vec3(0.000728248, 0.000721184, 0.000749783);
-            bloom_injectionOffsets[127] = vec2(-28.670321550, -20.075175272);
-            bloom_injectionWeights[127] = vec3(0.002630825, 0.002611055, 0.002510178);
-            bloom_injectionOffsets[159] = vec2(6.880877172, 4.818042065);
-            bloom_injectionWeights[159] = vec3(0.016109793, 0.016148077, 0.016458077);
-            bloom_injectionOffsets[191] = vec2(43.578888756, 30.514266414);
-            bloom_injectionWeights[191] = vec3(0.001264780, 0.001257146, 0.001213133);
-            bloom_injectionOffsets[223] = vec2(4.000000000, 4.000000000);
-            bloom_injectionWeights[223] = vec3(0.000692256, 0.000750166, 0.000697777);
-            bloom_injectionOffsets[255] = vec2(1.000000000, -0.000000000);
-            bloom_injectionWeights[255] = vec3(0.020322798, 0.020571014, 0.021102136);
-            bloom_injectionOffsets[287] = vec2(-2.000000000, -4.000000000);
-            bloom_injectionWeights[287] = vec3(0.000035752, 0.000062215, 0.000075753);
-            break;
-    }
-    barrier();
-}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    vec3 value = vec3(0.0);
-    for (int i = 0; i < bloom_injectionCount; ++i) {
-        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
-    }
-    return value;
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124991946, 0.125001743, 0.124996565);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 4
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124992460, 0.125002235, 0.124997273);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 5
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124992736, 0.125002742, 0.124997638);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 6
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124992877, 0.125002831, 0.124997720);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 7
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124992967, 0.125002816, 0.124997750);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 8
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124992914, 0.125002772, 0.124997698);
-}
-#endif
-#ifdef BLOOM_FIRST_UPSAMPLE
-const vec3 bloom_deepestWeight = vec3(0.124992847, 0.125002727, 0.124997638);
-#endif
-
 #elif SETTING_BLOOM_SHAPE == 2 // horizontal-streak, fitted candidate
-// Bloom DPF recipe 736a1adf0b8dce8127b73dc2d4457f319515bc0fa900c983f063a71f12f0945b
+// Bloom DPF recipe 527377c134bf54e981503dc43813472cf26e6db34db292da3dbdea78cc7ad137
+#define BLOOM_DPF_FEATURE_COUNT 1
+#if defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
+vec3 bloom_dpfFeature(vec2 center, vec4 tile, int feature) {
+    vec3 value = vec3(0.0);
+    if (feature == 0) {
+        value += bloom_sample(center + vec2(-1.130124425, 0.005206244), tile) * vec3(0.317764193, 0.361741722, 0.358675599);
+        value += bloom_sample(center + vec2(0.107375006, -0.000858208), tile) * vec3(0.363565832, 0.347928673, 0.346516430);
+        value += bloom_sample(center + vec2(0.891587213, -0.000167433), tile) * vec3(0.318669975, 0.290329605, 0.294807941);
+    }
+    return value;
+}
+#endif
 vec3 bloom_filter(vec2 center, vec4 tile) {
     vec3 value = vec3(0.0);
 #ifdef BLOOM_DOWNSAMPLE
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(0.215983973, 0.215983973, 0.215983973);
-    value += bloom_sample(center + vec2(-0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(-0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
+#if BLOOM_PASS == 1
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.077426247, 0.054347865, 0.031338368);
+    value += bloom_sample(center + vec2(-0.774890356, 0.671614670), tile) * vec3(0.230643436, 0.236413032, 0.242165402);
+    value += bloom_sample(center + vec2(-0.774890356, -0.671614670), tile) * vec3(0.230643436, 0.236413032, 0.242165402);
+    value += bloom_sample(center + vec2(0.774890356, 0.671614670), tile) * vec3(0.230643436, 0.236413032, 0.242165402);
+    value += bloom_sample(center + vec2(0.774890356, -0.671614670), tile) * vec3(0.230643436, 0.236413032, 0.242165402);
+#elif BLOOM_PASS == 2
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.133715019, 0.129952371, 0.119660869);
+    value += bloom_sample(center + vec2(-0.772996020, 0.766087779), tile) * vec3(0.216571242, 0.217511907, 0.220084786);
+    value += bloom_sample(center + vec2(-0.772996020, -0.766087779), tile) * vec3(0.216571242, 0.217511907, 0.220084786);
+    value += bloom_sample(center + vec2(0.772996020, 0.766087779), tile) * vec3(0.216571242, 0.217511907, 0.220084786);
+    value += bloom_sample(center + vec2(0.772996020, -0.766087779), tile) * vec3(0.216571242, 0.217511907, 0.220084786);
+#elif BLOOM_PASS == 3
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.177940279, 0.180210248, 0.181481987);
+    value += bloom_sample(center + vec2(-0.814024337, 0.812420542), tile) * vec3(0.205514923, 0.204947442, 0.204629511);
+    value += bloom_sample(center + vec2(-0.814024337, -0.812420542), tile) * vec3(0.205514923, 0.204947442, 0.204629511);
+    value += bloom_sample(center + vec2(0.814024337, 0.812420542), tile) * vec3(0.205514923, 0.204947442, 0.204629511);
+    value += bloom_sample(center + vec2(0.814024337, -0.812420542), tile) * vec3(0.205514923, 0.204947442, 0.204629511);
+#elif BLOOM_PASS == 4
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.212637514, 0.213166222, 0.214463040);
+    value += bloom_sample(center + vec2(-0.836090640, 0.817750738), tile) * vec3(0.196840614, 0.196708441, 0.196384236);
+    value += bloom_sample(center + vec2(-0.836090640, -0.817750738), tile) * vec3(0.196840614, 0.196708441, 0.196384236);
+    value += bloom_sample(center + vec2(0.836090640, 0.817750738), tile) * vec3(0.196840614, 0.196708441, 0.196384236);
+    value += bloom_sample(center + vec2(0.836090640, -0.817750738), tile) * vec3(0.196840614, 0.196708441, 0.196384236);
+#elif BLOOM_PASS == 5
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.176532596, 0.176854089, 0.176727295);
+    value += bloom_sample(center + vec2(-0.827206770, 0.821795433), tile) * vec3(0.205866843, 0.205786481, 0.205818176);
+    value += bloom_sample(center + vec2(-0.827206770, -0.821795433), tile) * vec3(0.205866843, 0.205786481, 0.205818176);
+    value += bloom_sample(center + vec2(0.827206770, 0.821795433), tile) * vec3(0.205866843, 0.205786481, 0.205818176);
+    value += bloom_sample(center + vec2(0.827206770, -0.821795433), tile) * vec3(0.205866843, 0.205786481, 0.205818176);
+#elif BLOOM_PASS == 6
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.236641794, 0.235828325, 0.235494792);
+    value += bloom_sample(center + vec2(-0.827700037, 0.836837184), tile) * vec3(0.190839544, 0.191042915, 0.191126302);
+    value += bloom_sample(center + vec2(-0.827700037, -0.836837184), tile) * vec3(0.190839544, 0.191042915, 0.191126302);
+    value += bloom_sample(center + vec2(0.827700037, 0.836837184), tile) * vec3(0.190839544, 0.191042915, 0.191126302);
+    value += bloom_sample(center + vec2(0.827700037, -0.836837184), tile) * vec3(0.190839544, 0.191042915, 0.191126302);
+#elif BLOOM_PASS == 7
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.167578995, 0.167815447, 0.168175191);
+    value += bloom_sample(center + vec2(-0.803896083, 0.844357214), tile) * vec3(0.208105251, 0.208046138, 0.207956210);
+    value += bloom_sample(center + vec2(-0.803896083, -0.844357214), tile) * vec3(0.208105251, 0.208046138, 0.207956210);
+    value += bloom_sample(center + vec2(0.803896083, 0.844357214), tile) * vec3(0.208105251, 0.208046138, 0.207956210);
+    value += bloom_sample(center + vec2(0.803896083, -0.844357214), tile) * vec3(0.208105251, 0.208046138, 0.207956210);
+#elif BLOOM_PASS == 8
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.199335113, 0.200867608, 0.203513399);
+    value += bloom_sample(center + vec2(-0.861734571, 0.862229065), tile) * vec3(0.200166225, 0.199783102, 0.199121654);
+    value += bloom_sample(center + vec2(-0.861734571, -0.862229065), tile) * vec3(0.200166225, 0.199783102, 0.199121654);
+    value += bloom_sample(center + vec2(0.861734571, 0.862229065), tile) * vec3(0.200166225, 0.199783102, 0.199121654);
+    value += bloom_sample(center + vec2(0.861734571, -0.862229065), tile) * vec3(0.200166225, 0.199783102, 0.199121654);
+#endif
 #else
 #if BLOOM_PASS == 1
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(1.000000000, 1.000000000, 1.000000000);
+    value += bloom_sample(center + vec2(0.037721025, 0.049470285), tile) * vec3(0.410666794, 0.416394472, 0.418502182);
+    value += bloom_sample(center + vec2(-1.030342287, 0.150160215), tile) * vec3(0.030079454, 0.022419000, 0.022455486);
+    value += bloom_sample(center + vec2(1.112407901, -0.148496037), tile) * vec3(0.034355991, 0.039415017, 0.039592028);
+    value += bloom_sample(center + vec2(0.012111913, -0.918450661), tile) * vec3(0.000000002, 0.000000002, 0.000000002);
+    value += bloom_sample(center + vec2(0.020161446, 0.927936047), tile) * vec3(0.000000002, 0.000000002, 0.000000002);
+    value += bloom_sample(center + vec2(-0.962673539, 0.113517301), tile) * vec3(0.082172818, 0.070369855, 0.070590854);
+    value += bloom_sample(center + vec2(-0.659327484, -0.084802579), tile) * vec3(0.051028136, 0.056358021, 0.054830927);
+    value += bloom_sample(center + vec2(1.082684222, -0.292801360), tile) * vec3(0.182006553, 0.173931420, 0.172711745);
+    value += bloom_sample(center + vec2(0.866905760, 0.078452288), tile) * vec3(0.209690258, 0.221112236, 0.221316800);
 #elif BLOOM_PASS == 2
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067823946, 0.067823946, 0.067823946);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067824006, 0.067824006, 0.067824006);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067821816, 0.067821816, 0.067821816);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067821898, 0.067821898, 0.067821898);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177275, 0.182177275, 0.182177275);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182176933, 0.182176933, 0.182176933);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177231, 0.182177231, 0.182177231);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182176888, 0.182176888, 0.182176888);
+    value += bloom_sample(center + vec2(-0.238078381, -0.704521401), tile) * vec3(0.061781112, 0.063349336, 0.056906760);
+    value += bloom_sample(center + vec2(-0.235103348, -0.897839003), tile) * vec3(0.040170763, 0.033011440, 0.036039051);
+    value += bloom_sample(center + vec2(-0.234506442, -0.706910110), tile) * vec3(0.129104137, 0.133998096, 0.134166524);
+    value += bloom_sample(center + vec2(-0.103644680, 0.860296812), tile) * vec3(0.127950117, 0.129696891, 0.133265600);
+    value += bloom_sample(center + vec2(-0.276037859, -0.279185188), tile) * vec3(0.132571861, 0.130471006, 0.106499650);
+    value += bloom_sample(center + vec2(-0.598095334, 0.088849207), tile) * vec3(0.160226256, 0.171392694, 0.178699225);
+    value += bloom_sample(center + vec2(0.190307136, -0.096717528), tile) * vec3(0.227818802, 0.217813715, 0.228457376);
+    value += bloom_sample(center + vec2(0.111615643, -0.015010837), tile) * vec3(0.120376945, 0.120266810, 0.125965834);
 #elif BLOOM_PASS == 3
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067823306, 0.067823306, 0.067823306);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067823328, 0.067823328, 0.067823328);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067823231, 0.067823231, 0.067823231);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067823172, 0.067823172, 0.067823172);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182176784, 0.182176784, 0.182176784);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182176754, 0.182176754, 0.182176754);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182176724, 0.182176724, 0.182176724);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182176694, 0.182176694, 0.182176694);
+    value += bloom_sample(center + vec2(-1.127215966, -0.069493792), tile) * vec3(0.077358447, 0.074896224, 0.069209434);
+    value += bloom_sample(center + vec2(1.239867522, -0.057941454), tile) * vec3(0.095631085, 0.089892171, 0.083479784);
+    value += bloom_sample(center + vec2(-0.043696267, -1.375111534), tile) * vec3(0.080809616, 0.079312496, 0.077762224);
+    value += bloom_sample(center + vec2(-0.074165783, 1.485081337), tile) * vec3(0.080458745, 0.078115076, 0.076172024);
+    value += bloom_sample(center + vec2(-0.602309995, -0.668573906), tile) * vec3(0.147991419, 0.157760724, 0.167285621);
+    value += bloom_sample(center + vec2(-0.622073383, 0.655509458), tile) * vec3(0.183406889, 0.191144541, 0.192917541);
+    value += bloom_sample(center + vec2(0.572811127, -0.786189209), tile) * vec3(0.151164979, 0.152668133, 0.158349618);
+    value += bloom_sample(center + vec2(0.620722050, 0.763981511), tile) * vec3(0.183178827, 0.176210642, 0.174823746);
 #elif BLOOM_PASS == 4
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067823023, 0.067823023, 0.067823023);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067823015, 0.067823015, 0.067823015);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067823045, 0.067823045, 0.067823045);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067823038, 0.067823038, 0.067823038);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182176962, 0.182176962, 0.182176962);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182176962, 0.182176962, 0.182176962);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182176977, 0.182176977, 0.182176977);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182176977, 0.182176977, 0.182176977);
+    value += bloom_sample(center + vec2(-1.224331982, 0.127597645), tile) * vec3(0.067925714, 0.066985659, 0.066741385);
+    value += bloom_sample(center + vec2(1.330016180, 0.054964613), tile) * vec3(0.073996589, 0.075131766, 0.074982189);
+    value += bloom_sample(center + vec2(-0.106386010, -1.053487148), tile) * vec3(0.059875213, 0.060526319, 0.060747214);
+    value += bloom_sample(center + vec2(-0.067633150, 1.193869163), tile) * vec3(0.063897505, 0.065001681, 0.064474821);
+    value += bloom_sample(center + vec2(-0.449345213, -0.410495589), tile) * vec3(0.186173052, 0.181342542, 0.179384068);
+    value += bloom_sample(center + vec2(-0.499724066, 0.491926927), tile) * vec3(0.178936914, 0.177001506, 0.178718165);
+    value += bloom_sample(center + vec2(0.482420721, -0.441054422), tile) * vec3(0.187871844, 0.188658580, 0.187027842);
+    value += bloom_sample(center + vec2(0.511170593, 0.499427672), tile) * vec3(0.181323171, 0.185351938, 0.187924325);
 #elif BLOOM_PASS == 5
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822956, 0.067822956, 0.067822956);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822956, 0.067822956, 0.067822956);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822956, 0.067822956, 0.067822956);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177037, 0.182177037, 0.182177037);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177037, 0.182177037, 0.182177037);
+    value += bloom_sample(center + vec2(-0.524213600, 0.411086302), tile) * vec3(0.222681865, 0.222213730, 0.221904829);
+    value += bloom_sample(center + vec2(0.734662297, 0.426044357), tile) * vec3(0.245553836, 0.243510440, 0.241108954);
+    value += bloom_sample(center + vec2(0.019065941, -1.402410617), tile) * vec3(0.077445909, 0.076091640, 0.075261772);
+    value += bloom_sample(center + vec2(-0.118161401, 1.280954701), tile) * vec3(0.077113084, 0.076791719, 0.076283067);
+    value += bloom_sample(center + vec2(-0.491827831, -0.506777946), tile) * vec3(0.183390856, 0.182773024, 0.181474656);
+    value += bloom_sample(center + vec2(0.595316884, -0.469344916), tile) * vec3(0.193814456, 0.198619455, 0.203966737);
 #elif BLOOM_PASS == 6
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822933, 0.067822933, 0.067822933);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822941, 0.067822941, 0.067822941);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822941, 0.067822941, 0.067822941);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822941, 0.067822941, 0.067822941);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177067);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177067);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177067);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177067);
+    value += bloom_sample(center + vec2(-1.242114336, 0.028792962), tile) * vec3(0.061421942, 0.062773146, 0.063214220);
+    value += bloom_sample(center + vec2(1.210369194, 0.015625930), tile) * vec3(0.068969727, 0.070493251, 0.071545929);
+    value += bloom_sample(center + vec2(0.006604918, -1.474782346), tile) * vec3(0.075520813, 0.075279929, 0.075678274);
+    value += bloom_sample(center + vec2(-0.008239774, 1.191374422), tile) * vec3(0.064385802, 0.064651825, 0.065020859);
+    value += bloom_sample(center + vec2(-0.518328537, -0.516757682), tile) * vec3(0.159740984, 0.160285309, 0.158348978);
+    value += bloom_sample(center + vec2(-0.481974572, 0.492084413), tile) * vec3(0.171349928, 0.169797316, 0.170260713);
+    value += bloom_sample(center + vec2(0.538933031, -0.479261421), tile) * vec3(0.184957698, 0.184092432, 0.182778448);
+    value += bloom_sample(center + vec2(0.488529983, 0.362182564), tile) * vec3(0.213653103, 0.212626785, 0.213152587);
 #elif BLOOM_PASS == 7
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822918, 0.067822918, 0.067822918);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822918, 0.067822918, 0.067822918);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822918, 0.067822918, 0.067822918);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822926, 0.067822926, 0.067822926);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177082, 0.182177082, 0.182177082);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177082, 0.182177082, 0.182177082);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177082, 0.182177082, 0.182177082);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177082, 0.182177082, 0.182177082);
+    value += bloom_sample(center + vec2(-1.370144731, -0.004136274), tile) * vec3(0.073707007, 0.073447689, 0.071984015);
+    value += bloom_sample(center + vec2(1.065501372, -0.032415017), tile) * vec3(0.065724917, 0.064534500, 0.064327136);
+    value += bloom_sample(center + vec2(-0.048740374, -1.378928887), tile) * vec3(0.083347380, 0.082986154, 0.083544038);
+    value += bloom_sample(center + vec2(-0.021905400, 1.289564260), tile) * vec3(0.079057366, 0.079176649, 0.079737455);
+    value += bloom_sample(center + vec2(-0.599877362, -0.592586072), tile) * vec3(0.175246790, 0.176211730, 0.175999820);
+    value += bloom_sample(center + vec2(-0.589674737, 0.554352228), tile) * vec3(0.165784284, 0.166105777, 0.165887982);
+    value += bloom_sample(center + vec2(0.455492278, -0.493992636), tile) * vec3(0.181954443, 0.182403699, 0.183101758);
+    value += bloom_sample(center + vec2(0.472935067, 0.448011818), tile) * vec3(0.175177813, 0.175133795, 0.175417811);
 #elif BLOOM_PASS == 8
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822933, 0.067822933, 0.067822933);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822933, 0.067822933, 0.067822933);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822933, 0.067822933, 0.067822933);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822933, 0.067822933, 0.067822933);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177067);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177067);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177067);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177067);
+    value += bloom_sample(center + vec2(-1.457609975, -0.011462894), tile) * vec3(0.066467859, 0.064898767, 0.063160740);
+    value += bloom_sample(center + vec2(1.469236565, 0.011957400), tile) * vec3(0.069889940, 0.068587914, 0.066276602);
+    value += bloom_sample(center + vec2(-0.002733980, -1.412748395), tile) * vec3(0.061796788, 0.060145739, 0.057761341);
+    value += bloom_sample(center + vec2(0.000502105, 1.520125095), tile) * vec3(0.065353483, 0.063694626, 0.061640941);
+    value += bloom_sample(center + vec2(-0.519423710, -0.522806768), tile) * vec3(0.179816782, 0.181172758, 0.183853015);
+    value += bloom_sample(center + vec2(-0.546208809, 0.547348074), tile) * vec3(0.177544937, 0.179453909, 0.181158662);
+    value += bloom_sample(center + vec2(0.538283379, -0.518704819), tile) * vec3(0.185481012, 0.186766386, 0.188741609);
+    value += bloom_sample(center + vec2(0.540680510, 0.526026144), tile) * vec3(0.193649203, 0.195279881, 0.197407082);
 #endif
 #endif
     return value;
 }
 
 #if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
-const int bloom_injectionCount = 159;
+const int bloom_injectionCount = 82;
 shared vec2 bloom_injectionOffsets[bloom_injectionCount];
 shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.038590822, 0.038590822, 0.038590822);
-            bloom_injectionOffsets[32] = vec2(-8.490432312, -0.000000000);
-            bloom_injectionWeights[32] = vec3(0.017281223, 0.017281223, 0.017281223);
-            bloom_injectionOffsets[64] = vec2(55.474155137, -0.000000000);
-            bloom_injectionWeights[64] = vec3(0.001708750, 0.001708750, 0.001708750);
-            bloom_injectionOffsets[96] = vec2(4.000000000, 3.000000000);
-            bloom_injectionWeights[96] = vec3(0.000006883, 0.000006883, 0.000006883);
-            bloom_injectionOffsets[128] = vec2(-3.000000000, -2.000000000);
-            bloom_injectionWeights[128] = vec3(0.000027642, 0.000027642, 0.000027642);
+            bloom_injectionOffsets[0] = vec2(-0.452308539, -0.410349988);
+            bloom_injectionWeights[0] = vec3(1.512879491, 1.483683348, 1.496904373);
+            bloom_injectionOffsets[32] = vec2(-59.467069522, 0.002293181);
+            bloom_injectionWeights[32] = vec3(0.001334807, 0.000907573, 0.000569195);
+            bloom_injectionOffsets[64] = vec2(39.400372199, 0.002226011);
+            bloom_injectionWeights[64] = vec3(0.010377032, 0.007338241, 0.006084807);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(-70.193522498, -0.000000000);
-            bloom_injectionWeights[1] = vec3(0.000021111, 0.000021111, 0.000021111);
-            bloom_injectionOffsets[33] = vec2(-6.492365465, -0.000000000);
-            bloom_injectionWeights[33] = vec3(0.018579120, 0.018579120, 0.018579120);
-            bloom_injectionOffsets[65] = vec2(57.467938081, -0.000000000);
-            bloom_injectionWeights[65] = vec3(0.001353894, 0.001353894, 0.001353894);
-            bloom_injectionOffsets[97] = vec2(5.000000000, 3.000000000);
-            bloom_injectionWeights[97] = vec3(0.000017667, 0.000017667, 0.000017667);
-            bloom_injectionOffsets[129] = vec2(3.000000000, -2.000000000);
-            bloom_injectionWeights[129] = vec3(0.000044596, 0.000044596, 0.000044596);
+            bloom_injectionOffsets[1] = vec2(-0.010386390, 1.355609432);
+            bloom_injectionWeights[1] = vec3(0.029221522, 0.030083086, 0.029745474);
+            bloom_injectionOffsets[33] = vec2(-56.467902864, -0.000581923);
+            bloom_injectionWeights[33] = vec3(0.001890767, 0.001262865, 0.000840352);
+            bloom_injectionOffsets[65] = vec2(42.208077840, 0.000071918);
+            bloom_injectionWeights[65] = vec3(0.006719024, 0.005386910, 0.004333375);
             break;
         case 2u:
-            bloom_injectionOffsets[2] = vec2(-68.351694582, -0.000000000);
-            bloom_injectionWeights[2] = vec3(0.000134031, 0.000134031, 0.000134031);
-            bloom_injectionOffsets[34] = vec2(-4.494552934, -0.000000000);
-            bloom_injectionWeights[34] = vec3(0.012840346, 0.012840346, 0.012840346);
-            bloom_injectionOffsets[66] = vec2(59.461421523, -0.000000000);
-            bloom_injectionWeights[66] = vec3(0.001021698, 0.001021698, 0.001021698);
-            bloom_injectionOffsets[98] = vec2(-5.000000000, 2.000000000);
-            bloom_injectionWeights[98] = vec3(0.000019522, 0.000019522, 0.000019522);
-            bloom_injectionOffsets[130] = vec2(4.000000000, -2.000000000);
-            bloom_injectionWeights[130] = vec3(0.000107708, 0.000107708, 0.000107708);
+            bloom_injectionOffsets[2] = vec2(1.084241006, 0.752044511);
+            bloom_injectionWeights[2] = vec3(0.010479989, 0.010712358, 0.011330526);
+            bloom_injectionOffsets[34] = vec2(-53.492450628, -0.001929860);
+            bloom_injectionWeights[34] = vec3(0.002629269, 0.001827868, 0.001167727);
+            bloom_injectionOffsets[66] = vec2(44.823383839, 0.000813155);
+            bloom_injectionWeights[66] = vec3(0.005073178, 0.004185705, 0.003093022);
             break;
         case 3u:
-            bloom_injectionOffsets[3] = vec2(-66.442415991, -0.000000000);
-            bloom_injectionWeights[3] = vec3(0.000240225, 0.000240225, 0.000240225);
-            bloom_injectionOffsets[35] = vec2(-2.496916546, -0.000000000);
-            bloom_injectionWeights[35] = vec3(0.010738561, 0.010738561, 0.010738561);
-            bloom_injectionOffsets[67] = vec2(61.454253408, -0.000000000);
-            bloom_injectionWeights[67] = vec3(0.000749508, 0.000749508, 0.000749508);
-            bloom_injectionOffsets[99] = vec2(-4.000000000, 2.000000000);
-            bloom_injectionWeights[99] = vec3(0.000140154, 0.000140154, 0.000140154);
-            bloom_injectionOffsets[131] = vec2(5.000000000, -2.000000000);
-            bloom_injectionWeights[131] = vec3(0.000017211, 0.000017211, 0.000017211);
+            bloom_injectionOffsets[3] = vec2(0.178143543, 1.295152859);
+            bloom_injectionWeights[3] = vec3(0.032029167, 0.028475394, 0.028768323);
+            bloom_injectionOffsets[35] = vec2(-50.538904560, 0.001811182);
+            bloom_injectionWeights[35] = vec3(0.003605956, 0.002600777, 0.001758824);
+            bloom_injectionOffsets[67] = vec2(47.578980669, 0.003708113);
+            bloom_injectionWeights[67] = vec3(0.004487294, 0.003446415, 0.002410845);
             break;
         case 4u:
-            bloom_injectionOffsets[4] = vec2(-64.443622294, -0.000000000);
-            bloom_injectionWeights[4] = vec3(0.000402854, 0.000402854, 0.000402854);
-            bloom_injectionOffsets[36] = vec2(-0.499377618, -0.000000000);
-            bloom_injectionWeights[36] = vec3(0.011688278, 0.011688278, 0.011688278);
-            bloom_injectionOffsets[68] = vec2(63.446019273, -0.000000000);
-            bloom_injectionWeights[68] = vec3(0.000489318, 0.000489318, 0.000489318);
-            bloom_injectionOffsets[100] = vec2(3.000000000, 2.000000000);
-            bloom_injectionWeights[100] = vec3(0.000032128, 0.000032128, 0.000032128);
-            bloom_injectionOffsets[132] = vec2(-5.000000000, -3.000000000);
-            bloom_injectionWeights[132] = vec3(0.000013771, 0.000013771, 0.000013771);
+            bloom_injectionOffsets[4] = vec2(0.109202111, 1.344717176);
+            bloom_injectionWeights[4] = vec3(0.031182071, 0.029978804, 0.029563442);
+            bloom_injectionOffsets[36] = vec2(-47.620863601, -0.000510191);
+            bloom_injectionWeights[36] = vec3(0.004663490, 0.003628934, 0.002549465);
+            bloom_injectionOffsets[68] = vec2(50.494859541, 0.004079100);
+            bloom_injectionWeights[68] = vec3(0.003422780, 0.002480986, 0.001656907);
             break;
         case 5u:
-            bloom_injectionOffsets[5] = vec2(-62.450616116, -0.000000000);
-            bloom_injectionWeights[5] = vec3(0.000613781, 0.000613781, 0.000613781);
-            bloom_injectionOffsets[37] = vec2(1.498141314, -0.000000000);
-            bloom_injectionWeights[37] = vec3(0.016842732, 0.016842732, 0.016842732);
-            bloom_injectionOffsets[69] = vec2(65.435192903, -0.000000000);
-            bloom_injectionWeights[69] = vec3(0.000310411, 0.000310411, 0.000310411);
-            bloom_injectionOffsets[101] = vec2(4.000000000, 2.000000000);
-            bloom_injectionWeights[101] = vec3(0.000140491, 0.000140491, 0.000140491);
-            bloom_injectionOffsets[133] = vec2(-4.000000000, -3.000000000);
-            bloom_injectionWeights[133] = vec3(0.000008138, 0.000008138, 0.000008138);
+            bloom_injectionOffsets[5] = vec2(0.329145810, 1.212800989);
+            bloom_injectionWeights[5] = vec3(0.015146413, 0.011851106, 0.012222991);
+            bloom_injectionOffsets[37] = vec2(-44.885398908, 0.001638015);
+            bloom_injectionWeights[37] = vec3(0.005241922, 0.004264862, 0.003208491);
+            bloom_injectionOffsets[69] = vec2(53.454970642, 0.000617055);
+            bloom_injectionWeights[69] = vec3(0.002473227, 0.001735452, 0.001110805);
             break;
         case 6u:
-            bloom_injectionOffsets[6] = vec2(-60.457993087, -0.000000000);
-            bloom_injectionWeights[6] = vec3(0.000872052, 0.000872052, 0.000872052);
-            bloom_injectionOffsets[38] = vec2(3.495718416, -0.000000000);
-            bloom_injectionWeights[38] = vec3(0.012666299, 0.012666299, 0.012666299);
-            bloom_injectionOffsets[70] = vec2(67.429450234, -0.000000000);
-            bloom_injectionWeights[70] = vec3(0.000187332, 0.000187332, 0.000187332);
-            bloom_injectionOffsets[102] = vec2(5.000000000, 2.000000000);
-            bloom_injectionWeights[102] = vec3(0.000017831, 0.000017831, 0.000017831);
-            bloom_injectionOffsets[134] = vec2(-3.000000000, -3.000000000);
-            bloom_injectionWeights[134] = vec3(0.000183438, 0.000183438, 0.000183438);
+            bloom_injectionOffsets[6] = vec2(-0.638971632, 1.116851391);
+            bloom_injectionWeights[6] = vec3(0.467266381, 0.478471875, 0.480685323);
+            bloom_injectionOffsets[38] = vec2(-42.231363664, -0.000320517);
+            bloom_injectionWeights[38] = vec3(0.007301779, 0.005738415, 0.004652179);
+            bloom_injectionOffsets[70] = vec2(56.425712037, 0.003459772);
+            bloom_injectionWeights[70] = vec3(0.001765762, 0.001196406, 0.000801613);
             break;
         case 7u:
-            bloom_injectionOffsets[7] = vec2(-58.464765703, -0.000000000);
-            bloom_injectionWeights[7] = vec3(0.001185001, 0.001185001, 0.001185001);
-            bloom_injectionOffsets[39] = vec2(5.493433004, -0.000000000);
-            bloom_injectionWeights[39] = vec3(0.019068871, 0.019068871, 0.019068871);
-            bloom_injectionOffsets[71] = vec2(69.299519207, -0.000000000);
-            bloom_injectionWeights[71] = vec3(0.000062476, 0.000062476, 0.000062476);
-            bloom_injectionOffsets[103] = vec2(-5.000000000, 1.000000000);
-            bloom_injectionWeights[103] = vec3(0.000064955, 0.000064955, 0.000064955);
-            bloom_injectionOffsets[135] = vec2(3.000000000, -3.000000000);
-            bloom_injectionWeights[135] = vec3(0.000206974, 0.000206974, 0.000206974);
+            bloom_injectionOffsets[7] = vec2(-3.492457729, 0.005101679);
+            bloom_injectionWeights[7] = vec3(0.000000008, 0.000000007, 0.000000008);
+            bloom_injectionOffsets[39] = vec2(-39.394267061, 0.000039376);
+            bloom_injectionWeights[39] = vec3(0.011331357, 0.007591856, 0.006343412);
+            bloom_injectionOffsets[71] = vec2(59.432456866, 0.003910438);
+            bloom_injectionWeights[71] = vec3(0.001258906, 0.000873464, 0.000540663);
             break;
         case 8u:
-            bloom_injectionOffsets[8] = vec2(-56.471110315, -0.000000000);
-            bloom_injectionWeights[8] = vec3(0.001531937, 0.001531937, 0.001531937);
-            bloom_injectionOffsets[40] = vec2(7.491363446, -0.000000000);
-            bloom_injectionWeights[40] = vec3(0.017947810, 0.017947810, 0.017947810);
-            bloom_injectionOffsets[72] = vec2(71.000000000, 0.000000000);
-            bloom_injectionWeights[72] = vec3(0.000004746, 0.000004746, 0.000004746);
-            bloom_injectionOffsets[104] = vec2(-4.000000000, 1.000000000);
-            bloom_injectionWeights[104] = vec3(0.000066425, 0.000066425, 0.000066425);
-            bloom_injectionOffsets[136] = vec2(4.000000000, -3.000000000);
-            bloom_injectionWeights[136] = vec3(0.000018385, 0.000018385, 0.000018385);
+            bloom_injectionOffsets[8] = vec2(-1.905256566, 0.063491848);
+            bloom_injectionWeights[8] = vec3(0.000000008, 0.034457374, 0.038864765);
+            bloom_injectionOffsets[40] = vec2(-36.537422718, 0.000849427);
+            bloom_injectionWeights[40] = vec3(0.019068083, 0.009141020, 0.007976004);
+            bloom_injectionOffsets[72] = vec2(62.453053769, 0.009888300);
+            bloom_injectionWeights[72] = vec3(0.000912046, 0.000604291, 0.000345850);
             break;
         case 9u:
-            bloom_injectionOffsets[9] = vec2(-54.477434608, -0.000000000);
-            bloom_injectionWeights[9] = vec3(0.001883655, 0.001883655, 0.001883655);
-            bloom_injectionOffsets[41] = vec2(9.489586367, -0.000000000);
-            bloom_injectionWeights[41] = vec3(0.016614506, 0.016614506, 0.016614506);
-            bloom_injectionOffsets[73] = vec2(-5.000000000, 5.000000000);
-            bloom_injectionWeights[73] = vec3(0.000012640, 0.000012640, 0.000012640);
-            bloom_injectionOffsets[105] = vec2(-1.000000000, 1.000000000);
-            bloom_injectionWeights[105] = vec3(0.001953284, 0.001953284, 0.001953284);
-            bloom_injectionOffsets[137] = vec2(5.000000000, -3.000000000);
-            bloom_injectionWeights[137] = vec3(0.000014886, 0.000014886, 0.000014886);
+            bloom_injectionOffsets[9] = vec2(0.109202111, 1.344717176);
+            bloom_injectionWeights[9] = vec3(0.031182071, 0.029978804, 0.029563442);
+            bloom_injectionOffsets[41] = vec2(-33.805649238, 0.001204424);
+            bloom_injectionWeights[41] = vec3(0.021183774, 0.010812095, 0.009074114);
+            bloom_injectionOffsets[73] = vec2(65.256996873, -0.002106019);
+            bloom_injectionWeights[73] = vec3(0.000559794, 0.000348074, 0.000191820);
             break;
         case 10u:
-            bloom_injectionOffsets[10] = vec2(-52.484370744, -0.000000000);
-            bloom_injectionWeights[10] = vec3(0.002198745, 0.002198745, 0.002198745);
-            bloom_injectionOffsets[42] = vec2(11.488170379, -0.000000000);
-            bloom_injectionWeights[42] = vec3(0.015219029, 0.015219029, 0.015219029);
-            bloom_injectionOffsets[74] = vec2(-4.000000000, 5.000000000);
-            bloom_injectionWeights[74] = vec3(0.000005308, 0.000005308, 0.000005308);
-            bloom_injectionOffsets[106] = vec2(0.000000000, 1.000000000);
-            bloom_injectionWeights[106] = vec3(0.020058343, 0.020058343, 0.020058343);
-            bloom_injectionOffsets[138] = vec2(-5.000000000, -4.000000000);
-            bloom_injectionWeights[138] = vec3(0.000015435, 0.000015435, 0.000015435);
+            bloom_injectionOffsets[10] = vec2(0.178143543, 1.295152859);
+            bloom_injectionWeights[10] = vec3(0.032029167, 0.028475394, 0.028768323);
+            bloom_injectionOffsets[42] = vec2(-31.164835626, 0.001187660);
+            bloom_injectionWeights[42] = vec3(0.019345120, 0.016638674, 0.011914315);
+            bloom_injectionOffsets[74] = vec2(67.203182861, 0.056311054);
+            bloom_injectionWeights[74] = vec3(0.000312384, 0.000181915, 0.000087749);
             break;
         case 11u:
-            bloom_injectionOffsets[11] = vec2(-50.486738871, -0.000000000);
-            bloom_injectionWeights[11] = vec3(0.002452744, 0.002452744, 0.002452744);
-            bloom_injectionOffsets[43] = vec2(13.487169676, -0.000000000);
-            bloom_injectionWeights[43] = vec3(0.013768944, 0.013768944, 0.013768944);
-            bloom_injectionOffsets[75] = vec2(-3.000000000, 5.000000000);
-            bloom_injectionWeights[75] = vec3(0.000020129, 0.000020129, 0.000020129);
-            bloom_injectionOffsets[107] = vec2(1.000000000, 1.000000000);
-            bloom_injectionWeights[107] = vec3(0.001874959, 0.001874959, 0.001874959);
-            bloom_injectionOffsets[139] = vec2(-4.000000000, -4.000000000);
-            bloom_injectionWeights[139] = vec3(0.000023389, 0.000023389, 0.000023389);
+            bloom_injectionOffsets[11] = vec2(0.148714289, 1.341470713);
+            bloom_injectionWeights[11] = vec3(0.015296808, 0.014746733, 0.014628761);
+            bloom_injectionOffsets[43] = vec2(-28.333336923, 0.001412609);
+            bloom_injectionWeights[43] = vec3(0.019772775, 0.028421169, 0.016311545);
+            bloom_injectionOffsets[75] = vec2(69.363364973, 0.012363548);
+            bloom_injectionWeights[75] = vec3(0.000396292, 0.000217764, 0.000100725);
             break;
         case 12u:
-            bloom_injectionOffsets[12] = vec2(-48.487330611, -0.000000000);
-            bloom_injectionWeights[12] = vec3(0.002719248, 0.002719248, 0.002719248);
-            bloom_injectionOffsets[44] = vec2(15.486609973, -0.000000000);
-            bloom_injectionWeights[44] = vec3(0.012391587, 0.012391587, 0.012391587);
-            bloom_injectionOffsets[76] = vec2(-2.000000000, 5.000000000);
-            bloom_injectionWeights[76] = vec3(0.000012410, 0.000012410, 0.000012410);
-            bloom_injectionOffsets[108] = vec2(4.000000000, 1.000000000);
-            bloom_injectionWeights[108] = vec3(0.000103972, 0.000103972, 0.000103972);
-            bloom_injectionOffsets[140] = vec2(-3.000000000, -4.000000000);
-            bloom_injectionWeights[140] = vec3(0.000004548, 0.000004548, 0.000004548);
+            bloom_injectionOffsets[12] = vec2(1.141829253, 0.061278213);
+            bloom_injectionWeights[12] = vec3(0.138921127, 0.143506318, 0.150786862);
+            bloom_injectionOffsets[44] = vec2(-25.404399742, 0.003045854);
+            bloom_injectionWeights[44] = vec3(0.022497222, 0.032899417, 0.021370588);
+            bloom_injectionOffsets[76] = vec2(72.273937497, 0.034363258);
+            bloom_injectionWeights[76] = vec3(0.000292044, 0.000150129, 0.000064862);
             break;
         case 13u:
-            bloom_injectionOffsets[13] = vec2(-46.487801442, -0.000000000);
-            bloom_injectionWeights[13] = vec3(0.003002896, 0.003002896, 0.003002896);
-            bloom_injectionOffsets[45] = vec2(17.486479743, -0.000000000);
-            bloom_injectionWeights[45] = vec3(0.011128088, 0.011128088, 0.011128088);
-            bloom_injectionOffsets[77] = vec2(-1.000000000, 5.000000000);
-            bloom_injectionWeights[77] = vec3(0.000029209, 0.000029209, 0.000029209);
-            bloom_injectionOffsets[109] = vec2(5.000000000, 1.000000000);
-            bloom_injectionWeights[109] = vec3(0.000055845, 0.000055845, 0.000055845);
-            bloom_injectionOffsets[141] = vec2(-2.000000000, -4.000000000);
-            bloom_injectionWeights[141] = vec3(0.000100941, 0.000100941, 0.000100941);
+            bloom_injectionOffsets[13] = vec2(3.622003753, 0.002130952);
+            bloom_injectionWeights[13] = vec3(0.000000007, 0.000000007, 0.000000008);
+            bloom_injectionOffsets[45] = vec2(-22.411240624, 0.001358205);
+            bloom_injectionWeights[45] = vec3(0.026553018, 0.029965855, 0.032085992);
+            bloom_injectionOffsets[77] = vec2(75.258964725, -0.006321140);
+            bloom_injectionWeights[77] = vec3(0.000189089, 0.000090892, 0.000036909);
             break;
         case 14u:
-            bloom_injectionOffsets[14] = vec2(-44.488264396, -0.000000000);
-            bloom_injectionWeights[14] = vec3(0.003303988, 0.003303988, 0.003303988);
-            bloom_injectionOffsets[46] = vec2(19.486721368, -0.000000000);
-            bloom_injectionWeights[46] = vec3(0.009992776, 0.009992776, 0.009992776);
-            bloom_injectionOffsets[78] = vec2(0.000000000, 5.000000000);
-            bloom_injectionWeights[78] = vec3(0.000085813, 0.000085813, 0.000085813);
-            bloom_injectionOffsets[110] = vec2(-5.000000000, -0.000000000);
-            bloom_injectionWeights[110] = vec3(0.003381270, 0.003381270, 0.003381270);
-            bloom_injectionOffsets[142] = vec2(-1.000000000, -4.000000000);
-            bloom_injectionWeights[142] = vec3(0.000109181, 0.000109181, 0.000109181);
+            bloom_injectionOffsets[14] = vec2(3.507793427, -0.038665482);
+            bloom_injectionWeights[14] = vec3(0.020102089, 0.020515747, 0.022603512);
+            bloom_injectionOffsets[46] = vec2(-19.424459425, 0.002342862);
+            bloom_injectionWeights[46] = vec3(0.030231491, 0.030864233, 0.044986006);
+            bloom_injectionOffsets[78] = vec2(77.997285377, 0.031854573);
+            bloom_injectionWeights[78] = vec3(0.000102752, 0.000046705, 0.000017520);
             break;
         case 15u:
-            bloom_injectionOffsets[15] = vec2(-42.488710229, -0.000000000);
-            bloom_injectionWeights[15] = vec3(0.003622386, 0.003622386, 0.003622386);
-            bloom_injectionOffsets[47] = vec2(21.487232890, -0.000000000);
-            bloom_injectionWeights[47] = vec3(0.009001984, 0.009001984, 0.009001984);
-            bloom_injectionOffsets[79] = vec2(1.000000000, 5.000000000);
-            bloom_injectionWeights[79] = vec3(0.000048015, 0.000048015, 0.000048015);
-            bloom_injectionOffsets[111] = vec2(-4.000000000, -0.000000000);
-            bloom_injectionWeights[111] = vec3(0.003276940, 0.003276940, 0.003276940);
-            bloom_injectionOffsets[143] = vec2(0.000000000, -4.000000000);
-            bloom_injectionWeights[143] = vec3(0.000056111, 0.000056111, 0.000056111);
+            bloom_injectionOffsets[15] = vec2(0.112731690, 1.336565742);
+            bloom_injectionWeights[15] = vec3(0.023753084, 0.022339854, 0.022090539);
+            bloom_injectionOffsets[47] = vec2(-16.436605035, 0.001309569);
+            bloom_injectionWeights[47] = vec3(0.034677576, 0.035686560, 0.045322791);
+            bloom_injectionOffsets[79] = vec2(80.577619898, -0.018147574);
+            bloom_injectionWeights[79] = vec3(0.000083980, 0.000036551, 0.000012808);
             break;
         case 16u:
-            bloom_injectionOffsets[16] = vec2(-40.489118053, -0.000000000);
-            bloom_injectionWeights[16] = vec3(0.003958163, 0.003958163, 0.003958163);
-            bloom_injectionOffsets[48] = vec2(23.487891781, -0.000000000);
-            bloom_injectionWeights[48] = vec3(0.008147857, 0.008147857, 0.008147857);
-            bloom_injectionOffsets[80] = vec2(2.000000000, 5.000000000);
-            bloom_injectionWeights[80] = vec3(0.000009866, 0.000009866, 0.000009866);
-            bloom_injectionOffsets[112] = vec2(-3.000000000, -0.000000000);
-            bloom_injectionWeights[112] = vec3(0.005139207, 0.005139207, 0.005139207);
-            bloom_injectionOffsets[144] = vec2(1.000000000, -4.000000000);
-            bloom_injectionWeights[144] = vec3(0.000056442, 0.000056442, 0.000056442);
+            bloom_injectionOffsets[16] = vec2(-0.489520692, -1.973875856);
+            bloom_injectionWeights[16] = vec3(0.026126884, 0.032404751, 0.050574444);
+            bloom_injectionOffsets[48] = vec2(-13.390142750, 0.002449587);
+            bloom_injectionWeights[48] = vec3(0.038746502, 0.040599339, 0.043616775);
+            bloom_injectionOffsets[80] = vec2(83.897838697, 0.037070597);
+            bloom_injectionWeights[80] = vec3(0.000062498, 0.000025230, 0.000007908);
             break;
         case 17u:
-            bloom_injectionOffsets[17] = vec2(-38.489469835, -0.000000000);
-            bloom_injectionWeights[17] = vec3(0.004312064, 0.004312064, 0.004312064);
-            bloom_injectionOffsets[49] = vec2(25.488571540, -0.000000000);
-            bloom_injectionWeights[49] = vec3(0.007414746, 0.007414746, 0.007414746);
-            bloom_injectionOffsets[81] = vec2(3.000000000, 5.000000000);
-            bloom_injectionWeights[81] = vec3(0.000021941, 0.000021941, 0.000021941);
-            bloom_injectionOffsets[113] = vec2(-2.000000000, -0.000000000);
-            bloom_injectionWeights[113] = vec3(0.002914805, 0.002914805, 0.002914805);
-            bloom_injectionOffsets[145] = vec2(2.000000000, -4.000000000);
-            bloom_injectionWeights[145] = vec3(0.000137720, 0.000137720, 0.000137720);
+            bloom_injectionOffsets[17] = vec2(0.137253218, 1.323054123);
+            bloom_injectionWeights[17] = vec3(0.028990908, 0.026557297, 0.026532050);
+            bloom_injectionOffsets[49] = vec2(-10.330414945, 0.001952817);
+            bloom_injectionWeights[49] = vec3(0.042503469, 0.044550832, 0.047340199);
+            bloom_injectionOffsets[81] = vec2(88.186007367, 0.032157097);
+            bloom_injectionWeights[81] = vec3(0.000042397, 0.000015367, 0.000004281);
             break;
         case 18u:
-            bloom_injectionOffsets[18] = vec2(-36.489737467, -0.000000000);
-            bloom_injectionWeights[18] = vec3(0.004685950, 0.004685950, 0.004685950);
-            bloom_injectionOffsets[50] = vec2(27.489163803, -0.000000000);
-            bloom_injectionWeights[50] = vec3(0.006782462, 0.006782462, 0.006782462);
-            bloom_injectionOffsets[82] = vec2(4.000000000, 5.000000000);
-            bloom_injectionWeights[82] = vec3(0.000009601, 0.000009601, 0.000009601);
-            bloom_injectionOffsets[114] = vec2(-1.000000000, -0.000000000);
-            bloom_injectionWeights[114] = vec3(0.025717804, 0.025717804, 0.025717804);
-            bloom_injectionOffsets[146] = vec2(4.000000000, -4.000000000);
-            bloom_injectionWeights[146] = vec3(0.000012329, 0.000012329, 0.000012329);
+            bloom_injectionOffsets[18] = vec2(1.100154529, 0.686404136);
+            bloom_injectionWeights[18] = vec3(0.028818414, 0.029162016, 0.028210096);
+            bloom_injectionOffsets[50] = vec2(-7.229943980, 0.009988753);
+            bloom_injectionWeights[50] = vec3(0.046160381, 0.049662575, 0.053044874);
             break;
         case 19u:
-            bloom_injectionOffsets[19] = vec2(-34.489895972, -0.000000000);
-            bloom_injectionWeights[19] = vec3(0.005083452, 0.005083452, 0.005083452);
-            bloom_injectionOffsets[51] = vec2(29.489600917, -0.000000000);
-            bloom_injectionWeights[51] = vec3(0.006230059, 0.006230059, 0.006230059);
-            bloom_injectionOffsets[83] = vec2(5.000000000, 5.000000000);
-            bloom_injectionWeights[83] = vec3(0.000009072, 0.000009072, 0.000009072);
-            bloom_injectionOffsets[115] = vec2(1.000000000, -0.000000000);
-            bloom_injectionWeights[115] = vec3(0.023111144, 0.023111144, 0.023111144);
-            bloom_injectionOffsets[147] = vec2(5.000000000, -4.000000000);
-            bloom_injectionWeights[147] = vec3(0.000007462, 0.000007462, 0.000007462);
+            bloom_injectionOffsets[19] = vec2(0.166542109, 1.309980521);
+            bloom_injectionWeights[19] = vec3(0.024178596, 0.021561297, 0.021535691);
+            bloom_injectionOffsets[51] = vec2(-4.075526477, 0.013024209);
+            bloom_injectionWeights[51] = vec3(0.053503770, 0.054288369, 0.058466323);
             break;
         case 20u:
-            bloom_injectionOffsets[20] = vec2(-32.489913473, -0.000000000);
-            bloom_injectionWeights[20] = vec3(0.005510877, 0.005510877, 0.005510877);
-            bloom_injectionOffsets[52] = vec2(31.489853987, -0.000000000);
-            bloom_injectionWeights[52] = vec3(0.005738658, 0.005738658, 0.005738658);
-            bloom_injectionOffsets[84] = vec2(-5.000000000, 4.000000000);
-            bloom_injectionWeights[84] = vec3(0.000011417, 0.000011417, 0.000011417);
-            bloom_injectionOffsets[116] = vec2(3.000000000, -0.000000000);
-            bloom_injectionWeights[116] = vec3(0.003993986, 0.003993986, 0.003993986);
-            bloom_injectionOffsets[148] = vec2(-5.000000000, -5.000000000);
-            bloom_injectionWeights[148] = vec3(0.000007538, 0.000007538, 0.000007538);
+            bloom_injectionOffsets[20] = vec2(0.129822032, 1.330514721);
+            bloom_injectionWeights[20] = vec3(0.030779621, 0.028695974, 0.028613979);
+            bloom_injectionOffsets[52] = vec2(5.425039646, 0.023691517);
+            bloom_injectionWeights[52] = vec3(0.043354008, 0.045994386, 0.048950199);
             break;
         case 21u:
-            bloom_injectionOffsets[21] = vec2(-30.489754428, -0.000000000);
-            bloom_injectionWeights[21] = vec3(0.005977786, 0.005977786, 0.005977786);
-            bloom_injectionOffsets[53] = vec2(33.489927207, -0.000000000);
-            bloom_injectionWeights[53] = vec3(0.005292930, 0.005292930, 0.005292930);
-            bloom_injectionOffsets[85] = vec2(-4.000000000, 4.000000000);
-            bloom_injectionWeights[85] = vec3(0.000020756, 0.000020756, 0.000020756);
-            bloom_injectionOffsets[117] = vec2(4.000000000, -0.000000000);
-            bloom_injectionWeights[117] = vec3(0.003494997, 0.003494997, 0.003494997);
-            bloom_injectionOffsets[149] = vec2(-4.000000000, -5.000000000);
-            bloom_injectionWeights[149] = vec3(0.000010569, 0.000010569, 0.000010569);
+            bloom_injectionOffsets[21] = vec2(1.017593017, 0.699537212);
+            bloom_injectionWeights[21] = vec3(0.032891706, 0.029778633, 0.028042777);
+            bloom_injectionOffsets[53] = vec2(8.131177662, -0.000525963);
+            bloom_injectionWeights[53] = vec3(0.036976729, 0.039449625, 0.042013023);
             break;
         case 22u:
-            bloom_injectionOffsets[22] = vec2(-28.489405713, -0.000000000);
-            bloom_injectionWeights[22] = vec3(0.006497541, 0.006497541, 0.006497541);
-            bloom_injectionOffsets[54] = vec2(35.489838510, -0.000000000);
-            bloom_injectionWeights[54] = vec3(0.004881417, 0.004881417, 0.004881417);
-            bloom_injectionOffsets[86] = vec2(-2.000000000, 4.000000000);
-            bloom_injectionWeights[86] = vec3(0.000114112, 0.000114112, 0.000114112);
-            bloom_injectionOffsets[118] = vec2(5.000000000, -0.000000000);
-            bloom_injectionWeights[118] = vec3(0.000123254, 0.000123254, 0.000123254);
-            bloom_injectionOffsets[150] = vec2(-3.000000000, -5.000000000);
-            bloom_injectionWeights[150] = vec3(0.000024280, 0.000024280, 0.000024280);
+            bloom_injectionOffsets[22] = vec2(-88.012582229, 0.024754279);
+            bloom_injectionWeights[22] = vec3(0.000037788, 0.000001186, 0.000000014);
+            bloom_injectionOffsets[54] = vec2(10.766445342, 0.003040825);
+            bloom_injectionWeights[54] = vec3(0.036894284, 0.038936038, 0.041016266);
             break;
         case 23u:
-            bloom_injectionOffsets[23] = vec2(-26.488881922, -0.000000000);
-            bloom_injectionWeights[23] = vec3(0.007087368, 0.007087368, 0.007087368);
-            bloom_injectionOffsets[55] = vec2(37.489614909, -0.000000000);
-            bloom_injectionWeights[55] = vec3(0.004496306, 0.004496306, 0.004496306);
-            bloom_injectionOffsets[87] = vec2(-1.000000000, 4.000000000);
-            bloom_injectionWeights[87] = vec3(0.000125803, 0.000125803, 0.000125803);
-            bloom_injectionOffsets[119] = vec2(-5.000000000, -1.000000000);
-            bloom_injectionWeights[119] = vec3(0.000048391, 0.000048391, 0.000048391);
-            bloom_injectionOffsets[151] = vec2(-2.000000000, -5.000000000);
-            bloom_injectionWeights[151] = vec3(0.000017589, 0.000017589, 0.000017589);
+            bloom_injectionOffsets[23] = vec2(-85.165075301, 0.006244827);
+            bloom_injectionWeights[23] = vec3(0.000035040, 0.000021457, 0.000000024);
+            bloom_injectionOffsets[55] = vec2(13.618450944, -0.000539700);
+            bloom_injectionWeights[55] = vec3(0.036642555, 0.038271181, 0.041995142);
             break;
         case 24u:
-            bloom_injectionOffsets[24] = vec2(-24.488234968, -0.000000000);
-            bloom_injectionWeights[24] = vec3(0.007767375, 0.007767375, 0.007767375);
-            bloom_injectionOffsets[56] = vec2(39.489296460, -0.000000000);
-            bloom_injectionWeights[56] = vec3(0.004132763, 0.004132763, 0.004132763);
-            bloom_injectionOffsets[88] = vec2(0.000000000, 4.000000000);
-            bloom_injectionWeights[88] = vec3(0.000056401, 0.000056401, 0.000056401);
-            bloom_injectionOffsets[120] = vec2(-4.000000000, -1.000000000);
-            bloom_injectionWeights[120] = vec3(0.000113622, 0.000113622, 0.000113622);
-            bloom_injectionOffsets[152] = vec2(-1.000000000, -5.000000000);
-            bloom_injectionWeights[152] = vec3(0.000026410, 0.000026410, 0.000026410);
+            bloom_injectionOffsets[24] = vec2(-82.135211411, -0.012835152);
+            bloom_injectionWeights[24] = vec3(0.000082593, 0.000030344, 0.000013888);
+            bloom_injectionOffsets[56] = vec2(16.567995447, 0.001124876);
+            bloom_injectionWeights[56] = vec3(0.032786313, 0.033822324, 0.044993941);
             break;
         case 25u:
-            bloom_injectionOffsets[25] = vec2(-22.487552344, -0.000000000);
-            bloom_injectionWeights[25] = vec3(0.008558667, 0.008558667, 0.008558667);
-            bloom_injectionOffsets[57] = vec2(41.488913856, -0.000000000);
-            bloom_injectionWeights[57] = vec3(0.003788078, 0.003788078, 0.003788078);
-            bloom_injectionOffsets[89] = vec2(1.000000000, 4.000000000);
-            bloom_injectionWeights[89] = vec3(0.000078269, 0.000078269, 0.000078269);
-            bloom_injectionOffsets[121] = vec2(-1.000000000, -1.000000000);
-            bloom_injectionWeights[121] = vec3(0.002028489, 0.002028489, 0.002028489);
-            bloom_injectionOffsets[153] = vec2(0.000000000, -5.000000000);
-            bloom_injectionWeights[153] = vec3(0.000066924, 0.000066924, 0.000066924);
+            bloom_injectionOffsets[25] = vec2(-78.686018038, 0.010668791);
+            bloom_injectionWeights[25] = vec3(0.000136861, 0.000062836, 0.000021879);
+            bloom_injectionOffsets[57] = vec2(19.492448092, -0.001178846);
+            bloom_injectionWeights[57] = vec3(0.029043686, 0.030060284, 0.042815242);
             break;
         case 26u:
-            bloom_injectionOffsets[26] = vec2(-20.486950009, -0.000000000);
-            bloom_injectionWeights[26] = vec3(0.009479553, 0.009479553, 0.009479553);
-            bloom_injectionOffsets[58] = vec2(43.488491906, -0.000000000);
-            bloom_injectionWeights[58] = vec3(0.003461046, 0.003461046, 0.003461046);
-            bloom_injectionOffsets[90] = vec2(2.000000000, 4.000000000);
-            bloom_injectionWeights[90] = vec3(0.000142515, 0.000142515, 0.000142515);
-            bloom_injectionOffsets[122] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[122] = vec3(0.020021953, 0.020021953, 0.020021953);
-            bloom_injectionOffsets[154] = vec2(1.000000000, -5.000000000);
-            bloom_injectionWeights[154] = vec3(0.000042612, 0.000042612, 0.000042612);
+            bloom_injectionOffsets[26] = vec2(-75.450036380, -0.014015637);
+            bloom_injectionWeights[26] = vec3(0.000208478, 0.000098898, 0.000040745);
+            bloom_injectionOffsets[58] = vec2(22.453743287, 0.000934266);
+            bloom_injectionWeights[58] = vec3(0.025636472, 0.030191896, 0.029551025);
             break;
         case 27u:
-            bloom_injectionOffsets[27] = vec2(-18.486560019, -0.000000000);
-            bloom_injectionWeights[27] = vec3(0.010542399, 0.010542399, 0.010542399);
-            bloom_injectionOffsets[59] = vec2(45.488048026, -0.000000000);
-            bloom_injectionWeights[59] = vec3(0.003151280, 0.003151280, 0.003151280);
-            bloom_injectionOffsets[91] = vec2(4.000000000, 4.000000000);
-            bloom_injectionWeights[91] = vec3(0.000009234, 0.000009234, 0.000009234);
-            bloom_injectionOffsets[123] = vec2(1.000000000, -1.000000000);
-            bloom_injectionWeights[123] = vec3(0.001950095, 0.001950095, 0.001950095);
-            bloom_injectionOffsets[155] = vec2(2.000000000, -5.000000000);
-            bloom_injectionWeights[155] = vec3(0.000013360, 0.000013360, 0.000013360);
+            bloom_injectionOffsets[27] = vec2(-72.396759951, 0.022514932);
+            bloom_injectionWeights[27] = vec3(0.000307650, 0.000158069, 0.000069378);
+            bloom_injectionOffsets[59] = vec2(25.422039992, 0.001565953);
+            bloom_injectionWeights[59] = vec3(0.021697398, 0.032851227, 0.020237053);
             break;
         case 28u:
-            bloom_injectionOffsets[28] = vec2(-16.486495809, -0.000000000);
-            bloom_injectionWeights[28] = vec3(0.011745643, 0.011745643, 0.011745643);
-            bloom_injectionOffsets[60] = vec2(47.487586799, -0.000000000);
-            bloom_injectionWeights[60] = vec3(0.002858868, 0.002858868, 0.002858868);
-            bloom_injectionOffsets[92] = vec2(5.000000000, 4.000000000);
-            bloom_injectionWeights[92] = vec3(0.000008840, 0.000008840, 0.000008840);
-            bloom_injectionOffsets[124] = vec2(4.000000000, -1.000000000);
-            bloom_injectionWeights[124] = vec3(0.000153523, 0.000153523, 0.000153523);
-            bloom_injectionOffsets[156] = vec2(3.000000000, -5.000000000);
-            bloom_injectionWeights[156] = vec3(0.000029246, 0.000029246, 0.000029246);
+            bloom_injectionOffsets[28] = vec2(-69.472286764, -0.026531456);
+            bloom_injectionWeights[28] = vec3(0.000416347, 0.000224850, 0.000105178);
+            bloom_injectionOffsets[60] = vec2(28.339229877, 0.003761632);
+            bloom_injectionWeights[60] = vec3(0.019645398, 0.026787344, 0.015684552);
             break;
         case 29u:
-            bloom_injectionOffsets[29] = vec2(-14.486835599, -0.000000000);
-            bloom_injectionWeights[29] = vec3(0.013065892, 0.013065892, 0.013065892);
-            bloom_injectionOffsets[61] = vec2(49.487154001, -0.000000000);
-            bloom_injectionWeights[61] = vec3(0.002584142, 0.002584142, 0.002584142);
-            bloom_injectionOffsets[93] = vec2(-5.000000000, 3.000000000);
-            bloom_injectionWeights[93] = vec3(0.000016002, 0.000016002, 0.000016002);
-            bloom_injectionOffsets[125] = vec2(5.000000000, -1.000000000);
-            bloom_injectionWeights[125] = vec3(0.000039791, 0.000039791, 0.000039791);
-            bloom_injectionOffsets[157] = vec2(4.000000000, -5.000000000);
-            bloom_injectionWeights[157] = vec3(0.000010078, 0.000010078, 0.000010078);
+            bloom_injectionOffsets[29] = vec2(-67.229667790, 0.029496185);
+            bloom_injectionWeights[29] = vec3(0.000381507, 0.000225551, 0.000113138);
+            bloom_injectionOffsets[61] = vec2(31.173846629, 0.001205778);
+            bloom_injectionWeights[61] = vec3(0.019855715, 0.015474006, 0.011435639);
             break;
         case 30u:
-            bloom_injectionOffsets[30] = vec2(-12.487615481, -0.000000000);
-            bloom_injectionWeights[30] = vec3(0.014493161, 0.014493161, 0.014493161);
-            bloom_injectionOffsets[62] = vec2(51.487121315, -0.000000000);
-            bloom_injectionWeights[62] = vec3(0.002327836, 0.002327836, 0.002327836);
-            bloom_injectionOffsets[94] = vec2(-3.000000000, 3.000000000);
-            bloom_injectionWeights[94] = vec3(0.000219801, 0.000219801, 0.000219801);
-            bloom_injectionOffsets[126] = vec2(-5.000000000, -2.000000000);
-            bloom_injectionWeights[126] = vec3(0.000017440, 0.000017440, 0.000017440);
-            bloom_injectionOffsets[158] = vec2(5.000000000, -5.000000000);
-            bloom_injectionWeights[158] = vec3(0.000010263, 0.000010263, 0.000010263);
+            bloom_injectionOffsets[30] = vec2(-65.145514979, 0.000071854);
+            bloom_injectionWeights[30] = vec3(0.000566832, 0.000349377, 0.000195319);
+            bloom_injectionOffsets[62] = vec2(33.796228584, 0.001788559);
+            bloom_injectionWeights[62] = vec3(0.021032063, 0.010271204, 0.008707418);
             break;
         case 31u:
-            bloom_injectionOffsets[31] = vec2(-10.488828130, -0.000000000);
-            bloom_injectionWeights[31] = vec3(0.015928606, 0.015928606, 0.015928606);
-            bloom_injectionOffsets[63] = vec2(53.480423356, -0.000000000);
-            bloom_injectionWeights[63] = vec3(0.002049360, 0.002049360, 0.002049360);
-            bloom_injectionOffsets[95] = vec2(3.000000000, 3.000000000);
-            bloom_injectionWeights[95] = vec3(0.000246549, 0.000246549, 0.000246549);
-            bloom_injectionOffsets[127] = vec2(-4.000000000, -2.000000000);
-            bloom_injectionWeights[127] = vec3(0.000115950, 0.000115950, 0.000115950);
+            bloom_injectionOffsets[31] = vec2(-62.454516111, 0.000931836);
+            bloom_injectionWeights[31] = vec3(0.000946452, 0.000628352, 0.000360817);
+            bloom_injectionOffsets[63] = vec2(36.523371713, 0.002105834);
+            bloom_injectionWeights[63] = vec3(0.017568959, 0.008933048, 0.007761098);
             break;
     }
     barrier();
 }
 vec3 bloom_injection(vec2 center, vec4 tile) {
     vec3 value = vec3(0.0);
-    for (int i = 0; i < bloom_injectionCount; ++i) {
-        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    if (all(greaterThanEqual(center + vec2(-88.012582229, -1.973875856), vec2(0.5))) &&
+        all(lessThanEqual(center + vec2(88.186007367, 1.355609432), tile.zw - 0.5))) {
+        for (int i = 0; i < 22; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += transient_bloomRaw_sample((tile.xy + pos) * uval_mainImageSizeRcp).rgb * bloom_injectionWeights[i];
+        }
+        for (int i = 22; i < 82; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 0) * bloom_injectionWeights[i];
+        }
+        return value;
     }
-    return value;
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124916218, 0.124916218, 0.124916218);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 4
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124938183, 0.124938183, 0.124938183);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 5
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124948412, 0.124948412, 0.124948412);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 6
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124950007, 0.124950007, 0.124950007);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 7
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124950148, 0.124950148, 0.124950148);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 8
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124949194, 0.124949194, 0.124949194);
-}
-#endif
-#ifdef BLOOM_FIRST_UPSAMPLE
-const vec3 bloom_deepestWeight = vec3(0.124947779, 0.124947779, 0.124947779);
-#endif
-
-#elif SETTING_BLOOM_SHAPE == 3 // cross-four, fitted candidate
-// Bloom DPF recipe e19a6a26a2e906215cb0101734eec38c76d3f915a8431a26d1dd0ad602fbb089
-vec3 bloom_filter(vec2 center, vec4 tile) {
-    vec3 value = vec3(0.0);
-#ifdef BLOOM_DOWNSAMPLE
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(0.215983973, 0.215983973, 0.215983973);
-    value += bloom_sample(center + vec2(-0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(-0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-#else
-#if BLOOM_PASS == 1
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(1.000000000, 1.000000000, 1.000000000);
-#elif BLOOM_PASS == 2
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 3
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 4
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 5
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 6
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 7
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 8
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#endif
-#endif
-    return value;
-}
-
-#if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
-const int bloom_injectionCount = 303;
-shared vec2 bloom_injectionOffsets[bloom_injectionCount];
-shared vec3 bloom_injectionWeights[bloom_injectionCount];
-void bloom_prepareInjection() {
-    switch (gl_LocalInvocationIndex) {
-        case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.056451291, 0.057224799, 0.057080168);
-            bloom_injectionOffsets[32] = vec2(44.800000000, -0.000000000);
-            bloom_injectionWeights[32] = vec3(0.001758385, 0.001706730, 0.001641322);
-            bloom_injectionOffsets[64] = vec2(-18.200000000, 0.000000000);
-            bloom_injectionWeights[64] = vec3(0.007065776, 0.007000507, 0.006938234);
-            bloom_injectionOffsets[96] = vec2(-63.000000000, 0.000000000);
-            bloom_injectionWeights[96] = vec3(0.000574507, 0.000464593, 0.000486757);
-            bloom_injectionOffsets[128] = vec2(0.000000000, -36.400000000);
-            bloom_injectionWeights[128] = vec3(0.002465585, 0.002390368, 0.002314801);
-            bloom_injectionOffsets[160] = vec2(-0.000000000, 9.800000000);
-            bloom_injectionWeights[160] = vec3(0.014436457, 0.014626901, 0.014847416);
-            bloom_injectionOffsets[192] = vec2(-0.000000000, 54.600000000);
-            bloom_injectionWeights[192] = vec3(0.001232146, 0.001235091, 0.001184579);
-            bloom_injectionOffsets[224] = vec2(5.000000000, 4.000000000);
-            bloom_injectionWeights[224] = vec3(0.000000000, 0.000000221, 0.000000141);
-            bloom_injectionOffsets[256] = vec2(4.000000000, -0.000000000);
-            bloom_injectionWeights[256] = vec3(0.004216226, 0.004343851, 0.004489165);
-            bloom_injectionOffsets[288] = vec2(0.000000000, -4.000000000);
-            bloom_injectionWeights[288] = vec3(0.004185202, 0.004334440, 0.004465843);
-            break;
-        case 1u:
-            bloom_injectionOffsets[1] = vec2(1.400000000, -0.000000000);
-            bloom_injectionWeights[1] = vec3(0.023097506, 0.023253864, 0.024000190);
-            bloom_injectionOffsets[33] = vec2(46.200000000, -0.000000000);
-            bloom_injectionWeights[33] = vec3(0.001666907, 0.001621564, 0.001556493);
-            bloom_injectionOffsets[65] = vec2(-19.600000000, 0.000000000);
-            bloom_injectionWeights[65] = vec3(0.006370348, 0.006275386, 0.006179571);
-            bloom_injectionOffsets[97] = vec2(-64.400000000, 0.000000000);
-            bloom_injectionWeights[97] = vec3(0.000448334, 0.000361147, 0.000462897);
-            bloom_injectionOffsets[129] = vec2(0.000000000, -37.800000000);
-            bloom_injectionWeights[129] = vec3(0.002341285, 0.002274073, 0.002204396);
-            bloom_injectionOffsets[161] = vec2(-0.000000000, 11.200000000);
-            bloom_injectionWeights[161] = vec3(0.012642754, 0.012829362, 0.013011677);
-            bloom_injectionOffsets[193] = vec2(-0.000000000, 56.000000000);
-            bloom_injectionWeights[193] = vec3(0.001176179, 0.001191400, 0.001130186);
-            bloom_injectionOffsets[225] = vec2(-5.000000000, 3.000000000);
-            bloom_injectionWeights[225] = vec3(0.000001243, 0.000001724, 0.000000000);
-            bloom_injectionOffsets[257] = vec2(5.000000000, -0.000000000);
-            bloom_injectionWeights[257] = vec3(0.000924847, 0.000983494, 0.001022712);
-            bloom_injectionOffsets[289] = vec2(2.000000000, -4.000000000);
-            bloom_injectionWeights[289] = vec3(0.000062864, 0.000013892, 0.000008695);
-            break;
-        case 2u:
-            bloom_injectionOffsets[2] = vec2(2.800000000, -0.000000000);
-            bloom_injectionWeights[2] = vec3(0.015371187, 0.015676511, 0.015680589);
-            bloom_injectionOffsets[34] = vec2(47.600000000, -0.000000000);
-            bloom_injectionWeights[34] = vec3(0.001571897, 0.001530156, 0.001466671);
-            bloom_injectionOffsets[66] = vec2(-21.000000000, 0.000000000);
-            bloom_injectionWeights[66] = vec3(0.005773317, 0.005674598, 0.005578088);
-            bloom_injectionOffsets[98] = vec2(-65.800000000, 0.000000000);
-            bloom_injectionWeights[98] = vec3(0.000279516, 0.000265258, 0.000204583);
-            bloom_injectionOffsets[130] = vec2(0.000000000, -39.200000000);
-            bloom_injectionWeights[130] = vec3(0.002204176, 0.002139229, 0.002070239);
-            bloom_injectionOffsets[162] = vec2(-0.000000000, 12.600000000);
-            bloom_injectionWeights[162] = vec3(0.011295456, 0.011414588, 0.011539085);
-            bloom_injectionOffsets[194] = vec2(-0.000000000, 57.400000000);
-            bloom_injectionWeights[194] = vec3(0.001100705, 0.001115517, 0.001055330);
-            bloom_injectionOffsets[226] = vec2(-4.000000000, 3.000000000);
-            bloom_injectionWeights[226] = vec3(0.000051790, 0.000005130, 0.000133035);
-            bloom_injectionOffsets[258] = vec2(-5.000000000, -1.000000000);
-            bloom_injectionWeights[258] = vec3(0.000364694, 0.000331363, 0.000273495);
-            bloom_injectionOffsets[290] = vec2(3.000000000, -4.000000000);
-            bloom_injectionWeights[290] = vec3(0.000000000, 0.000041662, 0.000160581);
-            break;
-        case 3u:
-            bloom_injectionOffsets[3] = vec2(4.200000000, -0.000000000);
-            bloom_injectionWeights[3] = vec3(0.015670670, 0.015843874, 0.016211160);
-            bloom_injectionOffsets[35] = vec2(49.000000000, -0.000000000);
-            bloom_injectionWeights[35] = vec3(0.001510649, 0.001481976, 0.001419098);
-            bloom_injectionOffsets[67] = vec2(-22.400000000, 0.000000000);
-            bloom_injectionWeights[67] = vec3(0.005237476, 0.005122822, 0.005008196);
-            bloom_injectionOffsets[99] = vec2(-67.200000000, 0.000000000);
-            bloom_injectionWeights[99] = vec3(0.000178196, 0.000164756, 0.000143823);
-            bloom_injectionOffsets[131] = vec2(0.000000000, -40.600000000);
-            bloom_injectionWeights[131] = vec3(0.002055967, 0.001988383, 0.001917497);
-            bloom_injectionOffsets[163] = vec2(-0.000000000, 14.000000000);
-            bloom_injectionWeights[163] = vec3(0.009968201, 0.010039106, 0.010120163);
-            bloom_injectionOffsets[195] = vec2(-0.000000000, 58.800000000);
-            bloom_injectionWeights[195] = vec3(0.000964151, 0.000999866, 0.000968668);
-            bloom_injectionOffsets[227] = vec2(-3.000000000, 3.000000000);
-            bloom_injectionWeights[227] = vec3(0.000191036, 0.000132253, 0.000026837);
-            bloom_injectionOffsets[259] = vec2(-4.000000000, -1.000000000);
-            bloom_injectionWeights[259] = vec3(0.000000000, 0.000000027, 0.000000000);
-            bloom_injectionOffsets[291] = vec2(4.000000000, -4.000000000);
-            bloom_injectionWeights[291] = vec3(0.000115079, 0.000000890, 0.000000000);
-            break;
-        case 4u:
-            bloom_injectionOffsets[4] = vec2(5.600000000, -0.000000000);
-            bloom_injectionWeights[4] = vec3(0.018587707, 0.018555086, 0.018792737);
-            bloom_injectionOffsets[36] = vec2(50.400000000, -0.000000000);
-            bloom_injectionWeights[36] = vec3(0.001425377, 0.001402385, 0.001342419);
-            bloom_injectionOffsets[68] = vec2(-23.800000000, 0.000000000);
-            bloom_injectionWeights[68] = vec3(0.004803995, 0.004703480, 0.004601427);
-            bloom_injectionOffsets[100] = vec2(-68.600000000, 0.000000000);
-            bloom_injectionWeights[100] = vec3(0.000106281, 0.000105793, 0.000099732);
-            bloom_injectionOffsets[132] = vec2(0.000000000, -42.000000000);
-            bloom_injectionWeights[132] = vec3(0.001967610, 0.001908547, 0.001840432);
-            bloom_injectionOffsets[164] = vec2(-0.000000000, 15.400000000);
-            bloom_injectionWeights[164] = vec3(0.008873606, 0.008885133, 0.008898729);
-            bloom_injectionOffsets[196] = vec2(-0.000000000, 60.200000000);
-            bloom_injectionWeights[196] = vec3(0.000811923, 0.000822947, 0.000813047);
-            bloom_injectionOffsets[228] = vec2(-2.000000000, 3.000000000);
-            bloom_injectionWeights[228] = vec3(0.000048857, 0.000005333, 0.000013602);
-            bloom_injectionOffsets[260] = vec2(-3.000000000, -1.000000000);
-            bloom_injectionWeights[260] = vec3(0.000018689, 0.000023165, 0.000191722);
-            bloom_injectionOffsets[292] = vec2(5.000000000, -4.000000000);
-            bloom_injectionWeights[292] = vec3(0.000000000, 0.000000530, 0.000000734);
-            break;
-        case 5u:
-            bloom_injectionOffsets[5] = vec2(7.000000000, -0.000000000);
-            bloom_injectionWeights[5] = vec3(0.017947868, 0.018389972, 0.018655382);
-            bloom_injectionOffsets[37] = vec2(51.800000000, -0.000000000);
-            bloom_injectionWeights[37] = vec3(0.001366228, 0.001353720, 0.001296109);
-            bloom_injectionOffsets[69] = vec2(-25.200000000, 0.000000000);
-            bloom_injectionWeights[69] = vec3(0.004407301, 0.004311217, 0.004216705);
-            bloom_injectionOffsets[101] = vec2(-70.000000000, 0.000000000);
-            bloom_injectionWeights[101] = vec3(0.000030770, 0.000029805, 0.000026822);
-            bloom_injectionOffsets[133] = vec2(0.000000000, -43.400000000);
-            bloom_injectionWeights[133] = vec3(0.001837975, 0.001777788, 0.001709296);
-            bloom_injectionOffsets[165] = vec2(-0.000000000, 16.800000000);
-            bloom_injectionWeights[165] = vec3(0.007896662, 0.007876131, 0.007851472);
-            bloom_injectionOffsets[197] = vec2(-0.000000000, 61.600000000);
-            bloom_injectionWeights[197] = vec3(0.000692680, 0.000720969, 0.000629477);
-            bloom_injectionOffsets[229] = vec2(-1.000000000, 3.000000000);
-            bloom_injectionWeights[229] = vec3(0.000007167, 0.000072227, 0.000201712);
-            bloom_injectionOffsets[261] = vec2(-1.000000000, -1.000000000);
-            bloom_injectionWeights[261] = vec3(0.001724194, 0.002014321, 0.001774689);
-            bloom_injectionOffsets[293] = vec2(-5.000000000, -5.000000000);
-            bloom_injectionWeights[293] = vec3(0.000007445, 0.000006340, 0.000004493);
-            break;
-        case 6u:
-            bloom_injectionOffsets[6] = vec2(8.400000000, -0.000000000);
-            bloom_injectionWeights[6] = vec3(0.015509455, 0.015718769, 0.015950706);
-            bloom_injectionOffsets[38] = vec2(53.200000000, -0.000000000);
-            bloom_injectionWeights[38] = vec3(0.001297006, 0.001293409, 0.001237226);
-            bloom_injectionOffsets[70] = vec2(-26.600000000, 0.000000000);
-            bloom_injectionWeights[70] = vec3(0.004043574, 0.003947260, 0.003850381);
-            bloom_injectionOffsets[102] = vec2(-71.400000000, 0.000000000);
-            bloom_injectionWeights[102] = vec3(0.000003036, 0.000002855, 0.000003583);
-            bloom_injectionOffsets[134] = vec2(0.000000000, -44.800000000);
-            bloom_injectionWeights[134] = vec3(0.001758385, 0.001706751, 0.001641334);
-            bloom_injectionOffsets[166] = vec2(-0.000000000, 18.200000000);
-            bloom_injectionWeights[166] = vec3(0.007065886, 0.007000606, 0.006938337);
-            bloom_injectionOffsets[198] = vec2(-0.000000000, 63.000000000);
-            bloom_injectionWeights[198] = vec3(0.000586665, 0.000591583, 0.000490286);
-            bloom_injectionOffsets[230] = vec2(0.000000000, 3.000000000);
-            bloom_injectionWeights[230] = vec3(0.004492387, 0.004512039, 0.004186405);
-            bloom_injectionOffsets[262] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[262] = vec3(0.020256674, 0.020003418, 0.020053959);
-            bloom_injectionOffsets[294] = vec2(-4.000000000, -5.000000000);
-            bloom_injectionWeights[294] = vec3(0.000000000, 0.000003245, 0.000000069);
-            break;
-        case 7u:
-            bloom_injectionOffsets[7] = vec2(9.800000000, -0.000000000);
-            bloom_injectionWeights[7] = vec3(0.014432522, 0.014623114, 0.014843410);
-            bloom_injectionOffsets[39] = vec2(54.600000000, -0.000000000);
-            bloom_injectionWeights[39] = vec3(0.001232092, 0.001235148, 0.001184670);
-            bloom_injectionOffsets[71] = vec2(-28.000000000, 0.000000000);
-            bloom_injectionWeights[71] = vec3(0.003767942, 0.003686487, 0.003605053);
-            bloom_injectionOffsets[103] = vec2(0.000000000, -1.400000000);
-            bloom_injectionWeights[103] = vec3(0.023096172, 0.023235120, 0.023987995);
-            bloom_injectionOffsets[135] = vec2(0.000000000, -46.200000000);
-            bloom_injectionWeights[135] = vec3(0.001666922, 0.001621589, 0.001556520);
-            bloom_injectionOffsets[167] = vec2(-0.000000000, 19.600000000);
-            bloom_injectionWeights[167] = vec3(0.006370383, 0.006275422, 0.006179612);
-            bloom_injectionOffsets[199] = vec2(-0.000000000, 64.400000000);
-            bloom_injectionWeights[199] = vec3(0.000476166, 0.000392840, 0.000467615);
-            bloom_injectionOffsets[231] = vec2(1.000000000, 3.000000000);
-            bloom_injectionWeights[231] = vec3(0.000114210, 0.000000536, 0.000189276);
-            bloom_injectionOffsets[263] = vec2(1.000000000, -1.000000000);
-            bloom_injectionWeights[263] = vec3(0.001701428, 0.001952711, 0.001712889);
-            bloom_injectionOffsets[295] = vec2(-3.000000000, -5.000000000);
-            bloom_injectionWeights[295] = vec3(0.000181076, 0.000012248, 0.000078877);
-            break;
-        case 8u:
-            bloom_injectionOffsets[8] = vec2(11.200000000, -0.000000000);
-            bloom_injectionWeights[8] = vec3(0.012642353, 0.012828737, 0.013011014);
-            bloom_injectionOffsets[40] = vec2(56.000000000, -0.000000000);
-            bloom_injectionWeights[40] = vec3(0.001176061, 0.001191325, 0.001130054);
-            bloom_injectionOffsets[72] = vec2(-29.400000000, 0.000000000);
-            bloom_injectionWeights[72] = vec3(0.003465998, 0.003378557, 0.003290900);
-            bloom_injectionOffsets[104] = vec2(0.000000000, -2.800000000);
-            bloom_injectionWeights[104] = vec3(0.015456755, 0.015692733, 0.015752599);
-            bloom_injectionOffsets[136] = vec2(0.000000000, -47.600000000);
-            bloom_injectionWeights[136] = vec3(0.001571887, 0.001530140, 0.001466654);
-            bloom_injectionOffsets[168] = vec2(-0.000000000, 21.000000000);
-            bloom_injectionWeights[168] = vec3(0.005773284, 0.005674563, 0.005578051);
-            bloom_injectionOffsets[200] = vec2(-0.000000000, 65.800000000);
-            bloom_injectionWeights[200] = vec3(0.000313327, 0.000271957, 0.000230352);
-            bloom_injectionOffsets[232] = vec2(2.000000000, 3.000000000);
-            bloom_injectionWeights[232] = vec3(0.000053094, 0.000007778, 0.000016875);
-            bloom_injectionOffsets[264] = vec2(3.000000000, -1.000000000);
-            bloom_injectionWeights[264] = vec3(0.000000611, 0.000016824, 0.000234532);
-            bloom_injectionOffsets[296] = vec2(-2.000000000, -5.000000000);
-            bloom_injectionWeights[296] = vec3(0.000000000, 0.000012161, 0.000000000);
-            break;
-        case 9u:
-            bloom_injectionOffsets[9] = vec2(12.600000000, -0.000000000);
-            bloom_injectionWeights[9] = vec3(0.011295415, 0.011414627, 0.011539124);
-            bloom_injectionOffsets[41] = vec2(57.400000000, -0.000000000);
-            bloom_injectionWeights[41] = vec3(0.001100637, 0.001115529, 0.001055222);
-            bloom_injectionOffsets[73] = vec2(-30.800000000, 0.000000000);
-            bloom_injectionWeights[73] = vec3(0.003251710, 0.003175435, 0.003098000);
-            bloom_injectionOffsets[105] = vec2(0.000000000, -4.200000000);
-            bloom_injectionWeights[105] = vec3(0.015633637, 0.015825924, 0.016176311);
-            bloom_injectionOffsets[137] = vec2(0.000000000, -49.000000000);
-            bloom_injectionWeights[137] = vec3(0.001510652, 0.001481950, 0.001419070);
-            bloom_injectionOffsets[169] = vec2(-0.000000000, 22.400000000);
-            bloom_injectionWeights[169] = vec3(0.005237393, 0.005122740, 0.005008116);
-            bloom_injectionOffsets[201] = vec2(-0.000000000, 67.200000000);
-            bloom_injectionWeights[201] = vec3(0.000178124, 0.000191127, 0.000178318);
-            bloom_injectionOffsets[233] = vec2(3.000000000, 3.000000000);
-            bloom_injectionWeights[233] = vec3(0.000152701, 0.000147240, 0.000040896);
-            bloom_injectionOffsets[265] = vec2(4.000000000, -1.000000000);
-            bloom_injectionWeights[265] = vec3(0.000000000, 0.000000018, 0.000000000);
-            bloom_injectionOffsets[297] = vec2(-1.000000000, -5.000000000);
-            bloom_injectionWeights[297] = vec3(0.000339349, 0.000321753, 0.000268354);
-            break;
-        case 10u:
-            bloom_injectionOffsets[10] = vec2(14.000000000, -0.000000000);
-            bloom_injectionWeights[10] = vec3(0.009968220, 0.010039103, 0.010120152);
-            bloom_injectionOffsets[42] = vec2(58.800000000, -0.000000000);
-            bloom_injectionWeights[42] = vec3(0.000963622, 0.001000150, 0.000970718);
-            bloom_injectionOffsets[74] = vec2(-32.200000000, 0.000000000);
-            bloom_injectionWeights[74] = vec3(0.003033694, 0.002958835, 0.002883730);
-            bloom_injectionOffsets[106] = vec2(0.000000000, -5.600000000);
-            bloom_injectionWeights[106] = vec3(0.018619636, 0.018591193, 0.018810902);
-            bloom_injectionOffsets[138] = vec2(0.000000000, -50.400000000);
-            bloom_injectionWeights[138] = vec3(0.001425360, 0.001402298, 0.001342325);
-            bloom_injectionOffsets[170] = vec2(-0.000000000, 23.800000000);
-            bloom_injectionWeights[170] = vec3(0.004803952, 0.004703435, 0.004601379);
-            bloom_injectionOffsets[202] = vec2(-0.000000000, 68.600000000);
-            bloom_injectionWeights[202] = vec3(0.000099428, 0.000084028, 0.000093021);
-            bloom_injectionOffsets[234] = vec2(4.000000000, 3.000000000);
-            bloom_injectionWeights[234] = vec3(0.000053275, 0.000117353, 0.000142857);
-            bloom_injectionOffsets[266] = vec2(5.000000000, -1.000000000);
-            bloom_injectionWeights[266] = vec3(0.000399946, 0.000344436, 0.000203780);
-            bloom_injectionOffsets[298] = vec2(0.000000000, -5.000000000);
-            bloom_injectionWeights[298] = vec3(0.000863549, 0.000931292, 0.000941597);
-            break;
-        case 11u:
-            bloom_injectionOffsets[11] = vec2(15.400000000, -0.000000000);
-            bloom_injectionWeights[11] = vec3(0.008873471, 0.008884977, 0.008898565);
-            bloom_injectionOffsets[43] = vec2(60.200000000, -0.000000000);
-            bloom_injectionWeights[43] = vec3(0.000809757, 0.000819675, 0.000809831);
-            bloom_injectionOffsets[75] = vec2(-33.600000000, 0.000000000);
-            bloom_injectionWeights[75] = vec3(0.002809207, 0.002730183, 0.002650901);
-            bloom_injectionOffsets[107] = vec2(0.000000000, -7.000000000);
-            bloom_injectionWeights[107] = vec3(0.017941931, 0.018390447, 0.018649608);
-            bloom_injectionOffsets[139] = vec2(0.000000000, -51.800000000);
-            bloom_injectionWeights[139] = vec3(0.001366232, 0.001353641, 0.001296015);
-            bloom_injectionOffsets[171] = vec2(-0.000000000, 25.200000000);
-            bloom_injectionWeights[171] = vec3(0.004407270, 0.004311183, 0.004216669);
-            bloom_injectionOffsets[203] = vec2(-0.000000000, 70.000000000);
-            bloom_injectionWeights[203] = vec3(0.000033944, 0.000033208, 0.000027851);
-            bloom_injectionOffsets[235] = vec2(5.000000000, 3.000000000);
-            bloom_injectionWeights[235] = vec3(0.000037644, 0.000000000, 0.000000000);
-            bloom_injectionOffsets[267] = vec2(-5.000000000, -2.000000000);
-            bloom_injectionWeights[267] = vec3(0.000000000, 0.000020347, 0.000000000);
-            bloom_injectionOffsets[299] = vec2(1.000000000, -5.000000000);
-            bloom_injectionWeights[299] = vec3(0.000372727, 0.000335034, 0.000263115);
-            break;
-        case 12u:
-            bloom_injectionOffsets[12] = vec2(16.800000000, -0.000000000);
-            bloom_injectionWeights[12] = vec3(0.007896549, 0.007876030, 0.007851369);
-            bloom_injectionOffsets[44] = vec2(61.600000000, -0.000000000);
-            bloom_injectionWeights[44] = vec3(0.000685360, 0.000730500, 0.000623677);
-            bloom_injectionOffsets[76] = vec2(-35.000000000, 0.000000000);
-            bloom_injectionWeights[76] = vec3(0.002661651, 0.002592094, 0.002520798);
-            bloom_injectionOffsets[108] = vec2(0.000000000, -8.400000000);
-            bloom_injectionWeights[108] = vec3(0.015510055, 0.015715810, 0.015947143);
-            bloom_injectionOffsets[140] = vec2(0.000000000, -53.200000000);
-            bloom_injectionWeights[140] = vec3(0.001297042, 0.001293355, 0.001237147);
-            bloom_injectionOffsets[172] = vec2(-0.000000000, 26.600000000);
-            bloom_injectionWeights[172] = vec3(0.004043575, 0.003947260, 0.003850381);
-            bloom_injectionOffsets[204] = vec2(-0.000000000, 71.400000000);
-            bloom_injectionWeights[204] = vec3(0.000002098, 0.000002138, 0.000003822);
-            bloom_injectionOffsets[236] = vec2(-5.000000000, 2.000000000);
-            bloom_injectionWeights[236] = vec3(0.000000000, 0.000007713, 0.000051005);
-            bloom_injectionOffsets[268] = vec2(-4.000000000, -2.000000000);
-            bloom_injectionWeights[268] = vec3(0.000032906, 0.000009770, 0.000005233);
-            bloom_injectionOffsets[300] = vec2(3.000000000, -5.000000000);
-            bloom_injectionWeights[300] = vec3(0.000002057, 0.000005822, 0.000000001);
-            break;
-        case 13u:
-            bloom_injectionOffsets[13] = vec2(18.200000000, -0.000000000);
-            bloom_injectionWeights[13] = vec3(0.007065805, 0.007000533, 0.006938261);
-            bloom_injectionOffsets[45] = vec2(63.000000000, -0.000000000);
-            bloom_injectionWeights[45] = vec3(0.000594504, 0.000585591, 0.000491224);
-            bloom_injectionOffsets[77] = vec2(-36.400000000, 0.000000000);
-            bloom_injectionWeights[77] = vec3(0.002465549, 0.002390337, 0.002314780);
-            bloom_injectionOffsets[109] = vec2(0.000000000, -9.800000000);
-            bloom_injectionWeights[109] = vec3(0.014438611, 0.014629077, 0.014849919);
-            bloom_injectionOffsets[141] = vec2(0.000000000, -54.600000000);
-            bloom_injectionWeights[141] = vec3(0.001232105, 0.001235091, 0.001184690);
-            bloom_injectionOffsets[173] = vec2(-0.000000000, 28.000000000);
-            bloom_injectionWeights[173] = vec3(0.003767950, 0.003686490, 0.003605054);
-            bloom_injectionOffsets[205] = vec2(-5.000000000, 5.000000000);
-            bloom_injectionWeights[205] = vec3(0.000010833, 0.000007568, 0.000028277);
-            bloom_injectionOffsets[237] = vec2(-4.000000000, 2.000000000);
-            bloom_injectionWeights[237] = vec3(0.000061667, 0.000084300, 0.000009198);
-            bloom_injectionOffsets[269] = vec2(-3.000000000, -2.000000000);
-            bloom_injectionWeights[269] = vec3(0.000039597, 0.000007612, 0.000011282);
-            bloom_injectionOffsets[301] = vec2(4.000000000, -5.000000000);
-            bloom_injectionWeights[301] = vec3(0.000000000, 0.000001104, 0.000000000);
-            break;
-        case 14u:
-            bloom_injectionOffsets[14] = vec2(19.600000000, -0.000000000);
-            bloom_injectionWeights[14] = vec3(0.006370404, 0.006275437, 0.006179623);
-            bloom_injectionOffsets[46] = vec2(64.400000000, -0.000000000);
-            bloom_injectionWeights[46] = vec3(0.000492470, 0.000369074, 0.000476455);
-            bloom_injectionOffsets[78] = vec2(-37.800000000, 0.000000000);
-            bloom_injectionWeights[78] = vec3(0.002341293, 0.002274092, 0.002204438);
-            bloom_injectionOffsets[110] = vec2(0.000000000, -11.200000000);
-            bloom_injectionWeights[110] = vec3(0.012641416, 0.012828200, 0.013010498);
-            bloom_injectionOffsets[142] = vec2(0.000000000, -56.000000000);
-            bloom_injectionWeights[142] = vec3(0.001176349, 0.001191730, 0.001130895);
-            bloom_injectionOffsets[174] = vec2(-0.000000000, 29.400000000);
-            bloom_injectionWeights[174] = vec3(0.003466024, 0.003378582, 0.003290924);
-            bloom_injectionOffsets[206] = vec2(-4.000000000, 5.000000000);
-            bloom_injectionWeights[206] = vec3(0.000001516, 0.000001115, 0.000000201);
-            bloom_injectionOffsets[238] = vec2(-3.000000000, 2.000000000);
-            bloom_injectionWeights[238] = vec3(0.000069144, 0.000007037, 0.000013335);
-            bloom_injectionOffsets[270] = vec2(3.000000000, -2.000000000);
-            bloom_injectionWeights[270] = vec3(0.000045698, 0.000018726, 0.000017373);
-            bloom_injectionOffsets[302] = vec2(5.000000000, -5.000000000);
-            bloom_injectionWeights[302] = vec3(0.000000000, 0.000004099, 0.000035266);
-            break;
-        case 15u:
-            bloom_injectionOffsets[15] = vec2(21.000000000, -0.000000000);
-            bloom_injectionWeights[15] = vec3(0.005773344, 0.005674623, 0.005578112);
-            bloom_injectionOffsets[47] = vec2(65.800000000, -0.000000000);
-            bloom_injectionWeights[47] = vec3(0.000286432, 0.000281220, 0.000223668);
-            bloom_injectionOffsets[79] = vec2(-39.200000000, 0.000000000);
-            bloom_injectionWeights[79] = vec3(0.002204176, 0.002139237, 0.002070266);
-            bloom_injectionOffsets[111] = vec2(0.000000000, -12.600000000);
-            bloom_injectionWeights[111] = vec3(0.011295803, 0.011414846, 0.011539330);
-            bloom_injectionOffsets[143] = vec2(0.000000000, -57.400000000);
-            bloom_injectionWeights[143] = vec3(0.001100354, 0.001115961, 0.001049235);
-            bloom_injectionOffsets[175] = vec2(-0.000000000, 30.800000000);
-            bloom_injectionWeights[175] = vec3(0.003251722, 0.003175447, 0.003098011);
-            bloom_injectionOffsets[207] = vec2(-3.000000000, 5.000000000);
-            bloom_injectionWeights[207] = vec3(0.000001433, 0.000000458, 0.000000000);
-            bloom_injectionOffsets[239] = vec2(0.000000000, 2.000000000);
-            bloom_injectionWeights[239] = vec3(0.000014399, 0.000000000, 0.000000000);
-            bloom_injectionOffsets[271] = vec2(4.000000000, -2.000000000);
-            bloom_injectionWeights[271] = vec3(0.000066099, 0.000035429, 0.000011722);
-            break;
-        case 16u:
-            bloom_injectionOffsets[16] = vec2(22.400000000, -0.000000000);
-            bloom_injectionWeights[16] = vec3(0.005237464, 0.005122810, 0.005008185);
-            bloom_injectionOffsets[48] = vec2(67.200000000, -0.000000000);
-            bloom_injectionWeights[48] = vec3(0.000178910, 0.000183409, 0.000169397);
-            bloom_injectionOffsets[80] = vec2(-40.600000000, 0.000000000);
-            bloom_injectionWeights[80] = vec3(0.002055936, 0.001988346, 0.001917467);
-            bloom_injectionOffsets[112] = vec2(0.000000000, -14.000000000);
-            bloom_injectionWeights[112] = vec3(0.009968056, 0.010038991, 0.010120049);
-            bloom_injectionOffsets[144] = vec2(0.000000000, -58.800000000);
-            bloom_injectionWeights[144] = vec3(0.000966201, 0.000994028, 0.000967472);
-            bloom_injectionOffsets[176] = vec2(-0.000000000, 32.200000000);
-            bloom_injectionWeights[176] = vec3(0.003033706, 0.002958848, 0.002883747);
-            bloom_injectionOffsets[208] = vec2(-2.000000000, 5.000000000);
-            bloom_injectionWeights[208] = vec3(0.000000000, 0.000013388, 0.000077400);
-            bloom_injectionOffsets[240] = vec2(3.000000000, 2.000000000);
-            bloom_injectionWeights[240] = vec3(0.000050639, 0.000010660, 0.000016116);
-            bloom_injectionOffsets[272] = vec2(5.000000000, -2.000000000);
-            bloom_injectionWeights[272] = vec3(0.000000000, 0.000000000, 0.000103570);
-            break;
-        case 17u:
-            bloom_injectionOffsets[17] = vec2(23.800000000, -0.000000000);
-            bloom_injectionWeights[17] = vec3(0.004803987, 0.004703472, 0.004601418);
-            bloom_injectionOffsets[49] = vec2(68.600000000, -0.000000000);
-            bloom_injectionWeights[49] = vec3(0.000102776, 0.000093032, 0.000094446);
-            bloom_injectionOffsets[81] = vec2(-42.000000000, 0.000000000);
-            bloom_injectionWeights[81] = vec3(0.001967605, 0.001908539, 0.001840434);
-            bloom_injectionOffsets[113] = vec2(0.000000000, -15.400000000);
-            bloom_injectionWeights[113] = vec3(0.008873588, 0.008885110, 0.008898702);
-            bloom_injectionOffsets[145] = vec2(0.000000000, -60.200000000);
-            bloom_injectionWeights[145] = vec3(0.000813589, 0.000833418, 0.000840721);
-            bloom_injectionOffsets[177] = vec2(-0.000000000, 33.600000000);
-            bloom_injectionWeights[177] = vec3(0.002809189, 0.002730167, 0.002650886);
-            bloom_injectionOffsets[209] = vec2(-1.000000000, 5.000000000);
-            bloom_injectionWeights[209] = vec3(0.000379472, 0.000329910, 0.000197418);
-            bloom_injectionOffsets[241] = vec2(4.000000000, 2.000000000);
-            bloom_injectionWeights[241] = vec3(0.000059529, 0.000051444, 0.000014165);
-            bloom_injectionOffsets[273] = vec2(-5.000000000, -3.000000000);
-            bloom_injectionWeights[273] = vec3(0.000053123, 0.000000437, 0.000000000);
-            break;
-        case 18u:
-            bloom_injectionOffsets[18] = vec2(25.200000000, -0.000000000);
-            bloom_injectionWeights[18] = vec3(0.004407289, 0.004311206, 0.004216694);
-            bloom_injectionOffsets[50] = vec2(70.000000000, -0.000000000);
-            bloom_injectionWeights[50] = vec3(0.000035824, 0.000033580, 0.000030036);
-            bloom_injectionOffsets[82] = vec2(-43.400000000, 0.000000000);
-            bloom_injectionWeights[82] = vec3(0.001837963, 0.001777771, 0.001709281);
-            bloom_injectionOffsets[114] = vec2(0.000000000, -16.800000000);
-            bloom_injectionWeights[114] = vec3(0.007896645, 0.007876112, 0.007851452);
-            bloom_injectionOffsets[146] = vec2(0.000000000, -61.600000000);
-            bloom_injectionWeights[146] = vec3(0.000688324, 0.000651745, 0.000661244);
-            bloom_injectionOffsets[178] = vec2(-0.000000000, 35.000000000);
-            bloom_injectionWeights[178] = vec3(0.002661671, 0.002592128, 0.002520853);
-            bloom_injectionOffsets[210] = vec2(0.000000000, 5.000000000);
-            bloom_injectionWeights[210] = vec3(0.000896963, 0.000954112, 0.001001363);
-            bloom_injectionOffsets[242] = vec2(5.000000000, 2.000000000);
-            bloom_injectionWeights[242] = vec3(0.000000000, 0.000000000, 0.000018834);
-            bloom_injectionOffsets[274] = vec2(-4.000000000, -3.000000000);
-            bloom_injectionWeights[274] = vec3(0.000105814, 0.000070349, 0.000196103);
-            break;
-        case 19u:
-            bloom_injectionOffsets[19] = vec2(26.600000000, -0.000000000);
-            bloom_injectionWeights[19] = vec3(0.004043548, 0.003947234, 0.003850355);
-            bloom_injectionOffsets[51] = vec2(71.400000000, -0.000000000);
-            bloom_injectionWeights[51] = vec3(0.000000000, 0.000002297, 0.000002415);
-            bloom_injectionOffsets[83] = vec2(-44.800000000, 0.000000000);
-            bloom_injectionWeights[83] = vec3(0.001758392, 0.001706760, 0.001641346);
-            bloom_injectionOffsets[115] = vec2(0.000000000, -18.200000000);
-            bloom_injectionWeights[115] = vec3(0.007065840, 0.007000562, 0.006938291);
-            bloom_injectionOffsets[147] = vec2(0.000000000, -63.000000000);
-            bloom_injectionWeights[147] = vec3(0.000574526, 0.000506255, 0.000483485);
-            bloom_injectionOffsets[179] = vec2(-0.000000000, 36.400000000);
-            bloom_injectionWeights[179] = vec3(0.002465501, 0.002390291, 0.002314744);
-            bloom_injectionOffsets[211] = vec2(1.000000000, 5.000000000);
-            bloom_injectionWeights[211] = vec3(0.000376025, 0.000334245, 0.000254050);
-            bloom_injectionOffsets[243] = vec2(-5.000000000, 1.000000000);
-            bloom_injectionWeights[243] = vec3(0.000365926, 0.000322226, 0.000223093);
-            bloom_injectionOffsets[275] = vec2(-3.000000000, -3.000000000);
-            bloom_injectionWeights[275] = vec3(0.000120796, 0.000130659, 0.000021061);
-            break;
-        case 20u:
-            bloom_injectionOffsets[20] = vec2(28.000000000, -0.000000000);
-            bloom_injectionWeights[20] = vec3(0.003767941, 0.003686488, 0.003605057);
-            bloom_injectionOffsets[52] = vec2(-1.400000000, 0.000000000);
-            bloom_injectionWeights[52] = vec3(0.023082081, 0.023214761, 0.023963548);
-            bloom_injectionOffsets[84] = vec2(-46.200000000, 0.000000000);
-            bloom_injectionWeights[84] = vec3(0.001666917, 0.001621603, 0.001556529);
-            bloom_injectionOffsets[116] = vec2(0.000000000, -19.600000000);
-            bloom_injectionWeights[116] = vec3(0.006370333, 0.006275372, 0.006179558);
-            bloom_injectionOffsets[148] = vec2(0.000000000, -64.400000000);
-            bloom_injectionWeights[148] = vec3(0.000472891, 0.000427117, 0.000412216);
-            bloom_injectionOffsets[180] = vec2(-0.000000000, 37.800000000);
-            bloom_injectionWeights[180] = vec3(0.002341298, 0.002274114, 0.002204491);
-            bloom_injectionOffsets[212] = vec2(2.000000000, 5.000000000);
-            bloom_injectionWeights[212] = vec3(0.000000000, 0.000026819, 0.000000000);
-            bloom_injectionOffsets[244] = vec2(-3.000000000, 1.000000000);
-            bloom_injectionWeights[244] = vec3(0.000113750, 0.000000395, 0.000174349);
-            bloom_injectionOffsets[276] = vec2(-2.000000000, -3.000000000);
-            bloom_injectionWeights[276] = vec3(0.000005850, 0.000002687, 0.000014621);
-            break;
-        case 21u:
-            bloom_injectionOffsets[21] = vec2(29.400000000, -0.000000000);
-            bloom_injectionWeights[21] = vec3(0.003465993, 0.003378553, 0.003290896);
-            bloom_injectionOffsets[53] = vec2(-2.800000000, 0.000000000);
-            bloom_injectionWeights[53] = vec3(0.015417622, 0.015687650, 0.015718766);
-            bloom_injectionOffsets[85] = vec2(-47.600000000, 0.000000000);
-            bloom_injectionWeights[85] = vec3(0.001571923, 0.001530222, 0.001466740);
-            bloom_injectionOffsets[117] = vec2(0.000000000, -21.000000000);
-            bloom_injectionWeights[117] = vec3(0.005773261, 0.005674545, 0.005578035);
-            bloom_injectionOffsets[149] = vec2(0.000000000, -65.800000000);
-            bloom_injectionWeights[149] = vec3(0.000300388, 0.000254935, 0.000215776);
-            bloom_injectionOffsets[181] = vec2(-0.000000000, 39.200000000);
-            bloom_injectionWeights[181] = vec3(0.002204189, 0.002139254, 0.002070327);
-            bloom_injectionOffsets[213] = vec2(3.000000000, 5.000000000);
-            bloom_injectionWeights[213] = vec3(0.000078547, 0.000000743, 0.000046749);
-            bloom_injectionOffsets[245] = vec2(-1.000000000, 1.000000000);
-            bloom_injectionWeights[245] = vec3(0.001689077, 0.001945154, 0.001711870);
-            bloom_injectionOffsets[277] = vec2(-1.000000000, -3.000000000);
-            bloom_injectionWeights[277] = vec3(0.000019002, 0.000084144, 0.000171524);
-            break;
-        case 22u:
-            bloom_injectionOffsets[22] = vec2(30.800000000, -0.000000000);
-            bloom_injectionWeights[22] = vec3(0.003251716, 0.003175445, 0.003098012);
-            bloom_injectionOffsets[54] = vec2(-4.200000000, 0.000000000);
-            bloom_injectionWeights[54] = vec3(0.015636621, 0.015810192, 0.016167065);
-            bloom_injectionOffsets[86] = vec2(-49.000000000, 0.000000000);
-            bloom_injectionWeights[86] = vec3(0.001510646, 0.001482011, 0.001419134);
-            bloom_injectionOffsets[118] = vec2(0.000000000, -22.400000000);
-            bloom_injectionWeights[118] = vec3(0.005237377, 0.005122724, 0.005008097);
-            bloom_injectionOffsets[150] = vec2(0.000000000, -67.200000000);
-            bloom_injectionWeights[150] = vec3(0.000168498, 0.000177297, 0.000207518);
-            bloom_injectionOffsets[182] = vec2(-0.000000000, 40.600000000);
-            bloom_injectionWeights[182] = vec3(0.002055830, 0.001988207, 0.001917343);
-            bloom_injectionOffsets[214] = vec2(4.000000000, 5.000000000);
-            bloom_injectionWeights[214] = vec3(0.000000000, 0.000001424, 0.000000000);
-            bloom_injectionOffsets[246] = vec2(0.000000000, 1.000000000);
-            bloom_injectionWeights[246] = vec3(0.020242833, 0.020020377, 0.020065129);
-            bloom_injectionOffsets[278] = vec2(0.000000000, -3.000000000);
-            bloom_injectionWeights[278] = vec3(0.004569403, 0.004556844, 0.004250616);
-            break;
-        case 23u:
-            bloom_injectionOffsets[23] = vec2(32.200000000, -0.000000000);
-            bloom_injectionWeights[23] = vec3(0.003033700, 0.002958846, 0.002883746);
-            bloom_injectionOffsets[55] = vec2(-5.600000000, 0.000000000);
-            bloom_injectionWeights[55] = vec3(0.018630942, 0.018603655, 0.018832330);
-            bloom_injectionOffsets[87] = vec2(-50.400000000, 0.000000000);
-            bloom_injectionWeights[87] = vec3(0.001425390, 0.001402438, 0.001342477);
-            bloom_injectionOffsets[119] = vec2(0.000000000, -23.800000000);
-            bloom_injectionWeights[119] = vec3(0.004803963, 0.004703450, 0.004601398);
-            bloom_injectionOffsets[151] = vec2(0.000000000, -68.600000000);
-            bloom_injectionWeights[151] = vec3(0.000100890, 0.000091642, 0.000078708);
-            bloom_injectionOffsets[183] = vec2(-0.000000000, 42.000000000);
-            bloom_injectionWeights[183] = vec3(0.001967608, 0.001908509, 0.001840451);
-            bloom_injectionOffsets[215] = vec2(5.000000000, 5.000000000);
-            bloom_injectionWeights[215] = vec3(0.000010206, 0.000003291, 0.000013906);
-            bloom_injectionOffsets[247] = vec2(1.000000000, 1.000000000);
-            bloom_injectionWeights[247] = vec3(0.001658598, 0.001878154, 0.001649748);
-            bloom_injectionOffsets[279] = vec2(1.000000000, -3.000000000);
-            bloom_injectionWeights[279] = vec3(0.000056157, 0.000001372, 0.000147608);
-            break;
-        case 24u:
-            bloom_injectionOffsets[24] = vec2(33.600000000, -0.000000000);
-            bloom_injectionWeights[24] = vec3(0.002809200, 0.002730177, 0.002650897);
-            bloom_injectionOffsets[56] = vec2(-7.000000000, 0.000000000);
-            bloom_injectionWeights[56] = vec3(0.017933950, 0.018379463, 0.018640282);
-            bloom_injectionOffsets[88] = vec2(-51.800000000, 0.000000000);
-            bloom_injectionWeights[88] = vec3(0.001366218, 0.001353740, 0.001296132);
-            bloom_injectionOffsets[120] = vec2(0.000000000, -25.200000000);
-            bloom_injectionWeights[120] = vec3(0.004407275, 0.004311192, 0.004216679);
-            bloom_injectionOffsets[152] = vec2(0.000000000, -70.000000000);
-            bloom_injectionWeights[152] = vec3(0.000029443, 0.000029141, 0.000031719);
-            bloom_injectionOffsets[184] = vec2(-0.000000000, 43.400000000);
-            bloom_injectionWeights[184] = vec3(0.001837816, 0.001777527, 0.001709046);
-            bloom_injectionOffsets[216] = vec2(-5.000000000, 4.000000000);
-            bloom_injectionWeights[216] = vec3(0.000001091, 0.000001853, 0.000000000);
-            bloom_injectionOffsets[248] = vec2(3.000000000, 1.000000000);
-            bloom_injectionWeights[248] = vec3(0.000113477, 0.000000363, 0.000220750);
-            bloom_injectionOffsets[280] = vec2(2.000000000, -3.000000000);
-            bloom_injectionWeights[280] = vec3(0.000073346, 0.000016278, 0.000011038);
-            break;
-        case 25u:
-            bloom_injectionOffsets[25] = vec2(35.000000000, -0.000000000);
-            bloom_injectionWeights[25] = vec3(0.002661661, 0.002592112, 0.002520827);
-            bloom_injectionOffsets[57] = vec2(-8.400000000, 0.000000000);
-            bloom_injectionWeights[57] = vec3(0.015517278, 0.015723199, 0.015954835);
-            bloom_injectionOffsets[89] = vec2(-53.200000000, 0.000000000);
-            bloom_injectionWeights[89] = vec3(0.001296999, 0.001293423, 0.001237238);
-            bloom_injectionOffsets[121] = vec2(0.000000000, -26.600000000);
-            bloom_injectionWeights[121] = vec3(0.004043594, 0.003947279, 0.003850401);
-            bloom_injectionOffsets[153] = vec2(0.000000000, -71.400000000);
-            bloom_injectionWeights[153] = vec3(0.000003241, 0.000003734, 0.000002946);
-            bloom_injectionOffsets[185] = vec2(-0.000000000, 44.800000000);
-            bloom_injectionWeights[185] = vec3(0.001758348, 0.001706612, 0.001641224);
-            bloom_injectionOffsets[217] = vec2(-4.000000000, 4.000000000);
-            bloom_injectionWeights[217] = vec3(0.000028041, 0.000001137, 0.000000000);
-            bloom_injectionOffsets[249] = vec2(5.000000000, 1.000000000);
-            bloom_injectionWeights[249] = vec3(0.000377482, 0.000340714, 0.000283847);
-            bloom_injectionOffsets[281] = vec2(3.000000000, -3.000000000);
-            bloom_injectionWeights[281] = vec3(0.000164042, 0.000035091, 0.000025898);
-            break;
-        case 26u:
-            bloom_injectionOffsets[26] = vec2(36.400000000, -0.000000000);
-            bloom_injectionWeights[26] = vec3(0.002465532, 0.002390321, 0.002314768);
-            bloom_injectionOffsets[58] = vec2(-9.800000000, 0.000000000);
-            bloom_injectionWeights[58] = vec3(0.014435592, 0.014626406, 0.014847114);
-            bloom_injectionOffsets[90] = vec2(-54.600000000, 0.000000000);
-            bloom_injectionWeights[90] = vec3(0.001232078, 0.001235143, 0.001184709);
-            bloom_injectionOffsets[122] = vec2(0.000000000, -28.000000000);
-            bloom_injectionWeights[122] = vec3(0.003767953, 0.003686491, 0.003605052);
-            bloom_injectionOffsets[154] = vec2(-0.000000000, 1.400000000);
-            bloom_injectionWeights[154] = vec3(0.023102347, 0.023272287, 0.024022887);
-            bloom_injectionOffsets[186] = vec2(-0.000000000, 46.200000000);
-            bloom_injectionWeights[186] = vec3(0.001666880, 0.001621425, 0.001556368);
-            bloom_injectionOffsets[218] = vec2(-3.000000000, 4.000000000);
-            bloom_injectionWeights[218] = vec3(0.000008834, 0.000063841, 0.000090368);
-            bloom_injectionOffsets[250] = vec2(-5.000000000, -0.000000000);
-            bloom_injectionWeights[250] = vec3(0.000891569, 0.000954414, 0.000979783);
-            bloom_injectionOffsets[282] = vec2(4.000000000, -3.000000000);
-            bloom_injectionWeights[282] = vec3(0.000023534, 0.000104573, 0.000062465);
-            break;
-        case 27u:
-            bloom_injectionOffsets[27] = vec2(37.800000000, -0.000000000);
-            bloom_injectionWeights[27] = vec3(0.002341296, 0.002274101, 0.002204458);
-            bloom_injectionOffsets[59] = vec2(-11.200000000, 0.000000000);
-            bloom_injectionWeights[59] = vec3(0.012640983, 0.012827539, 0.013009804);
-            bloom_injectionOffsets[91] = vec2(-56.000000000, 0.000000000);
-            bloom_injectionWeights[91] = vec3(0.001176049, 0.001191408, 0.001130384);
-            bloom_injectionOffsets[123] = vec2(0.000000000, -29.400000000);
-            bloom_injectionWeights[123] = vec3(0.003466043, 0.003378598, 0.003290940);
-            bloom_injectionOffsets[155] = vec2(-0.000000000, 2.800000000);
-            bloom_injectionWeights[155] = vec3(0.015403563, 0.015672101, 0.015715664);
-            bloom_injectionOffsets[187] = vec2(-0.000000000, 47.600000000);
-            bloom_injectionWeights[187] = vec3(0.001571787, 0.001529885, 0.001466387);
-            bloom_injectionOffsets[219] = vec2(-2.000000000, 4.000000000);
-            bloom_injectionWeights[219] = vec3(0.000051240, 0.000006866, 0.000006949);
-            bloom_injectionOffsets[251] = vec2(-4.000000000, -0.000000000);
-            bloom_injectionWeights[251] = vec3(0.004181988, 0.004308993, 0.004444739);
-            bloom_injectionOffsets[283] = vec2(5.000000000, -3.000000000);
-            bloom_injectionWeights[283] = vec3(0.000044961, 0.000000088, 0.000000000);
-            break;
-        case 28u:
-            bloom_injectionOffsets[28] = vec2(39.200000000, -0.000000000);
-            bloom_injectionWeights[28] = vec3(0.002204180, 0.002139243, 0.002070286);
-            bloom_injectionOffsets[60] = vec2(-12.600000000, 0.000000000);
-            bloom_injectionWeights[60] = vec3(0.011294927, 0.011414085, 0.011538570);
-            bloom_injectionOffsets[92] = vec2(-57.400000000, 0.000000000);
-            bloom_injectionWeights[92] = vec3(0.001100979, 0.001116004, 0.001053419);
-            bloom_injectionOffsets[124] = vec2(0.000000000, -30.800000000);
-            bloom_injectionWeights[124] = vec3(0.003251713, 0.003175425, 0.003097977);
-            bloom_injectionOffsets[156] = vec2(-0.000000000, 4.200000000);
-            bloom_injectionWeights[156] = vec3(0.015695358, 0.015854970, 0.016226679);
-            bloom_injectionOffsets[188] = vec2(-0.000000000, 49.000000000);
-            bloom_injectionWeights[188] = vec3(0.001510658, 0.001481821, 0.001418934);
-            bloom_injectionOffsets[220] = vec2(0.000000000, 4.000000000);
-            bloom_injectionWeights[220] = vec3(0.004254107, 0.004365040, 0.004513891);
-            bloom_injectionOffsets[252] = vec2(-3.000000000, -0.000000000);
-            bloom_injectionWeights[252] = vec3(0.004526783, 0.004554289, 0.004215867);
-            bloom_injectionOffsets[284] = vec2(-5.000000000, -4.000000000);
-            bloom_injectionWeights[284] = vec3(0.000000000, 0.000001314, 0.000000180);
-            break;
-        case 29u:
-            bloom_injectionOffsets[29] = vec2(40.600000000, -0.000000000);
-            bloom_injectionWeights[29] = vec3(0.002055907, 0.001988307, 0.001917434);
-            bloom_injectionOffsets[61] = vec2(-14.000000000, 0.000000000);
-            bloom_injectionWeights[61] = vec3(0.009967954, 0.010038888, 0.010119941);
-            bloom_injectionOffsets[93] = vec2(-58.800000000, 0.000000000);
-            bloom_injectionWeights[93] = vec3(0.000962857, 0.000992404, 0.000965983);
-            bloom_injectionOffsets[125] = vec2(0.000000000, -32.200000000);
-            bloom_injectionWeights[125] = vec3(0.003033691, 0.002958818, 0.002883696);
-            bloom_injectionOffsets[157] = vec2(-0.000000000, 5.600000000);
-            bloom_injectionWeights[157] = vec3(0.018572165, 0.018538233, 0.018782148);
-            bloom_injectionOffsets[189] = vec2(-0.000000000, 50.400000000);
-            bloom_injectionWeights[189] = vec3(0.001425327, 0.001402141, 0.001342150);
-            bloom_injectionOffsets[221] = vec2(2.000000000, 4.000000000);
-            bloom_injectionWeights[221] = vec3(0.000090326, 0.000090283, 0.000019326);
-            bloom_injectionOffsets[253] = vec2(-1.000000000, -0.000000000);
-            bloom_injectionWeights[253] = vec3(0.020253181, 0.019984273, 0.020034237);
-            bloom_injectionOffsets[285] = vec2(-4.000000000, -4.000000000);
-            bloom_injectionWeights[285] = vec3(0.000000000, 0.000003160, 0.000000000);
-            break;
-        case 30u:
-            bloom_injectionOffsets[30] = vec2(42.000000000, -0.000000000);
-            bloom_injectionWeights[30] = vec3(0.001967606, 0.001908532, 0.001840439);
-            bloom_injectionOffsets[62] = vec2(-15.400000000, 0.000000000);
-            bloom_injectionWeights[62] = vec3(0.008873430, 0.008884924, 0.008898509);
-            bloom_injectionOffsets[94] = vec2(-60.200000000, 0.000000000);
-            bloom_injectionWeights[94] = vec3(0.000812817, 0.000862248, 0.000828653);
-            bloom_injectionOffsets[126] = vec2(0.000000000, -33.600000000);
-            bloom_injectionWeights[126] = vec3(0.002809238, 0.002730206, 0.002650918);
-            bloom_injectionOffsets[158] = vec2(-0.000000000, 7.000000000);
-            bloom_injectionWeights[158] = vec3(0.017958613, 0.018401803, 0.018664384);
-            bloom_injectionOffsets[190] = vec2(-0.000000000, 51.800000000);
-            bloom_injectionWeights[190] = vec3(0.001366265, 0.001353592, 0.001295961);
-            bloom_injectionOffsets[222] = vec2(3.000000000, 4.000000000);
-            bloom_injectionWeights[222] = vec3(0.000008816, 0.000004865, 0.000046861);
-            bloom_injectionOffsets[254] = vec2(1.000000000, -0.000000000);
-            bloom_injectionWeights[254] = vec3(0.020234229, 0.019997548, 0.020045828);
-            bloom_injectionOffsets[286] = vec2(-3.000000000, -4.000000000);
-            bloom_injectionWeights[286] = vec3(0.000074571, 0.000013207, 0.000014891);
-            break;
-        case 31u:
-            bloom_injectionOffsets[31] = vec2(43.400000000, -0.000000000);
-            bloom_injectionWeights[31] = vec3(0.001837926, 0.001777711, 0.001709223);
-            bloom_injectionOffsets[63] = vec2(-16.800000000, 0.000000000);
-            bloom_injectionWeights[63] = vec3(0.007896552, 0.007876019, 0.007851355);
-            bloom_injectionOffsets[95] = vec2(-61.600000000, 0.000000000);
-            bloom_injectionWeights[95] = vec3(0.000692554, 0.000682902, 0.000635531);
-            bloom_injectionOffsets[127] = vec2(0.000000000, -35.000000000);
-            bloom_injectionWeights[127] = vec3(0.002661629, 0.002592049, 0.002520726);
-            bloom_injectionOffsets[159] = vec2(-0.000000000, 8.400000000);
-            bloom_injectionWeights[159] = vec3(0.015505204, 0.015714021, 0.015945299);
-            bloom_injectionOffsets[191] = vec2(-0.000000000, 53.200000000);
-            bloom_injectionWeights[191] = vec3(0.001297063, 0.001293330, 0.001237119);
-            bloom_injectionOffsets[223] = vec2(4.000000000, 4.000000000);
-            bloom_injectionWeights[223] = vec3(0.000000010, 0.000001431, 0.000000087);
-            bloom_injectionOffsets[255] = vec2(3.000000000, -0.000000000);
-            bloom_injectionWeights[255] = vec3(0.004450608, 0.004518898, 0.004149190);
-            bloom_injectionOffsets[287] = vec2(-2.000000000, -4.000000000);
-            bloom_injectionWeights[287] = vec3(0.000020238, 0.000012794, 0.000016192);
-            break;
+    for (int i = 0; i < 22; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_sampleRaw(pos, tile) * bloom_injectionWeights[i];
     }
-    barrier();
-}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    vec3 value = vec3(0.0);
-    for (int i = 0; i < bloom_injectionCount; ++i) {
-        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
-    }
-    return value;
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.125000104, 0.124999307, 0.124998279);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 4
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.125000268, 0.124999531, 0.124998465);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 5
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.125000536, 0.124999620, 0.124998540);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 6
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.125000641, 0.124999642, 0.124998577);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 7
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.125000656, 0.124999642, 0.124998592);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 8
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.125000611, 0.124999598, 0.124998547);
-}
-#endif
-#ifdef BLOOM_FIRST_UPSAMPLE
-const vec3 bloom_deepestWeight = vec3(0.125000566, 0.124999553, 0.124998502);
-#endif
-
-#elif SETTING_BLOOM_SHAPE == 4 // camera-six, fitted candidate
-// Bloom DPF recipe 05bb4b0998a3057406bcf104fd9e16b279cea031b109e1cb415fe29818407253
-vec3 bloom_filter(vec2 center, vec4 tile) {
-    vec3 value = vec3(0.0);
-#ifdef BLOOM_DOWNSAMPLE
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(0.215983973, 0.215983973, 0.215983973);
-    value += bloom_sample(center + vec2(-0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(-0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-#else
-#if BLOOM_PASS == 1
-    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.726424098, 0.726400495, 0.726370871);
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.022007909, 0.022004334, 0.022003017);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.022011278, 0.022006579, 0.022005932);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.021888146, 0.021893075, 0.021899255);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.022175575, 0.022180889, 0.022183666);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.046314217, 0.046319876, 0.046326268);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.046429794, 0.046435460, 0.046440076);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.046315584, 0.046320871, 0.046327256);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.046433371, 0.046438433, 0.046443652);
-#elif BLOOM_PASS == 2
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067927092, 0.067928806, 0.067930542);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067799434, 0.067800395, 0.067801535);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067819901, 0.067821458, 0.067823187);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067825660, 0.067826718, 0.067827873);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182004467, 0.182002649, 0.182000697);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182185158, 0.182183862, 0.182182401);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182126924, 0.182125509, 0.182124004);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182311356, 0.182310611, 0.182309777);
-#elif BLOOM_PASS == 3
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067691170, 0.067692004, 0.067692734);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067733660, 0.067734145, 0.067734867);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067681499, 0.067682318, 0.067683257);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067759961, 0.067760721, 0.067761563);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182258204, 0.182257548, 0.182256743);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182293549, 0.182292894, 0.182292089);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182273284, 0.182272494, 0.182271659);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182308674, 0.182307884, 0.182307065);
-#elif BLOOM_PASS == 4
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067763284, 0.067764230, 0.067764826);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067824960, 0.067825206, 0.067825772);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067742325, 0.067743115, 0.067744017);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067836933, 0.067837462, 0.067838080);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182181865, 0.182181388, 0.182180747);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182214633, 0.182214111, 0.182213396);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182199657, 0.182198942, 0.182198331);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182236359, 0.182235554, 0.182234839);
-#elif BLOOM_PASS == 5
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067802362, 0.067803174, 0.067802869);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067922734, 0.067922011, 0.067921676);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067746744, 0.067746811, 0.067747101);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067911051, 0.067910761, 0.067910589);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182105139, 0.182105482, 0.182105735);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182158783, 0.182158977, 0.182159021);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182140201, 0.182140112, 0.182140380);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182212994, 0.182212666, 0.182212621);
-#elif BLOOM_PASS == 6
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067879014, 0.067879900, 0.067877792);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.068096317, 0.068093732, 0.068091623);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067699596, 0.067698851, 0.067698695);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.068018474, 0.068016611, 0.068015143);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182003319, 0.182004869, 0.182006478);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182071477, 0.182072788, 0.182074159);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182050467, 0.182051450, 0.182053223);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182181343, 0.182181805, 0.182182908);
-#elif BLOOM_PASS == 7
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067871764, 0.067871660, 0.067870244);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.068073377, 0.068071075, 0.068069279);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067681380, 0.067681126, 0.067681417);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067963488, 0.067962229, 0.067961395);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182007879, 0.182009488, 0.182010725);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182070047, 0.182071418, 0.182072371);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182062387, 0.182063222, 0.182064399);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182269678, 0.182269782, 0.182270154);
-#elif BLOOM_PASS == 8
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067740977, 0.067742191, 0.067743421);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067785971, 0.067786835, 0.067787953);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067677587, 0.067678906, 0.067680441);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067764908, 0.067765906, 0.067767106);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182220787, 0.182219893, 0.182218775);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182255760, 0.182254717, 0.182253435);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182243705, 0.182242572, 0.182241350);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182310298, 0.182308972, 0.182307526);
-#endif
-#endif
-    return value;
-}
-
-#if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
-const int bloom_injectionCount = 315;
-shared vec2 bloom_injectionOffsets[bloom_injectionCount];
-shared vec3 bloom_injectionWeights[bloom_injectionCount];
-void bloom_prepareInjection() {
-    switch (gl_LocalInvocationIndex) {
-        case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.091588914, 0.091410272, 0.091339484);
-            bloom_injectionOffsets[32] = vec2(30.800000000, -0.000000000);
-            bloom_injectionWeights[32] = vec3(0.002174448, 0.002118222, 0.002056200);
-            bloom_injectionOffsets[64] = vec2(-4.200000000, 0.000000000);
-            bloom_injectionWeights[64] = vec3(0.014504135, 0.014725617, 0.014954658);
-            bloom_injectionOffsets[96] = vec2(-51.800000000, 0.000000000);
-            bloom_injectionWeights[96] = vec3(0.000804400, 0.000779742, 0.000749878);
-            bloom_injectionOffsets[128] = vec2(12.600000000, -21.823840175);
-            bloom_injectionWeights[128] = vec3(0.003010483, 0.002927138, 0.002837925);
-            bloom_injectionOffsets[160] = vec2(35.000000000, -60.621778265);
-            bloom_injectionWeights[160] = vec3(0.000031956, 0.000025646, 0.000036599);
-            bloom_injectionOffsets[192] = vec2(-21.700000000, 37.585502524);
-            bloom_injectionWeights[192] = vec3(0.001179098, 0.001144565, 0.001104385);
-            bloom_injectionOffsets[224] = vec2(-8.400000000, -14.549226784);
-            bloom_injectionWeights[224] = vec3(0.005211695, 0.005183807, 0.005150748);
-            bloom_injectionOffsets[256] = vec2(-30.800000000, -53.347164873);
-            bloom_injectionWeights[256] = vec3(0.000443126, 0.000423116, 0.000386818);
-            bloom_injectionOffsets[288] = vec2(17.500000000, 30.310889132);
-            bloom_injectionWeights[288] = vec3(0.001736233, 0.001688392, 0.001633764);
-            break;
-        case 1u:
-            bloom_injectionOffsets[1] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[1] = vec3(0.005082736, 0.005056321, 0.005011066);
-            bloom_injectionOffsets[33] = vec2(32.200000000, -0.000000000);
-            bloom_injectionWeights[33] = vec3(0.002016090, 0.001963770, 0.001905977);
-            bloom_injectionOffsets[65] = vec2(-5.600000000, 0.000000000);
-            bloom_injectionWeights[65] = vec3(0.013348885, 0.013561042, 0.013779933);
-            bloom_injectionOffsets[97] = vec2(-53.200000000, 0.000000000);
-            bloom_injectionWeights[97] = vec3(0.000759042, 0.000734709, 0.000705435);
-            bloom_injectionOffsets[129] = vec2(13.300000000, -23.036275741);
-            bloom_injectionWeights[129] = vec3(0.002770996, 0.002695837, 0.002614466);
-            bloom_injectionOffsets[161] = vec2(35.700000000, -61.834213830);
-            bloom_injectionWeights[161] = vec3(0.000000002, 0.000000002, 0.000000002);
-            bloom_injectionOffsets[193] = vec2(-22.400000000, 38.797938090);
-            bloom_injectionWeights[193] = vec3(0.001110032, 0.001076765, 0.001038602);
-            bloom_injectionOffsets[225] = vec2(-9.100000000, -15.761662349);
-            bloom_injectionWeights[225] = vec3(0.004865050, 0.004802944, 0.004735241);
-            bloom_injectionOffsets[257] = vec2(-31.500000000, -54.559600438);
-            bloom_injectionWeights[257] = vec3(0.000466762, 0.000451236, 0.000393892);
-            bloom_injectionOffsets[289] = vec2(18.200000000, 31.523324698);
-            bloom_injectionWeights[289] = vec3(0.001633516, 0.001588410, 0.001536418);
-            break;
-        case 2u:
-            bloom_injectionOffsets[2] = vec2(7.000000000, -0.000000000);
-            bloom_injectionWeights[2] = vec3(0.012643682, 0.012854137, 0.013070889);
-            bloom_injectionOffsets[34] = vec2(33.600000000, -0.000000000);
-            bloom_injectionWeights[34] = vec3(0.001834231, 0.001787014, 0.001734537);
-            bloom_injectionOffsets[66] = vec2(-8.400000000, 0.000000000);
-            bloom_injectionWeights[66] = vec3(0.010881785, 0.011069454, 0.011262617);
-            bloom_injectionOffsets[98] = vec2(-54.600000000, 0.000000000);
-            bloom_injectionWeights[98] = vec3(0.000714796, 0.000690207, 0.000660878);
-            bloom_injectionOffsets[130] = vec2(14.000000000, -24.248711306);
-            bloom_injectionWeights[130] = vec3(0.002564959, 0.002496463, 0.002421446);
-            bloom_injectionOffsets[162] = vec2(-0.700000000, 1.212435565);
-            bloom_injectionWeights[162] = vec3(0.023300029, 0.023523398, 0.023759387);
-            bloom_injectionOffsets[194] = vec2(-23.100000000, 40.010373655);
-            bloom_injectionWeights[194] = vec3(0.001051815, 0.001022327, 0.000986911);
-            bloom_injectionOffsets[226] = vec2(-9.800000000, -16.974097914);
-            bloom_injectionWeights[226] = vec3(0.004444076, 0.004357830, 0.004266100);
-            bloom_injectionOffsets[258] = vec2(-32.200000000, -55.772036004);
-            bloom_injectionWeights[258] = vec3(0.000180546, 0.000184373, 0.000201820);
-            bloom_injectionOffsets[290] = vec2(18.900000000, 32.735760263);
-            bloom_injectionWeights[290] = vec3(0.001529905, 0.001487894, 0.001439143);
-            break;
-        case 3u:
-            bloom_injectionOffsets[3] = vec2(-7.000000000, -0.000000000);
-            bloom_injectionWeights[3] = vec3(0.012674979, 0.012885342, 0.013102056);
-            bloom_injectionOffsets[35] = vec2(35.000000000, -0.000000000);
-            bloom_injectionWeights[35] = vec3(0.001765964, 0.001720208, 0.001669534);
-            bloom_injectionOffsets[67] = vec2(-9.800000000, 0.000000000);
-            bloom_injectionWeights[67] = vec3(0.008709585, 0.008872967, 0.009040092);
-            bloom_injectionOffsets[99] = vec2(-56.000000000, 0.000000000);
-            bloom_injectionWeights[99] = vec3(0.000684003, 0.000660916, 0.000633507);
-            bloom_injectionOffsets[131] = vec2(14.700000000, -25.461146871);
-            bloom_injectionWeights[131] = vec3(0.002338151, 0.002275549, 0.002206024);
-            bloom_injectionOffsets[163] = vec2(-1.400000000, 2.424871131);
-            bloom_injectionWeights[163] = vec3(0.018094745, 0.018310674, 0.018539660);
-            bloom_injectionOffsets[195] = vec2(-23.800000000, 41.222809220);
-            bloom_injectionWeights[195] = vec3(0.000995851, 0.000965855, 0.000930379);
-            bloom_injectionOffsets[227] = vec2(-10.500000000, -18.186533479);
-            bloom_injectionWeights[227] = vec3(0.003979679, 0.003882433, 0.003779863);
-            bloom_injectionOffsets[259] = vec2(-32.900000000, -56.984471569);
-            bloom_injectionWeights[259] = vec3(0.000203266, 0.000093917, 0.000162672);
-            bloom_injectionOffsets[291] = vec2(19.600000000, 33.948195828);
-            bloom_injectionWeights[291] = vec3(0.001418458, 0.001378435, 0.001332770);
-            break;
-        case 4u:
-            bloom_injectionOffsets[4] = vec2(10.000000000, -0.000000000);
-            bloom_injectionWeights[4] = vec3(0.001158658, 0.001179204, 0.001189736);
-            bloom_injectionOffsets[36] = vec2(36.400000000, -0.000000000);
-            bloom_injectionWeights[36] = vec3(0.001592124, 0.001551001, 0.001504256);
-            bloom_injectionOffsets[68] = vec2(-11.200000000, 0.000000000);
-            bloom_injectionWeights[68] = vec3(0.008730620, 0.008871744, 0.009015922);
-            bloom_injectionOffsets[100] = vec2(-57.400000000, 0.000000000);
-            bloom_injectionWeights[100] = vec3(0.000632672, 0.000607786, 0.000579084);
-            bloom_injectionOffsets[132] = vec2(15.400000000, -26.673582437);
-            bloom_injectionWeights[132] = vec3(0.002169360, 0.002111080, 0.002045748);
-            bloom_injectionOffsets[164] = vec2(-2.100000000, 3.637306696);
-            bloom_injectionWeights[164] = vec3(0.015097541, 0.015327469, 0.015567110);
-            bloom_injectionOffsets[196] = vec2(-24.500000000, 42.435244785);
-            bloom_injectionWeights[196] = vec3(0.000945780, 0.000915815, 0.000880519);
-            bloom_injectionOffsets[228] = vec2(-11.200000000, -19.398969045);
-            bloom_injectionWeights[228] = vec3(0.003626706, 0.003526886, 0.003421817);
-            bloom_injectionOffsets[260] = vec2(-33.600000000, -58.196907134);
-            bloom_injectionWeights[260] = vec3(0.000155426, 0.000189947, 0.000110559);
-            bloom_injectionOffsets[292] = vec2(20.300000000, 35.160631394);
-            bloom_injectionWeights[292] = vec3(0.001327612, 0.001289597, 0.001246328);
-            break;
-        case 5u:
-            bloom_injectionOffsets[5] = vec2(-10.000000000, -0.000000000);
-            bloom_injectionWeights[5] = vec3(0.001138978, 0.001159373, 0.001169720);
-            bloom_injectionOffsets[37] = vec2(37.800000000, -0.000000000);
-            bloom_injectionWeights[37] = vec3(0.001516954, 0.001477206, 0.001432018);
-            bloom_injectionOffsets[69] = vec2(-12.600000000, 0.000000000);
-            bloom_injectionWeights[69] = vec3(0.007881190, 0.007984535, 0.008089103);
-            bloom_injectionOffsets[101] = vec2(-58.800000000, 0.000000000);
-            bloom_injectionWeights[101] = vec3(0.000565045, 0.000541655, 0.000514924);
-            bloom_injectionOffsets[133] = vec2(16.100000000, -27.886018002);
-            bloom_injectionWeights[133] = vec3(0.002035067, 0.001980860, 0.001919707);
-            bloom_injectionOffsets[165] = vec2(-2.800000000, 4.849742261);
-            bloom_injectionWeights[165] = vec3(0.013863818, 0.014087810, 0.014320288);
-            bloom_injectionOffsets[197] = vec2(-25.200000000, 43.647680351);
-            bloom_injectionWeights[197] = vec3(0.000900093, 0.000871811, 0.000838131);
-            bloom_injectionOffsets[229] = vec2(-11.900000000, -20.611404610);
-            bloom_injectionWeights[229] = vec3(0.003320986, 0.003226674, 0.003126935);
-            bloom_injectionOffsets[261] = vec2(-34.300000000, -59.409342700);
-            bloom_injectionWeights[261] = vec3(0.000045323, 0.000007361, 0.000088180);
-            bloom_injectionOffsets[293] = vec2(21.000000000, 36.373066959);
-            bloom_injectionWeights[293] = vec3(0.001266895, 0.001232105, 0.001190896);
-            break;
-        case 6u:
-            bloom_injectionOffsets[6] = vec2(-14.000000000, -0.000000000);
-            bloom_injectionWeights[6] = vec3(0.007127193, 0.007186266, 0.007243519);
-            bloom_injectionOffsets[38] = vec2(39.200000000, -0.000000000);
-            bloom_injectionWeights[38] = vec3(0.001415800, 0.001378545, 0.001335721);
-            bloom_injectionOffsets[70] = vec2(-15.400000000, 0.000000000);
-            bloom_injectionWeights[70] = vec3(0.005982732, 0.005994935, 0.006003285);
-            bloom_injectionOffsets[102] = vec2(-60.200000000, 0.000000000);
-            bloom_injectionWeights[102] = vec3(0.000483156, 0.000459527, 0.000436124);
-            bloom_injectionOffsets[134] = vec2(16.800000000, -29.098453567);
-            bloom_injectionWeights[134] = vec3(0.001882634, 0.001831980, 0.001774369);
-            bloom_injectionOffsets[166] = vec2(-3.500000000, 6.062177826);
-            bloom_injectionWeights[166] = vec3(0.011798745, 0.012003666, 0.012215611);
-            bloom_injectionOffsets[198] = vec2(-25.900000000, 44.860115916);
-            bloom_injectionWeights[198] = vec3(0.000844840, 0.000818843, 0.000787587);
-            bloom_injectionOffsets[230] = vec2(-12.600000000, -21.823840175);
-            bloom_injectionWeights[230] = vec3(0.003006589, 0.002923243, 0.002834029);
-            bloom_injectionOffsets[262] = vec2(-35.000000000, -60.621778265);
-            bloom_injectionWeights[262] = vec3(0.000038601, 0.000031468, 0.000023692);
-            bloom_injectionOffsets[294] = vec2(21.700000000, 37.585502524);
-            bloom_injectionWeights[294] = vec3(0.001180739, 0.001146187, 0.001105921);
-            break;
-        case 7u:
-            bloom_injectionOffsets[7] = vec2(14.000000000, -0.000000000);
-            bloom_injectionWeights[7] = vec3(0.007131741, 0.007190875, 0.007248187);
-            bloom_injectionOffsets[39] = vec2(40.600000000, -0.000000000);
-            bloom_injectionWeights[39] = vec3(0.001302045, 0.001268085, 0.001228196);
-            bloom_injectionOffsets[71] = vec2(-16.800000000, 0.000000000);
-            bloom_injectionWeights[71] = vec3(0.005548667, 0.005520953, 0.005488819);
-            bloom_injectionOffsets[103] = vec2(-61.600000000, 0.000000000);
-            bloom_injectionWeights[103] = vec3(0.000414136, 0.000384308, 0.000388692);
-            bloom_injectionOffsets[135] = vec2(17.500000000, -30.310889132);
-            bloom_injectionWeights[135] = vec3(0.001740040, 0.001692257, 0.001637580);
-            bloom_injectionOffsets[167] = vec2(-4.200000000, 7.274613392);
-            bloom_injectionWeights[167] = vec3(0.009567914, 0.009748642, 0.009934283);
-            bloom_injectionOffsets[199] = vec2(-26.600000000, 46.072551481);
-            bloom_injectionWeights[199] = vec3(0.000795535, 0.000768021, 0.000736810);
-            bloom_injectionOffsets[231] = vec2(-13.300000000, -23.036275741);
-            bloom_injectionWeights[231] = vec3(0.002768391, 0.002693227, 0.002611850);
-            bloom_injectionOffsets[263] = vec2(-35.700000000, -61.834213830);
-            bloom_injectionWeights[263] = vec3(0.000000002, 0.000000002, 0.000000002);
-            bloom_injectionOffsets[295] = vec2(22.400000000, 38.797938090);
-            bloom_injectionWeights[295] = vec3(0.001112308, 0.001079023, 0.001040742);
-            break;
-        case 8u:
-            bloom_injectionOffsets[8] = vec2(4.000000000, -7.000000000);
-            bloom_injectionWeights[8] = vec3(0.001007460, 0.001027344, 0.001036094);
-            bloom_injectionOffsets[40] = vec2(42.000000000, -0.000000000);
-            bloom_injectionWeights[40] = vec3(0.001254381, 0.001221711, 0.001183527);
-            bloom_injectionOffsets[72] = vec2(-18.200000000, 0.000000000);
-            bloom_injectionWeights[72] = vec3(0.004743145, 0.004684235, 0.004619803);
-            bloom_injectionOffsets[104] = vec2(-63.000000000, 0.000000000);
-            bloom_injectionWeights[104] = vec3(0.000436665, 0.000401635, 0.000325907);
-            bloom_injectionOffsets[136] = vec2(18.200000000, -31.523324698);
-            bloom_injectionWeights[136] = vec3(0.001636760, 0.001591714, 0.001539782);
-            bloom_injectionOffsets[168] = vec2(-4.900000000, 8.487048957);
-            bloom_injectionWeights[168] = vec3(0.010199539, 0.010376943, 0.010559672);
-            bloom_injectionOffsets[200] = vec2(-27.300000000, 47.284987047);
-            bloom_injectionWeights[200] = vec3(0.000766908, 0.000738942, 0.000707333);
-            bloom_injectionOffsets[232] = vec2(-14.000000000, -24.248711306);
-            bloom_injectionWeights[232] = vec3(0.002563388, 0.002494888, 0.002419868);
-            bloom_injectionOffsets[264] = vec2(0.700000000, 1.212435565);
-            bloom_injectionWeights[264] = vec3(0.023173688, 0.023397110, 0.023632940);
-            bloom_injectionOffsets[296] = vec2(23.100000000, 40.010373655);
-            bloom_injectionWeights[296] = vec3(0.001054037, 0.001024531, 0.000989114);
-            break;
-        case 9u:
-            bloom_injectionOffsets[9] = vec2(4.000000000, 7.000000000);
-            bloom_injectionWeights[9] = vec3(0.000999710, 0.001019559, 0.001028267);
-            bloom_injectionOffsets[41] = vec2(43.400000000, -0.000000000);
-            bloom_injectionWeights[41] = vec3(0.001144912, 0.001114438, 0.001077999);
-            bloom_injectionOffsets[73] = vec2(-19.600000000, 0.000000000);
-            bloom_injectionWeights[73] = vec3(0.004145400, 0.004067340, 0.003983822);
-            bloom_injectionOffsets[105] = vec2(-64.400000000, 0.000000000);
-            bloom_injectionWeights[105] = vec3(0.000139979, 0.000169047, 0.000191935);
-            bloom_injectionOffsets[137] = vec2(18.900000000, -32.735760263);
-            bloom_injectionWeights[137] = vec3(0.001532271, 0.001490321, 0.001441631);
-            bloom_injectionOffsets[169] = vec2(-5.600000000, 9.699484522);
-            bloom_injectionWeights[169] = vec3(0.009049201, 0.009194441, 0.009342922);
-            bloom_injectionOffsets[201] = vec2(-28.000000000, 48.497422612);
-            bloom_injectionWeights[201] = vec3(0.000740800, 0.000716897, 0.000688190);
-            bloom_injectionOffsets[233] = vec2(-14.700000000, -25.461146871);
-            bloom_injectionWeights[233] = vec3(0.002335746, 0.002273129, 0.002203590);
-            bloom_injectionOffsets[265] = vec2(1.400000000, 2.424871131);
-            bloom_injectionWeights[265] = vec3(0.017926628, 0.018142624, 0.018371418);
-            bloom_injectionOffsets[297] = vec2(23.800000000, 41.222809220);
-            bloom_injectionWeights[297] = vec3(0.000998946, 0.000968933, 0.000933319);
-            break;
-        case 10u:
-            bloom_injectionOffsets[10] = vec2(-4.000000000, -7.000000000);
-            bloom_injectionWeights[10] = vec3(0.001013194, 0.001033072, 0.001041825);
-            bloom_injectionOffsets[42] = vec2(44.800000000, -0.000000000);
-            bloom_injectionWeights[42] = vec3(0.001091916, 0.001062365, 0.001027170);
-            bloom_injectionOffsets[74] = vec2(-21.000000000, 0.000000000);
-            bloom_injectionWeights[74] = vec3(0.004026681, 0.003932147, 0.003832667);
-            bloom_injectionOffsets[106] = vec2(-65.800000000, 0.000000000);
-            bloom_injectionWeights[106] = vec3(0.000210799, 0.000235528, 0.000183935);
-            bloom_injectionOffsets[138] = vec2(19.600000000, -33.948195828);
-            bloom_injectionWeights[138] = vec3(0.001420936, 0.001380991, 0.001335301);
-            bloom_injectionOffsets[170] = vec2(-6.300000000, 10.911920088);
-            bloom_injectionWeights[170] = vec3(0.007920149, 0.008022900, 0.008126251);
-            bloom_injectionOffsets[202] = vec2(-28.700000000, 49.709858177);
-            bloom_injectionWeights[202] = vec3(0.000685478, 0.000657672, 0.000627242);
-            bloom_injectionOffsets[234] = vec2(-15.400000000, -26.673582437);
-            bloom_injectionWeights[234] = vec3(0.002167622, 0.002109325, 0.002043978);
-            bloom_injectionOffsets[266] = vec2(2.100000000, 3.637306696);
-            bloom_injectionWeights[266] = vec3(0.015145890, 0.015375941, 0.015615770);
-            bloom_injectionOffsets[298] = vec2(24.500000000, 42.435244785);
-            bloom_injectionWeights[298] = vec3(0.000949908, 0.000919934, 0.000884440);
-            break;
-        case 11u:
-            bloom_injectionOffsets[11] = vec2(-4.000000000, 7.000000000);
-            bloom_injectionWeights[11] = vec3(0.000993228, 0.001013003, 0.001021618);
-            bloom_injectionOffsets[43] = vec2(46.200000000, -0.000000000);
-            bloom_injectionWeights[43] = vec3(0.001025325, 0.000997072, 0.000963207);
-            bloom_injectionOffsets[75] = vec2(-22.400000000, 0.000000000);
-            bloom_injectionWeights[75] = vec3(0.003496029, 0.003402323, 0.003303632);
-            bloom_injectionOffsets[107] = vec2(-67.200000000, 0.000000000);
-            bloom_injectionWeights[107] = vec3(0.000131670, 0.000139560, 0.000175211);
-            bloom_injectionOffsets[139] = vec2(20.300000000, -35.160631394);
-            bloom_injectionWeights[139] = vec3(0.001329483, 0.001291543, 0.001248280);
-            bloom_injectionOffsets[171] = vec2(-7.000000000, 12.124355653);
-            bloom_injectionWeights[171] = vec3(0.007041799, 0.007096188, 0.007148623);
-            bloom_injectionOffsets[203] = vec2(-29.400000000, 50.922293743);
-            bloom_injectionWeights[203] = vec3(0.000608657, 0.000581402, 0.000553140);
-            bloom_injectionOffsets[235] = vec2(-16.100000000, -27.886018002);
-            bloom_injectionWeights[235] = vec3(0.002034344, 0.001980124, 0.001918960);
-            bloom_injectionOffsets[267] = vec2(2.800000000, 4.849742261);
-            bloom_injectionWeights[267] = vec3(0.013920633, 0.014144473, 0.014376871);
-            bloom_injectionOffsets[299] = vec2(25.200000000, 43.647680351);
-            bloom_injectionWeights[299] = vec3(0.000904602, 0.000876311, 0.000842640);
-            break;
-        case 12u:
-            bloom_injectionOffsets[12] = vec2(7.000000000, -12.000000000);
-            bloom_injectionWeights[12] = vec3(0.001148328, 0.001176348, 0.001196509);
-            bloom_injectionOffsets[44] = vec2(47.600000000, -0.000000000);
-            bloom_injectionWeights[44] = vec3(0.000953978, 0.000927226, 0.000894639);
-            bloom_injectionOffsets[76] = vec2(-23.800000000, 0.000000000);
-            bloom_injectionWeights[76] = vec3(0.003283480, 0.003192524, 0.003096320);
-            bloom_injectionOffsets[108] = vec2(-68.600000000, 0.000000000);
-            bloom_injectionWeights[108] = vec3(0.000022728, 0.000066645, 0.000084114);
-            bloom_injectionOffsets[140] = vec2(21.000000000, -36.373066959);
-            bloom_injectionWeights[140] = vec3(0.001267267, 0.001232526, 0.001191347);
-            bloom_injectionOffsets[172] = vec2(-7.700000000, 13.336791218);
-            bloom_injectionWeights[172] = vec3(0.006114307, 0.006121258, 0.006124275);
-            bloom_injectionOffsets[204] = vec2(-30.100000000, 52.134729308);
-            bloom_injectionWeights[204] = vec3(0.000531730, 0.000505926, 0.000480464);
-            bloom_injectionOffsets[236] = vec2(-16.800000000, -29.098453567);
-            bloom_injectionWeights[236] = vec3(0.001881900, 0.001831231, 0.001773607);
-            bloom_injectionOffsets[268] = vec2(3.500000000, 6.062177826);
-            bloom_injectionWeights[268] = vec3(0.011801574, 0.012006423, 0.012218298);
-            bloom_injectionOffsets[300] = vec2(25.900000000, 44.860115916);
-            bloom_injectionWeights[300] = vec3(0.000849105, 0.000823087, 0.000791840);
-            break;
-        case 13u:
-            bloom_injectionOffsets[13] = vec2(1.400000000, -0.000000000);
-            bloom_injectionWeights[13] = vec3(0.019702423, 0.019920733, 0.020145696);
-            bloom_injectionOffsets[45] = vec2(49.000000000, -0.000000000);
-            bloom_injectionWeights[45] = vec3(0.000917087, 0.000891663, 0.000860803);
-            bloom_injectionOffsets[77] = vec2(-25.200000000, 0.000000000);
-            bloom_injectionWeights[77] = vec3(0.002997294, 0.002916256, 0.002829601);
-            bloom_injectionOffsets[109] = vec2(-70.000000000, 0.000000000);
-            bloom_injectionWeights[109] = vec3(0.000030955, 0.000023827, 0.000001017);
-            bloom_injectionOffsets[141] = vec2(21.700000000, -37.585502524);
-            bloom_injectionWeights[141] = vec3(0.001180124, 0.001145621, 0.001105440);
-            bloom_injectionOffsets[173] = vec2(-8.400000000, 14.549226784);
-            bloom_injectionWeights[173] = vec3(0.005455393, 0.005423363, 0.005386105);
-            bloom_injectionOffsets[205] = vec2(-30.800000000, 53.347164873);
-            bloom_injectionWeights[205] = vec3(0.000450171, 0.000431029, 0.000393454);
-            bloom_injectionOffsets[237] = vec2(-17.500000000, -30.310889132);
-            bloom_injectionWeights[237] = vec3(0.001739545, 0.001691747, 0.001637082);
-            bloom_injectionOffsets[269] = vec2(4.200000000, 7.274613392);
-            bloom_injectionWeights[269] = vec3(0.009562805, 0.009743634, 0.009929371);
-            bloom_injectionOffsets[301] = vec2(26.600000000, 46.072551481);
-            bloom_injectionWeights[301] = vec3(0.000801881, 0.000774344, 0.000742853);
-            break;
-        case 14u:
-            bloom_injectionOffsets[14] = vec2(2.800000000, -0.000000000);
-            bloom_injectionWeights[14] = vec3(0.018116906, 0.018334066, 0.018566862);
-            bloom_injectionOffsets[46] = vec2(50.400000000, -0.000000000);
-            bloom_injectionWeights[46] = vec3(0.000849502, 0.000824106, 0.000793167);
-            bloom_injectionOffsets[78] = vec2(-26.600000000, 0.000000000);
-            bloom_injectionWeights[78] = vec3(0.002684636, 0.002614246, 0.002538072);
-            bloom_injectionOffsets[110] = vec2(-71.400000000, 0.000000000);
-            bloom_injectionWeights[110] = vec3(0.000000002, 0.000000002, 0.000000002);
-            bloom_injectionOffsets[142] = vec2(22.400000000, -38.797938090);
-            bloom_injectionWeights[142] = vec3(0.001109566, 0.001076305, 0.001038188);
-            bloom_injectionOffsets[174] = vec2(-9.100000000, 15.761662349);
-            bloom_injectionWeights[174] = vec3(0.004950294, 0.004885601, 0.004815185);
-            bloom_injectionOffsets[206] = vec2(-31.500000000, 54.559600438);
-            bloom_injectionWeights[206] = vec3(0.000452965, 0.000461961, 0.000395935);
-            bloom_injectionOffsets[238] = vec2(-18.200000000, -31.523324698);
-            bloom_injectionWeights[238] = vec3(0.001636847, 0.001591792, 0.001539856);
-            bloom_injectionOffsets[270] = vec2(4.900000000, 8.487048957);
-            bloom_injectionWeights[270] = vec3(0.010181932, 0.010359550, 0.010542475);
-            bloom_injectionOffsets[302] = vec2(27.300000000, 47.284987047);
-            bloom_injectionWeights[302] = vec3(0.000774684, 0.000746702, 0.000714745);
-            break;
-        case 15u:
-            bloom_injectionOffsets[15] = vec2(4.200000000, -0.000000000);
-            bloom_injectionWeights[15] = vec3(0.014639992, 0.014861265, 0.015090280);
-            bloom_injectionOffsets[47] = vec2(51.800000000, -0.000000000);
-            bloom_injectionWeights[47] = vec3(0.000809800, 0.000785072, 0.000755266);
-            bloom_injectionOffsets[79] = vec2(-28.000000000, 0.000000000);
-            bloom_injectionWeights[79] = vec3(0.002574610, 0.002507785, 0.002434830);
-            bloom_injectionOffsets[111] = vec2(0.700000000, -1.212435565);
-            bloom_injectionWeights[111] = vec3(0.022094751, 0.022319153, 0.022556217);
-            bloom_injectionOffsets[143] = vec2(23.100000000, -40.010373655);
-            bloom_injectionWeights[143] = vec3(0.001051000, 0.001021511, 0.000986047);
-            bloom_injectionOffsets[175] = vec2(-9.800000000, 16.974097914);
-            bloom_injectionWeights[175] = vec3(0.004445895, 0.004358805, 0.004266141);
-            bloom_injectionOffsets[207] = vec2(-32.200000000, 55.772036004);
-            bloom_injectionWeights[207] = vec3(0.000208697, 0.000186817, 0.000209184);
-            bloom_injectionOffsets[239] = vec2(-18.900000000, -32.735760263);
-            bloom_injectionWeights[239] = vec3(0.001532604, 0.001490650, 0.001441963);
-            bloom_injectionOffsets[271] = vec2(5.600000000, 9.699484522);
-            bloom_injectionWeights[271] = vec3(0.009038307, 0.009183921, 0.009332785);
-            bloom_injectionOffsets[303] = vec2(28.000000000, 48.497422612);
-            bloom_injectionWeights[303] = vec3(0.000745145, 0.000721187, 0.000692532);
-            break;
-        case 16u:
-            bloom_injectionOffsets[16] = vec2(5.600000000, -0.000000000);
-            bloom_injectionWeights[16] = vec3(0.013380685, 0.013592593, 0.013811281);
-            bloom_injectionOffsets[48] = vec2(53.200000000, -0.000000000);
-            bloom_injectionWeights[48] = vec3(0.000764688, 0.000740343, 0.000711122);
-            bloom_injectionOffsets[80] = vec2(-29.400000000, 0.000000000);
-            bloom_injectionWeights[80] = vec3(0.002291905, 0.002233111, 0.002168440);
-            bloom_injectionOffsets[112] = vec2(1.400000000, -2.424871131);
-            bloom_injectionWeights[112] = vec3(0.017579608, 0.017792976, 0.018022053);
-            bloom_injectionOffsets[144] = vec2(23.800000000, -41.222809220);
-            bloom_injectionWeights[144] = vec3(0.000993711, 0.000963693, 0.000928301);
-            bloom_injectionOffsets[176] = vec2(-10.500000000, 18.186533479);
-            bloom_injectionWeights[176] = vec3(0.003975487, 0.003878098, 0.003775358);
-            bloom_injectionOffsets[208] = vec2(-32.900000000, 56.984471569);
-            bloom_injectionWeights[208] = vec3(0.000201519, 0.000101472, 0.000155498);
-            bloom_injectionOffsets[240] = vec2(-19.600000000, -33.948195828);
-            bloom_injectionWeights[240] = vec3(0.001421587, 0.001381641, 0.001335930);
-            bloom_injectionOffsets[272] = vec2(6.300000000, 10.911920088);
-            bloom_injectionWeights[272] = vec3(0.007907502, 0.008011290, 0.008115752);
-            bloom_injectionOffsets[304] = vec2(28.700000000, 49.709858177);
-            bloom_injectionWeights[304] = vec3(0.000694635, 0.000666771, 0.000635947);
-            break;
-        case 17u:
-            bloom_injectionOffsets[17] = vec2(8.400000000, -0.000000000);
-            bloom_injectionWeights[17] = vec3(0.010870462, 0.011058326, 0.011251662);
-            bloom_injectionOffsets[49] = vec2(54.600000000, -0.000000000);
-            bloom_injectionWeights[49] = vec3(0.000720828, 0.000696363, 0.000667086);
-            bloom_injectionOffsets[81] = vec2(-30.800000000, 0.000000000);
-            bloom_injectionWeights[81] = vec3(0.002176492, 0.002120253, 0.002058134);
-            bloom_injectionOffsets[113] = vec2(2.100000000, -3.637306696);
-            bloom_injectionWeights[113] = vec3(0.014781048, 0.015011181, 0.015250679);
-            bloom_injectionOffsets[145] = vec2(24.500000000, -42.435244785);
-            bloom_injectionWeights[145] = vec3(0.000941662, 0.000911647, 0.000876488);
-            bloom_injectionOffsets[177] = vec2(-11.200000000, 19.398969045);
-            bloom_injectionWeights[177] = vec3(0.003626552, 0.003526717, 0.003421632);
-            bloom_injectionOffsets[209] = vec2(-33.600000000, 58.196907134);
-            bloom_injectionWeights[209] = vec3(0.000125952, 0.000196583, 0.000088743);
-            bloom_injectionOffsets[241] = vec2(-20.300000000, -35.160631394);
-            bloom_injectionWeights[241] = vec3(0.001330452, 0.001292517, 0.001249223);
-            bloom_injectionOffsets[273] = vec2(7.000000000, 12.124355653);
-            bloom_injectionWeights[273] = vec3(0.006990270, 0.007047297, 0.007102526);
-            bloom_injectionOffsets[305] = vec2(29.400000000, 50.922293743);
-            bloom_injectionWeights[305] = vec3(0.000618465, 0.000591092, 0.000562439);
-            break;
-        case 18u:
-            bloom_injectionOffsets[18] = vec2(9.800000000, -0.000000000);
-            bloom_injectionWeights[18] = vec3(0.008724073, 0.008887609, 0.009054916);
-            bloom_injectionOffsets[50] = vec2(56.000000000, -0.000000000);
-            bloom_injectionWeights[50] = vec3(0.000689336, 0.000666333, 0.000638952);
-            bloom_injectionOffsets[82] = vec2(-32.200000000, 0.000000000);
-            bloom_injectionWeights[82] = vec3(0.002017413, 0.001965089, 0.001907216);
-            bloom_injectionOffsets[114] = vec2(2.800000000, -4.849742261);
-            bloom_injectionWeights[114] = vec3(0.013827604, 0.014051782, 0.014284438);
-            bloom_injectionOffsets[146] = vec2(25.200000000, -43.647680351);
-            bloom_injectionWeights[146] = vec3(0.000895251, 0.000866910, 0.000833180);
-            bloom_injectionOffsets[178] = vec2(-11.900000000, 20.611404610);
-            bloom_injectionWeights[178] = vec3(0.003323288, 0.003228959, 0.003129206);
-            bloom_injectionOffsets[210] = vec2(-34.300000000, 59.409342700);
-            bloom_injectionWeights[210] = vec3(0.000043194, 0.000021773, 0.000080916);
-            bloom_injectionOffsets[242] = vec2(-21.000000000, -36.373066959);
-            bloom_injectionWeights[242] = vec3(0.001267956, 0.001233216, 0.001192055);
-            bloom_injectionOffsets[274] = vec2(7.700000000, 13.336791218);
-            bloom_injectionWeights[274] = vec3(0.005889981, 0.005901059, 0.005908274);
-            bloom_injectionOffsets[306] = vec2(30.100000000, 52.134729308);
-            bloom_injectionWeights[306] = vec3(0.000539844, 0.000513514, 0.000487788);
-            break;
-        case 19u:
-            bloom_injectionOffsets[19] = vec2(11.200000000, -0.000000000);
-            bloom_injectionWeights[19] = vec3(0.008736536, 0.008877796, 0.009022117);
-            bloom_injectionOffsets[51] = vec2(57.400000000, -0.000000000);
-            bloom_injectionWeights[51] = vec3(0.000638535, 0.000613777, 0.000585100);
-            bloom_injectionOffsets[83] = vec2(-33.600000000, 0.000000000);
-            bloom_injectionWeights[83] = vec3(0.001835500, 0.001788205, 0.001735741);
-            bloom_injectionOffsets[115] = vec2(3.500000000, -6.062177826);
-            bloom_injectionWeights[115] = vec3(0.011830828, 0.012035811, 0.012247873);
-            bloom_injectionOffsets[147] = vec2(25.900000000, -44.860115916);
-            bloom_injectionWeights[147] = vec3(0.000840483, 0.000814434, 0.000783195);
-            bloom_injectionOffsets[179] = vec2(-12.600000000, 21.823840175);
-            bloom_injectionWeights[179] = vec3(0.003009464, 0.002926105, 0.002836881);
-            bloom_injectionOffsets[211] = vec2(-35.000000000, 60.621778265);
-            bloom_injectionWeights[211] = vec3(0.000036600, 0.000022631, 0.000023462);
-            bloom_injectionOffsets[243] = vec2(-21.700000000, -37.585502524);
-            bloom_injectionWeights[243] = vec3(0.001181422, 0.001146928, 0.001106712);
-            bloom_injectionOffsets[275] = vec2(8.400000000, 14.549226784);
-            bloom_injectionWeights[275] = vec3(0.005213165, 0.005185259, 0.005152186);
-            bloom_injectionOffsets[307] = vec2(30.800000000, 53.347164873);
-            bloom_injectionWeights[307] = vec3(0.000459723, 0.000439154, 0.000401057);
-            break;
-        case 20u:
-            bloom_injectionOffsets[20] = vec2(12.600000000, -0.000000000);
-            bloom_injectionWeights[20] = vec3(0.007880736, 0.007984202, 0.008089087);
-            bloom_injectionOffsets[52] = vec2(58.800000000, -0.000000000);
-            bloom_injectionWeights[52] = vec3(0.000570620, 0.000547042, 0.000520343);
-            bloom_injectionOffsets[84] = vec2(-35.000000000, 0.000000000);
-            bloom_injectionWeights[84] = vec3(0.001766467, 0.001720642, 0.001669977);
-            bloom_injectionOffsets[116] = vec2(4.200000000, -7.274613392);
-            bloom_injectionWeights[116] = vec3(0.009560947, 0.009741802, 0.009927562);
-            bloom_injectionOffsets[148] = vec2(26.600000000, -46.072551481);
-            bloom_injectionWeights[148] = vec3(0.000788387, 0.000760791, 0.000729781);
-            bloom_injectionOffsets[180] = vec2(-13.300000000, 23.036275741);
-            bloom_injectionWeights[180] = vec3(0.002769644, 0.002694470, 0.002613086);
-            bloom_injectionOffsets[212] = vec2(-35.700000000, 61.834213830);
-            bloom_injectionWeights[212] = vec3(0.000000002, 0.000000002, 0.000000002);
-            bloom_injectionOffsets[244] = vec2(-22.400000000, -38.797938090);
-            bloom_injectionWeights[244] = vec3(0.001110982, 0.001077733, 0.001039575);
-            bloom_injectionOffsets[276] = vec2(9.100000000, 15.761662349);
-            bloom_injectionWeights[276] = vec3(0.004862966, 0.004800875, 0.004733191);
-            bloom_injectionOffsets[308] = vec2(31.500000000, 54.559600438);
-            bloom_injectionWeights[308] = vec3(0.000454932, 0.000474905, 0.000406686);
-            break;
-        case 21u:
-            bloom_injectionOffsets[21] = vec2(15.400000000, -0.000000000);
-            bloom_injectionWeights[21] = vec3(0.005988702, 0.006000898, 0.006009237);
-            bloom_injectionOffsets[53] = vec2(60.200000000, -0.000000000);
-            bloom_injectionWeights[53] = vec3(0.000488136, 0.000464428, 0.000440841);
-            bloom_injectionOffsets[85] = vec2(-36.400000000, 0.000000000);
-            bloom_injectionWeights[85] = vec3(0.001592731, 0.001551547, 0.001504816);
-            bloom_injectionOffsets[117] = vec2(4.900000000, -8.487048957);
-            bloom_injectionWeights[117] = vec3(0.010178508, 0.010356090, 0.010538980);
-            bloom_injectionOffsets[149] = vec2(27.300000000, -47.284987047);
-            bloom_injectionWeights[149] = vec3(0.000757975, 0.000729903, 0.000698553);
-            bloom_injectionOffsets[181] = vec2(-14.000000000, 24.248711306);
-            bloom_injectionWeights[181] = vec3(0.002563590, 0.002495081, 0.002420052);
-            bloom_injectionOffsets[213] = vec2(-0.700000000, -1.212435565);
-            bloom_injectionWeights[213] = vec3(0.022214552, 0.022438904, 0.022676181);
-            bloom_injectionOffsets[245] = vec2(-23.100000000, -40.010373655);
-            bloom_injectionWeights[245] = vec3(0.001051899, 0.001022418, 0.000986976);
-            bloom_injectionOffsets[277] = vec2(9.800000000, 16.974097914);
-            bloom_injectionWeights[277] = vec3(0.004449860, 0.004363550, 0.004271762);
-            bloom_injectionOffsets[309] = vec2(32.200000000, 55.772036004);
-            bloom_injectionWeights[309] = vec3(0.000213421, 0.000192032, 0.000220038);
-            break;
-        case 22u:
-            bloom_injectionOffsets[22] = vec2(16.800000000, -0.000000000);
-            bloom_injectionWeights[22] = vec3(0.005553204, 0.005525467, 0.005493245);
-            bloom_injectionOffsets[54] = vec2(61.600000000, -0.000000000);
-            bloom_injectionWeights[54] = vec3(0.000418840, 0.000389085, 0.000391080);
-            bloom_injectionOffsets[86] = vec2(-37.800000000, 0.000000000);
-            bloom_injectionWeights[86] = vec3(0.001517174, 0.001477369, 0.001432191);
-            bloom_injectionOffsets[118] = vec2(5.600000000, -9.699484522);
-            bloom_injectionWeights[118] = vec3(0.009209416, 0.009356026, 0.009506347);
-            bloom_injectionOffsets[150] = vec2(28.000000000, -48.497422612);
-            bloom_injectionWeights[150] = vec3(0.000736521, 0.000712608, 0.000683686);
-            bloom_injectionOffsets[182] = vec2(-14.700000000, 25.461146871);
-            bloom_injectionWeights[182] = vec3(0.002335552, 0.002272927, 0.002203382);
-            bloom_injectionOffsets[214] = vec2(-1.400000000, -2.424871131);
-            bloom_injectionWeights[214] = vec3(0.017694809, 0.017908337, 0.018137762);
-            bloom_injectionOffsets[246] = vec2(-23.800000000, -41.222809220);
-            bloom_injectionWeights[246] = vec3(0.000994942, 0.000964934, 0.000929510);
-            bloom_injectionOffsets[278] = vec2(10.500000000, 18.186533479);
-            bloom_injectionWeights[278] = vec3(0.003991772, 0.003894441, 0.003791796);
-            bloom_injectionOffsets[310] = vec2(32.900000000, 56.984471569);
-            bloom_injectionWeights[310] = vec3(0.000192925, 0.000106345, 0.000165553);
-            break;
-        case 23u:
-            bloom_injectionOffsets[23] = vec2(18.200000000, -0.000000000);
-            bloom_injectionWeights[23] = vec3(0.004744027, 0.004685171, 0.004620797);
-            bloom_injectionOffsets[55] = vec2(63.000000000, -0.000000000);
-            bloom_injectionWeights[55] = vec3(0.000440459, 0.000408357, 0.000338555);
-            bloom_injectionOffsets[87] = vec2(-39.200000000, 0.000000000);
-            bloom_injectionWeights[87] = vec3(0.001415654, 0.001378349, 0.001335533);
-            bloom_injectionOffsets[119] = vec2(6.300000000, -10.911920088);
-            bloom_injectionWeights[119] = vec3(0.007962982, 0.008070159, 0.008178807);
-            bloom_injectionOffsets[151] = vec2(28.700000000, -49.709858177);
-            bloom_injectionWeights[151] = vec3(0.000675182, 0.000647291, 0.000617130);
-            bloom_injectionOffsets[183] = vec2(-15.400000000, 26.673582437);
-            bloom_injectionWeights[183] = vec3(0.002166065, 0.002107753, 0.002042390);
-            bloom_injectionOffsets[215] = vec2(-2.100000000, -3.637306696);
-            bloom_injectionWeights[215] = vec3(0.014698707, 0.014929080, 0.015168726);
-            bloom_injectionOffsets[247] = vec2(-24.500000000, -42.435244785);
-            bloom_injectionWeights[247] = vec3(0.000943017, 0.000913010, 0.000877819);
-            bloom_injectionOffsets[279] = vec2(11.200000000, 19.398969045);
-            bloom_injectionWeights[279] = vec3(0.003634963, 0.003535084, 0.003429963);
-            bloom_injectionOffsets[311] = vec2(33.600000000, 58.196907134);
-            bloom_injectionWeights[311] = vec3(0.000143853, 0.000202824, 0.000102682);
-            break;
-        case 24u:
-            bloom_injectionOffsets[24] = vec2(19.600000000, -0.000000000);
-            bloom_injectionWeights[24] = vec3(0.004144609, 0.004066658, 0.003983253);
-            bloom_injectionOffsets[56] = vec2(64.400000000, -0.000000000);
-            bloom_injectionWeights[56] = vec3(0.000132901, 0.000154932, 0.000180385);
-            bloom_injectionOffsets[88] = vec2(-40.600000000, 0.000000000);
-            bloom_injectionWeights[88] = vec3(0.001301486, 0.001267494, 0.001227607);
-            bloom_injectionOffsets[120] = vec2(7.000000000, -12.124355653);
-            bloom_injectionWeights[120] = vec3(0.006130130, 0.006193701, 0.006255920);
-            bloom_injectionOffsets[152] = vec2(29.400000000, -50.922293743);
-            bloom_injectionWeights[152] = vec3(0.000598435, 0.000571205, 0.000543100);
-            bloom_injectionOffsets[184] = vec2(-16.100000000, 27.886018002);
-            bloom_injectionWeights[184] = vec3(0.002032567, 0.001978328, 0.001917145);
-            bloom_injectionOffsets[216] = vec2(-2.800000000, -4.849742261);
-            bloom_injectionWeights[216] = vec3(0.013764445, 0.013988993, 0.014221945);
-            bloom_injectionOffsets[248] = vec2(-25.200000000, -43.647680351);
-            bloom_injectionWeights[248] = vec3(0.000896365, 0.000868027, 0.000834274);
-            bloom_injectionOffsets[280] = vec2(11.900000000, 20.611404610);
-            bloom_injectionWeights[280] = vec3(0.003326443, 0.003232091, 0.003132317);
-            bloom_injectionOffsets[312] = vec2(34.300000000, 59.409342700);
-            bloom_injectionWeights[312] = vec3(0.000064407, 0.000018824, 0.000096792);
-            break;
-        case 25u:
-            bloom_injectionOffsets[25] = vec2(21.000000000, -0.000000000);
-            bloom_injectionWeights[25] = vec3(0.004027250, 0.003932788, 0.003833388);
-            bloom_injectionOffsets[57] = vec2(65.800000000, -0.000000000);
-            bloom_injectionWeights[57] = vec3(0.000213322, 0.000221365, 0.000181503);
-            bloom_injectionOffsets[89] = vec2(-42.000000000, 0.000000000);
-            bloom_injectionWeights[89] = vec3(0.001253472, 0.001220778, 0.001182589);
-            bloom_injectionOffsets[121] = vec2(7.700000000, -13.336791218);
-            bloom_injectionWeights[121] = vec3(0.006038183, 0.006051082, 0.006062058);
-            bloom_injectionOffsets[153] = vec2(30.100000000, -52.134729308);
-            bloom_injectionWeights[153] = vec3(0.000523958, 0.000498654, 0.000473208);
-            bloom_injectionOffsets[185] = vec2(-16.800000000, 29.098453567);
-            bloom_injectionWeights[185] = vec3(0.001879285, 0.001828589, 0.001770934);
-            bloom_injectionOffsets[217] = vec2(-3.500000000, -6.062177826);
-            bloom_injectionWeights[217] = vec3(0.011828552, 0.012033707, 0.012245938);
-            bloom_injectionOffsets[249] = vec2(-25.900000000, -44.860115916);
-            bloom_injectionWeights[249] = vec3(0.000841378, 0.000815330, 0.000784074);
-            bloom_injectionOffsets[281] = vec2(12.600000000, 21.823840175);
-            bloom_injectionWeights[281] = vec3(0.003012040, 0.002928679, 0.002839454);
-            bloom_injectionOffsets[313] = vec2(35.000000000, 60.621778265);
-            bloom_injectionWeights[313] = vec3(0.000015289, 0.000020335, 0.000039929);
-            break;
-        case 26u:
-            bloom_injectionOffsets[26] = vec2(22.400000000, -0.000000000);
-            bloom_injectionWeights[26] = vec3(0.003499556, 0.003405886, 0.003307140);
-            bloom_injectionOffsets[58] = vec2(67.200000000, -0.000000000);
-            bloom_injectionWeights[58] = vec3(0.000088379, 0.000086962, 0.000130256);
-            bloom_injectionOffsets[90] = vec2(-43.400000000, 0.000000000);
-            bloom_injectionWeights[90] = vec3(0.001143096, 0.001112627, 0.001076171);
-            bloom_injectionOffsets[122] = vec2(8.400000000, -14.549226784);
-            bloom_injectionWeights[122] = vec3(0.005402763, 0.005374870, 0.005342371);
-            bloom_injectionOffsets[154] = vec2(30.800000000, -53.347164873);
-            bloom_injectionWeights[154] = vec3(0.000442314, 0.000420058, 0.000387372);
-            bloom_injectionOffsets[186] = vec2(-17.500000000, 30.310889132);
-            bloom_injectionWeights[186] = vec3(0.001735512, 0.001687674, 0.001633080);
-            bloom_injectionOffsets[218] = vec2(-4.200000000, -7.274613392);
-            bloom_injectionWeights[218] = vec3(0.009575245, 0.009756083, 0.009941848);
-            bloom_injectionOffsets[250] = vec2(-26.600000000, -46.072551481);
-            bloom_injectionWeights[250] = vec3(0.000789582, 0.000761985, 0.000730948);
-            bloom_injectionOffsets[282] = vec2(13.300000000, 23.036275741);
-            bloom_injectionWeights[282] = vec3(0.002771458, 0.002696285, 0.002614903);
-            bloom_injectionOffsets[314] = vec2(35.700000000, 61.834213830);
-            bloom_injectionWeights[314] = vec3(0.000000002, 0.000000002, 0.000000002);
-            break;
-        case 27u:
-            bloom_injectionOffsets[27] = vec2(23.800000000, -0.000000000);
-            bloom_injectionWeights[27] = vec3(0.003283025, 0.003192113, 0.003095960);
-            bloom_injectionOffsets[59] = vec2(68.600000000, -0.000000000);
-            bloom_injectionWeights[59] = vec3(0.000022978, 0.000022592, 0.000002371);
-            bloom_injectionOffsets[91] = vec2(-44.800000000, 0.000000000);
-            bloom_injectionWeights[91] = vec3(0.001089584, 0.001060058, 0.001024837);
-            bloom_injectionOffsets[123] = vec2(9.100000000, -15.761662349);
-            bloom_injectionWeights[123] = vec3(0.004879622, 0.004817316, 0.004749430);
-            bloom_injectionOffsets[155] = vec2(31.500000000, -54.559600438);
-            bloom_injectionWeights[155] = vec3(0.000464613, 0.000453026, 0.000405491);
-            bloom_injectionOffsets[187] = vec2(-18.200000000, 31.523324698);
-            bloom_injectionWeights[187] = vec3(0.001632950, 0.001587853, 0.001535868);
-            bloom_injectionOffsets[219] = vec2(-4.900000000, -8.487048957);
-            bloom_injectionWeights[219] = vec3(0.010192567, 0.010370160, 0.010553075);
-            bloom_injectionOffsets[251] = vec2(-27.300000000, -47.284987047);
-            bloom_injectionWeights[251] = vec3(0.000759145, 0.000731070, 0.000699692);
-            bloom_injectionOffsets[283] = vec2(14.000000000, 24.248711306);
-            bloom_injectionWeights[283] = vec3(0.002564827, 0.002496318, 0.002421289);
-            break;
-        case 28u:
-            bloom_injectionOffsets[28] = vec2(25.200000000, -0.000000000);
-            bloom_injectionWeights[28] = vec3(0.002994837, 0.002913854, 0.002827256);
-            bloom_injectionOffsets[60] = vec2(70.000000000, -0.000000000);
-            bloom_injectionWeights[60] = vec3(0.000039615, 0.000039137, 0.000043390);
-            bloom_injectionOffsets[92] = vec2(-46.200000000, 0.000000000);
-            bloom_injectionWeights[92] = vec3(0.001022245, 0.000994045, 0.000960144);
-            bloom_injectionOffsets[124] = vec2(9.800000000, -16.974097914);
-            bloom_injectionWeights[124] = vec3(0.004447816, 0.004361489, 0.004269681);
-            bloom_injectionOffsets[156] = vec2(32.200000000, -55.772036004);
-            bloom_injectionWeights[156] = vec3(0.000182343, 0.000168609, 0.000193019);
-            bloom_injectionOffsets[188] = vec2(-18.900000000, 32.735760263);
-            bloom_injectionWeights[188] = vec3(0.001529254, 0.001487253, 0.001438513);
-            bloom_injectionOffsets[220] = vec2(-5.600000000, -9.699484522);
-            bloom_injectionWeights[220] = vec3(0.009041817, 0.009187422, 0.009336283);
-            bloom_injectionOffsets[252] = vec2(-28.000000000, -48.497422612);
-            bloom_injectionWeights[252] = vec3(0.000737074, 0.000713153, 0.000684251);
-            bloom_injectionOffsets[284] = vec2(14.700000000, 25.461146871);
-            bloom_injectionWeights[284] = vec3(0.002337057, 0.002274437, 0.002204895);
-            break;
-        case 29u:
-            bloom_injectionOffsets[29] = vec2(26.600000000, -0.000000000);
-            bloom_injectionWeights[29] = vec3(0.002681269, 0.002610924, 0.002534851);
-            bloom_injectionOffsets[61] = vec2(71.400000000, -0.000000000);
-            bloom_injectionWeights[61] = vec3(0.000000002, 0.000000002, 0.000000002);
-            bloom_injectionOffsets[93] = vec2(-47.600000000, 0.000000000);
-            bloom_injectionWeights[93] = vec3(0.000949984, 0.000923240, 0.000890604);
-            bloom_injectionOffsets[125] = vec2(10.500000000, -18.186533479);
-            bloom_injectionWeights[125] = vec3(0.003987717, 0.003890419, 0.003787803);
-            bloom_injectionOffsets[157] = vec2(32.900000000, -56.984471569);
-            bloom_injectionWeights[157] = vec3(0.000195085, 0.000167764, 0.000162037);
-            bloom_injectionOffsets[189] = vec2(-19.600000000, 33.948195828);
-            bloom_injectionWeights[189] = vec3(0.001417644, 0.001377639, 0.001332014);
-            bloom_injectionOffsets[221] = vec2(-6.300000000, -10.911920088);
-            bloom_injectionWeights[221] = vec3(0.007907497, 0.008011335, 0.008115852);
-            bloom_injectionOffsets[253] = vec2(-28.700000000, -49.709858177);
-            bloom_injectionWeights[253] = vec3(0.000676228, 0.000648326, 0.000618143);
-            bloom_injectionOffsets[285] = vec2(15.400000000, 26.673582437);
-            bloom_injectionWeights[285] = vec3(0.002167182, 0.002108873, 0.002043512);
-            break;
-        case 30u:
-            bloom_injectionOffsets[30] = vec2(28.000000000, -0.000000000);
-            bloom_injectionWeights[30] = vec3(0.002572506, 0.002505716, 0.002432882);
-            bloom_injectionOffsets[62] = vec2(-1.400000000, 0.000000000);
-            bloom_injectionWeights[62] = vec3(0.019816732, 0.020034770, 0.020259686);
-            bloom_injectionOffsets[94] = vec2(-49.000000000, 0.000000000);
-            bloom_injectionWeights[94] = vec3(0.000913052, 0.000887706, 0.000856796);
-            bloom_injectionOffsets[126] = vec2(11.200000000, -19.398969045);
-            bloom_injectionWeights[126] = vec3(0.003632628, 0.003532774, 0.003427675);
-            bloom_injectionOffsets[158] = vec2(33.600000000, -58.196907134);
-            bloom_injectionWeights[158] = vec3(0.000128126, 0.000164700, 0.000100650);
-            bloom_injectionOffsets[190] = vec2(-20.300000000, 35.160631394);
-            bloom_injectionWeights[190] = vec3(0.001326532, 0.001288537, 0.001245329);
-            bloom_injectionOffsets[222] = vec2(-7.000000000, -12.124355653);
-            bloom_injectionWeights[222] = vec3(0.006986285, 0.007043456, 0.007098834);
-            bloom_injectionOffsets[254] = vec2(-29.400000000, -50.922293743);
-            bloom_injectionWeights[254] = vec3(0.000599347, 0.000572079, 0.000543990);
-            bloom_injectionOffsets[286] = vec2(16.100000000, 27.886018002);
-            bloom_injectionWeights[286] = vec3(0.002033371, 0.001979132, 0.001917949);
-            break;
-        case 31u:
-            bloom_injectionOffsets[31] = vec2(29.400000000, -0.000000000);
-            bloom_injectionWeights[31] = vec3(0.002288599, 0.002229828, 0.002165273);
-            bloom_injectionOffsets[63] = vec2(-2.800000000, 0.000000000);
-            bloom_injectionWeights[63] = vec3(0.018216427, 0.018433087, 0.018665925);
-            bloom_injectionOffsets[95] = vec2(-50.400000000, 0.000000000);
-            bloom_injectionWeights[95] = vec3(0.000844383, 0.000818869, 0.000787868);
-            bloom_injectionOffsets[127] = vec2(11.900000000, -20.611404610);
-            bloom_injectionWeights[127] = vec3(0.003324868, 0.003230537, 0.003130781);
-            bloom_injectionOffsets[159] = vec2(34.300000000, -59.409342700);
-            bloom_injectionWeights[159] = vec3(0.000020811, 0.000021062, 0.000005811);
-            bloom_injectionOffsets[191] = vec2(-21.000000000, 36.373066959);
-            bloom_injectionWeights[191] = vec3(0.001265905, 0.001231130, 0.001189929);
-            bloom_injectionOffsets[223] = vec2(-7.700000000, -13.336791218);
-            bloom_injectionWeights[223] = vec3(0.005884319, 0.005895503, 0.005902821);
-            bloom_injectionOffsets[255] = vec2(-30.100000000, -52.134729308);
-            bloom_injectionWeights[255] = vec3(0.000524677, 0.000499426, 0.000473927);
-            bloom_injectionOffsets[287] = vec2(16.800000000, 29.098453567);
-            bloom_injectionWeights[287] = vec3(0.001880156, 0.001829460, 0.001771805);
-            break;
-    }
-    barrier();
-}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    vec3 value = vec3(0.0);
-    for (int i = 0; i < bloom_injectionCount; ++i) {
-        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    for (int i = 22; i < 82; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 0) * bloom_injectionWeights[i];
     }
     return value;
 }
@@ -3053,56 +538,56 @@ shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.114524797, 0.114327215, 0.114261001);
+            bloom_injectionOffsets[0] = vec2(0.009409732, 0.011838768);
+            bloom_injectionWeights[0] = vec3(1.001330853, 0.999708116, 0.959615529);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(5.000000000, -0.000000000);
-            bloom_injectionWeights[1] = vec3(0.001003869, 0.001011769, 0.001010058);
+            bloom_injectionOffsets[1] = vec2(-0.952474137, 0.014815150);
+            bloom_injectionWeights[1] = vec3(0.000000007, 0.000000007, 0.000000007);
             break;
         case 2u:
-            bloom_injectionOffsets[2] = vec2(-5.000000000, -0.000000000);
-            bloom_injectionWeights[2] = vec3(0.001049480, 0.001057313, 0.001055597);
+            bloom_injectionOffsets[2] = vec2(-8.824141870, 0.178996466);
+            bloom_injectionWeights[2] = vec3(0.000000006, 0.000000006, 0.000000006);
             break;
         case 3u:
-            bloom_injectionOffsets[3] = vec2(2.000000000, -3.000000000);
-            bloom_injectionWeights[3] = vec3(0.001272773, 0.001273096, 0.001263083);
+            bloom_injectionOffsets[3] = vec2(8.886527311, 0.211815000);
+            bloom_injectionWeights[3] = vec3(0.000000006, 0.000000006, 0.000000006);
             break;
         case 4u:
-            bloom_injectionOffsets[4] = vec2(2.000000000, 3.000000000);
-            bloom_injectionWeights[4] = vec3(0.001324715, 0.001325006, 0.001314703);
+            bloom_injectionOffsets[4] = vec2(-12.928257081, -0.091779419);
+            bloom_injectionWeights[4] = vec3(0.000000006, 0.000000006, 0.000000006);
             break;
         case 5u:
-            bloom_injectionOffsets[5] = vec2(-2.000000000, -3.000000000);
-            bloom_injectionWeights[5] = vec3(0.001260059, 0.001260458, 0.001250396);
+            bloom_injectionOffsets[5] = vec2(12.885854521, -0.094041163);
+            bloom_injectionWeights[5] = vec3(0.000000006, 0.000000006, 0.000000006);
             break;
         case 6u:
-            bloom_injectionOffsets[6] = vec2(-2.000000000, 3.000000000);
-            bloom_injectionWeights[6] = vec3(0.001332739, 0.001333003, 0.001322655);
+            bloom_injectionOffsets[6] = vec2(14.600000000, -0.917822914);
+            bloom_injectionWeights[6] = vec3(0.000000235, 0.000000176, 0.000000155);
             break;
         case 7u:
-            bloom_injectionOffsets[7] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[7] = vec3(0.004747408, 0.004734184, 0.004708854);
+            bloom_injectionOffsets[7] = vec2(-14.600000000, -1.200092750);
+            bloom_injectionWeights[7] = vec3(0.000000244, 0.000000223, 0.000000176);
             break;
         case 8u:
-            bloom_injectionOffsets[8] = vec2(-9.000000000, -0.000000000);
-            bloom_injectionWeights[8] = vec3(0.000723878, 0.000738820, 0.000746181);
+            bloom_injectionOffsets[8] = vec2(5.824172415, 0.072578075);
+            bloom_injectionWeights[8] = vec3(0.000000007, 0.000000007, 0.000000007);
             break;
         case 9u:
-            bloom_injectionOffsets[9] = vec2(9.000000000, -0.000000000);
-            bloom_injectionWeights[9] = vec3(0.000743835, 0.000758775, 0.000766169);
+            bloom_injectionOffsets[9] = vec2(-5.877609677, 0.108678269);
+            bloom_injectionWeights[9] = vec3(0.000000007, 0.000000007, 0.000000007);
             break;
         case 10u:
-            bloom_injectionOffsets[10] = vec2(4.000000000, 7.000000000);
-            bloom_injectionWeights[10] = vec3(0.000868221, 0.000882280, 0.000888132);
+            bloom_injectionOffsets[10] = vec2(2.999976795, -0.176435877);
+            bloom_injectionWeights[10] = vec3(0.000000007, 0.000000007, 0.000000008);
             break;
         case 11u:
-            bloom_injectionOffsets[11] = vec2(4.000000000, -7.000000000);
-            bloom_injectionWeights[11] = vec3(0.000877146, 0.000891846, 0.000898523);
+            bloom_injectionOffsets[11] = vec2(20.575841199, -0.162670277);
+            bloom_injectionWeights[11] = vec3(0.000000005, 0.000000005, 0.000000032);
             break;
         case 12u:
-            bloom_injectionOffsets[12] = vec2(-4.000000000, -7.000000000);
-            bloom_injectionWeights[12] = vec3(0.000849514, 0.000863646, 0.000869543);
+            bloom_injectionOffsets[12] = vec2(-20.830665845, 0.385533542);
+            bloom_injectionWeights[12] = vec3(0.000000005, 0.000000005, 0.000000044);
             break;
     }
     barrier();
@@ -3121,40 +606,40 @@ shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.111956142, 0.111759193, 0.111695915);
+            bloom_injectionOffsets[0] = vec2(-0.102212140, 0.040718393);
+            bloom_injectionWeights[0] = vec3(0.111012734, 0.110706724, 0.110278986);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(2.000000000, -0.000000000);
-            bloom_injectionWeights[1] = vec3(0.001483577, 0.001484854, 0.001476372);
+            bloom_injectionOffsets[1] = vec2(-0.999267220, 0.029215362);
+            bloom_injectionWeights[1] = vec3(0.000000007, 0.000000007, 0.000000008);
             break;
         case 2u:
-            bloom_injectionOffsets[2] = vec2(-2.000000000, -0.000000000);
-            bloom_injectionWeights[2] = vec3(0.001504051, 0.001505336, 0.001496896);
+            bloom_injectionOffsets[2] = vec2(-4.822884863, 0.219870515);
+            bloom_injectionWeights[2] = vec3(0.000000007, 0.000000007, 0.000000007);
             break;
         case 3u:
-            bloom_injectionOffsets[3] = vec2(2.000000000, -3.000000000);
-            bloom_injectionWeights[3] = vec3(0.001073839, 0.001085614, 0.001089192);
+            bloom_injectionOffsets[3] = vec2(4.938085335, 0.238672393);
+            bloom_injectionWeights[3] = vec3(0.000000007, 0.000000007, 0.000000007);
             break;
         case 4u:
-            bloom_injectionOffsets[4] = vec2(2.000000000, 3.000000000);
-            bloom_injectionWeights[4] = vec3(0.001102800, 0.001113759, 0.001116043);
+            bloom_injectionOffsets[4] = vec2(0.939129486, 0.342209142);
+            bloom_injectionWeights[4] = vec3(0.006171701, 0.006994996, 0.007141307);
             break;
         case 5u:
-            bloom_injectionOffsets[5] = vec2(-2.000000000, -3.000000000);
-            bloom_injectionWeights[5] = vec3(0.001066243, 0.001077345, 0.001080609);
+            bloom_injectionOffsets[5] = vec2(6.528760241, -2.389049376);
+            bloom_injectionWeights[5] = vec3(0.000030808, 0.000066423, 0.000014416);
             break;
         case 6u:
-            bloom_injectionOffsets[6] = vec2(-2.000000000, 3.000000000);
-            bloom_injectionWeights[6] = vec3(0.001222807, 0.001233346, 0.001235089);
+            bloom_injectionOffsets[6] = vec2(-7.778131615, -2.400000000);
+            bloom_injectionWeights[6] = vec3(0.000086350, 0.000060345, 0.000028493);
             break;
         case 7u:
-            bloom_injectionOffsets[7] = vec2(-5.000000000, -0.000000000);
-            bloom_injectionWeights[7] = vec3(0.000887813, 0.000903901, 0.000911636);
+            bloom_injectionOffsets[7] = vec2(11.000000000, -2.400000000);
+            bloom_injectionWeights[7] = vec3(0.000000007, 0.000017151, 0.000024125);
             break;
         case 8u:
-            bloom_injectionOffsets[8] = vec2(5.000000000, -0.000000000);
-            bloom_injectionWeights[8] = vec3(0.000902784, 0.000918689, 0.000926319);
+            bloom_injectionOffsets[8] = vec2(-12.204613905, -2.400000000);
+            bloom_injectionWeights[8] = vec3(0.000000007, 0.000058586, 0.000067537);
             break;
     }
     barrier();
@@ -3173,32 +658,32 @@ shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.110531248, 0.110345200, 0.110294499);
+            bloom_injectionOffsets[0] = vec2(-0.040026417, -0.036415484);
+            bloom_injectionWeights[0] = vec3(0.136651814, 0.136070892, 0.135667369);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(-1.000000000, -0.000000000);
-            bloom_injectionWeights[1] = vec3(0.001510958, 0.001516282, 0.001512613);
+            bloom_injectionOffsets[1] = vec2(-1.815979826, -1.147259345);
+            bloom_injectionWeights[1] = vec3(0.001836327, 0.001868660, 0.001908057);
             break;
         case 2u:
-            bloom_injectionOffsets[2] = vec2(2.000000000, -0.000000000);
-            bloom_injectionWeights[2] = vec3(0.001219794, 0.001231681, 0.001234779);
+            bloom_injectionOffsets[2] = vec2(2.800272393, -1.726478717);
+            bloom_injectionWeights[2] = vec3(0.001013463, 0.000813830, 0.000758306);
             break;
         case 3u:
-            bloom_injectionOffsets[3] = vec2(-2.000000000, -3.000000000);
-            bloom_injectionWeights[3] = vec3(0.001207752, 0.001227196, 0.001235115);
+            bloom_injectionOffsets[3] = vec2(-4.208265153, 2.004342278);
+            bloom_injectionWeights[3] = vec3(0.000695409, 0.000678314, 0.000660293);
             break;
         case 4u:
-            bloom_injectionOffsets[4] = vec2(-2.000000000, 3.000000000);
-            bloom_injectionWeights[4] = vec3(0.001215076, 0.001234707, 0.001242884);
+            bloom_injectionOffsets[4] = vec2(5.263546187, -2.000927082);
+            bloom_injectionWeights[4] = vec3(0.000487418, 0.000473055, 0.000474712);
             break;
         case 5u:
-            bloom_injectionOffsets[5] = vec2(2.000000000, -3.000000000);
-            bloom_injectionWeights[5] = vec3(0.001221640, 0.001241161, 0.001249072);
+            bloom_injectionOffsets[5] = vec2(0.342546376, -1.791428967);
+            bloom_injectionWeights[5] = vec3(0.003875354, 0.003776207, 0.003608388);
             break;
         case 6u:
-            bloom_injectionOffsets[6] = vec2(2.000000000, 3.000000000);
-            bloom_injectionWeights[6] = vec3(0.001224341, 0.001243692, 0.001251517);
+            bloom_injectionOffsets[6] = vec2(0.103755976, 2.110787506);
+            bloom_injectionWeights[6] = vec3(0.003246480, 0.003272767, 0.003329147);
             break;
     }
     barrier();
@@ -3217,24 +702,24 @@ shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.110176660, 0.110001661, 0.109961502);
+            bloom_injectionOffsets[0] = vec2(-0.127410701, -0.012608613);
+            bloom_injectionWeights[0] = vec3(0.128529191, 0.128958702, 0.129278988);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(1.000000000, -0.000000000);
-            bloom_injectionWeights[1] = vec3(0.001378437, 0.001395655, 0.001400998);
+            bloom_injectionOffsets[1] = vec2(1.197199803, -1.640040219);
+            bloom_injectionWeights[1] = vec3(0.003621249, 0.003597973, 0.003512324);
             break;
         case 2u:
-            bloom_injectionOffsets[2] = vec2(-2.000000000, -0.000000000);
-            bloom_injectionWeights[2] = vec3(0.001538171, 0.001566478, 0.001578695);
+            bloom_injectionOffsets[2] = vec2(-2.268348786, -1.269113243);
+            bloom_injectionWeights[2] = vec3(0.003295495, 0.003223941, 0.003295426);
             break;
         case 3u:
-            bloom_injectionOffsets[3] = vec2(2.000000000, -3.000000000);
-            bloom_injectionWeights[3] = vec3(0.001378620, 0.001382894, 0.001386303);
+            bloom_injectionOffsets[3] = vec2(-0.534998318, -2.338073468);
+            bloom_injectionWeights[3] = vec3(0.003271393, 0.003248838, 0.003233400);
             break;
         case 4u:
-            bloom_injectionOffsets[4] = vec2(-2.000000000, -3.000000000);
-            bloom_injectionWeights[4] = vec3(0.001351347, 0.001354356, 0.001357644);
+            bloom_injectionOffsets[4] = vec2(0.320001738, 2.076258850);
+            bloom_injectionWeights[4] = vec3(0.003184114, 0.003161058, 0.003095021);
             break;
     }
     barrier();
@@ -3253,16 +738,16 @@ shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.111016639, 0.110845879, 0.110806026);
+            bloom_injectionOffsets[0] = vec2(-0.107721765, 0.109957449);
+            bloom_injectionWeights[0] = vec3(0.119744688, 0.120273709, 0.120212287);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[1] = vec3(0.002328997, 0.002337353, 0.002333919);
+            bloom_injectionOffsets[1] = vec2(1.038031415, -0.278762904);
+            bloom_injectionWeights[1] = vec3(0.007673115, 0.007409298, 0.007332058);
             break;
         case 2u:
-            bloom_injectionOffsets[2] = vec2(-1.000000000, 2.000000000);
-            bloom_injectionWeights[2] = vec3(0.004676403, 0.004640959, 0.004597932);
+            bloom_injectionOffsets[2] = vec2(-1.418823136, -0.327681077);
+            bloom_injectionWeights[2] = vec3(0.004966653, 0.004781987, 0.004973464);
             break;
     }
     barrier();
@@ -3281,12 +766,12 @@ shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.114308603, 0.114095651, 0.114013016);
+            bloom_injectionOffsets[0] = vec2(0.101489808, 0.055435464);
+            bloom_injectionWeights[0] = vec3(0.130545452, 0.130609035, 0.129874140);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[1] = vec3(0.004976777, 0.004950040, 0.004910151);
+            bloom_injectionOffsets[1] = vec2(-1.108034498, 0.139869631);
+            bloom_injectionWeights[1] = vec3(0.007965455, 0.007819097, 0.008269506);
             break;
     }
     barrier();
@@ -3300,1155 +785,1327 @@ vec3 bloom_injection(vec2 center, vec4 tile) {
 }
 #endif
 #ifdef BLOOM_FIRST_UPSAMPLE
-const vec3 bloom_deepestWeight = vec3(0.113477208, 0.113266788, 0.113190793);
+const vec3 bloom_deepestWeight = vec3(0.124077961, 0.123972103, 0.123343691);
+#endif
+
+#elif SETTING_BLOOM_SHAPE == 4 // camera-six, fitted candidate
+// Bloom DPF recipe 7a01a6787ae5cfb9db38c1b8f942fd3cf8f4208f930567b18e7ed04db288f248
+#define BLOOM_DPF_FEATURE_COUNT 3
+#if defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
+vec3 bloom_dpfFeature(vec2 center, vec4 tile, int feature) {
+    vec3 value = vec3(0.0);
+    if (feature == 0) {
+        value += bloom_sample(center + vec2(-2.605061899, -0.005755734), tile) * vec3(0.236977130, 0.240971774, 0.244774044);
+        value += bloom_sample(center + vec2(-0.882007730, -0.005053493), tile) * vec3(0.195282921, 0.194724619, 0.196542338);
+        value += bloom_sample(center + vec2(-0.158365560, -0.005861050), tile) * vec3(0.211042017, 0.209883392, 0.201460049);
+        value += bloom_sample(center + vec2(0.951332935, 0.000749785), tile) * vec3(0.190082952, 0.190495595, 0.196520284);
+        value += bloom_sample(center + vec2(2.661875571, -0.011489755), tile) * vec3(0.166614965, 0.163924634, 0.160703272);
+    }
+    if (feature == 1) {
+        value += bloom_sample(center + vec2(-0.999541678, 1.821425731), tile) * vec3(0.210677773, 0.217035338, 0.217352137);
+        value += bloom_sample(center + vec2(0.000629370, 0.004172994), tile) * vec3(0.156926841, 0.152501732, 0.149132505);
+        value += bloom_sample(center + vec2(-0.000825286, 0.009530980), tile) * vec3(0.263372183, 0.269151777, 0.278119117);
+        value += bloom_sample(center + vec2(0.495381035, -0.838635385), tile) * vec3(0.063157544, 0.062850021, 0.053338453);
+        value += bloom_sample(center + vec2(1.001820385, -1.995496973), tile) * vec3(0.305865675, 0.298461139, 0.302057773);
+    }
+    if (feature == 2) {
+        value += bloom_sample(center + vec2(0.999434173, 1.998597136), tile) * vec3(0.318682671, 0.315751404, 0.319388419);
+        value += bloom_sample(center + vec2(0.359846292, 0.744957532), tile) * vec3(0.059802003, 0.057955354, 0.049640868);
+        value += bloom_sample(center + vec2(-0.001137664, -0.000367887), tile) * vec3(0.263284653, 0.268745035, 0.277732581);
+        value += bloom_sample(center + vec2(0.000811029, -0.000496795), tile) * vec3(0.151453599, 0.147523254, 0.142934710);
+        value += bloom_sample(center + vec2(-0.999676943, -1.853131558), tile) * vec3(0.206777066, 0.210024968, 0.210303411);
+    }
+    return value;
+}
+#endif
+vec3 bloom_filter(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+#ifdef BLOOM_DOWNSAMPLE
+#if BLOOM_PASS == 1
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.159956649, 0.164543793, 0.161741585);
+    value += bloom_sample(center + vec2(-0.720492416, 0.737485030), tile) * vec3(0.210010841, 0.208864048, 0.209564611);
+    value += bloom_sample(center + vec2(-0.720492416, -0.737485030), tile) * vec3(0.210010841, 0.208864048, 0.209564611);
+    value += bloom_sample(center + vec2(0.720492416, 0.737485030), tile) * vec3(0.210010841, 0.208864048, 0.209564611);
+    value += bloom_sample(center + vec2(0.720492416, -0.737485030), tile) * vec3(0.210010841, 0.208864048, 0.209564611);
+#elif BLOOM_PASS == 2
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.219998479, 0.215012193, 0.210274622);
+    value += bloom_sample(center + vec2(-0.769144644, 0.785127786), tile) * vec3(0.195000380, 0.196246952, 0.197431341);
+    value += bloom_sample(center + vec2(-0.769144644, -0.785127786), tile) * vec3(0.195000380, 0.196246952, 0.197431341);
+    value += bloom_sample(center + vec2(0.769144644, 0.785127786), tile) * vec3(0.195000380, 0.196246952, 0.197431341);
+    value += bloom_sample(center + vec2(0.769144644, -0.785127786), tile) * vec3(0.195000380, 0.196246952, 0.197431341);
+#elif BLOOM_PASS == 3
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.206735715, 0.205757380, 0.204797596);
+    value += bloom_sample(center + vec2(-0.814987850, 0.841606512), tile) * vec3(0.198316067, 0.198560655, 0.198800594);
+    value += bloom_sample(center + vec2(-0.814987850, -0.841606512), tile) * vec3(0.198316067, 0.198560655, 0.198800594);
+    value += bloom_sample(center + vec2(0.814987850, 0.841606512), tile) * vec3(0.198316067, 0.198560655, 0.198800594);
+    value += bloom_sample(center + vec2(0.814987850, -0.841606512), tile) * vec3(0.198316067, 0.198560655, 0.198800594);
+#elif BLOOM_PASS == 4
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.237834498, 0.233078614, 0.229230762);
+    value += bloom_sample(center + vec2(-0.823061540, 0.839189507), tile) * vec3(0.190541372, 0.191730350, 0.192692310);
+    value += bloom_sample(center + vec2(-0.823061540, -0.839189507), tile) * vec3(0.190541372, 0.191730350, 0.192692310);
+    value += bloom_sample(center + vec2(0.823061540, 0.839189507), tile) * vec3(0.190541372, 0.191730350, 0.192692310);
+    value += bloom_sample(center + vec2(0.823061540, -0.839189507), tile) * vec3(0.190541372, 0.191730350, 0.192692310);
+#elif BLOOM_PASS == 5
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.202954516, 0.204020947, 0.204219833);
+    value += bloom_sample(center + vec2(-0.840383786, 0.830270114), tile) * vec3(0.199261367, 0.198994756, 0.198945045);
+    value += bloom_sample(center + vec2(-0.840383786, -0.830270114), tile) * vec3(0.199261367, 0.198994756, 0.198945045);
+    value += bloom_sample(center + vec2(0.840383786, 0.830270114), tile) * vec3(0.199261367, 0.198994756, 0.198945045);
+    value += bloom_sample(center + vec2(0.840383786, -0.830270114), tile) * vec3(0.199261367, 0.198994756, 0.198945045);
+#elif BLOOM_PASS == 6
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.175312817, 0.177218199, 0.177986503);
+    value += bloom_sample(center + vec2(-0.858824185, 0.864458790), tile) * vec3(0.206171796, 0.205695450, 0.205503374);
+    value += bloom_sample(center + vec2(-0.858824185, -0.864458790), tile) * vec3(0.206171796, 0.205695450, 0.205503374);
+    value += bloom_sample(center + vec2(0.858824185, 0.864458790), tile) * vec3(0.206171796, 0.205695450, 0.205503374);
+    value += bloom_sample(center + vec2(0.858824185, -0.864458790), tile) * vec3(0.206171796, 0.205695450, 0.205503374);
+#elif BLOOM_PASS == 7
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.195018589, 0.192360237, 0.195137605);
+    value += bloom_sample(center + vec2(-0.788871308, 0.855005967), tile) * vec3(0.201245353, 0.201909944, 0.201215595);
+    value += bloom_sample(center + vec2(-0.788871308, -0.855005967), tile) * vec3(0.201245353, 0.201909944, 0.201215595);
+    value += bloom_sample(center + vec2(0.788871308, 0.855005967), tile) * vec3(0.201245353, 0.201909944, 0.201215595);
+    value += bloom_sample(center + vec2(0.788871308, -0.855005967), tile) * vec3(0.201245353, 0.201909944, 0.201215595);
+#elif BLOOM_PASS == 8
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.179815531, 0.180335447, 0.181737930);
+    value += bloom_sample(center + vec2(-0.876109156, 0.860558282), tile) * vec3(0.205046117, 0.204916134, 0.204565510);
+    value += bloom_sample(center + vec2(-0.876109156, -0.860558282), tile) * vec3(0.205046117, 0.204916134, 0.204565510);
+    value += bloom_sample(center + vec2(0.876109156, 0.860558282), tile) * vec3(0.205046117, 0.204916134, 0.204565510);
+    value += bloom_sample(center + vec2(0.876109156, -0.860558282), tile) * vec3(0.205046117, 0.204916134, 0.204565510);
+#endif
+#else
+#if BLOOM_PASS == 1
+    value += bloom_sample(center + vec2(0.241490560, 0.003126103), tile) * vec3(0.887891173, 0.891923189, 0.890188694);
+    value += bloom_sample(center + vec2(-0.155466013, -0.055541535), tile) * vec3(0.003740932, 0.003665959, 0.003715537);
+    value += bloom_sample(center + vec2(0.242727884, 0.014478893), tile) * vec3(0.003963848, 0.003721883, 0.003748834);
+    value += bloom_sample(center + vec2(0.148283680, -0.214142377), tile) * vec3(0.003675058, 0.003746503, 0.003844323);
+    value += bloom_sample(center + vec2(0.211940803, 0.214189814), tile) * vec3(0.003775758, 0.003707773, 0.003803458);
+    value += bloom_sample(center + vec2(0.004135536, -0.102320071), tile) * vec3(0.022855867, 0.020786658, 0.021261260);
+    value += bloom_sample(center + vec2(0.010301742, 0.116341393), tile) * vec3(0.022836320, 0.021650136, 0.021953419);
+    value += bloom_sample(center + vec2(0.245463912, -0.089834595), tile) * vec3(0.025798852, 0.025747331, 0.026146384);
+    value += bloom_sample(center + vec2(0.235992943, 0.128120760), tile) * vec3(0.025462208, 0.025050547, 0.025338091);
+#elif BLOOM_PASS == 2
+    value += bloom_sample(center + vec2(-0.741742999, 0.032873117), tile) * vec3(0.046166133, 0.048565611, 0.051076870);
+    value += bloom_sample(center + vec2(0.744687153, -0.084217148), tile) * vec3(0.038509961, 0.039583027, 0.040477652);
+    value += bloom_sample(center + vec2(0.149092322, -0.739404547), tile) * vec3(0.040163931, 0.042849358, 0.046209272);
+    value += bloom_sample(center + vec2(0.330311460, 0.843813697), tile) * vec3(0.042716701, 0.044763215, 0.047208872);
+    value += bloom_sample(center + vec2(-0.194912558, -0.095053055), tile) * vec3(0.214846700, 0.214832574, 0.214357898);
+    value += bloom_sample(center + vec2(-0.195337944, 0.122090358), tile) * vec3(0.212139726, 0.209781229, 0.207722202);
+    value += bloom_sample(center + vec2(0.046559181, -0.105842523), tile) * vec3(0.199812382, 0.199274123, 0.197856992);
+    value += bloom_sample(center + vec2(0.022007329, 0.117130367), tile) * vec3(0.205644473, 0.200350866, 0.195090249);
+#elif BLOOM_PASS == 3
+    value += bloom_sample(center + vec2(-1.288511289, 0.009663713), tile) * vec3(0.076106839, 0.075345092, 0.077242687);
+    value += bloom_sample(center + vec2(1.508652914, 0.075629944), tile) * vec3(0.092886925, 0.094123431, 0.095778525);
+    value += bloom_sample(center + vec2(-0.043269864, -1.488114667), tile) * vec3(0.077624843, 0.076579027, 0.077589199);
+    value += bloom_sample(center + vec2(0.008316733, 1.747324062), tile) * vec3(0.094957970, 0.093664818, 0.094159715);
+    value += bloom_sample(center + vec2(-0.532421829, -0.548712344), tile) * vec3(0.110031642, 0.114727959, 0.111981317);
+    value += bloom_sample(center + vec2(-0.618462421, 0.668404868), tile) * vec3(0.188795224, 0.187500998, 0.188581616);
+    value += bloom_sample(center + vec2(0.574933397, -0.535105953), tile) * vec3(0.171401992, 0.175083250, 0.175400943);
+    value += bloom_sample(center + vec2(0.676448607, 0.652825060), tile) * vec3(0.188194558, 0.182975426, 0.179266006);
+#elif BLOOM_PASS == 4
+    value += bloom_sample(center + vec2(-1.246435288, -0.022768878), tile) * vec3(0.076615229, 0.077075191, 0.077112757);
+    value += bloom_sample(center + vec2(1.248267754, 0.024975262), tile) * vec3(0.074380010, 0.078060009, 0.078544617);
+    value += bloom_sample(center + vec2(-0.057962286, -1.443988322), tile) * vec3(0.074266836, 0.073180594, 0.073551081);
+    value += bloom_sample(center + vec2(-0.037153053, 1.497249209), tile) * vec3(0.069236994, 0.069314755, 0.069751360);
+    value += bloom_sample(center + vec2(-0.543509855, -0.442220300), tile) * vec3(0.167727366, 0.162558705, 0.161422029);
+    value += bloom_sample(center + vec2(-0.526213431, 0.410416549), tile) * vec3(0.180071697, 0.180867195, 0.180777639);
+    value += bloom_sample(center + vec2(0.516867309, -0.408013367), tile) * vec3(0.173984632, 0.181309059, 0.181292593);
+    value += bloom_sample(center + vec2(0.537767401, 0.389428067), tile) * vec3(0.183717236, 0.177634493, 0.177547917);
+#elif BLOOM_PASS == 5
+    value += bloom_sample(center + vec2(-0.653038150, -0.350252989), tile) * vec3(0.230190158, 0.227160424, 0.229605749);
+    value += bloom_sample(center + vec2(1.304772585, -0.023827322), tile) * vec3(0.072617546, 0.072971217, 0.073051155);
+    value += bloom_sample(center + vec2(0.026923159, -1.276516041), tile) * vec3(0.071422152, 0.071495332, 0.071303926);
+    value += bloom_sample(center + vec2(0.033760846, 1.303632529), tile) * vec3(0.070472717, 0.070863672, 0.072814189);
+    value += bloom_sample(center + vec2(-0.432013381, 0.492268444), tile) * vec3(0.178994179, 0.179346532, 0.178048640);
+    value += bloom_sample(center + vec2(0.486422020, -0.474938283), tile) * vec3(0.189052925, 0.191770017, 0.191078246);
+    value += bloom_sample(center + vec2(0.495078191, 0.486761460), tile) * vec3(0.187250316, 0.186392814, 0.184098095);
+#elif BLOOM_PASS == 6
+    value += bloom_sample(center + vec2(-1.233335053, -0.035001061), tile) * vec3(0.066937976, 0.069072291, 0.068445891);
+    value += bloom_sample(center + vec2(1.301676870, -0.029955253), tile) * vec3(0.072831720, 0.073319629, 0.073754117);
+    value += bloom_sample(center + vec2(0.022869223, -1.258755008), tile) * vec3(0.069155633, 0.068652391, 0.068670690);
+    value += bloom_sample(center + vec2(0.027377183, 1.130592432), tile) * vec3(0.062460821, 0.062147919, 0.062079918);
+    value += bloom_sample(center + vec2(-0.481994952, -0.492988940), tile) * vec3(0.180923849, 0.178311840, 0.179959878);
+    value += bloom_sample(center + vec2(-0.439857091, 0.434153835), tile) * vec3(0.174708068, 0.175447032, 0.175269827);
+    value += bloom_sample(center + vec2(0.510490154, -0.480641965), tile) * vec3(0.190492570, 0.190771207, 0.189970151);
+    value += bloom_sample(center + vec2(0.521490801, 0.419653865), tile) * vec3(0.182489365, 0.182277694, 0.181849539);
+#elif BLOOM_PASS == 7
+    value += bloom_sample(center + vec2(-1.333276439, 0.001117608), tile) * vec3(0.071655698, 0.072133072, 0.071785949);
+    value += bloom_sample(center + vec2(1.263426411, 0.011548875), tile) * vec3(0.069909044, 0.069607571, 0.069487922);
+    value += bloom_sample(center + vec2(-0.026750787, -1.257267415), tile) * vec3(0.070616886, 0.070533030, 0.070152342);
+    value += bloom_sample(center + vec2(-0.009270922, 1.374601391), tile) * vec3(0.070245482, 0.068089366, 0.067795642);
+    value += bloom_sample(center + vec2(-0.496743849, -0.506984919), tile) * vec3(0.175704107, 0.175458238, 0.176311836);
+    value += bloom_sample(center + vec2(-0.535482484, 0.506014319), tile) * vec3(0.176235139, 0.178066462, 0.177949354);
+    value += bloom_sample(center + vec2(0.485329163, -0.476935622), tile) * vec3(0.187701434, 0.187746510, 0.187367871);
+    value += bloom_sample(center + vec2(0.523029055, 0.470965446), tile) * vec3(0.177932203, 0.178365752, 0.179149091);
+#elif BLOOM_PASS == 8
+    value += bloom_sample(center + vec2(-1.321149415, 0.030965776), tile) * vec3(0.074879922, 0.074453473, 0.073877707);
+    value += bloom_sample(center + vec2(1.312516220, 0.043622263), tile) * vec3(0.073849238, 0.072979964, 0.072219454);
+    value += bloom_sample(center + vec2(-0.040231908, -1.311799022), tile) * vec3(0.072835445, 0.072420292, 0.071545281);
+    value += bloom_sample(center + vec2(-0.026840705, 1.327373402), tile) * vec3(0.074658670, 0.074779995, 0.074259304);
+    value += bloom_sample(center + vec2(-0.520635488, -0.507288442), tile) * vec3(0.170569375, 0.170305207, 0.170894697);
+    value += bloom_sample(center + vec2(-0.516121678, 0.516513267), tile) * vec3(0.190157503, 0.191260815, 0.191959456);
+    value += bloom_sample(center + vec2(0.508254855, -0.500876371), tile) * vec3(0.170198843, 0.169596046, 0.169773027);
+    value += bloom_sample(center + vec2(0.513869170, 0.520773297), tile) * vec3(0.172850981, 0.174204201, 0.175471067);
+#endif
+#endif
+    return value;
+}
+
+#if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
+const int bloom_injectionCount = 117;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(0.355168788, -0.376784025);
+            bloom_injectionWeights[0] = vec3(0.650383234, 0.658127666, 0.669419944);
+            bloom_injectionOffsets[32] = vec2(-49.816511487, 0.001518369);
+            bloom_injectionWeights[32] = vec3(0.000606918, 0.000429950, 0.000287913);
+            bloom_injectionOffsets[64] = vec2(-20.067202599, 34.304592836);
+            bloom_injectionWeights[64] = vec3(0.002434293, 0.002015325, 0.001552316);
+            bloom_injectionOffsets[96] = vec2(14.878675987, 25.882182870);
+            bloom_injectionWeights[96] = vec3(0.005072568, 0.003412242, 0.003254869);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-1.348448482, -0.425396389);
+            bloom_injectionWeights[1] = vec3(0.037392512, 0.035858210, 0.034576375);
+            bloom_injectionOffsets[33] = vec2(-45.662738865, 0.014248824);
+            bloom_injectionWeights[33] = vec3(0.001851458, 0.001470189, 0.001064520);
+            bloom_injectionOffsets[65] = vec2(-18.029416291, 30.944098876);
+            bloom_injectionWeights[65] = vec3(0.003913549, 0.002939485, 0.002548253);
+            bloom_injectionOffsets[97] = vec2(12.994967345, 22.913972450);
+            bloom_injectionWeights[97] = vec3(0.007041601, 0.006885749, 0.004619594);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(0.678672150, 0.857694055);
+            bloom_injectionWeights[2] = vec3(0.018921444, 0.017557247, 0.015727550);
+            bloom_injectionOffsets[34] = vec2(-40.338967228, -0.000057273);
+            bloom_injectionWeights[34] = vec3(0.002665448, 0.002308559, 0.001851271);
+            bloom_injectionOffsets[66] = vec2(-15.068231557, 25.673842708);
+            bloom_injectionWeights[66] = vec3(0.006899803, 0.004668822, 0.004427917);
+            bloom_injectionOffsets[98] = vec2(10.045963835, 17.705852784);
+            bloom_injectionWeights[98] = vec3(0.007697840, 0.009946013, 0.007580023);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(-0.610150986, 1.179520816);
+            bloom_injectionWeights[3] = vec3(0.161714062, 0.174246222, 0.184981167);
+            bloom_injectionOffsets[35] = vec2(-34.589652546, 0.059336897);
+            bloom_injectionWeights[35] = vec3(0.004663536, 0.003400138, 0.003088146);
+            bloom_injectionOffsets[67] = vec2(-12.996922239, 22.065021111);
+            bloom_injectionWeights[67] = vec3(0.006484348, 0.008213561, 0.005084861);
+            bloom_injectionOffsets[99] = vec2(8.002470014, 14.195551442);
+            bloom_injectionWeights[99] = vec3(0.013218379, 0.013593491, 0.018731458);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(0.748764406, -2.007911526);
+            bloom_injectionWeights[4] = vec3(0.006284256, 0.007003250, 0.007697154);
+            bloom_injectionOffsets[36] = vec2(-30.212639449, -0.000786258);
+            bloom_injectionWeights[36] = vec3(0.007239528, 0.002942599, 0.002494171);
+            bloom_injectionOffsets[68] = vec2(-10.003846230, 16.957219323);
+            bloom_injectionWeights[68] = vec3(0.009608745, 0.011280595, 0.011344906);
+            bloom_injectionOffsets[100] = vec2(5.001140621, 8.935029657);
+            bloom_injectionWeights[100] = vec3(0.020122211, 0.020965772, 0.023190780);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(0.865029590, -0.099758396);
+            bloom_injectionWeights[5] = vec3(0.002334609, 0.002200161, 0.002080957);
+            bloom_injectionOffsets[37] = vec2(-24.688305158, -0.008833758);
+            bloom_injectionWeights[37] = vec3(0.008726975, 0.011134964, 0.007301814);
+            bloom_injectionOffsets[69] = vec2(-7.999763140, 13.454519437);
+            bloom_injectionWeights[69] = vec3(0.012110464, 0.012041532, 0.017069247);
+            bloom_injectionOffsets[101] = vec2(3.000028586, 5.581129319);
+            bloom_injectionWeights[101] = vec3(0.024397187, 0.025878200, 0.026952462);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(-1.198718866, -0.291698860);
+            bloom_injectionWeights[6] = vec3(0.064163812, 0.061780658, 0.059258785);
+            bloom_injectionOffsets[38] = vec2(-20.001354702, 0.002437517);
+            bloom_injectionWeights[38] = vec3(0.007595650, 0.010364696, 0.009443302);
+            bloom_injectionOffsets[70] = vec2(-6.000049266, 9.999137359);
+            bloom_injectionWeights[70] = vec3(0.017159153, 0.017963916, 0.019016575);
+            bloom_injectionOffsets[102] = vec2(-3.999025695, -6.529255988);
+            bloom_injectionWeights[102] = vec3(0.030862479, 0.032278702, 0.033746086);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(-1.428365345, 0.247872006);
+            bloom_injectionWeights[7] = vec3(0.106588617, 0.117926016, 0.127221897);
+            bloom_injectionOffsets[39] = vec2(-15.178241016, 0.011924759);
+            bloom_injectionWeights[39] = vec3(0.017734122, 0.017828397, 0.023938457);
+            bloom_injectionOffsets[71] = vec2(-3.999146314, 6.566657134);
+            bloom_injectionWeights[71] = vec3(0.030928088, 0.032480549, 0.033912145);
+            bloom_injectionOffsets[103] = vec2(-6.008852865, -9.998081163);
+            bloom_injectionWeights[103] = vec3(0.017055018, 0.017823080, 0.018888999);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(-4.749975147, -0.046811892);
+            bloom_injectionWeights[8] = vec3(0.000692032, 0.001447867, 0.002233225);
+            bloom_injectionOffsets[40] = vec2(-9.762075310, 0.001004891);
+            bloom_injectionWeights[40] = vec3(0.026028421, 0.027278112, 0.028541882);
+            bloom_injectionOffsets[72] = vec2(2.999896321, -5.532595980);
+            bloom_injectionWeights[72] = vec3(0.024739128, 0.026040727, 0.027003542);
+            bloom_injectionOffsets[104] = vec2(-7.980581866, -13.431831891);
+            bloom_injectionWeights[104] = vec3(0.012053594, 0.012010993, 0.017060272);
+            break;
+        case 9u:
+            bloom_injectionOffsets[9] = vec2(0.287201703, -0.747866578);
+            bloom_injectionWeights[9] = vec3(0.003638872, 0.003528255, 0.003453472);
+            bloom_injectionOffsets[41] = vec2(-5.302094904, 0.005144299);
+            bloom_injectionWeights[41] = vec3(0.029015915, 0.030296154, 0.031808779);
+            bloom_injectionOffsets[73] = vec2(5.006501593, -8.933052852);
+            bloom_injectionWeights[73] = vec3(0.019972354, 0.020908218, 0.023073820);
+            bloom_injectionOffsets[105] = vec2(-9.995432487, -16.947497743);
+            bloom_injectionWeights[105] = vec3(0.009391888, 0.010995987, 0.011090142);
+            break;
+        case 10u:
+            bloom_injectionOffsets[10] = vec2(-1.131896746, 0.238843584);
+            bloom_injectionWeights[10] = vec3(0.048785541, 0.047292579, 0.045613177);
+            bloom_injectionOffsets[42] = vec2(5.299526597, -0.004910364);
+            bloom_injectionWeights[42] = vec3(0.036628246, 0.038630344, 0.041102063);
+            bloom_injectionOffsets[74] = vec2(7.997426720, -14.154856113);
+            bloom_injectionWeights[74] = vec3(0.013610791, 0.014157860, 0.019552806);
+            bloom_injectionOffsets[106] = vec2(-13.001312911, -22.070430003);
+            bloom_injectionWeights[106] = vec3(0.006710926, 0.008447841, 0.005197146);
+            break;
+        case 11u:
+            bloom_injectionOffsets[11] = vec2(-1.743723353, 0.509399002);
+            bloom_injectionWeights[11] = vec3(0.012480997, 0.011924431, 0.011572820);
+            bloom_injectionOffsets[43] = vec2(10.231845933, 0.012622270);
+            bloom_injectionWeights[43] = vec3(0.024854407, 0.026012233, 0.027221665);
+            bloom_injectionOffsets[75] = vec2(10.138347160, -18.053396598);
+            bloom_injectionWeights[75] = vec3(0.007074815, 0.008766094, 0.006848880);
+            bloom_injectionOffsets[107] = vec2(-15.067795033, -25.670891947);
+            bloom_injectionWeights[107] = vec3(0.006871795, 0.004640772, 0.004410316);
+            break;
+        case 12u:
+            bloom_injectionOffsets[12] = vec2(-2.027474355, 3.382485806);
+            bloom_injectionWeights[12] = vec3(0.012820958, 0.013673978, 0.014620010);
+            bloom_injectionOffsets[44] = vec2(15.277380284, -0.009477545);
+            bloom_injectionWeights[44] = vec3(0.016367812, 0.016384283, 0.022657238);
+            bloom_injectionOffsets[76] = vec2(13.000786478, -22.984134437);
+            bloom_injectionWeights[76] = vec3(0.006246408, 0.006368747, 0.004019835);
+            bloom_injectionOffsets[108] = vec2(-18.030138109, -30.934319269);
+            bloom_injectionWeights[108] = vec3(0.003856523, 0.002910480, 0.002526116);
+            break;
+        case 13u:
+            bloom_injectionOffsets[13] = vec2(-0.586321544, -0.310824208);
+            bloom_injectionWeights[13] = vec3(0.048467342, 0.047621083, 0.047086902);
+            bloom_injectionOffsets[45] = vec2(19.931188752, 0.002961873);
+            bloom_injectionWeights[45] = vec3(0.007787548, 0.010766176, 0.009539474);
+            bloom_injectionOffsets[77] = vec2(15.124481869, -26.198752565);
+            bloom_injectionWeights[77] = vec3(0.006330014, 0.004266864, 0.004146934);
+            bloom_injectionOffsets[109] = vec2(-20.068392086, -34.287934117);
+            bloom_injectionWeights[109] = vec3(0.002426296, 0.002011171, 0.001549690);
+            break;
+        case 14u:
+            bloom_injectionOffsets[14] = vec2(-0.663976839, 0.352830471);
+            bloom_injectionWeights[14] = vec3(0.048402127, 0.047297772, 0.046334263);
+            bloom_injectionOffsets[46] = vec2(24.679266111, 0.004040321);
+            bloom_injectionWeights[46] = vec3(0.008720991, 0.010939822, 0.007211467);
+            bloom_injectionOffsets[78] = vec2(18.005764103, -31.559851995);
+            bloom_injectionWeights[78] = vec3(0.003136506, 0.002668283, 0.002247613);
+            bloom_injectionOffsets[110] = vec2(-21.999939352, -37.632435811);
+            bloom_injectionWeights[110] = vec3(0.001381284, 0.001087523, 0.000845214);
+            break;
+        case 15u:
+            bloom_injectionOffsets[15] = vec2(-0.173986762, 0.815355197);
+            bloom_injectionWeights[15] = vec3(0.032928891, 0.031730060, 0.031168716);
+            bloom_injectionOffsets[47] = vec2(30.180793671, -0.000231213);
+            bloom_injectionWeights[47] = vec3(0.007112710, 0.002902571, 0.002488995);
+            bloom_injectionOffsets[79] = vec2(20.072133953, -35.133409950);
+            bloom_injectionWeights[79] = vec3(0.002252122, 0.001791228, 0.001361249);
+            bloom_injectionOffsets[111] = vec2(-24.392080391, -41.711345362);
+            bloom_injectionWeights[111] = vec3(0.001436437, 0.001090634, 0.000788329);
+            break;
+        case 16u:
+            bloom_injectionOffsets[16] = vec2(0.431143798, 1.053051915);
+            bloom_injectionWeights[16] = vec3(0.153077051, 0.165777966, 0.178530812);
+            bloom_injectionOffsets[48] = vec2(34.595389088, 0.071216145);
+            bloom_injectionWeights[48] = vec3(0.004654211, 0.003439054, 0.003123943);
+            bloom_injectionOffsets[80] = vec2(22.000315364, -38.442545007);
+            bloom_injectionWeights[80] = vec3(0.001292284, 0.001026154, 0.000773084);
+            bloom_injectionOffsets[112] = vec2(-27.213276199, -46.710979205);
+            bloom_injectionWeights[112] = vec3(0.000775672, 0.000551380, 0.000342560);
+            break;
+        case 17u:
+            bloom_injectionOffsets[17] = vec2(2.021645907, 4.230368556);
+            bloom_injectionWeights[17] = vec3(0.007340999, 0.007817991, 0.008592177);
+            bloom_injectionOffsets[49] = vec2(40.534021735, -0.022359015);
+            bloom_injectionWeights[49] = vec3(0.002778382, 0.002405886, 0.001930925);
+            bloom_injectionOffsets[81] = vec2(24.423133086, -42.558553520);
+            bloom_injectionWeights[81] = vec3(0.001308847, 0.000975954, 0.000691267);
+            bloom_injectionOffsets[113] = vec2(-29.790064460, -51.301964212);
+            bloom_injectionWeights[113] = vec3(0.000489002, 0.000274419, 0.000138448);
+            break;
+        case 18u:
+            bloom_injectionOffsets[18] = vec2(1.284085861, 0.102637936);
+            bloom_injectionWeights[18] = vec3(0.004024900, 0.004418935, 0.005398280);
+            bloom_injectionOffsets[50] = vec2(44.860085885, 0.000196566);
+            bloom_injectionWeights[50] = vec3(0.000990736, 0.000806256, 0.000595022);
+            bloom_injectionOffsets[82] = vec2(27.188637105, -47.473823693);
+            bloom_injectionWeights[82] = vec3(0.000678012, 0.000519829, 0.000304873);
+            bloom_injectionOffsets[114] = vec2(-32.850059286, -56.273109706);
+            bloom_injectionWeights[114] = vec3(0.000148558, 0.000063594, 0.000025729);
+            break;
+        case 19u:
+            bloom_injectionOffsets[19] = vec2(3.288160057, 0.052572422);
+            bloom_injectionWeights[19] = vec3(0.002717414, 0.003082909, 0.003484853);
+            bloom_injectionOffsets[51] = vec2(48.945372059, 0.026229186);
+            bloom_injectionWeights[51] = vec3(0.001546215, 0.001140486, 0.000783172);
+            bloom_injectionOffsets[83] = vec2(29.609026337, -51.558471508);
+            bloom_injectionWeights[83] = vec3(0.000429863, 0.000205535, 0.000087964);
+            bloom_injectionOffsets[115] = vec2(-34.680292190, -60.005700992);
+            bloom_injectionWeights[115] = vec3(0.000031506, 0.000039245, 0.000011488);
+            break;
+        case 20u:
+            bloom_injectionOffsets[20] = vec2(2.004546902, -4.188717097);
+            bloom_injectionWeights[20] = vec3(0.007597688, 0.008069516, 0.008940304);
+            bloom_injectionOffsets[52] = vec2(54.826673179, -0.006667868);
+            bloom_injectionWeights[52] = vec3(0.000765689, 0.000519279, 0.000304687);
+            bloom_injectionOffsets[84] = vec2(32.395450387, -56.340761362);
+            bloom_injectionWeights[84] = vec3(0.000178448, 0.000069708, 0.000043406);
+            bloom_injectionOffsets[116] = vec2(-37.395335972, -64.289996312);
+            bloom_injectionWeights[116] = vec3(0.000046273, 0.000032770, 0.000004638);
+            break;
+        case 21u:
+            bloom_injectionOffsets[21] = vec2(-1.160799412, -1.210158387);
+            bloom_injectionWeights[21] = vec3(0.117131211, 0.121953525, 0.126241207);
+            bloom_injectionOffsets[53] = vec2(60.133414072, -0.001226848);
+            bloom_injectionWeights[53] = vec3(0.000400043, 0.000233821, 0.000121017);
+            bloom_injectionOffsets[85] = vec2(34.838348259, -60.624074639);
+            bloom_injectionWeights[85] = vec3(0.000057134, 0.000022737, 0.000010016);
+            break;
+        case 22u:
+            bloom_injectionOffsets[22] = vec2(-2.082018148, -3.483345544);
+            bloom_injectionWeights[22] = vec3(0.009857639, 0.010570361, 0.011406613);
+            bloom_injectionOffsets[54] = vec2(66.084627234, -0.001754427);
+            bloom_injectionWeights[54] = vec3(0.000093958, 0.000046453, 0.000033993);
+            bloom_injectionOffsets[86] = vec2(37.277524929, -64.651358476);
+            bloom_injectionWeights[86] = vec3(0.000029310, 0.000019388, 0.000022659);
+            break;
+        case 23u:
+            bloom_injectionOffsets[23] = vec2(-1.380119108, 0.603346055);
+            bloom_injectionWeights[23] = vec3(0.020983541, 0.020518670, 0.020134708);
+            bloom_injectionOffsets[55] = vec2(69.246080040, 0.000062250);
+            bloom_injectionWeights[55] = vec3(0.000043993, 0.000023761, 0.000005392);
+            bloom_injectionOffsets[87] = vec2(37.973889625, 65.831930891);
+            bloom_injectionWeights[87] = vec3(0.000020705, 0.000000005, 0.000006558);
+            break;
+        case 24u:
+            bloom_injectionOffsets[24] = vec2(-0.872957916, 0.364075944);
+            bloom_injectionWeights[24] = vec3(0.025134671, 0.024423162, 0.023760209);
+            bloom_injectionOffsets[56] = vec2(73.794332606, -0.005921774);
+            bloom_injectionWeights[56] = vec3(0.000044001, 0.000019865, 0.000006530);
+            bloom_injectionOffsets[88] = vec2(34.774407752, 60.576718164);
+            bloom_injectionWeights[88] = vec3(0.000090556, 0.000057166, 0.000026269);
+            break;
+        case 25u:
+            bloom_injectionOffsets[25] = vec2(-0.855881410, -0.340849007);
+            bloom_injectionWeights[25] = vec3(0.025291188, 0.024638643, 0.024052477);
+            bloom_injectionOffsets[57] = vec2(-37.507169605, 64.454070448);
+            bloom_injectionWeights[57] = vec3(0.000027589, 0.000014786, 0.000009539);
+            bloom_injectionOffsets[89] = vec2(31.975719679, 55.647753132);
+            bloom_injectionWeights[89] = vec3(0.000124640, 0.000048623, 0.000017344);
+            break;
+        case 26u:
+            bloom_injectionOffsets[26] = vec2(0.636332863, 1.088644880);
+            bloom_injectionWeights[26] = vec3(0.025154257, 0.024419133, 0.023741895);
+            bloom_injectionOffsets[58] = vec2(-34.902136846, 60.203585030);
+            bloom_injectionWeights[58] = vec3(0.000071852, 0.000047105, 0.000012637);
+            bloom_injectionOffsets[90] = vec2(29.558889966, 51.517666208);
+            bloom_injectionWeights[90] = vec3(0.000450538, 0.000266551, 0.000123859);
+            break;
+        case 27u:
+            bloom_injectionOffsets[27] = vec2(-74.154540116, -0.089064218);
+            bloom_injectionWeights[27] = vec3(0.000074653, 0.000012689, 0.000005492);
+            bloom_injectionOffsets[59] = vec2(-32.910171011, 56.872236026);
+            bloom_injectionWeights[59] = vec3(0.000083251, 0.000051433, 0.000019698);
+            bloom_injectionOffsets[91] = vec2(27.123479807, 47.376898853);
+            bloom_injectionWeights[91] = vec3(0.000657191, 0.000466904, 0.000278180);
+            break;
+        case 28u:
+            bloom_injectionOffsets[28] = vec2(-69.461535235, 0.000003864);
+            bloom_injectionWeights[28] = vec3(0.000048647, 0.000022465, 0.000011876);
+            bloom_injectionOffsets[60] = vec2(-30.136350551, 51.690732137);
+            bloom_injectionWeights[60] = vec3(0.000547714, 0.000284186, 0.000136509);
+            bloom_injectionOffsets[92] = vec2(24.412551384, 42.550414626);
+            bloom_injectionWeights[92] = vec3(0.001312894, 0.000980364, 0.000692578);
+            break;
+        case 29u:
+            bloom_injectionOffsets[29] = vec2(-64.713611113, -0.000160703);
+            bloom_injectionWeights[29] = vec3(0.000185226, 0.000083524, 0.000045345);
+            bloom_injectionOffsets[61] = vec2(-27.239120847, 46.732570705);
+            bloom_injectionWeights[61] = vec3(0.000797375, 0.000579793, 0.000359032);
+            bloom_injectionOffsets[93] = vec2(22.000005206, 38.491682090);
+            bloom_injectionWeights[93] = vec3(0.001267337, 0.001007152, 0.000758965);
+            break;
+        case 30u:
+            bloom_injectionOffsets[30] = vec2(-59.426517603, -0.000000772);
+            bloom_injectionWeights[30] = vec3(0.000375645, 0.000226388, 0.000108221);
+            bloom_injectionOffsets[62] = vec2(-24.382933794, 41.720181883);
+            bloom_injectionWeights[62] = vec3(0.001444060, 0.001099004, 0.000793674);
+            bloom_injectionOffsets[94] = vec2(20.029054238, 35.099974335);
+            bloom_injectionWeights[94] = vec3(0.002360823, 0.001885767, 0.001429977);
+            break;
+        case 31u:
+            bloom_injectionOffsets[31] = vec2(-53.830433648, 0.013384881);
+            bloom_injectionWeights[31] = vec3(0.000923107, 0.000642879, 0.000400190);
+            bloom_injectionOffsets[63] = vec2(-21.999992503, 37.651702371);
+            bloom_injectionWeights[63] = vec3(0.001379143, 0.001089834, 0.000849937);
+            bloom_injectionOffsets[95] = vec2(17.151870780, 30.123255912);
+            bloom_injectionWeights[95] = vec3(0.004642901, 0.003642654, 0.003123851);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    if (all(greaterThanEqual(center + vec2(-74.154540116, -64.651358476), vec2(0.5))) &&
+        all(lessThanEqual(center + vec2(73.794332606, 65.831930891), tile.zw - 0.5))) {
+        for (int i = 0; i < 27; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += transient_bloomRaw_sample((tile.xy + pos) * uval_mainImageSizeRcp).rgb * bloom_injectionWeights[i];
+        }
+        for (int i = 27; i < 57; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 0) * bloom_injectionWeights[i];
+        }
+        for (int i = 57; i < 87; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 1) * bloom_injectionWeights[i];
+        }
+        for (int i = 87; i < 117; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 2) * bloom_injectionWeights[i];
+        }
+        return value;
+    }
+    for (int i = 0; i < 27; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_sampleRaw(pos, tile) * bloom_injectionWeights[i];
+    }
+    for (int i = 27; i < 57; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 0) * bloom_injectionWeights[i];
+    }
+    for (int i = 57; i < 87; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 1) * bloom_injectionWeights[i];
+    }
+    for (int i = 87; i < 117; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 2) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
+const int bloom_injectionCount = 13;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.055957956, -0.031426971);
+            bloom_injectionWeights[0] = vec3(2.161735535, 2.121742964, 2.072283506);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.932236854, 0.018639191);
+            bloom_injectionWeights[1] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(4.354361864, 6.897798128);
+            bloom_injectionWeights[2] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(4.366228634, -6.918972050);
+            bloom_injectionWeights[3] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(-4.166949898, -6.953704005);
+            bloom_injectionWeights[4] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(-4.094177142, 6.972007999);
+            bloom_injectionWeights[5] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(2.325771121, -1.136727486);
+            bloom_injectionWeights[6] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(-7.696657976, 0.442879451);
+            bloom_injectionWeights[7] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(7.704176226, -0.366312544);
+            bloom_injectionWeights[8] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 9u:
+            bloom_injectionOffsets[9] = vec2(-9.800000000, 1.200000000);
+            bloom_injectionWeights[9] = vec3(0.000000351, 0.000000005, 0.000000005);
+            break;
+        case 10u:
+            bloom_injectionOffsets[10] = vec2(9.800000000, 1.200000000);
+            bloom_injectionWeights[10] = vec3(0.000002512, 0.000000005, 0.000000005);
+            break;
+        case 11u:
+            bloom_injectionOffsets[11] = vec2(-6.224234721, 10.101628836);
+            bloom_injectionWeights[11] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 12u:
+            bloom_injectionOffsets[12] = vec2(-6.023178633, -10.150611819);
+            bloom_injectionWeights[12] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 4
+const int bloom_injectionCount = 9;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.139662100, -0.191919823);
+            bloom_injectionWeights[0] = vec3(0.103693210, 0.100438133, 0.098520309);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(0.019804700, -1.016455395);
+            bloom_injectionWeights[1] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(3.743139509, 0.444765173);
+            bloom_injectionWeights[2] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(-3.745709853, 0.431404041);
+            bloom_injectionWeights[3] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(0.011393748, 3.200000000);
+            bloom_injectionWeights[4] = vec3(0.000931082, 0.001025667, 0.001058357);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(3.200000000, -1.999300517);
+            bloom_injectionWeights[5] = vec3(0.000994058, 0.000000005, 0.000000005);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(-3.200000000, -2.000383718);
+            bloom_injectionWeights[6] = vec3(0.000171666, 0.000000005, 0.000000005);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(-2.605049287, 4.849981204);
+            bloom_injectionWeights[7] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(1.800000000, 6.200000000);
+            bloom_injectionWeights[8] = vec3(0.000000005, 0.000000005, 0.000123098);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 5
+const int bloom_injectionCount = 7;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.066218426, -0.045882192);
+            bloom_injectionWeights[0] = vec3(0.130412281, 0.131772891, 0.127978012);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.999387430, 0.014680900);
+            bloom_injectionWeights[1] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(2.820674908, -1.200000000);
+            bloom_injectionWeights[2] = vec3(0.000082430, 0.000055010, 0.000042010);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(3.200000000, -2.003923605);
+            bloom_injectionWeights[3] = vec3(0.001150367, 0.001288293, 0.001234432);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(3.200000000, 1.985363171);
+            bloom_injectionWeights[4] = vec3(0.001783597, 0.001705297, 0.001632280);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(-3.200000000, -2.003175120);
+            bloom_injectionWeights[5] = vec3(0.001162043, 0.001300120, 0.001167003);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(-3.200000000, 1.996891514);
+            bloom_injectionWeights[6] = vec3(0.001721440, 0.001721448, 0.001613885);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 6
+const int bloom_injectionCount = 5;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.076957647, -0.088688029);
+            bloom_injectionWeights[0] = vec3(0.123716727, 0.123066373, 0.124076672);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(0.911168949, -0.790040214);
+            bloom_injectionWeights[1] = vec3(0.000393330, 0.000364755, 0.000457533);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-1.887927587, 0.247117495);
+            bloom_injectionWeights[2] = vec3(0.000993207, 0.001073840, 0.001122435);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(-0.185370359, -3.003896653);
+            bloom_injectionWeights[3] = vec3(0.001655717, 0.001742382, 0.001785900);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(0.064403550, 2.755824241);
+            bloom_injectionWeights[4] = vec3(0.001380223, 0.001451303, 0.001490885);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 7
+const int bloom_injectionCount = 3;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.122283542, 0.083352143);
+            bloom_injectionWeights[0] = vec3(0.127989709, 0.128047779, 0.127821207);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.114503275, -1.042541016);
+            bloom_injectionWeights[1] = vec3(0.001407006, 0.001459139, 0.001512624);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-0.220587348, 2.045737153);
+            bloom_injectionWeights[2] = vec3(0.001802376, 0.001803046, 0.001810953);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 8
+void bloom_prepareInjection() {}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    return bloom_sampleRaw(center + vec2(-0.018147698, -0.035517511), tile) * vec3(0.132267490, 0.131478786, 0.131027922);
+}
+#endif
+#ifdef BLOOM_FIRST_UPSAMPLE
+const vec3 bloom_deepestWeight = vec3(0.142595544, 0.141087934, 0.139772773);
 #endif
 
 #elif SETTING_BLOOM_SHAPE == 5 // camera-ten, fitted candidate
-// Bloom DPF recipe e3a6fa19adb5b90fe5ee619e0840c08f463dbaec79e1237c5c4f53bb83edbf26
+// Bloom DPF recipe 369240aeed0f35a7e2814ebc3f602f893f4cf2c635b576ba96e9fde95f3a85e0
+#define BLOOM_DPF_FEATURE_COUNT 5
+#if defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
+vec3 bloom_dpfFeature(vec2 center, vec4 tile, int feature) {
+    vec3 value = vec3(0.0);
+    if (feature == 0) {
+        value += bloom_sample(center + vec2(-0.001516759, 3.606042799), tile) * vec3(0.213028401, 0.217290491, 0.230563149);
+        value += bloom_sample(center + vec2(-0.000428999, 1.452070087), tile) * vec3(0.259316444, 0.257278651, 0.263593167);
+        value += bloom_sample(center + vec2(-0.004126819, -0.772631444), tile) * vec3(0.275966436, 0.273858488, 0.275737941);
+        value += bloom_sample(center + vec2(-0.002240929, -3.326374213), tile) * vec3(0.251688689, 0.251572371, 0.230105743);
+    }
+    if (feature == 1) {
+        value += bloom_sample(center + vec2(-3.741559426, 0.995944970), tile) * vec3(0.168085754, 0.166146144, 0.146806136);
+        value += bloom_sample(center + vec2(-1.376833150, -0.001124176), tile) * vec3(0.278534204, 0.277175665, 0.267328709);
+        value += bloom_sample(center + vec2(-0.000403760, -0.244847774), tile) * vec3(0.087261103, 0.085159406, 0.094987564);
+        value += bloom_sample(center + vec2(1.773799850, -0.997179892), tile) * vec3(0.309134394, 0.308704734, 0.318578571);
+        value += bloom_sample(center + vec2(4.514026426, -1.991145579), tile) * vec3(0.156984553, 0.162814066, 0.172298998);
+    }
+    if (feature == 2) {
+        value += bloom_sample(center + vec2(3.727999284, 1.000913244), tile) * vec3(0.184324935, 0.188020200, 0.181052163);
+        value += bloom_sample(center + vec2(2.105068533, 0.003585189), tile) * vec3(0.093533926, 0.095653713, 0.096033752);
+        value += bloom_sample(center + vec2(0.722019666, 0.000071188), tile) * vec3(0.264607012, 0.261681467, 0.267233133);
+        value += bloom_sample(center + vec2(-1.735710329, -1.002315661), tile) * vec3(0.316148847, 0.310943037, 0.316830784);
+        value += bloom_sample(center + vec2(-4.341046619, -1.937116185), tile) * vec3(0.141385272, 0.143701598, 0.138850182);
+    }
+    if (feature == 3) {
+        value += bloom_sample(center + vec2(-2.008894017, 2.988140844), tile) * vec3(0.195792481, 0.195039079, 0.203789458);
+        value += bloom_sample(center + vec2(-1.003335323, 1.521083037), tile) * vec3(0.194701970, 0.196029976, 0.194467127);
+        value += bloom_sample(center + vec2(0.002653361, 0.129535085), tile) * vec3(0.218596771, 0.219211712, 0.213687971);
+        value += bloom_sample(center + vec2(0.997867799, -1.157941757), tile) * vec3(0.206968993, 0.208144277, 0.203214690);
+        value += bloom_sample(center + vec2(2.007045156, -2.642838285), tile) * vec3(0.183939770, 0.181574970, 0.184840754);
+    }
+    if (feature == 4) {
+        value += bloom_sample(center + vec2(2.005043241, 2.973055446), tile) * vec3(0.200561509, 0.200218037, 0.206087917);
+        value += bloom_sample(center + vec2(1.000816846, 1.505281603), tile) * vec3(0.191873714, 0.192791268, 0.190925285);
+        value += bloom_sample(center + vec2(0.001033619, 0.130850305), tile) * vec3(0.214918464, 0.215998769, 0.209546238);
+        value += bloom_sample(center + vec2(-1.000544373, -1.154968603), tile) * vec3(0.209467277, 0.210112184, 0.206471860);
+        value += bloom_sample(center + vec2(-2.000473535, -2.647885085), tile) * vec3(0.183179051, 0.180879742, 0.186968714);
+    }
+    return value;
+}
+#endif
 vec3 bloom_filter(vec2 center, vec4 tile) {
     vec3 value = vec3(0.0);
 #ifdef BLOOM_DOWNSAMPLE
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(0.215983973, 0.215983973, 0.215983973);
-    value += bloom_sample(center + vec2(-0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(-0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
+#if BLOOM_PASS == 1
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.148543075, 0.147554398, 0.140510961);
+    value += bloom_sample(center + vec2(-0.745245535, 0.748610979), tile) * vec3(0.212864235, 0.213111401, 0.214872256);
+    value += bloom_sample(center + vec2(-0.745245535, -0.748610979), tile) * vec3(0.212864235, 0.213111401, 0.214872256);
+    value += bloom_sample(center + vec2(0.745245535, 0.748610979), tile) * vec3(0.212864235, 0.213111401, 0.214872256);
+    value += bloom_sample(center + vec2(0.745245535, -0.748610979), tile) * vec3(0.212864235, 0.213111401, 0.214872256);
+#elif BLOOM_PASS == 2
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.258670002, 0.254399627, 0.252593905);
+    value += bloom_sample(center + vec2(-0.431399718, 0.790502042), tile) * vec3(0.093512468, 0.093895741, 0.093633950);
+    value += bloom_sample(center + vec2(-0.431399718, -0.790502042), tile) * vec3(0.093512468, 0.093895741, 0.093633950);
+    value += bloom_sample(center + vec2(0.431399718, 0.790502042), tile) * vec3(0.093512468, 0.093895741, 0.093633950);
+    value += bloom_sample(center + vec2(0.431399718, -0.790502042), tile) * vec3(0.093512468, 0.093895741, 0.093633950);
+    value += bloom_sample(center + vec2(-1.128109885, 0.834021549), tile) * vec3(0.091820031, 0.092504352, 0.093217574);
+    value += bloom_sample(center + vec2(-1.128109885, -0.834021549), tile) * vec3(0.091820031, 0.092504352, 0.093217574);
+    value += bloom_sample(center + vec2(1.128109885, 0.834021549), tile) * vec3(0.091820031, 0.092504352, 0.093217574);
+    value += bloom_sample(center + vec2(1.128109885, -0.834021549), tile) * vec3(0.091820031, 0.092504352, 0.093217574);
+#elif BLOOM_PASS == 3
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.254464477, 0.252149761, 0.240028009);
+    value += bloom_sample(center + vec2(-0.847884351, 0.792736954), tile) * vec3(0.186383873, 0.186962560, 0.189992994);
+    value += bloom_sample(center + vec2(-0.847884351, -0.792736954), tile) * vec3(0.186383873, 0.186962560, 0.189992994);
+    value += bloom_sample(center + vec2(0.847884351, 0.792736954), tile) * vec3(0.186383873, 0.186962560, 0.189992994);
+    value += bloom_sample(center + vec2(0.847884351, -0.792736954), tile) * vec3(0.186383873, 0.186962560, 0.189992994);
+#elif BLOOM_PASS == 4
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.252381295, 0.251972288, 0.252792150);
+    value += bloom_sample(center + vec2(-0.818133152, 0.894519655), tile) * vec3(0.186904684, 0.187006935, 0.186801955);
+    value += bloom_sample(center + vec2(-0.818133152, -0.894519655), tile) * vec3(0.186904684, 0.187006935, 0.186801955);
+    value += bloom_sample(center + vec2(0.818133152, 0.894519655), tile) * vec3(0.186904684, 0.187006935, 0.186801955);
+    value += bloom_sample(center + vec2(0.818133152, -0.894519655), tile) * vec3(0.186904684, 0.187006935, 0.186801955);
+#elif BLOOM_PASS == 5
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.174881026, 0.172179803, 0.173219830);
+    value += bloom_sample(center + vec2(-0.853542573, 0.826953142), tile) * vec3(0.206279740, 0.206955045, 0.206695050);
+    value += bloom_sample(center + vec2(-0.853542573, -0.826953142), tile) * vec3(0.206279740, 0.206955045, 0.206695050);
+    value += bloom_sample(center + vec2(0.853542573, 0.826953142), tile) * vec3(0.206279740, 0.206955045, 0.206695050);
+    value += bloom_sample(center + vec2(0.853542573, -0.826953142), tile) * vec3(0.206279740, 0.206955045, 0.206695050);
+#elif BLOOM_PASS == 6
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.238210186, 0.242129862, 0.247157261);
+    value += bloom_sample(center + vec2(-0.826747645, 0.841310168), tile) * vec3(0.190447450, 0.189467534, 0.188210681);
+    value += bloom_sample(center + vec2(-0.826747645, -0.841310168), tile) * vec3(0.190447450, 0.189467534, 0.188210681);
+    value += bloom_sample(center + vec2(0.826747645, 0.841310168), tile) * vec3(0.190447450, 0.189467534, 0.188210681);
+    value += bloom_sample(center + vec2(0.826747645, -0.841310168), tile) * vec3(0.190447450, 0.189467534, 0.188210681);
+#elif BLOOM_PASS == 7
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.188778594, 0.192196369, 0.188407347);
+    value += bloom_sample(center + vec2(-0.799302213, 0.874860274), tile) * vec3(0.202805355, 0.201950908, 0.202898160);
+    value += bloom_sample(center + vec2(-0.799302213, -0.874860274), tile) * vec3(0.202805355, 0.201950908, 0.202898160);
+    value += bloom_sample(center + vec2(0.799302213, 0.874860274), tile) * vec3(0.202805355, 0.201950908, 0.202898160);
+    value += bloom_sample(center + vec2(0.799302213, -0.874860274), tile) * vec3(0.202805355, 0.201950908, 0.202898160);
+#elif BLOOM_PASS == 8
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.152638227, 0.168001220, 0.159967884);
+    value += bloom_sample(center + vec2(-0.869302448, 0.871485114), tile) * vec3(0.211840451, 0.207999691, 0.210008025);
+    value += bloom_sample(center + vec2(-0.869302448, -0.871485114), tile) * vec3(0.211840451, 0.207999691, 0.210008025);
+    value += bloom_sample(center + vec2(0.869302448, 0.871485114), tile) * vec3(0.211840451, 0.207999691, 0.210008025);
+    value += bloom_sample(center + vec2(0.869302448, -0.871485114), tile) * vec3(0.211840451, 0.207999691, 0.210008025);
+#endif
 #else
 #if BLOOM_PASS == 1
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(1.000000000, 1.000000000, 1.000000000);
+    value += bloom_sample(center + vec2(0.005320080, -0.155392645), tile) * vec3(0.906256437, 0.902621627, 0.887766361);
+    value += bloom_sample(center + vec2(-0.203086392, -0.052674135), tile) * vec3(0.003528827, 0.003599791, 0.004092861);
+    value += bloom_sample(center + vec2(0.174793966, -0.097888978), tile) * vec3(0.003243190, 0.003446443, 0.004510410);
+    value += bloom_sample(center + vec2(-0.040556905, -0.209878739), tile) * vec3(0.004190222, 0.004225858, 0.004380837);
+    value += bloom_sample(center + vec2(-0.052484844, 0.168197416), tile) * vec3(0.003131537, 0.003261705, 0.004478670);
+    value += bloom_sample(center + vec2(-0.085344233, -0.197559612), tile) * vec3(0.023406781, 0.022163400, 0.024334179);
+    value += bloom_sample(center + vec2(-0.122017288, 0.030620217), tile) * vec3(0.016959814, 0.018784326, 0.022373484);
+    value += bloom_sample(center + vec2(0.102834993, -0.237443465), tile) * vec3(0.023044970, 0.024212951, 0.024837922);
+    value += bloom_sample(center + vec2(0.080396819, -0.011057490), tile) * vec3(0.016238239, 0.017683921, 0.023225266);
 #elif BLOOM_PASS == 2
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822941, 0.067822926, 0.067822963);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822933, 0.067822918, 0.067822956);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822941, 0.067822941, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822933, 0.067822926, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177067, 0.182177067, 0.182177052);
+    value += bloom_sample(center + vec2(-0.721077972, -0.191791454), tile) * vec3(0.054460321, 0.058273014, 0.061209973);
+    value += bloom_sample(center + vec2(0.962125392, 0.031673424), tile) * vec3(0.046209846, 0.050111115, 0.048215572);
+    value += bloom_sample(center + vec2(0.010564695, -0.818172310), tile) * vec3(0.118931316, 0.121691458, 0.125553578);
+    value += bloom_sample(center + vec2(0.074604006, 0.730461179), tile) * vec3(0.091348469, 0.096179508, 0.096522987);
+    value += bloom_sample(center + vec2(-0.100850146, -0.031633135), tile) * vec3(0.152776748, 0.146705583, 0.141054556);
+    value += bloom_sample(center + vec2(-0.110032485, 0.176166472), tile) * vec3(0.153522953, 0.151338935, 0.145379916);
+    value += bloom_sample(center + vec2(0.108252476, -0.106844613), tile) * vec3(0.143949151, 0.141917288, 0.138688922);
+    value += bloom_sample(center + vec2(-0.460525157, 0.114227120), tile) * vec3(0.109689645, 0.108717576, 0.110205203);
+    value += bloom_sample(center + vec2(0.543800669, 0.071304730), tile) * vec3(0.129111543, 0.125065520, 0.133169279);
 #elif BLOOM_PASS == 3
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822941, 0.067822941);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822941, 0.067822941);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822963, 0.067822956, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822963, 0.067822956, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.084060305, -0.090587755), tile) * vec3(0.069386698, 0.068567380, 0.072412468);
+    value += bloom_sample(center + vec2(1.210381878, -0.073613218), tile) * vec3(0.074191719, 0.074118249, 0.071385473);
+    value += bloom_sample(center + vec2(0.001733242, -1.078913553), tile) * vec3(0.063968606, 0.064015582, 0.067892343);
+    value += bloom_sample(center + vec2(0.054875166, 1.287468060), tile) * vec3(0.061840847, 0.062461540, 0.062893800);
+    value += bloom_sample(center + vec2(-0.483641796, -0.461456831), tile) * vec3(0.193236813, 0.192061901, 0.207607284);
+    value += bloom_sample(center + vec2(-0.549876684, 0.359275748), tile) * vec3(0.170499936, 0.170256391, 0.173253998);
+    value += bloom_sample(center + vec2(0.472639400, -0.457930625), tile) * vec3(0.191763923, 0.192894414, 0.176522225);
+    value += bloom_sample(center + vec2(0.580319494, 0.368997975), tile) * vec3(0.175111473, 0.175624549, 0.168032408);
 #elif BLOOM_PASS == 4
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822956, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822956, 0.067822956, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822956, 0.067822956, 0.067822956);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.293356850, 0.041475739), tile) * vec3(0.071402207, 0.071666986, 0.068003848);
+    value += bloom_sample(center + vec2(1.249925063, -0.016280502), tile) * vec3(0.073054247, 0.072219416, 0.073390402);
+    value += bloom_sample(center + vec2(-0.010647186, -1.375229711), tile) * vec3(0.073722944, 0.074763387, 0.072171643);
+    value += bloom_sample(center + vec2(0.059420608, 1.320995037), tile) * vec3(0.071714059, 0.072627127, 0.078424998);
+    value += bloom_sample(center + vec2(-0.524965379, -0.553219317), tile) * vec3(0.170821384, 0.172332630, 0.168554500);
+    value += bloom_sample(center + vec2(-0.535449296, 0.566611108), tile) * vec3(0.188893318, 0.186718673, 0.182174921);
+    value += bloom_sample(center + vec2(0.536148688, -0.522268889), tile) * vec3(0.167143613, 0.167375460, 0.170719013);
+    value += bloom_sample(center + vec2(0.566449149, 0.569745852), tile) * vec3(0.183248222, 0.182296321, 0.186560676);
 #elif BLOOM_PASS == 5
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.322427121, -0.013991119), tile) * vec3(0.069450006, 0.073071286, 0.071207412);
+    value += bloom_sample(center + vec2(1.183432155, -0.045959288), tile) * vec3(0.064736396, 0.066199802, 0.066066645);
+    value += bloom_sample(center + vec2(-0.047821705, -1.299113715), tile) * vec3(0.073969357, 0.073397800, 0.072426111);
+    value += bloom_sample(center + vec2(-0.007454634, 1.210301565), tile) * vec3(0.063765489, 0.066155478, 0.066959053);
+    value += bloom_sample(center + vec2(-0.507246333, -0.517539245), tile) * vec3(0.190670907, 0.185898840, 0.183481663);
+    value += bloom_sample(center + vec2(-0.509541444, 0.443334465), tile) * vec3(0.195111781, 0.193316400, 0.191753015);
+    value += bloom_sample(center + vec2(0.427038267, -0.514579532), tile) * vec3(0.171699852, 0.170753434, 0.169868782);
+    value += bloom_sample(center + vec2(0.431566363, 0.454940575), tile) * vec3(0.170596227, 0.171206951, 0.178237319);
 #elif BLOOM_PASS == 6
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.349836634, -0.020056473), tile) * vec3(0.078054659, 0.077687956, 0.076670319);
+    value += bloom_sample(center + vec2(1.185956963, -0.035940229), tile) * vec3(0.065962881, 0.066248082, 0.067155540);
+    value += bloom_sample(center + vec2(0.045524153, -1.307083250), tile) * vec3(0.073313408, 0.071743630, 0.071860120);
+    value += bloom_sample(center + vec2(-0.014557468, 1.228883432), tile) * vec3(0.064524241, 0.064276233, 0.064119443);
+    value += bloom_sample(center + vec2(-0.558966630, -0.517965637), tile) * vec3(0.181459278, 0.184141904, 0.184569329);
+    value += bloom_sample(center + vec2(-0.565001212, 0.459589362), tile) * vec3(0.190316528, 0.188835576, 0.188679501);
+    value += bloom_sample(center + vec2(0.442714556, -0.524477042), tile) * vec3(0.173401609, 0.175010890, 0.175973877);
+    value += bloom_sample(center + vec2(0.503771851, 0.466762700), tile) * vec3(0.172967389, 0.172055736, 0.170971870);
 #elif BLOOM_PASS == 7
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.266916177, 0.034959233), tile) * vec3(0.070464656, 0.070395701, 0.071436666);
+    value += bloom_sample(center + vec2(1.410827550, 0.023078268), tile) * vec3(0.073675856, 0.073009320, 0.073343135);
+    value += bloom_sample(center + vec2(0.051689663, -1.193109544), tile) * vec3(0.073024012, 0.072485276, 0.073218510);
+    value += bloom_sample(center + vec2(0.006192476, 1.471861156), tile) * vec3(0.070911556, 0.070984475, 0.071629867);
+    value += bloom_sample(center + vec2(-0.519407627, -0.532605652), tile) * vec3(0.172467887, 0.173116446, 0.173436999);
+    value += bloom_sample(center + vec2(-0.545970603, 0.528182939), tile) * vec3(0.188970357, 0.188209325, 0.189653307);
+    value += bloom_sample(center + vec2(0.529380148, -0.542212924), tile) * vec3(0.170026228, 0.171511814, 0.169684768);
+    value += bloom_sample(center + vec2(0.570682308, 0.553479984), tile) * vec3(0.180459455, 0.180287644, 0.177596733);
 #elif BLOOM_PASS == 8
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.378733683, -0.048339900), tile) * vec3(0.079290487, 0.076621525, 0.077419661);
+    value += bloom_sample(center + vec2(1.522175738, -0.013125244), tile) * vec3(0.071436241, 0.069043018, 0.068669528);
+    value += bloom_sample(center + vec2(0.013485649, -1.501402026), tile) * vec3(0.076332308, 0.074543700, 0.074128620);
+    value += bloom_sample(center + vec2(0.042986785, 1.468602160), tile) * vec3(0.076473787, 0.073838346, 0.074206740);
+    value += bloom_sample(center + vec2(-0.554810337, -0.504427765), tile) * vec3(0.164070100, 0.165973485, 0.165848613);
+    value += bloom_sample(center + vec2(-0.564198744, 0.540766388), tile) * vec3(0.167644784, 0.170935929, 0.168372691);
+    value += bloom_sample(center + vec2(0.516154627, -0.493432147), tile) * vec3(0.185462788, 0.187007025, 0.190120026);
+    value += bloom_sample(center + vec2(0.510308467, 0.518647496), tile) * vec3(0.179289520, 0.182036966, 0.181234121);
 #endif
 #endif
     return value;
 }
 
 #if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
-const int bloom_injectionCount = 498;
+const int bloom_injectionCount = 104;
 shared vec2 bloom_injectionOffsets[bloom_injectionCount];
 shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.048279382, 0.048106074, 0.049070451);
-            bloom_injectionOffsets[32] = vec2(42.607331930, -13.843961348);
-            bloom_injectionWeights[32] = vec3(0.000743308, 0.000682360, 0.000587389);
-            bloom_injectionOffsets[64] = vec2(-33.286978070, 10.815594803);
-            bloom_injectionWeights[64] = vec3(0.001275294, 0.001200949, 0.001148372);
-            bloom_injectionOffsets[96] = vec2(14.812188358, -20.387228258);
-            bloom_injectionWeights[96] = vec3(0.001859045, 0.001741724, 0.001702935);
-            bloom_injectionOffsets[128] = vec2(-13.166389651, 18.121980674);
-            bloom_injectionWeights[128] = vec3(0.002235481, 0.002118984, 0.002070494);
-            bloom_injectionOffsets[160] = vec2(0.000000000, -19.600000000);
-            bloom_injectionWeights[160] = vec3(0.003985935, 0.003884559, 0.003795450);
-            bloom_injectionOffsets[192] = vec2(-0.000000000, 1.400000000);
-            bloom_injectionWeights[192] = vec3(0.018058844, 0.018103400, 0.018223641);
-            bloom_injectionOffsets[224] = vec2(-0.000000000, 46.200000000);
-            bloom_injectionWeights[224] = vec3(0.000967611, 0.000960864, 0.000874892);
-            bloom_injectionOffsets[256] = vec2(-16.457987064, -22.652475842);
-            bloom_injectionWeights[256] = vec3(0.001549739, 0.001440623, 0.001405891);
-            bloom_injectionOffsets[288] = vec2(14.812188358, 20.387228258);
-            bloom_injectionWeights[288] = vec3(0.001858887, 0.001741538, 0.001702757);
-            bloom_injectionOffsets[320] = vec2(-21.303665965, -6.921980674);
-            bloom_injectionWeights[320] = vec3(0.002726363, 0.002610585, 0.002537065);
-            bloom_injectionOffsets[352] = vec2(11.983312105, 3.893614129);
-            bloom_injectionWeights[352] = vec3(0.005928732, 0.006016629, 0.006070966);
-            bloom_injectionOffsets[384] = vec2(-3.000000000, 5.000000000);
-            bloom_injectionWeights[384] = vec3(0.001454602, 0.001494557, 0.001561366);
-            bloom_injectionOffsets[416] = vec2(-2.000000000, 2.000000000);
-            bloom_injectionWeights[416] = vec3(0.002960019, 0.003001734, 0.002422835);
-            bloom_injectionOffsets[448] = vec2(-2.000000000, -1.000000000);
-            bloom_injectionWeights[448] = vec3(0.000000411, 0.000003947, 0.000016493);
-            bloom_injectionOffsets[480] = vec2(-3.000000000, -4.000000000);
-            bloom_injectionWeights[480] = vec3(0.001994773, 0.002106977, 0.001896572);
+            bloom_injectionOffsets[0] = vec2(-0.376812579, 0.465122121);
+            bloom_injectionWeights[0] = vec3(0.982114315, 0.988508344, 0.987119019);
+            bloom_injectionOffsets[32] = vec2(-0.002171685, 35.605082533);
+            bloom_injectionWeights[32] = vec3(0.006562659, 0.004174653, 0.003835440);
+            bloom_injectionOffsets[64] = vec2(32.437803041, 11.004685185);
+            bloom_injectionWeights[64] = vec3(0.004241637, 0.003192934, 0.002969944);
+            bloom_injectionOffsets[96] = vec2(5.000141160, 6.927252536);
+            bloom_injectionWeights[96] = vec3(0.026715344, 0.027714506, 0.030999141);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(1.331479123, -0.432623792);
-            bloom_injectionWeights[1] = vec3(0.016634872, 0.016652320, 0.016891221);
-            bloom_injectionOffsets[33] = vec2(43.938811053, -14.276585140);
-            bloom_injectionWeights[33] = vec3(0.000538782, 0.000555512, 0.000495662);
-            bloom_injectionOffsets[65] = vec2(-34.618457193, 11.248218595);
-            bloom_injectionWeights[65] = vec3(0.001177905, 0.001121177, 0.001059705);
-            bloom_injectionOffsets[97] = vec2(15.635087711, -21.519852050);
-            bloom_injectionWeights[97] = vec3(0.001698102, 0.001583964, 0.001548346);
-            bloom_injectionOffsets[129] = vec2(-13.989289005, 19.254604466);
-            bloom_injectionWeights[129] = vec3(0.002043091, 0.001922488, 0.001878621);
-            bloom_injectionOffsets[161] = vec2(0.000000000, -21.000000000);
-            bloom_injectionWeights[161] = vec3(0.003635505, 0.003517785, 0.003428105);
-            bloom_injectionOffsets[193] = vec2(-0.000000000, 2.800000000);
-            bloom_injectionWeights[193] = vec3(0.011792241, 0.011735610, 0.011804952);
-            bloom_injectionOffsets[225] = vec2(-0.000000000, 47.600000000);
-            bloom_injectionWeights[225] = vec3(0.000905697, 0.000929470, 0.000836717);
-            bloom_injectionOffsets[257] = vec2(-17.280886417, -23.785099635);
-            bloom_injectionWeights[257] = vec3(0.001402608, 0.001304630, 0.001266327);
-            bloom_injectionOffsets[289] = vec2(15.635087711, 21.519852050);
-            bloom_injectionWeights[289] = vec3(0.001697975, 0.001583814, 0.001548194);
-            bloom_injectionOffsets[321] = vec2(-22.635145088, -7.354604466);
-            bloom_injectionWeights[321] = vec3(0.002489707, 0.002372030, 0.002306267);
-            bloom_injectionOffsets[353] = vec2(13.314791228, 4.326237921);
-            bloom_injectionWeights[353] = vec3(0.005151179, 0.005181500, 0.005187414);
-            bloom_injectionOffsets[385] = vec2(-2.000000000, 5.000000000);
-            bloom_injectionWeights[385] = vec3(0.000229796, 0.000270337, 0.000335216);
-            bloom_injectionOffsets[417] = vec2(-1.000000000, 2.000000000);
-            bloom_injectionWeights[417] = vec3(0.000001306, 0.000011301, 0.000003718);
-            bloom_injectionOffsets[449] = vec2(-1.000000000, -1.000000000);
-            bloom_injectionWeights[449] = vec3(0.006783441, 0.006645234, 0.007145907);
-            bloom_injectionOffsets[481] = vec2(-2.000000000, -4.000000000);
-            bloom_injectionWeights[481] = vec3(0.000500919, 0.000361873, 0.000302091);
+            bloom_injectionOffsets[1] = vec2(-0.269684956, -0.668204255);
+            bloom_injectionWeights[1] = vec3(0.098388985, 0.094502062, 0.089797415);
+            bloom_injectionOffsets[33] = vec2(-0.003173219, 27.516374521);
+            bloom_injectionWeights[33] = vec3(0.007826956, 0.009579459, 0.006235164);
+            bloom_injectionOffsets[65] = vec2(26.031278736, 8.998863759);
+            bloom_injectionWeights[65] = vec3(0.006384526, 0.005276567, 0.004287024);
+            bloom_injectionOffsets[97] = vec2(-5.000340793, -6.985646421);
+            bloom_injectionWeights[97] = vec3(0.026128039, 0.027237939, 0.030507242);
             break;
         case 2u:
-            bloom_injectionOffsets[2] = vec2(2.662958246, -0.865247584);
-            bloom_injectionWeights[2] = vec3(0.009956972, 0.010168119, 0.010425674);
-            bloom_injectionOffsets[34] = vec2(45.270290176, -14.709208932);
-            bloom_injectionWeights[34] = vec3(0.000391262, 0.000393085, 0.000346073);
-            bloom_injectionOffsets[66] = vec2(-35.949936316, 11.680842387);
-            bloom_injectionWeights[66] = vec3(0.001092807, 0.001056865, 0.000986486);
-            bloom_injectionOffsets[98] = vec2(16.457987064, -22.652475842);
-            bloom_injectionWeights[98] = vec3(0.001549580, 0.001440494, 0.001405720);
-            bloom_injectionOffsets[130] = vec2(-14.812188358, 20.387228258);
-            bloom_injectionWeights[130] = vec3(0.001858895, 0.001741553, 0.001702768);
-            bloom_injectionOffsets[162] = vec2(0.000000000, -22.400000000);
-            bloom_injectionWeights[162] = vec3(0.003313622, 0.003187677, 0.003096947);
-            bloom_injectionOffsets[194] = vec2(-0.000000000, 4.200000000);
-            bloom_injectionWeights[194] = vec3(0.011445930, 0.011585255, 0.011869093);
-            bloom_injectionOffsets[226] = vec2(-0.000000000, 49.000000000);
-            bloom_injectionWeights[226] = vec3(0.000789374, 0.000849451, 0.000743902);
-            bloom_injectionOffsets[258] = vec2(-18.103785771, -24.917723427);
-            bloom_injectionWeights[258] = vec3(0.001264423, 0.001185722, 0.001138901);
-            bloom_injectionOffsets[290] = vec2(16.457987064, 22.652475842);
-            bloom_injectionWeights[290] = vec3(0.001549515, 0.001440408, 0.001405638);
-            bloom_injectionOffsets[322] = vec2(-23.966624211, -7.787228258);
-            bloom_injectionWeights[322] = vec3(0.002313074, 0.002191524, 0.002135158);
-            bloom_injectionOffsets[354] = vec2(14.646270351, 4.758861713);
-            bloom_injectionWeights[354] = vec3(0.004545489, 0.004532560, 0.004511650);
-            bloom_injectionOffsets[386] = vec2(-1.000000000, 5.000000000);
-            bloom_injectionWeights[386] = vec3(0.000248826, 0.000247970, 0.000227624);
-            bloom_injectionOffsets[418] = vec2(0.000000000, 2.000000000);
-            bloom_injectionWeights[418] = vec3(0.000731428, 0.000540821, 0.000939280);
-            bloom_injectionOffsets[450] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[450] = vec3(0.015510328, 0.015869653, 0.015428380);
-            bloom_injectionOffsets[482] = vec2(-1.000000000, -4.000000000);
-            bloom_injectionWeights[482] = vec3(0.000000000, 0.000028728, 0.000000000);
+            bloom_injectionOffsets[2] = vec2(0.775481790, -0.341552529);
+            bloom_injectionWeights[2] = vec3(0.019707600, 0.018103631, 0.018637542);
+            bloom_injectionOffsets[34] = vec2(-0.002148493, 19.121374357);
+            bloom_injectionWeights[34] = vec3(0.013242916, 0.014118033, 0.017096870);
+            bloom_injectionOffsets[66] = vec2(16.833736084, 5.998348437);
+            bloom_injectionWeights[66] = vec3(0.012221742, 0.013582641, 0.014705804);
+            bloom_injectionOffsets[98] = vec2(-10.997013098, -15.013728736);
+            bloom_injectionWeights[98] = vec3(0.009485738, 0.011307379, 0.009197643);
             break;
         case 3u:
-            bloom_injectionOffsets[3] = vec2(3.994437368, -1.297871376);
-            bloom_injectionWeights[3] = vec3(0.010596503, 0.010683658, 0.010790155);
-            bloom_injectionOffsets[35] = vec2(46.601769298, -15.141832724);
-            bloom_injectionWeights[35] = vec3(0.000322080, 0.000254441, 0.000281987);
-            bloom_injectionOffsets[67] = vec2(-37.281415439, 12.113466179);
-            bloom_injectionWeights[67] = vec3(0.001003989, 0.000990537, 0.000909448);
-            bloom_injectionOffsets[99] = vec2(17.280886417, -23.785099635);
-            bloom_injectionWeights[99] = vec3(0.001402459, 0.001304535, 0.001266183);
-            bloom_injectionOffsets[131] = vec2(-15.635087711, 21.519852050);
-            bloom_injectionWeights[131] = vec3(0.001697962, 0.001583811, 0.001548184);
-            bloom_injectionOffsets[163] = vec2(0.000000000, -23.800000000);
-            bloom_injectionWeights[163] = vec3(0.003050412, 0.002922365, 0.002838851);
-            bloom_injectionOffsets[195] = vec2(-0.000000000, 5.600000000);
-            bloom_injectionWeights[195] = vec3(0.012692794, 0.012971940, 0.012919795);
-            bloom_injectionOffsets[227] = vec2(-0.000000000, 50.400000000);
-            bloom_injectionWeights[227] = vec3(0.000767666, 0.000766797, 0.000632718);
-            bloom_injectionOffsets[259] = vec2(-18.926685124, -26.050347219);
-            bloom_injectionWeights[259] = vec3(0.001146405, 0.001091165, 0.001032559);
-            bloom_injectionOffsets[291] = vec2(17.280886417, 23.785099635);
-            bloom_injectionWeights[291] = vec3(0.001402578, 0.001304586, 0.001266302);
-            bloom_injectionOffsets[323] = vec2(-25.298103333, -8.219852050);
-            bloom_injectionWeights[323] = vec3(0.002117790, 0.001999564, 0.001950899);
-            bloom_injectionOffsets[355] = vec2(15.977749474, 5.191485505);
-            bloom_injectionWeights[355] = vec3(0.004010810, 0.003966318, 0.003924817);
-            bloom_injectionOffsets[387] = vec2(0.000000000, 5.000000000);
-            bloom_injectionWeights[387] = vec3(0.001134023, 0.001214931, 0.001246512);
-            bloom_injectionOffsets[419] = vec2(1.000000000, 2.000000000);
-            bloom_injectionWeights[419] = vec3(0.000000797, 0.000009097, 0.000001777);
-            bloom_injectionOffsets[451] = vec2(1.000000000, -1.000000000);
-            bloom_injectionWeights[451] = vec3(0.006729333, 0.006612172, 0.007131565);
-            bloom_injectionOffsets[483] = vec2(0.000000000, -4.000000000);
-            bloom_injectionWeights[483] = vec3(0.003161086, 0.003160669, 0.003301331);
+            bloom_injectionOffsets[3] = vec2(0.874591596, 1.926633110);
+            bloom_injectionWeights[3] = vec3(0.011513095, 0.012809328, 0.014322174);
+            bloom_injectionOffsets[35] = vec2(-0.001570081, 8.614265036);
+            bloom_injectionWeights[35] = vec3(0.034282923, 0.036031120, 0.034739196);
+            bloom_injectionOffsets[67] = vec2(7.564869645, 2.994173786);
+            bloom_injectionWeights[67] = vec3(0.032251284, 0.033665523, 0.036697615);
+            bloom_injectionOffsets[99] = vec2(-15.997755212, -21.997820668);
+            bloom_injectionWeights[99] = vec3(0.006259166, 0.004659093, 0.004145102);
             break;
         case 4u:
-            bloom_injectionOffsets[4] = vec2(5.325916491, -1.730495168);
-            bloom_injectionWeights[4] = vec3(0.010483828, 0.010670156, 0.010756043);
-            bloom_injectionOffsets[36] = vec2(47.933248421, -15.574456516);
-            bloom_injectionWeights[36] = vec3(0.000158253, 0.000162127, 0.000156094);
-            bloom_injectionOffsets[68] = vec2(-38.612894562, 12.546089972);
-            bloom_injectionWeights[68] = vec3(0.000952088, 0.000964208, 0.000870330);
-            bloom_injectionOffsets[100] = vec2(18.103785771, -24.917723427);
-            bloom_injectionWeights[100] = vec3(0.001264355, 0.001185702, 0.001138842);
-            bloom_injectionOffsets[132] = vec2(-16.457987064, 22.652475842);
-            bloom_injectionWeights[132] = vec3(0.001549457, 0.001440370, 0.001405578);
-            bloom_injectionOffsets[164] = vec2(0.000000000, -25.200000000);
-            bloom_injectionWeights[164] = vec3(0.002805411, 0.002680542, 0.002607465);
-            bloom_injectionOffsets[196] = vec2(-0.000000000, 7.000000000);
-            bloom_injectionWeights[196] = vec3(0.012643866, 0.012947333, 0.013149501);
-            bloom_injectionOffsets[228] = vec2(-0.000000000, 51.800000000);
-            bloom_injectionWeights[228] = vec3(0.000692091, 0.000629987, 0.000554793);
-            bloom_injectionOffsets[260] = vec2(-19.749584477, -27.182971011);
-            bloom_injectionWeights[260] = vec3(0.001055379, 0.001022869, 0.000951035);
-            bloom_injectionOffsets[292] = vec2(18.103785771, 24.917723427);
-            bloom_injectionWeights[292] = vec3(0.001264640, 0.001185774, 0.001139105);
-            bloom_injectionOffsets[324] = vec2(-26.629582456, -8.652475842);
-            bloom_injectionWeights[324] = vec3(0.001939999, 0.001823638, 0.001781812);
-            bloom_injectionOffsets[356] = vec2(17.309228597, 5.624109298);
-            bloom_injectionWeights[356] = vec3(0.003603664, 0.003531818, 0.003470377);
-            bloom_injectionOffsets[388] = vec2(1.000000000, 5.000000000);
-            bloom_injectionWeights[388] = vec3(0.000226861, 0.000250170, 0.000235103);
-            bloom_injectionOffsets[420] = vec2(2.000000000, 2.000000000);
-            bloom_injectionWeights[420] = vec3(0.002919650, 0.002980446, 0.002444976);
-            bloom_injectionOffsets[452] = vec2(2.000000000, -1.000000000);
-            bloom_injectionWeights[452] = vec3(0.000000410, 0.000004037, 0.000016974);
-            bloom_injectionOffsets[484] = vec2(1.000000000, -4.000000000);
-            bloom_injectionWeights[484] = vec3(0.000000000, 0.000013149, 0.000000000);
+            bloom_injectionOffsets[4] = vec2(-0.003021614, -1.693926994);
+            bloom_injectionWeights[4] = vec3(0.016177848, 0.017623393, 0.016533153);
+            bloom_injectionOffsets[36] = vec2(-0.001286580, -8.575519834);
+            bloom_injectionWeights[36] = vec3(0.033629488, 0.035432570, 0.038606215);
+            bloom_injectionOffsets[68] = vec2(-7.699833698, -2.001557529);
+            bloom_injectionWeights[68] = vec3(0.031316496, 0.032889452, 0.035567954);
+            bloom_injectionOffsets[100] = vec2(-21.006431076, -28.995353331);
+            bloom_injectionWeights[100] = vec3(0.002688667, 0.002231425, 0.001758769);
             break;
         case 5u:
-            bloom_injectionOffsets[5] = vec2(6.657395614, -2.163118961);
-            bloom_injectionWeights[5] = vec3(0.012458374, 0.012667929, 0.012818499);
-            bloom_injectionOffsets[37] = vec2(49.264727544, -16.007080309);
-            bloom_injectionWeights[37] = vec3(0.000091848, 0.000083412, 0.000080890);
-            bloom_injectionOffsets[69] = vec2(-39.944373684, 12.978713764);
-            bloom_injectionWeights[69] = vec3(0.000857830, 0.000889320, 0.000789645);
-            bloom_injectionOffsets[101] = vec2(18.926685124, -26.050347219);
-            bloom_injectionWeights[101] = vec3(0.001146399, 0.001091174, 0.001032559);
-            bloom_injectionOffsets[133] = vec2(-17.280886417, 23.785099635);
-            bloom_injectionWeights[133] = vec3(0.001402471, 0.001304526, 0.001266195);
-            bloom_injectionOffsets[165] = vec2(0.000000000, -26.600000000);
-            bloom_injectionWeights[165] = vec3(0.002583441, 0.002460003, 0.002396541);
-            bloom_injectionOffsets[197] = vec2(-0.000000000, 8.400000000);
-            bloom_injectionWeights[197] = vec3(0.010369007, 0.010646584, 0.010809530);
-            bloom_injectionOffsets[229] = vec2(-0.000000000, 53.200000000);
-            bloom_injectionWeights[229] = vec3(0.000503758, 0.000526711, 0.000521893);
-            bloom_injectionOffsets[261] = vec2(-20.572483830, -28.315594803);
-            bloom_injectionWeights[261] = vec3(0.000965424, 0.000962426, 0.000879508);
-            bloom_injectionOffsets[293] = vec2(18.926685124, 26.050347219);
-            bloom_injectionWeights[293] = vec3(0.001146737, 0.001091109, 0.001032798);
-            bloom_injectionOffsets[325] = vec2(-27.961061579, -9.085099635);
-            bloom_injectionWeights[325] = vec3(0.001810859, 0.001690787, 0.001653955);
-            bloom_injectionOffsets[357] = vec2(18.640707719, 6.056733090);
-            bloom_injectionWeights[357] = vec3(0.003266027, 0.003172856, 0.003103016);
-            bloom_injectionOffsets[389] = vec2(2.000000000, 5.000000000);
-            bloom_injectionWeights[389] = vec3(0.000231905, 0.000274331, 0.000328295);
-            bloom_injectionOffsets[421] = vec2(3.000000000, 2.000000000);
-            bloom_injectionWeights[421] = vec3(0.001403783, 0.001360403, 0.001560919);
-            bloom_injectionOffsets[453] = vec2(3.000000000, -1.000000000);
-            bloom_injectionWeights[453] = vec3(0.003706313, 0.003722983, 0.003509283);
-            bloom_injectionOffsets[485] = vec2(2.000000000, -4.000000000);
-            bloom_injectionWeights[485] = vec3(0.000502617, 0.000394812, 0.000321963);
+            bloom_injectionOffsets[5] = vec2(-1.980857253, 0.393627823);
+            bloom_injectionWeights[5] = vec3(0.026243798, 0.028297104, 0.027386574);
+            bloom_injectionOffsets[37] = vec2(-0.001707204, -19.174540506);
+            bloom_injectionWeights[37] = vec3(0.013001774, 0.014002909, 0.017499452);
+            bloom_injectionOffsets[69] = vec2(-16.979280447, -4.997569571);
+            bloom_injectionWeights[69] = vec3(0.011149149, 0.012632917, 0.013347837);
+            bloom_injectionOffsets[101] = vec2(-26.001355878, -35.816772893);
+            bloom_injectionWeights[101] = vec3(0.001158011, 0.000835748, 0.000543958);
             break;
         case 6u:
-            bloom_injectionOffsets[6] = vec2(7.988874737, -2.595742753);
-            bloom_injectionWeights[6] = vec3(0.009239646, 0.009450023, 0.009679850);
-            bloom_injectionOffsets[38] = vec2(50.596206667, -16.439704101);
-            bloom_injectionWeights[38] = vec3(0.000027128, 0.000024441, 0.000024033);
-            bloom_injectionOffsets[70] = vec2(-41.275852807, 13.411337556);
-            bloom_injectionWeights[70] = vec3(0.000796877, 0.000808344, 0.000679644);
-            bloom_injectionOffsets[102] = vec2(19.749584477, -27.182971011);
-            bloom_injectionWeights[102] = vec3(0.001055399, 0.001022882, 0.000951052);
-            bloom_injectionOffsets[134] = vec2(-18.103785771, 24.917723427);
-            bloom_injectionWeights[134] = vec3(0.001264510, 0.001185734, 0.001138987);
-            bloom_injectionOffsets[166] = vec2(0.000000000, -28.000000000);
-            bloom_injectionWeights[166] = vec3(0.002411134, 0.002285670, 0.002231460);
-            bloom_injectionOffsets[198] = vec2(-0.000000000, 9.800000000);
-            bloom_injectionWeights[198] = vec3(0.009407358, 0.009657137, 0.009759511);
-            bloom_injectionOffsets[230] = vec2(-0.000000000, 54.600000000);
-            bloom_injectionWeights[230] = vec3(0.000404606, 0.000335828, 0.000309326);
-            bloom_injectionOffsets[262] = vec2(-21.395383183, -29.448218595);
-            bloom_injectionWeights[262] = vec3(0.000871648, 0.000892822, 0.000799792);
-            bloom_injectionOffsets[294] = vec2(19.749584477, 27.182971011);
-            bloom_injectionWeights[294] = vec3(0.001055541, 0.001022542, 0.000951137);
-            bloom_injectionOffsets[326] = vec2(-29.292540702, -9.517723427);
-            bloom_injectionWeights[326] = vec3(0.001651394, 0.001540260, 0.001505022);
-            bloom_injectionOffsets[358] = vec2(19.972186842, 6.489356882);
-            bloom_injectionWeights[358] = vec3(0.002982506, 0.002875974, 0.002803158);
-            bloom_injectionOffsets[390] = vec2(3.000000000, 5.000000000);
-            bloom_injectionWeights[390] = vec3(0.001469147, 0.001501165, 0.001562083);
-            bloom_injectionOffsets[422] = vec2(4.000000000, 2.000000000);
-            bloom_injectionWeights[422] = vec3(0.000241047, 0.000155283, 0.000149043);
-            bloom_injectionOffsets[454] = vec2(4.000000000, -1.000000000);
-            bloom_injectionWeights[454] = vec3(0.003059851, 0.003067733, 0.002988684);
-            bloom_injectionOffsets[486] = vec2(3.000000000, -4.000000000);
-            bloom_injectionWeights[486] = vec3(0.001976313, 0.002093156, 0.001910459);
+            bloom_injectionOffsets[6] = vec2(1.177414377, -0.275606337);
+            bloom_injectionWeights[6] = vec3(0.082531609, 0.088853665, 0.079643264);
+            bloom_injectionOffsets[38] = vec2(0.000997073, -27.520601111);
+            bloom_injectionWeights[38] = vec3(0.007724337, 0.009356233, 0.006297045);
+            bloom_injectionOffsets[70] = vec2(-26.312521795, -8.004836184);
+            bloom_injectionWeights[70] = vec3(0.007418721, 0.006245846, 0.005168244);
+            bloom_injectionOffsets[102] = vec2(-31.002575162, -42.712738151);
+            bloom_injectionWeights[102] = vec3(0.000369353, 0.000205949, 0.000101828);
             break;
         case 7u:
-            bloom_injectionOffsets[7] = vec2(9.320353860, -3.028366545);
-            bloom_injectionWeights[7] = vec3(0.008050676, 0.008251993, 0.008370841);
-            bloom_injectionOffsets[39] = vec2(51.927685790, -16.872327893);
-            bloom_injectionWeights[39] = vec3(0.000001650, 0.000001921, 0.000000000);
-            bloom_injectionOffsets[71] = vec2(-42.607331930, 13.843961348);
-            bloom_injectionWeights[71] = vec3(0.000745893, 0.000681268, 0.000591139);
-            bloom_injectionOffsets[103] = vec2(20.572483830, -28.315594803);
-            bloom_injectionWeights[103] = vec3(0.000965334, 0.000962274, 0.000879409);
-            bloom_injectionOffsets[135] = vec2(-18.926685124, 26.050347219);
-            bloom_injectionWeights[135] = vec3(0.001146630, 0.001091132, 0.001032723);
-            bloom_injectionOffsets[167] = vec2(0.000000000, -29.400000000);
-            bloom_injectionWeights[167] = vec3(0.002217863, 0.002097243, 0.002048452);
-            bloom_injectionOffsets[199] = vec2(-0.000000000, 11.200000000);
-            bloom_injectionWeights[199] = vec3(0.008148448, 0.008333111, 0.008423176);
-            bloom_injectionOffsets[231] = vec2(-0.000000000, 56.000000000);
-            bloom_injectionWeights[231] = vec3(0.000259345, 0.000249468, 0.000272162);
-            bloom_injectionOffsets[263] = vec2(-22.218282537, -30.580842387);
-            bloom_injectionWeights[263] = vec3(0.000787784, 0.000808953, 0.000703986);
-            bloom_injectionOffsets[295] = vec2(20.572483830, 28.315594803);
-            bloom_injectionWeights[295] = vec3(0.000964757, 0.000960860, 0.000878747);
-            bloom_injectionOffsets[327] = vec2(-30.624019825, -9.950347219);
-            bloom_injectionWeights[327] = vec3(0.001519700, 0.001416321, 0.001377759);
-            bloom_injectionOffsets[359] = vec2(21.303665965, 6.921980674);
-            bloom_injectionWeights[359] = vec3(0.002726498, 0.002610671, 0.002537260);
-            bloom_injectionOffsets[391] = vec2(4.000000000, 5.000000000);
-            bloom_injectionWeights[391] = vec3(0.001175154, 0.001163947, 0.001286112);
-            bloom_injectionOffsets[423] = vec2(5.000000000, 2.000000000);
-            bloom_injectionWeights[423] = vec3(0.001758022, 0.001818647, 0.001816310);
-            bloom_injectionOffsets[455] = vec2(5.000000000, -1.000000000);
-            bloom_injectionWeights[455] = vec3(0.000406190, 0.000462773, 0.000444824);
-            bloom_injectionOffsets[487] = vec2(4.000000000, -4.000000000);
-            bloom_injectionWeights[487] = vec3(0.000542481, 0.000367814, 0.000598305);
+            bloom_injectionOffsets[7] = vec2(-1.949501364, 0.297862273);
+            bloom_injectionWeights[7] = vec3(0.062100902, 0.058795109, 0.054206807);
+            bloom_injectionOffsets[39] = vec2(-0.003778040, -35.587975990);
+            bloom_injectionWeights[39] = vec3(0.006460876, 0.004134994, 0.003871100);
+            bloom_injectionOffsets[71] = vec2(-35.362600262, -11.000281153);
+            bloom_injectionWeights[71] = vec3(0.003121515, 0.002714711, 0.002402990);
+            bloom_injectionOffsets[103] = vec2(-36.667680244, -50.510348008);
+            bloom_injectionWeights[103] = vec3(0.000083589, 0.000046624, 0.000031714);
             break;
         case 8u:
-            bloom_injectionOffsets[8] = vec2(10.651832983, -3.460990337);
-            bloom_injectionWeights[8] = vec3(0.006977069, 0.007113916, 0.007181611);
-            bloom_injectionOffsets[40] = vec2(-1.331479123, 0.432623792);
-            bloom_injectionWeights[40] = vec3(0.016608115, 0.016626231, 0.016857423);
-            bloom_injectionOffsets[72] = vec2(-43.938811053, 14.276585140);
-            bloom_injectionWeights[72] = vec3(0.000538238, 0.000553694, 0.000497848);
-            bloom_injectionOffsets[104] = vec2(21.395383183, -29.448218595);
-            bloom_injectionWeights[104] = vec3(0.000871448, 0.000892409, 0.000799847);
-            bloom_injectionOffsets[136] = vec2(-19.749584477, 27.182971011);
-            bloom_injectionWeights[136] = vec3(0.001055504, 0.001022637, 0.000951105);
-            bloom_injectionOffsets[168] = vec2(0.000000000, -30.800000000);
-            bloom_injectionWeights[168] = vec3(0.002070042, 0.001950016, 0.001904918);
-            bloom_injectionOffsets[200] = vec2(-0.000000000, 12.600000000);
-            bloom_injectionWeights[200] = vec3(0.007150667, 0.007269627, 0.007312255);
-            bloom_injectionOffsets[232] = vec2(-0.000000000, 57.400000000);
-            bloom_injectionWeights[232] = vec3(0.000195403, 0.000231803, 0.000199431);
-            bloom_injectionOffsets[264] = vec2(-23.041181890, -31.713466179);
-            bloom_injectionWeights[264] = vec3(0.000665863, 0.000666101, 0.000580263);
-            bloom_injectionOffsets[296] = vec2(21.395383183, 29.448218595);
-            bloom_injectionWeights[296] = vec3(0.000872410, 0.000889531, 0.000799072);
-            bloom_injectionOffsets[328] = vec2(-31.955498948, -10.382971011);
-            bloom_injectionWeights[328] = vec3(0.001401032, 0.001309012, 0.001265610);
-            bloom_injectionOffsets[360] = vec2(22.635145088, 7.354604466);
-            bloom_injectionWeights[360] = vec3(0.002489858, 0.002372117, 0.002306451);
-            bloom_injectionOffsets[392] = vec2(-5.000000000, 4.000000000);
-            bloom_injectionWeights[392] = vec3(0.000055939, 0.000000000, 0.000000000);
-            bloom_injectionOffsets[424] = vec2(-5.000000000, 1.000000000);
-            bloom_injectionWeights[424] = vec3(0.000404915, 0.000454050, 0.000430447);
-            bloom_injectionOffsets[456] = vec2(-5.000000000, -2.000000000);
-            bloom_injectionWeights[456] = vec3(0.001753310, 0.001808320, 0.001817481);
-            bloom_injectionOffsets[488] = vec2(5.000000000, -4.000000000);
-            bloom_injectionWeights[488] = vec3(0.000047478, 0.000000000, 0.000000000);
+            bloom_injectionOffsets[8] = vec2(-3.128832789, 4.472387846);
+            bloom_injectionWeights[8] = vec3(0.004495349, 0.004860966, 0.005234830);
+            bloom_injectionOffsets[40] = vec2(-0.001421847, -44.500927571);
+            bloom_injectionWeights[40] = vec3(0.003460522, 0.003090895, 0.002593834);
+            bloom_injectionOffsets[72] = vec2(-41.752173558, -13.006492382);
+            bloom_injectionWeights[72] = vec3(0.001829198, 0.001444397, 0.001029590);
             break;
         case 9u:
-            bloom_injectionOffsets[9] = vec2(11.983312105, -3.893614129);
-            bloom_injectionWeights[9] = vec3(0.005928671, 0.006016570, 0.006070902);
-            bloom_injectionOffsets[41] = vec2(-2.662958246, 0.865247584);
-            bloom_injectionWeights[41] = vec3(0.009880486, 0.010111894, 0.010402291);
-            bloom_injectionOffsets[73] = vec2(-45.270290176, 14.709208932);
-            bloom_injectionWeights[73] = vec3(0.000390003, 0.000392600, 0.000335493);
-            bloom_injectionOffsets[105] = vec2(22.218282537, -30.580842387);
-            bloom_injectionWeights[105] = vec3(0.000788027, 0.000808331, 0.000703979);
-            bloom_injectionOffsets[137] = vec2(-20.572483830, 28.315594803);
-            bloom_injectionWeights[137] = vec3(0.000964913, 0.000961261, 0.000878897);
-            bloom_injectionOffsets[169] = vec2(0.000000000, -32.200000000);
-            bloom_injectionWeights[169] = vec3(0.001927172, 0.001810343, 0.001769046);
-            bloom_injectionOffsets[201] = vec2(-0.000000000, 14.000000000);
-            bloom_injectionWeights[201] = vec3(0.006238199, 0.006301375, 0.006312606);
-            bloom_injectionOffsets[233] = vec2(-0.000000000, 58.800000000);
-            bloom_injectionWeights[233] = vec3(0.000123741, 0.000093293, 0.000095548);
-            bloom_injectionOffsets[265] = vec2(-23.864081243, -32.846089972);
-            bloom_injectionWeights[265] = vec3(0.000496403, 0.000473690, 0.000437138);
-            bloom_injectionOffsets[297] = vec2(22.218282537, 30.580842387);
-            bloom_injectionWeights[297] = vec3(0.000788594, 0.000804827, 0.000703411);
-            bloom_injectionOffsets[329] = vec2(-33.286978070, -10.815594803);
-            bloom_injectionWeights[329] = vec3(0.001275918, 0.001201003, 0.001148878);
-            bloom_injectionOffsets[361] = vec2(23.966624211, 7.787228258);
-            bloom_injectionWeights[361] = vec3(0.002312921, 0.002191296, 0.002135026);
-            bloom_injectionOffsets[393] = vec2(-4.000000000, 4.000000000);
-            bloom_injectionWeights[393] = vec3(0.000517963, 0.000372200, 0.000614285);
-            bloom_injectionOffsets[425] = vec2(-4.000000000, 1.000000000);
-            bloom_injectionWeights[425] = vec3(0.003034089, 0.003034930, 0.002952530);
-            bloom_injectionOffsets[457] = vec2(-4.000000000, -2.000000000);
-            bloom_injectionWeights[457] = vec3(0.000214040, 0.000133705, 0.000133197);
-            bloom_injectionOffsets[489] = vec2(-4.000000000, -5.000000000);
-            bloom_injectionWeights[489] = vec3(0.001181813, 0.001167570, 0.001242675);
+            bloom_injectionOffsets[9] = vec2(3.762301403, -5.016750865);
+            bloom_injectionWeights[9] = vec3(0.003276062, 0.003456956, 0.003608704);
+            bloom_injectionOffsets[41] = vec2(-0.003876078, -53.392331244);
+            bloom_injectionWeights[41] = vec3(0.001887291, 0.001407603, 0.001024213);
+            bloom_injectionOffsets[73] = vec2(-50.513296901, -15.929260785);
+            bloom_injectionWeights[73] = vec3(0.001032082, 0.000719319, 0.000441311);
             break;
         case 10u:
-            bloom_injectionOffsets[10] = vec2(13.314791228, -4.326237921);
-            bloom_injectionWeights[10] = vec3(0.005151322, 0.005181645, 0.005187555);
-            bloom_injectionOffsets[42] = vec2(-3.994437368, 1.297871376);
-            bloom_injectionWeights[42] = vec3(0.010585773, 0.010667749, 0.010769852);
-            bloom_injectionOffsets[74] = vec2(-46.601769298, 15.141832724);
-            bloom_injectionWeights[74] = vec3(0.000352728, 0.000255354, 0.000267157);
-            bloom_injectionOffsets[106] = vec2(23.041181890, -31.713466179);
-            bloom_injectionWeights[106] = vec3(0.000667049, 0.000665638, 0.000579091);
-            bloom_injectionOffsets[138] = vec2(-21.395383183, 29.448218595);
-            bloom_injectionWeights[138] = vec3(0.000871926, 0.000890267, 0.000799478);
-            bloom_injectionOffsets[170] = vec2(0.000000000, -33.600000000);
-            bloom_injectionWeights[170] = vec3(0.001776708, 0.001666127, 0.001627056);
-            bloom_injectionOffsets[202] = vec2(-0.000000000, 15.400000000);
-            bloom_injectionWeights[202] = vec3(0.005524059, 0.005526450, 0.005494570);
-            bloom_injectionOffsets[234] = vec2(-0.000000000, 60.200000000);
-            bloom_injectionWeights[234] = vec3(0.000055484, 0.000073765, 0.000058623);
-            bloom_injectionOffsets[266] = vec2(-24.686980596, -33.978713764);
-            bloom_injectionWeights[266] = vec3(0.000315698, 0.000239958, 0.000309202);
-            bloom_injectionOffsets[298] = vec2(23.041181890, 31.713466179);
-            bloom_injectionWeights[298] = vec3(0.000663730, 0.000662546, 0.000576221);
-            bloom_injectionOffsets[330] = vec2(-34.618457193, -11.248218595);
-            bloom_injectionWeights[330] = vec3(0.001178510, 0.001121214, 0.001060155);
-            bloom_injectionOffsets[362] = vec2(25.298103333, 8.219852050);
-            bloom_injectionWeights[362] = vec3(0.002117724, 0.001999415, 0.001950820);
-            bloom_injectionOffsets[394] = vec2(-3.000000000, 4.000000000);
-            bloom_injectionWeights[394] = vec3(0.001985647, 0.002101018, 0.001905562);
-            bloom_injectionOffsets[426] = vec2(-3.000000000, 1.000000000);
-            bloom_injectionWeights[426] = vec3(0.003656363, 0.003691816, 0.003510681);
-            bloom_injectionOffsets[458] = vec2(-3.000000000, -2.000000000);
-            bloom_injectionWeights[458] = vec3(0.001396678, 0.001320559, 0.001470246);
-            bloom_injectionOffsets[490] = vec2(-3.000000000, -5.000000000);
-            bloom_injectionWeights[490] = vec3(0.001454645, 0.001499570, 0.001561122);
+            bloom_injectionOffsets[10] = vec2(3.181093398, 4.533832541);
+            bloom_injectionWeights[10] = vec3(0.004189362, 0.004516811, 0.004707069);
+            bloom_injectionOffsets[42] = vec2(0.001893565, -61.727137111);
+            bloom_injectionWeights[42] = vec3(0.000839620, 0.000563626, 0.000329941);
+            bloom_injectionOffsets[74] = vec2(-59.585290808, -18.833147536);
+            bloom_injectionWeights[74] = vec3(0.000312755, 0.000162784, 0.000075673);
             break;
         case 11u:
-            bloom_injectionOffsets[11] = vec2(14.646270351, -4.758861713);
-            bloom_injectionWeights[11] = vec3(0.004545499, 0.004532570, 0.004511664);
-            bloom_injectionOffsets[43] = vec2(-5.325916491, 1.730495168);
-            bloom_injectionWeights[43] = vec3(0.010499787, 0.010682413, 0.010773408);
-            bloom_injectionOffsets[75] = vec2(-47.933248421, 15.574456516);
-            bloom_injectionWeights[75] = vec3(0.000174578, 0.000160139, 0.000142544);
-            bloom_injectionOffsets[107] = vec2(23.864081243, -32.846089972);
-            bloom_injectionWeights[107] = vec3(0.000497369, 0.000474914, 0.000434333);
-            bloom_injectionOffsets[139] = vec2(-22.218282537, 30.580842387);
-            bloom_injectionWeights[139] = vec3(0.000788861, 0.000805287, 0.000703652);
-            bloom_injectionOffsets[171] = vec2(0.000000000, -35.000000000);
-            bloom_injectionWeights[171] = vec3(0.001661985, 0.001555560, 0.001514921);
-            bloom_injectionOffsets[203] = vec2(-0.000000000, 16.800000000);
-            bloom_injectionWeights[203] = vec3(0.004919514, 0.004877941, 0.004823482);
-            bloom_injectionOffsets[235] = vec2(-0.000000000, 61.600000000);
-            bloom_injectionWeights[235] = vec3(0.000008837, 0.000002034, 0.000006294);
-            bloom_injectionOffsets[267] = vec2(-25.509879949, -35.111337556);
-            bloom_injectionWeights[267] = vec3(0.000223551, 0.000230928, 0.000254495);
-            bloom_injectionOffsets[299] = vec2(23.864081243, 32.846089972);
-            bloom_injectionWeights[299] = vec3(0.000504129, 0.000478190, 0.000422878);
-            bloom_injectionOffsets[331] = vec2(-35.949936316, -11.680842387);
-            bloom_injectionWeights[331] = vec3(0.001092887, 0.001056500, 0.000986414);
-            bloom_injectionOffsets[363] = vec2(26.629582456, 8.652475842);
-            bloom_injectionWeights[363] = vec3(0.001939895, 0.001823501, 0.001781689);
-            bloom_injectionOffsets[395] = vec2(-2.000000000, 4.000000000);
-            bloom_injectionWeights[395] = vec3(0.000513256, 0.000378474, 0.000303344);
-            bloom_injectionOffsets[427] = vec2(-2.000000000, 1.000000000);
-            bloom_injectionWeights[427] = vec3(0.000000443, 0.000003846, 0.000014638);
-            bloom_injectionOffsets[459] = vec2(-2.000000000, -2.000000000);
-            bloom_injectionWeights[459] = vec3(0.002974311, 0.003004709, 0.002465283);
-            bloom_injectionOffsets[491] = vec2(-2.000000000, -5.000000000);
-            bloom_injectionWeights[491] = vec3(0.000231255, 0.000273419, 0.000342111);
+            bloom_injectionOffsets[11] = vec2(0.756230811, -0.305711138);
+            bloom_injectionWeights[11] = vec3(0.086599991, 0.083280928, 0.081008293);
+            bloom_injectionOffsets[43] = vec2(0.000379482, -70.509504614);
+            bloom_injectionWeights[43] = vec3(0.000284629, 0.000147978, 0.000068039);
+            bloom_injectionOffsets[75] = vec2(-69.239948778, -22.039115316);
+            bloom_injectionWeights[75] = vec3(0.000050652, 0.000022051, 0.000010927);
             break;
         case 12u:
-            bloom_injectionOffsets[12] = vec2(15.977749474, -5.191485505);
-            bloom_injectionWeights[12] = vec3(0.004010793, 0.003966304, 0.003924796);
-            bloom_injectionOffsets[44] = vec2(-6.657395614, 2.163118961);
-            bloom_injectionWeights[44] = vec3(0.012460245, 0.012669231, 0.012822695);
-            bloom_injectionOffsets[76] = vec2(-49.264727544, 16.007080309);
-            bloom_injectionWeights[76] = vec3(0.000095565, 0.000089489, 0.000087700);
-            bloom_injectionOffsets[108] = vec2(24.686980596, -33.978713764);
-            bloom_injectionWeights[108] = vec3(0.000316033, 0.000246530, 0.000302940);
-            bloom_injectionOffsets[140] = vec2(-23.041181890, 31.713466179);
-            bloom_injectionWeights[140] = vec3(0.000665814, 0.000661305, 0.000576518);
-            bloom_injectionOffsets[172] = vec2(0.000000000, -36.400000000);
-            bloom_injectionWeights[172] = vec3(0.001533401, 0.001437914, 0.001395285);
-            bloom_injectionOffsets[204] = vec2(-0.000000000, 18.200000000);
-            bloom_injectionWeights[204] = vec3(0.004396974, 0.004321317, 0.004245342);
-            bloom_injectionOffsets[236] = vec2(-0.000000000, 63.000000000);
-            bloom_injectionWeights[236] = vec3(0.000003033, 0.000004146, 0.000001761);
-            bloom_injectionOffsets[268] = vec2(-26.332779303, -36.243961348);
-            bloom_injectionWeights[268] = vec3(0.000103505, 0.000110229, 0.000094455);
-            bloom_injectionOffsets[300] = vec2(24.686980596, 33.978713764);
-            bloom_injectionWeights[300] = vec3(0.000324199, 0.000264191, 0.000278517);
-            bloom_injectionOffsets[332] = vec2(-37.281415439, -12.113466179);
-            bloom_injectionWeights[332] = vec3(0.001003999, 0.000990302, 0.000909298);
-            bloom_injectionOffsets[364] = vec2(27.961061579, 9.085099635);
-            bloom_injectionWeights[364] = vec3(0.001810180, 0.001690168, 0.001653243);
-            bloom_injectionOffsets[396] = vec2(-1.000000000, 4.000000000);
-            bloom_injectionWeights[396] = vec3(0.000000000, 0.000032496, 0.000000000);
-            bloom_injectionOffsets[428] = vec2(-1.000000000, 1.000000000);
-            bloom_injectionWeights[428] = vec3(0.006747947, 0.006615363, 0.007114427);
-            bloom_injectionOffsets[460] = vec2(-1.000000000, -2.000000000);
-            bloom_injectionWeights[460] = vec3(0.000001441, 0.000010185, 0.000003715);
-            bloom_injectionOffsets[492] = vec2(-1.000000000, -5.000000000);
-            bloom_injectionWeights[492] = vec3(0.000239918, 0.000243533, 0.000217884);
+            bloom_injectionOffsets[12] = vec2(-0.826632902, -1.494805085);
+            bloom_injectionWeights[12] = vec3(0.011527407, 0.012591715, 0.009585120);
+            bloom_injectionOffsets[44] = vec2(-0.000181069, -80.357865683);
+            bloom_injectionWeights[44] = vec3(0.000000131, 0.000036362, 0.000016945);
+            bloom_injectionOffsets[76] = vec2(-36.396621768, 50.126547356);
+            bloom_injectionWeights[76] = vec3(0.000082487, 0.000045982, 0.000028784);
             break;
         case 13u:
-            bloom_injectionOffsets[13] = vec2(17.309228597, -5.624109298);
-            bloom_injectionWeights[13] = vec3(0.003603621, 0.003531779, 0.003470327);
-            bloom_injectionOffsets[45] = vec2(-7.988874737, 2.595742753);
-            bloom_injectionWeights[45] = vec3(0.009240148, 0.009450688, 0.009680331);
-            bloom_injectionOffsets[77] = vec2(-50.596206667, 16.439704101);
-            bloom_injectionWeights[77] = vec3(0.000047330, 0.000024940, 0.000025107);
-            bloom_injectionOffsets[109] = vec2(25.509879949, -35.111337556);
-            bloom_injectionWeights[109] = vec3(0.000222773, 0.000235257, 0.000244416);
-            bloom_injectionOffsets[141] = vec2(-23.864081243, 32.846089972);
-            bloom_injectionWeights[141] = vec3(0.000500382, 0.000470979, 0.000426582);
-            bloom_injectionOffsets[173] = vec2(0.000000000, -37.800000000);
-            bloom_injectionWeights[173] = vec3(0.001431308, 0.001344554, 0.001296625);
-            bloom_injectionOffsets[205] = vec2(-0.000000000, 19.600000000);
-            bloom_injectionWeights[205] = vec3(0.003986018, 0.003884634, 0.003795542);
-            bloom_injectionOffsets[237] = vec2(-0.822899353, -1.132623792);
-            bloom_injectionWeights[237] = vec3(0.015818782, 0.015873702, 0.016417112);
-            bloom_injectionOffsets[269] = vec2(-27.155678656, -37.376585140);
-            bloom_injectionWeights[269] = vec3(0.000035450, 0.000033130, 0.000040647);
-            bloom_injectionOffsets[301] = vec2(25.509879949, 35.111337556);
-            bloom_injectionWeights[301] = vec3(0.000247303, 0.000234848, 0.000211849);
-            bloom_injectionOffsets[333] = vec2(-38.612894562, -12.546089972);
-            bloom_injectionWeights[333] = vec3(0.000951875, 0.000963902, 0.000870176);
-            bloom_injectionOffsets[365] = vec2(29.292540702, 9.517723427);
-            bloom_injectionWeights[365] = vec3(0.001651051, 0.001540024, 0.001504623);
-            bloom_injectionOffsets[397] = vec2(0.000000000, 4.000000000);
-            bloom_injectionWeights[397] = vec3(0.003173806, 0.003190576, 0.003328364);
-            bloom_injectionOffsets[429] = vec2(0.000000000, 1.000000000);
-            bloom_injectionWeights[429] = vec3(0.015517085, 0.015868779, 0.015425388);
-            bloom_injectionOffsets[461] = vec2(0.000000000, -2.000000000);
-            bloom_injectionWeights[461] = vec3(0.000693291, 0.000502066, 0.000902532);
-            bloom_injectionOffsets[493] = vec2(0.000000000, -5.000000000);
-            bloom_injectionWeights[493] = vec3(0.001110380, 0.001184426, 0.001222654);
+            bloom_injectionOffsets[13] = vec2(0.446481935, -1.321305256);
+            bloom_injectionWeights[13] = vec3(0.063575722, 0.061834741, 0.058274869);
+            bloom_injectionOffsets[45] = vec2(-69.482472716, 23.054204802);
+            bloom_injectionWeights[45] = vec3(0.000048588, 0.000020715, 0.000009950);
+            bloom_injectionOffsets[77] = vec2(-31.107271035, 42.915726073);
+            bloom_injectionWeights[77] = vec3(0.000351018, 0.000195950, 0.000096964);
             break;
         case 14u:
-            bloom_injectionOffsets[14] = vec2(18.640707719, -6.056733090);
-            bloom_injectionWeights[14] = vec3(0.003265954, 0.003172789, 0.003102923);
-            bloom_injectionOffsets[46] = vec2(-9.320353860, 3.028366545);
-            bloom_injectionWeights[46] = vec3(0.008051850, 0.008253180, 0.008372000);
-            bloom_injectionOffsets[78] = vec2(-51.927685790, 16.872327893);
-            bloom_injectionWeights[78] = vec3(0.000000000, 0.000000812, 0.000001238);
-            bloom_injectionOffsets[110] = vec2(26.332779303, -36.243961348);
-            bloom_injectionWeights[110] = vec3(0.000103408, 0.000111048, 0.000097109);
-            bloom_injectionOffsets[142] = vec2(-24.686980596, 33.978713764);
-            bloom_injectionWeights[142] = vec3(0.000322744, 0.000251661, 0.000285015);
-            bloom_injectionOffsets[174] = vec2(0.000000000, -39.200000000);
-            bloom_injectionWeights[174] = vec3(0.001332617, 0.001257748, 0.001203843);
-            bloom_injectionOffsets[206] = vec2(-0.000000000, 21.000000000);
-            bloom_injectionWeights[206] = vec3(0.003635567, 0.003517831, 0.003428177);
-            bloom_injectionOffsets[238] = vec2(-1.645798706, -2.265247584);
-            bloom_injectionWeights[238] = vec3(0.007622455, 0.008285425, 0.008711931);
-            bloom_injectionOffsets[270] = vec2(-27.978578009, -38.509208932);
-            bloom_injectionWeights[270] = vec3(0.000000000, 0.000000972, 0.000000000);
-            bloom_injectionOffsets[302] = vec2(26.332779303, 36.243961348);
-            bloom_injectionWeights[302] = vec3(0.000146563, 0.000108131, 0.000099982);
-            bloom_injectionOffsets[334] = vec2(-39.944373684, -12.978713764);
-            bloom_injectionWeights[334] = vec3(0.000857367, 0.000889036, 0.000789809);
-            bloom_injectionOffsets[366] = vec2(30.624019825, 9.950347219);
-            bloom_injectionWeights[366] = vec3(0.001519077, 0.001415902, 0.001377125);
-            bloom_injectionOffsets[398] = vec2(2.000000000, 4.000000000);
-            bloom_injectionWeights[398] = vec3(0.000514674, 0.000415291, 0.000327172);
-            bloom_injectionOffsets[430] = vec2(1.000000000, 1.000000000);
-            bloom_injectionWeights[430] = vec3(0.006692972, 0.006578227, 0.007099279);
-            bloom_injectionOffsets[462] = vec2(1.000000000, -2.000000000);
-            bloom_injectionWeights[462] = vec3(0.000000842, 0.000009148, 0.000000781);
-            bloom_injectionOffsets[494] = vec2(1.000000000, -5.000000000);
-            bloom_injectionWeights[494] = vec3(0.000220378, 0.000237387, 0.000224305);
+            bloom_injectionOffsets[14] = vec2(-1.124955184, 1.890962907);
+            bloom_injectionWeights[14] = vec3(0.003743358, 0.003589065, 0.003222827);
+            bloom_injectionOffsets[46] = vec2(-59.521496339, 19.930849283);
+            bloom_injectionWeights[46] = vec3(0.000369069, 0.000202714, 0.000101186);
+            bloom_injectionOffsets[78] = vec2(-25.999011562, 35.754668595);
+            bloom_injectionWeights[78] = vec3(0.001141087, 0.000821521, 0.000531202);
             break;
         case 15u:
-            bloom_injectionOffsets[15] = vec2(19.972186842, -6.489356882);
-            bloom_injectionWeights[15] = vec3(0.002982415, 0.002875908, 0.002803047);
-            bloom_injectionOffsets[47] = vec2(-10.651832983, 3.460990337);
-            bloom_injectionWeights[47] = vec3(0.006976865, 0.007113714, 0.007181442);
-            bloom_injectionOffsets[79] = vec2(0.822899353, -1.132623792);
-            bloom_injectionWeights[79] = vec3(0.015779650, 0.015837085, 0.016387714);
-            bloom_injectionOffsets[111] = vec2(27.155678656, -37.376585140);
-            bloom_injectionWeights[111] = vec3(0.000034266, 0.000036509, 0.000044178);
-            bloom_injectionOffsets[143] = vec2(-25.509879949, 35.111337556);
-            bloom_injectionWeights[143] = vec3(0.000228540, 0.000244166, 0.000216292);
-            bloom_injectionOffsets[175] = vec2(0.000000000, -40.600000000);
-            bloom_injectionWeights[175] = vec3(0.001233461, 0.001174455, 0.001114806);
-            bloom_injectionOffsets[207] = vec2(-0.000000000, 22.400000000);
-            bloom_injectionWeights[207] = vec3(0.003313671, 0.003187712, 0.003097009);
-            bloom_injectionOffsets[239] = vec2(-2.468698060, -3.397871376);
-            bloom_injectionWeights[239] = vec3(0.009669703, 0.009753285, 0.009850678);
-            bloom_injectionOffsets[271] = vec2(0.822899353, 1.132623792);
-            bloom_injectionWeights[271] = vec3(0.015759088, 0.015817752, 0.016365130);
-            bloom_injectionOffsets[303] = vec2(27.155678656, 37.376585140);
-            bloom_injectionWeights[303] = vec3(0.000022194, 0.000036996, 0.000036020);
-            bloom_injectionOffsets[335] = vec2(-41.275852807, -13.411337556);
-            bloom_injectionWeights[335] = vec3(0.000796188, 0.000808474, 0.000678692);
-            bloom_injectionOffsets[367] = vec2(31.955498948, 10.382971011);
-            bloom_injectionWeights[367] = vec3(0.001400489, 0.001308758, 0.001265094);
-            bloom_injectionOffsets[399] = vec2(3.000000000, 4.000000000);
-            bloom_injectionWeights[399] = vec3(0.001957829, 0.002077017, 0.001936845);
-            bloom_injectionOffsets[431] = vec2(2.000000000, 1.000000000);
-            bloom_injectionWeights[431] = vec3(0.000000440, 0.000003725, 0.000016717);
-            bloom_injectionOffsets[463] = vec2(2.000000000, -2.000000000);
-            bloom_injectionWeights[463] = vec3(0.002934192, 0.003006637, 0.002461333);
-            bloom_injectionOffsets[495] = vec2(2.000000000, -5.000000000);
-            bloom_injectionWeights[495] = vec3(0.000233480, 0.000268063, 0.000341527);
+            bloom_injectionOffsets[15] = vec2(-0.915074711, 1.924803889);
+            bloom_injectionWeights[15] = vec3(0.054469563, 0.054137684, 0.052800886);
+            bloom_injectionOffsets[47] = vec2(-49.565163463, 16.697877886);
+            bloom_injectionWeights[47] = vec3(0.001174888, 0.000853152, 0.000563169);
+            bloom_injectionOffsets[79] = vec2(-21.001294886, 28.935035788);
+            bloom_injectionWeights[79] = vec3(0.002624717, 0.002180348, 0.001687472);
             break;
         case 16u:
-            bloom_injectionOffsets[16] = vec2(21.303665965, -6.921980674);
-            bloom_injectionWeights[16] = vec3(0.002726394, 0.002610601, 0.002537113);
-            bloom_injectionOffsets[48] = vec2(-11.983312105, 3.893614129);
-            bloom_injectionWeights[48] = vec3(0.005928341, 0.006016233, 0.006070541);
-            bloom_injectionOffsets[80] = vec2(1.645798706, -2.265247584);
-            bloom_injectionWeights[80] = vec3(0.007645715, 0.008267683, 0.008704546);
-            bloom_injectionOffsets[112] = vec2(27.978578009, -38.509208932);
-            bloom_injectionWeights[112] = vec3(0.000000000, 0.000000985, 0.000000000);
-            bloom_injectionOffsets[144] = vec2(-26.332779303, 36.243961348);
-            bloom_injectionWeights[144] = vec3(0.000113054, 0.000111922, 0.000099177);
-            bloom_injectionOffsets[176] = vec2(0.000000000, -42.000000000);
-            bloom_injectionWeights[176] = vec3(0.001152936, 0.001109903, 0.001040669);
-            bloom_injectionOffsets[208] = vec2(-0.000000000, 23.800000000);
-            bloom_injectionWeights[208] = vec3(0.003050429, 0.002922368, 0.002838880);
-            bloom_injectionOffsets[240] = vec2(-3.291597413, -4.530495168);
-            bloom_injectionWeights[240] = vec3(0.008372330, 0.008536639, 0.008570073);
-            bloom_injectionOffsets[272] = vec2(1.645798706, 2.265247584);
-            bloom_injectionWeights[272] = vec3(0.007661812, 0.008305309, 0.008710145);
-            bloom_injectionOffsets[304] = vec2(27.978578009, 38.509208932);
-            bloom_injectionWeights[304] = vec3(0.000003020, 0.000000932, 0.000000000);
-            bloom_injectionOffsets[336] = vec2(-42.607331930, -13.843961348);
-            bloom_injectionWeights[336] = vec3(0.000743662, 0.000682690, 0.000586940);
-            bloom_injectionOffsets[368] = vec2(33.286978070, 10.815594803);
-            bloom_injectionWeights[368] = vec3(0.001275580, 0.001200975, 0.001148602);
-            bloom_injectionOffsets[400] = vec2(4.000000000, 4.000000000);
-            bloom_injectionWeights[400] = vec3(0.000564269, 0.000391049, 0.000485819);
-            bloom_injectionOffsets[432] = vec2(3.000000000, 1.000000000);
-            bloom_injectionWeights[432] = vec3(0.003657037, 0.003674866, 0.003457531);
-            bloom_injectionOffsets[464] = vec2(3.000000000, -2.000000000);
-            bloom_injectionWeights[464] = vec3(0.001382342, 0.001334551, 0.001540773);
-            bloom_injectionOffsets[496] = vec2(3.000000000, -5.000000000);
-            bloom_injectionWeights[496] = vec3(0.001470739, 0.001500677, 0.001564222);
+            bloom_injectionOffsets[16] = vec2(1.260748361, -1.149474364);
+            bloom_injectionWeights[16] = vec3(0.064623319, 0.063132778, 0.063132353);
+            bloom_injectionOffsets[48] = vec2(-41.630916326, 14.002261890);
+            bloom_injectionWeights[48] = vec3(0.001854234, 0.001487070, 0.001109184);
+            bloom_injectionOffsets[80] = vec2(-15.997606356, 22.000600441);
+            bloom_injectionWeights[80] = vec3(0.006144084, 0.004570923, 0.004020272);
             break;
         case 17u:
-            bloom_injectionOffsets[17] = vec2(22.635145088, -7.354604466);
-            bloom_injectionWeights[17] = vec3(0.002489709, 0.002372014, 0.002306274);
-            bloom_injectionOffsets[49] = vec2(-13.314791228, 4.326237921);
-            bloom_injectionWeights[49] = vec3(0.005150847, 0.005181156, 0.005187073);
-            bloom_injectionOffsets[81] = vec2(2.468698060, -3.397871376);
-            bloom_injectionWeights[81] = vec3(0.009684843, 0.009772805, 0.009867708);
-            bloom_injectionOffsets[113] = vec2(-0.822899353, 1.132623792);
-            bloom_injectionWeights[113] = vec3(0.015798632, 0.015853262, 0.016397219);
-            bloom_injectionOffsets[145] = vec2(-27.155678656, 37.376585140);
-            bloom_injectionWeights[145] = vec3(0.000045051, 0.000033460, 0.000040497);
-            bloom_injectionOffsets[177] = vec2(0.000000000, -43.400000000);
-            bloom_injectionWeights[177] = vec3(0.001079930, 0.001051297, 0.000976924);
-            bloom_injectionOffsets[209] = vec2(-0.000000000, 25.200000000);
-            bloom_injectionWeights[209] = vec3(0.002805411, 0.002680528, 0.002607469);
-            bloom_injectionOffsets[241] = vec2(-4.114496766, -5.663118961);
-            bloom_injectionWeights[241] = vec3(0.009813113, 0.009927670, 0.010056129);
-            bloom_injectionOffsets[273] = vec2(2.468698060, 3.397871376);
-            bloom_injectionWeights[273] = vec3(0.009698313, 0.009789404, 0.009884114);
-            bloom_injectionOffsets[305] = vec2(-1.331479123, -0.432623792);
-            bloom_injectionWeights[305] = vec3(0.016638251, 0.016650209, 0.016877357);
-            bloom_injectionOffsets[337] = vec2(-43.938811053, -14.276585140);
-            bloom_injectionWeights[337] = vec3(0.000539799, 0.000554686, 0.000495006);
-            bloom_injectionOffsets[369] = vec2(34.618457193, 11.248218595);
-            bloom_injectionWeights[369] = vec3(0.001178235, 0.001121217, 0.001059963);
-            bloom_injectionOffsets[401] = vec2(5.000000000, 4.000000000);
-            bloom_injectionWeights[401] = vec3(0.000033428, 0.000000000, 0.000028882);
-            bloom_injectionOffsets[433] = vec2(4.000000000, 1.000000000);
-            bloom_injectionWeights[433] = vec3(0.003057317, 0.003059108, 0.002975882);
-            bloom_injectionOffsets[465] = vec2(4.000000000, -2.000000000);
-            bloom_injectionWeights[465] = vec3(0.000214575, 0.000132507, 0.000130883);
-            bloom_injectionOffsets[497] = vec2(4.000000000, -5.000000000);
-            bloom_injectionWeights[497] = vec3(0.001184616, 0.001170566, 0.001255470);
+            bloom_injectionOffsets[17] = vec2(0.423980730, 1.961102366);
+            bloom_injectionWeights[17] = vec3(0.123760134, 0.120406374, 0.114369087);
+            bloom_injectionOffsets[49] = vec2(-35.233911128, 11.997251979);
+            bloom_injectionWeights[49] = vec3(0.003275788, 0.002806312, 0.002537752);
+            bloom_injectionOffsets[81] = vec2(-10.995623092, 15.009996693);
+            bloom_injectionWeights[81] = vec3(0.009791743, 0.011617783, 0.009310388);
             break;
         case 18u:
-            bloom_injectionOffsets[18] = vec2(23.966624211, -7.787228258);
-            bloom_injectionWeights[18] = vec3(0.002313057, 0.002191496, 0.002135144);
-            bloom_injectionOffsets[50] = vec2(-14.646270351, 4.758861713);
-            bloom_injectionWeights[50] = vec3(0.004545595, 0.004532663, 0.004511752);
-            bloom_injectionOffsets[82] = vec2(3.291597413, -4.530495168);
-            bloom_injectionWeights[82] = vec3(0.008368153, 0.008531847, 0.008583807);
-            bloom_injectionOffsets[114] = vec2(-1.645798706, 2.265247584);
-            bloom_injectionWeights[114] = vec3(0.007637893, 0.008286576, 0.008753897);
-            bloom_injectionOffsets[146] = vec2(-27.978578009, 38.509208932);
-            bloom_injectionWeights[146] = vec3(0.000000000, 0.000001640, 0.000000000);
-            bloom_injectionOffsets[178] = vec2(0.000000000, -44.800000000);
-            bloom_injectionWeights[178] = vec3(0.001018954, 0.001000339, 0.000921748);
-            bloom_injectionOffsets[210] = vec2(-0.000000000, 26.600000000);
-            bloom_injectionWeights[210] = vec3(0.002583436, 0.002459990, 0.002396539);
-            bloom_injectionOffsets[242] = vec2(-4.937396119, -6.795742753);
-            bloom_injectionWeights[242] = vec3(0.008646660, 0.008798230, 0.008987412);
-            bloom_injectionOffsets[274] = vec2(3.291597413, 4.530495168);
-            bloom_injectionWeights[274] = vec3(0.008353892, 0.008520835, 0.008610135);
-            bloom_injectionOffsets[306] = vec2(-2.662958246, -0.865247584);
-            bloom_injectionWeights[306] = vec3(0.009949943, 0.010170965, 0.010454606);
-            bloom_injectionOffsets[338] = vec2(-45.270290176, -14.709208932);
-            bloom_injectionWeights[338] = vec3(0.000392612, 0.000395921, 0.000345684);
-            bloom_injectionOffsets[370] = vec2(35.949936316, 11.680842387);
-            bloom_injectionWeights[370] = vec3(0.001092828, 0.001056610, 0.000986419);
-            bloom_injectionOffsets[402] = vec2(-5.000000000, 3.000000000);
-            bloom_injectionWeights[402] = vec3(0.000234035, 0.000324068, 0.000397630);
-            bloom_injectionOffsets[434] = vec2(5.000000000, 1.000000000);
-            bloom_injectionWeights[434] = vec3(0.000408857, 0.000466220, 0.000447500);
-            bloom_injectionOffsets[466] = vec2(5.000000000, -2.000000000);
-            bloom_injectionWeights[466] = vec3(0.001753389, 0.001813370, 0.001813938);
+            bloom_injectionOffsets[18] = vec2(0.000375586, 5.720995865);
+            bloom_injectionWeights[18] = vec3(0.000000006, 0.000000006, 0.004463658);
+            bloom_injectionOffsets[50] = vec2(-26.119899182, 8.999418384);
+            bloom_injectionWeights[50] = vec3(0.007584843, 0.006578310, 0.005411754);
+            bloom_injectionOffsets[82] = vec2(-5.004271165, 6.885382434);
+            bloom_injectionWeights[82] = vec3(0.027057191, 0.028080327, 0.031251289);
             break;
         case 19u:
-            bloom_injectionOffsets[19] = vec2(25.298103333, -8.219852050);
-            bloom_injectionWeights[19] = vec3(0.002117763, 0.001999530, 0.001950867);
-            bloom_injectionOffsets[51] = vec2(-15.977749474, 5.191485505);
-            bloom_injectionWeights[51] = vec3(0.004010775, 0.003966284, 0.003924786);
-            bloom_injectionOffsets[83] = vec2(4.114496766, -5.663118961);
-            bloom_injectionWeights[83] = vec3(0.009818192, 0.009929636, 0.010054881);
-            bloom_injectionOffsets[115] = vec2(-2.468698060, 3.397871376);
-            bloom_injectionWeights[115] = vec3(0.009685957, 0.009768297, 0.009865138);
-            bloom_injectionOffsets[147] = vec2(0.000000000, -1.400000000);
-            bloom_injectionWeights[147] = vec3(0.018046485, 0.018096449, 0.018218540);
-            bloom_injectionOffsets[179] = vec2(0.000000000, -46.200000000);
-            bloom_injectionWeights[179] = vec3(0.000967863, 0.000961309, 0.000875208);
-            bloom_injectionOffsets[211] = vec2(-0.000000000, 28.000000000);
-            bloom_injectionWeights[211] = vec3(0.002411151, 0.002285684, 0.002231478);
-            bloom_injectionOffsets[243] = vec2(-5.760295472, -7.928366545);
-            bloom_injectionWeights[243] = vec3(0.006719472, 0.006872754, 0.007001982);
-            bloom_injectionOffsets[275] = vec2(4.114496766, 5.663118961);
-            bloom_injectionWeights[275] = vec3(0.009815836, 0.009928232, 0.010055771);
-            bloom_injectionOffsets[307] = vec2(-3.994437368, -1.297871376);
-            bloom_injectionWeights[307] = vec3(0.010578570, 0.010664531, 0.010774491);
-            bloom_injectionOffsets[339] = vec2(-46.601769298, -15.141832724);
-            bloom_injectionWeights[339] = vec3(0.000321889, 0.000261671, 0.000282595);
-            bloom_injectionOffsets[371] = vec2(37.281415439, 12.113466179);
-            bloom_injectionWeights[371] = vec3(0.001003971, 0.000990356, 0.000909368);
-            bloom_injectionOffsets[403] = vec2(-4.000000000, 3.000000000);
-            bloom_injectionWeights[403] = vec3(0.000109999, 0.000296583, 0.000086117);
-            bloom_injectionOffsets[435] = vec2(-5.000000000, -0.000000000);
-            bloom_injectionWeights[435] = vec3(0.000287696, 0.000344384, 0.000304352);
-            bloom_injectionOffsets[467] = vec2(-5.000000000, -3.000000000);
-            bloom_injectionWeights[467] = vec3(0.000238410, 0.000323849, 0.000397124);
+            bloom_injectionOffsets[19] = vec2(-0.676529091, -1.133368091);
+            bloom_injectionWeights[19] = vec3(0.068777867, 0.063889004, 0.060157690);
+            bloom_injectionOffsets[51] = vec2(-16.769840247, 5.999874520);
+            bloom_injectionWeights[51] = vec3(0.012180902, 0.013620272, 0.015368539);
+            bloom_injectionOffsets[83] = vec2(5.002964891, -7.002300037);
+            bloom_injectionWeights[83] = vec3(0.026059430, 0.027176142, 0.030879384);
             break;
         case 20u:
-            bloom_injectionOffsets[20] = vec2(26.629582456, -8.652475842);
-            bloom_injectionWeights[20] = vec3(0.001939994, 0.001823630, 0.001781807);
-            bloom_injectionOffsets[52] = vec2(-17.309228597, 5.624109298);
-            bloom_injectionWeights[52] = vec3(0.003603582, 0.003531738, 0.003470290);
-            bloom_injectionOffsets[84] = vec2(4.937396119, -6.795742753);
-            bloom_injectionWeights[84] = vec3(0.008644001, 0.008795453, 0.008980672);
-            bloom_injectionOffsets[116] = vec2(-3.291597413, 4.530495168);
-            bloom_injectionWeights[116] = vec3(0.008367058, 0.008532250, 0.008580539);
-            bloom_injectionOffsets[148] = vec2(0.000000000, -2.800000000);
-            bloom_injectionWeights[148] = vec3(0.011802698, 0.011747692, 0.011833179);
-            bloom_injectionOffsets[180] = vec2(0.000000000, -47.600000000);
-            bloom_injectionWeights[180] = vec3(0.000906072, 0.000930037, 0.000837040);
-            bloom_injectionOffsets[212] = vec2(-0.000000000, 29.400000000);
-            bloom_injectionWeights[212] = vec3(0.002217893, 0.002097266, 0.002048481);
-            bloom_injectionOffsets[244] = vec2(-6.583194826, -9.060990337);
-            bloom_injectionWeights[244] = vec3(0.005778622, 0.005886896, 0.005950379);
-            bloom_injectionOffsets[276] = vec2(4.937396119, 6.795742753);
-            bloom_injectionWeights[276] = vec3(0.008642710, 0.008794441, 0.008974763);
-            bloom_injectionOffsets[308] = vec2(-5.325916491, -1.730495168);
-            bloom_injectionWeights[308] = vec3(0.010499032, 0.010681649, 0.010770527);
-            bloom_injectionOffsets[340] = vec2(-47.933248421, -15.574456516);
-            bloom_injectionWeights[340] = vec3(0.000155672, 0.000160221, 0.000155175);
-            bloom_injectionOffsets[372] = vec2(38.612894562, 12.546089972);
-            bloom_injectionWeights[372] = vec3(0.000951972, 0.000963712, 0.000870027);
-            bloom_injectionOffsets[404] = vec2(-3.000000000, 3.000000000);
-            bloom_injectionWeights[404] = vec3(0.000586308, 0.000517426, 0.000547429);
-            bloom_injectionOffsets[436] = vec2(-4.000000000, -0.000000000);
-            bloom_injectionWeights[436] = vec3(0.000000000, 0.000000000, 0.000027953);
-            bloom_injectionOffsets[468] = vec2(-4.000000000, -3.000000000);
-            bloom_injectionWeights[468] = vec3(0.000102996, 0.000294645, 0.000065037);
+            bloom_injectionOffsets[20] = vec2(1.315184505, 0.502662331);
+            bloom_injectionWeights[20] = vec3(0.072308011, 0.063974589, 0.062754937);
+            bloom_injectionOffsets[52] = vec2(-7.531954736, 3.002829076);
+            bloom_injectionWeights[52] = vec3(0.033358093, 0.035075672, 0.038148254);
+            bloom_injectionOffsets[84] = vec2(10.996491905, -15.004192278);
+            bloom_injectionWeights[84] = vec3(0.009630526, 0.011476722, 0.009446230);
             break;
         case 21u:
-            bloom_injectionOffsets[21] = vec2(27.961061579, -9.085099635);
-            bloom_injectionWeights[21] = vec3(0.001810894, 0.001690817, 0.001653990);
-            bloom_injectionOffsets[53] = vec2(-18.640707719, 6.056733090);
-            bloom_injectionWeights[53] = vec3(0.003266003, 0.003172834, 0.003102981);
-            bloom_injectionOffsets[85] = vec2(5.760295472, -7.928366545);
-            bloom_injectionWeights[85] = vec3(0.006718253, 0.006871672, 0.007000825);
-            bloom_injectionOffsets[117] = vec2(-4.114496766, 5.663118961);
-            bloom_injectionWeights[117] = vec3(0.009812448, 0.009924953, 0.010049606);
-            bloom_injectionOffsets[149] = vec2(0.000000000, -4.200000000);
-            bloom_injectionWeights[149] = vec3(0.011431026, 0.011555228, 0.011842697);
-            bloom_injectionOffsets[181] = vec2(0.000000000, -49.000000000);
-            bloom_injectionWeights[181] = vec3(0.000788803, 0.000850076, 0.000744604);
-            bloom_injectionOffsets[213] = vec2(-0.000000000, 30.800000000);
-            bloom_injectionWeights[213] = vec3(0.002070206, 0.001950167, 0.001905093);
-            bloom_injectionOffsets[245] = vec2(-7.406094179, -10.193614129);
-            bloom_injectionWeights[245] = vec3(0.004918334, 0.004972849, 0.005011221);
-            bloom_injectionOffsets[277] = vec2(5.760295472, 7.928366545);
-            bloom_injectionWeights[277] = vec3(0.006718385, 0.006871870, 0.007000895);
-            bloom_injectionOffsets[309] = vec2(-6.657395614, -2.163118961);
-            bloom_injectionWeights[309] = vec3(0.012459653, 0.012669241, 0.012821849);
-            bloom_injectionOffsets[341] = vec2(-49.264727544, -16.007080309);
-            bloom_injectionWeights[341] = vec3(0.000097365, 0.000087413, 0.000078058);
-            bloom_injectionOffsets[373] = vec2(39.944373684, 12.978713764);
-            bloom_injectionWeights[373] = vec3(0.000858157, 0.000888481, 0.000789362);
-            bloom_injectionOffsets[405] = vec2(-2.000000000, 3.000000000);
-            bloom_injectionWeights[405] = vec3(0.003228614, 0.003252552, 0.003209431);
-            bloom_injectionOffsets[437] = vec2(-3.000000000, -0.000000000);
-            bloom_injectionWeights[437] = vec3(0.001083771, 0.001103846, 0.000940899);
-            bloom_injectionOffsets[469] = vec2(-3.000000000, -3.000000000);
-            bloom_injectionWeights[469] = vec3(0.000569380, 0.000495106, 0.000524238);
+            bloom_injectionOffsets[21] = vec2(1.046374414, 0.836697296);
+            bloom_injectionWeights[21] = vec3(0.176401153, 0.179059461, 0.174957335);
+            bloom_injectionOffsets[53] = vec2(7.766656782, -2.001286689);
+            bloom_injectionWeights[53] = vec3(0.031309240, 0.032562502, 0.032548841);
+            bloom_injectionOffsets[85] = vec2(15.999092993, -21.999865213);
+            bloom_injectionWeights[85] = vec3(0.006360116, 0.004728517, 0.004222331);
             break;
         case 22u:
-            bloom_injectionOffsets[22] = vec2(29.292540702, -9.517723427);
-            bloom_injectionWeights[22] = vec3(0.001651451, 0.001540301, 0.001505085);
-            bloom_injectionOffsets[54] = vec2(-19.972186842, 6.489356882);
-            bloom_injectionWeights[54] = vec3(0.002982435, 0.002875909, 0.002803078);
-            bloom_injectionOffsets[86] = vec2(6.583194826, -9.060990337);
-            bloom_injectionWeights[86] = vec3(0.005778431, 0.005886677, 0.005950180);
-            bloom_injectionOffsets[118] = vec2(-4.937396119, 6.795742753);
-            bloom_injectionWeights[118] = vec3(0.008644938, 0.008796306, 0.008980428);
-            bloom_injectionOffsets[150] = vec2(0.000000000, -5.600000000);
-            bloom_injectionWeights[150] = vec3(0.012727657, 0.013006471, 0.012958116);
-            bloom_injectionOffsets[182] = vec2(0.000000000, -50.400000000);
-            bloom_injectionWeights[182] = vec3(0.000767161, 0.000767594, 0.000632043);
-            bloom_injectionOffsets[214] = vec2(-0.000000000, 32.200000000);
-            bloom_injectionWeights[214] = vec3(0.001927394, 0.001810526, 0.001769286);
-            bloom_injectionOffsets[246] = vec2(-8.228993532, -11.326237921);
-            bloom_injectionWeights[246] = vec3(0.004234082, 0.004247175, 0.004258916);
-            bloom_injectionOffsets[278] = vec2(6.583194826, 9.060990337);
-            bloom_injectionWeights[278] = vec3(0.005778903, 0.005887129, 0.005950672);
-            bloom_injectionOffsets[310] = vec2(-7.988874737, -2.595742753);
-            bloom_injectionWeights[310] = vec3(0.009240178, 0.009450881, 0.009680440);
-            bloom_injectionOffsets[342] = vec2(-50.596206667, -16.439704101);
-            bloom_injectionWeights[342] = vec3(0.000031021, 0.000026466, 0.000023292);
-            bloom_injectionOffsets[374] = vec2(41.275852807, 13.411337556);
-            bloom_injectionWeights[374] = vec3(0.000797044, 0.000807260, 0.000680411);
-            bloom_injectionOffsets[406] = vec2(-1.000000000, 3.000000000);
-            bloom_injectionWeights[406] = vec3(0.001704067, 0.001729296, 0.001797373);
-            bloom_injectionOffsets[438] = vec2(-2.000000000, -0.000000000);
-            bloom_injectionWeights[438] = vec3(0.000189965, 0.000079154, 0.000525912);
-            bloom_injectionOffsets[470] = vec2(-2.000000000, -3.000000000);
-            bloom_injectionWeights[470] = vec3(0.003195570, 0.003232751, 0.003190758);
+            bloom_injectionOffsets[22] = vec2(1.371211950, 0.335151136);
+            bloom_injectionWeights[22] = vec3(0.115004182, 0.116513558, 0.119022354);
+            bloom_injectionOffsets[54] = vec2(17.144619963, -5.004659123);
+            bloom_injectionWeights[54] = vec3(0.011360378, 0.012987129, 0.013112825);
+            bloom_injectionOffsets[86] = vec2(21.007800730, -29.001845011);
+            bloom_injectionWeights[86] = vec3(0.002721311, 0.002259905, 0.001792688);
             break;
         case 23u:
-            bloom_injectionOffsets[23] = vec2(30.624019825, -9.950347219);
-            bloom_injectionWeights[23] = vec3(0.001519798, 0.001416382, 0.001377860);
-            bloom_injectionOffsets[55] = vec2(-21.303665965, 6.921980674);
-            bloom_injectionWeights[55] = vec3(0.002726468, 0.002610648, 0.002537222);
-            bloom_injectionOffsets[87] = vec2(7.406094179, -10.193614129);
-            bloom_injectionWeights[87] = vec3(0.004918540, 0.004973049, 0.005011442);
-            bloom_injectionOffsets[119] = vec2(-5.760295472, 7.928366545);
-            bloom_injectionWeights[119] = vec3(0.006719730, 0.006873098, 0.007002269);
-            bloom_injectionOffsets[151] = vec2(0.000000000, -7.000000000);
-            bloom_injectionWeights[151] = vec3(0.012634827, 0.012939105, 0.013143628);
-            bloom_injectionOffsets[183] = vec2(0.000000000, -51.800000000);
-            bloom_injectionWeights[183] = vec3(0.000695622, 0.000628853, 0.000551080);
-            bloom_injectionOffsets[215] = vec2(-0.000000000, 33.600000000);
-            bloom_injectionWeights[215] = vec3(0.001777011, 0.001666329, 0.001627388);
-            bloom_injectionOffsets[247] = vec2(-9.051892885, -12.458861713);
-            bloom_injectionWeights[247] = vec3(0.003714700, 0.003694006, 0.003681309);
-            bloom_injectionOffsets[279] = vec2(7.406094179, 10.193614129);
-            bloom_injectionWeights[279] = vec3(0.004918431, 0.004972941, 0.005011355);
-            bloom_injectionOffsets[311] = vec2(-9.320353860, -3.028366545);
-            bloom_injectionWeights[311] = vec3(0.008052519, 0.008253856, 0.008372660);
-            bloom_injectionOffsets[343] = vec2(-51.927685790, -16.872327893);
-            bloom_injectionWeights[343] = vec3(0.000000000, 0.000001415, 0.000002351);
-            bloom_injectionOffsets[375] = vec2(42.607331930, 13.843961348);
-            bloom_injectionWeights[375] = vec3(0.000744066, 0.000679939, 0.000591306);
-            bloom_injectionOffsets[407] = vec2(0.000000000, 3.000000000);
-            bloom_injectionWeights[407] = vec3(0.002989116, 0.002818463, 0.002582427);
-            bloom_injectionOffsets[439] = vec2(-1.000000000, -0.000000000);
-            bloom_injectionWeights[439] = vec3(0.016705733, 0.016923213, 0.016202660);
-            bloom_injectionOffsets[471] = vec2(-1.000000000, -3.000000000);
-            bloom_injectionWeights[471] = vec3(0.001731131, 0.001752210, 0.001809989);
+            bloom_injectionOffsets[23] = vec2(5.216971576, -1.447223088);
+            bloom_injectionWeights[23] = vec3(0.000000007, 0.000000007, 0.005588345);
+            bloom_injectionOffsets[55] = vec2(26.353835261, -8.000674392);
+            bloom_injectionWeights[55] = vec3(0.007484886, 0.006225646, 0.005085967);
+            bloom_injectionOffsets[87] = vec2(25.999119755, -35.825117236);
+            bloom_injectionWeights[87] = vec3(0.001153940, 0.000830236, 0.000542053);
             break;
         case 24u:
-            bloom_injectionOffsets[24] = vec2(31.955498948, -10.382971011);
-            bloom_injectionWeights[24] = vec3(0.001401137, 0.001309035, 0.001265705);
-            bloom_injectionOffsets[56] = vec2(-22.635145088, 7.354604466);
-            bloom_injectionWeights[56] = vec3(0.002489869, 0.002372136, 0.002306460);
-            bloom_injectionOffsets[88] = vec2(8.228993532, -11.326237921);
-            bloom_injectionWeights[88] = vec3(0.004234238, 0.004247338, 0.004259085);
-            bloom_injectionOffsets[120] = vec2(-6.583194826, 9.060990337);
-            bloom_injectionWeights[120] = vec3(0.005779239, 0.005887505, 0.005951020);
-            bloom_injectionOffsets[152] = vec2(0.000000000, -8.400000000);
-            bloom_injectionWeights[152] = vec3(0.010368430, 0.010646048, 0.010808357);
-            bloom_injectionOffsets[184] = vec2(0.000000000, -53.200000000);
-            bloom_injectionWeights[184] = vec3(0.000501921, 0.000523694, 0.000518105);
-            bloom_injectionOffsets[216] = vec2(-0.000000000, 35.000000000);
-            bloom_injectionWeights[216] = vec3(0.001662619, 0.001555969, 0.001515586);
-            bloom_injectionOffsets[248] = vec2(-9.874792239, -13.591485505);
-            bloom_injectionWeights[248] = vec3(0.003305297, 0.003256272, 0.003224394);
-            bloom_injectionOffsets[280] = vec2(8.228993532, 11.326237921);
-            bloom_injectionWeights[280] = vec3(0.004234305, 0.004247410, 0.004259151);
-            bloom_injectionOffsets[312] = vec2(-10.651832983, -3.460990337);
-            bloom_injectionWeights[312] = vec3(0.006976709, 0.007113555, 0.007181299);
-            bloom_injectionOffsets[344] = vec2(1.331479123, 0.432623792);
-            bloom_injectionWeights[344] = vec3(0.016604573, 0.016628260, 0.016868029);
-            bloom_injectionOffsets[376] = vec2(43.938811053, 14.276585140);
-            bloom_injectionWeights[376] = vec3(0.000537161, 0.000554129, 0.000500092);
-            bloom_injectionOffsets[408] = vec2(1.000000000, 3.000000000);
-            bloom_injectionWeights[408] = vec3(0.001648007, 0.001638602, 0.001713765);
-            bloom_injectionOffsets[440] = vec2(1.000000000, -0.000000000);
-            bloom_injectionWeights[440] = vec3(0.016712893, 0.016934112, 0.016230281);
-            bloom_injectionOffsets[472] = vec2(0.000000000, -3.000000000);
-            bloom_injectionWeights[472] = vec3(0.003011743, 0.002843141, 0.002626896);
+            bloom_injectionOffsets[24] = vec2(0.625884091, -0.533496334);
+            bloom_injectionWeights[24] = vec3(0.144085124, 0.149300337, 0.158204064);
+            bloom_injectionOffsets[56] = vec2(35.396273619, -10.996224662);
+            bloom_injectionWeights[56] = vec3(0.003115960, 0.002695938, 0.002350033);
+            bloom_injectionOffsets[88] = vec2(30.997782804, -42.714572670);
+            bloom_injectionWeights[88] = vec3(0.000367006, 0.000201619, 0.000097591);
             break;
         case 25u:
-            bloom_injectionOffsets[25] = vec2(33.286978070, -10.815594803);
-            bloom_injectionWeights[25] = vec3(0.001276132, 0.001201082, 0.001149060);
-            bloom_injectionOffsets[57] = vec2(-23.966624211, 7.787228258);
-            bloom_injectionWeights[57] = vec3(0.002312900, 0.002191277, 0.002135005);
-            bloom_injectionOffsets[89] = vec2(9.051892885, -12.458861713);
-            bloom_injectionWeights[89] = vec3(0.003714703, 0.003694012, 0.003681316);
-            bloom_injectionOffsets[121] = vec2(-7.406094179, 10.193614129);
-            bloom_injectionWeights[121] = vec3(0.004918248, 0.004972770, 0.005011162);
-            bloom_injectionOffsets[153] = vec2(0.000000000, -9.800000000);
-            bloom_injectionWeights[153] = vec3(0.009409939, 0.009659644, 0.009761994);
-            bloom_injectionOffsets[185] = vec2(0.000000000, -54.600000000);
-            bloom_injectionWeights[185] = vec3(0.000403109, 0.000326577, 0.000306247);
-            bloom_injectionOffsets[217] = vec2(-0.000000000, 36.400000000);
-            bloom_injectionWeights[217] = vec3(0.001533951, 0.001438147, 0.001395862);
-            bloom_injectionOffsets[249] = vec2(-10.697691592, -14.724109298);
-            bloom_injectionWeights[249] = vec3(0.002964432, 0.002892463, 0.002847653);
-            bloom_injectionOffsets[281] = vec2(9.051892885, 12.458861713);
-            bloom_injectionWeights[281] = vec3(0.003714799, 0.003694105, 0.003681418);
-            bloom_injectionOffsets[313] = vec2(-11.983312105, -3.893614129);
-            bloom_injectionWeights[313] = vec3(0.005928295, 0.006016184, 0.006070489);
-            bloom_injectionOffsets[345] = vec2(2.662958246, 0.865247584);
-            bloom_injectionWeights[345] = vec3(0.009888465, 0.010111597, 0.010367785);
-            bloom_injectionOffsets[377] = vec2(45.270290176, 14.709208932);
-            bloom_injectionWeights[377] = vec3(0.000390198, 0.000382672, 0.000341777);
-            bloom_injectionOffsets[409] = vec2(2.000000000, 3.000000000);
-            bloom_injectionWeights[409] = vec3(0.003307743, 0.003317712, 0.003209118);
-            bloom_injectionOffsets[441] = vec2(2.000000000, -0.000000000);
-            bloom_injectionWeights[441] = vec3(0.000258006, 0.000117064, 0.000514215);
-            bloom_injectionOffsets[473] = vec2(1.000000000, -3.000000000);
-            bloom_injectionWeights[473] = vec3(0.001677914, 0.001663521, 0.001724121);
+            bloom_injectionOffsets[25] = vec2(-0.569484883, -0.975463133);
+            bloom_injectionWeights[25] = vec3(0.161666378, 0.167577550, 0.171842217);
+            bloom_injectionOffsets[57] = vec2(41.747507022, -12.999107116);
+            bloom_injectionWeights[57] = vec3(0.001783239, 0.001389255, 0.000968760);
+            bloom_injectionOffsets[89] = vec2(36.824964095, -51.020250588);
+            bloom_injectionWeights[89] = vec3(0.000073922, 0.000043091, 0.000030077);
             break;
         case 26u:
-            bloom_injectionOffsets[26] = vec2(34.618457193, -11.248218595);
-            bloom_injectionWeights[26] = vec3(0.001178631, 0.001121162, 0.001060244);
-            bloom_injectionOffsets[58] = vec2(-25.298103333, 8.219852050);
-            bloom_injectionWeights[58] = vec3(0.002117745, 0.001999427, 0.001950843);
-            bloom_injectionOffsets[90] = vec2(9.874792239, -13.591485505);
-            bloom_injectionWeights[90] = vec3(0.003305399, 0.003256371, 0.003224503);
-            bloom_injectionOffsets[122] = vec2(-8.228993532, 11.326237921);
-            bloom_injectionWeights[122] = vec3(0.004234198, 0.004247299, 0.004259034);
-            bloom_injectionOffsets[154] = vec2(0.000000000, -11.200000000);
-            bloom_injectionWeights[154] = vec3(0.008147681, 0.008332317, 0.008422506);
-            bloom_injectionOffsets[186] = vec2(0.000000000, -56.000000000);
-            bloom_injectionWeights[186] = vec3(0.000264611, 0.000234913, 0.000263370);
-            bloom_injectionOffsets[218] = vec2(-0.000000000, 37.800000000);
-            bloom_injectionWeights[218] = vec3(0.001432076, 0.001344849, 0.001297372);
-            bloom_injectionOffsets[250] = vec2(-11.520590945, -15.856733090);
-            bloom_injectionWeights[250] = vec3(0.002684789, 0.002594215, 0.002542648);
-            bloom_injectionOffsets[282] = vec2(9.874792239, 13.591485505);
-            bloom_injectionWeights[282] = vec3(0.003305507, 0.003256467, 0.003224631);
-            bloom_injectionOffsets[314] = vec2(-13.314791228, -4.326237921);
-            bloom_injectionWeights[314] = vec3(0.005150894, 0.005181198, 0.005187115);
-            bloom_injectionOffsets[346] = vec2(3.994437368, 1.297871376);
-            bloom_injectionWeights[346] = vec3(0.010602443, 0.010684219, 0.010786427);
-            bloom_injectionOffsets[378] = vec2(46.601769298, 15.141832724);
-            bloom_injectionWeights[378] = vec3(0.000350884, 0.000237702, 0.000276263);
-            bloom_injectionOffsets[410] = vec2(3.000000000, 3.000000000);
-            bloom_injectionWeights[410] = vec3(0.000557709, 0.000506894, 0.000576507);
-            bloom_injectionOffsets[442] = vec2(3.000000000, -0.000000000);
-            bloom_injectionWeights[442] = vec3(0.001032304, 0.001070718, 0.000971027);
-            bloom_injectionOffsets[474] = vec2(2.000000000, -3.000000000);
-            bloom_injectionWeights[474] = vec3(0.003274956, 0.003281279, 0.003204002);
+            bloom_injectionOffsets[26] = vec2(-3.780504498, -5.026566685);
+            bloom_injectionWeights[26] = vec3(0.003317664, 0.003505713, 0.003618631);
+            bloom_injectionOffsets[58] = vec2(50.472682412, -15.874477949);
+            bloom_injectionWeights[58] = vec3(0.001041727, 0.000721045, 0.000430933);
+            bloom_injectionOffsets[90] = vec2(37.088396218, 50.726589716);
+            bloom_injectionWeights[90] = vec3(0.000080839, 0.000053241, 0.000042672);
             break;
         case 27u:
-            bloom_injectionOffsets[27] = vec2(35.949936316, -11.680842387);
-            bloom_injectionWeights[27] = vec3(0.001092961, 0.001056396, 0.000986421);
-            bloom_injectionOffsets[59] = vec2(-26.629582456, 8.652475842);
-            bloom_injectionWeights[59] = vec3(0.001939897, 0.001823502, 0.001781688);
-            bloom_injectionOffsets[91] = vec2(10.697691592, -14.724109298);
-            bloom_injectionWeights[91] = vec3(0.002964549, 0.002892570, 0.002847790);
-            bloom_injectionOffsets[123] = vec2(-9.051892885, 12.458861713);
-            bloom_injectionWeights[123] = vec3(0.003714865, 0.003694165, 0.003681485);
-            bloom_injectionOffsets[155] = vec2(0.000000000, -12.600000000);
-            bloom_injectionWeights[155] = vec3(0.007150709, 0.007269682, 0.007312272);
-            bloom_injectionOffsets[187] = vec2(0.000000000, -57.400000000);
-            bloom_injectionWeights[187] = vec3(0.000195225, 0.000222800, 0.000201970);
-            bloom_injectionOffsets[219] = vec2(-0.000000000, 39.200000000);
-            bloom_injectionWeights[219] = vec3(0.001333442, 0.001257959, 0.001204608);
-            bloom_injectionOffsets[251] = vec2(-12.343490298, -16.989356882);
-            bloom_injectionWeights[251] = vec3(0.002452492, 0.002346269, 0.002294087);
-            bloom_injectionOffsets[283] = vec2(10.697691592, 14.724109298);
-            bloom_injectionWeights[283] = vec3(0.002964750, 0.002892750, 0.002848029);
-            bloom_injectionOffsets[315] = vec2(-14.646270351, -4.758861713);
-            bloom_injectionWeights[315] = vec3(0.004545554, 0.004532620, 0.004511711);
-            bloom_injectionOffsets[347] = vec2(5.325916491, 1.730495168);
-            bloom_injectionWeights[347] = vec3(0.010487569, 0.010674283, 0.010758321);
-            bloom_injectionOffsets[379] = vec2(47.933248421, 15.574456516);
-            bloom_injectionWeights[379] = vec3(0.000183649, 0.000165887, 0.000146559);
-            bloom_injectionOffsets[411] = vec2(4.000000000, 3.000000000);
-            bloom_injectionWeights[411] = vec3(0.000123854, 0.000297370, 0.000110101);
-            bloom_injectionOffsets[443] = vec2(4.000000000, -0.000000000);
-            bloom_injectionWeights[443] = vec3(0.000000000, 0.000000000, 0.000036196);
-            bloom_injectionOffsets[475] = vec2(3.000000000, -3.000000000);
-            bloom_injectionWeights[475] = vec3(0.000543963, 0.000493812, 0.000545509);
+            bloom_injectionOffsets[27] = vec2(-0.001803536, 79.762958513);
+            bloom_injectionWeights[27] = vec3(0.000084659, 0.000041276, 0.000016994);
+            bloom_injectionOffsets[59] = vec2(59.553305625, -18.781867540);
+            bloom_injectionWeights[59] = vec3(0.000311608, 0.000164651, 0.000081576);
+            bloom_injectionOffsets[91] = vec2(31.127610388, 42.933740876);
+            bloom_injectionWeights[91] = vec3(0.000361557, 0.000204576, 0.000104370);
             break;
         case 28u:
-            bloom_injectionOffsets[28] = vec2(37.281415439, -12.113466179);
-            bloom_injectionWeights[28] = vec3(0.001003986, 0.000990137, 0.000909232);
-            bloom_injectionOffsets[60] = vec2(-27.961061579, 9.085099635);
-            bloom_injectionWeights[60] = vec3(0.001809988, 0.001689998, 0.001653045);
-            bloom_injectionOffsets[92] = vec2(11.520590945, -15.856733090);
-            bloom_injectionWeights[92] = vec3(0.002684883, 0.002594292, 0.002542764);
-            bloom_injectionOffsets[124] = vec2(-9.874792239, 13.591485505);
-            bloom_injectionWeights[124] = vec3(0.003305477, 0.003256433, 0.003224606);
-            bloom_injectionOffsets[156] = vec2(0.000000000, -14.000000000);
-            bloom_injectionWeights[156] = vec3(0.006238115, 0.006301288, 0.006312527);
-            bloom_injectionOffsets[188] = vec2(0.000000000, -58.800000000);
-            bloom_injectionWeights[188] = vec3(0.000121050, 0.000080948, 0.000101199);
-            bloom_injectionOffsets[220] = vec2(-0.000000000, 40.600000000);
-            bloom_injectionWeights[220] = vec3(0.001233966, 0.001174274, 0.001115201);
-            bloom_injectionOffsets[252] = vec2(-13.166389651, -18.121980674);
-            bloom_injectionWeights[252] = vec3(0.002235560, 0.002119127, 0.002070547);
-            bloom_injectionOffsets[284] = vec2(11.520590945, 15.856733090);
-            bloom_injectionWeights[284] = vec3(0.002685081, 0.002594451, 0.002543009);
-            bloom_injectionOffsets[316] = vec2(-15.977749474, -5.191485505);
-            bloom_injectionWeights[316] = vec3(0.004010705, 0.003966213, 0.003924705);
-            bloom_injectionOffsets[348] = vec2(6.657395614, 2.163118961);
-            bloom_injectionWeights[348] = vec3(0.012459127, 0.012668124, 0.012818160);
-            bloom_injectionOffsets[380] = vec2(49.264727544, 16.007080309);
-            bloom_injectionWeights[380] = vec3(0.000080316, 0.000092371, 0.000083347);
-            bloom_injectionOffsets[412] = vec2(5.000000000, 3.000000000);
-            bloom_injectionWeights[412] = vec3(0.000222743, 0.000321578, 0.000397823);
-            bloom_injectionOffsets[444] = vec2(5.000000000, -0.000000000);
-            bloom_injectionWeights[444] = vec3(0.000279418, 0.000352880, 0.000316593);
-            bloom_injectionOffsets[476] = vec2(4.000000000, -3.000000000);
-            bloom_injectionWeights[476] = vec3(0.000124696, 0.000301783, 0.000076292);
+            bloom_injectionOffsets[28] = vec2(-0.000152632, 70.210980617);
+            bloom_injectionWeights[28] = vec3(0.000299113, 0.000161474, 0.000072146);
+            bloom_injectionOffsets[60] = vec2(69.465067441, -22.032142177);
+            bloom_injectionWeights[60] = vec3(0.000048752, 0.000022458, 0.000007085);
+            bloom_injectionOffsets[92] = vec2(26.007157228, 35.768472528);
+            bloom_injectionWeights[92] = vec3(0.001144354, 0.000824323, 0.000536431);
             break;
         case 29u:
-            bloom_injectionOffsets[29] = vec2(38.612894562, -12.546089972);
-            bloom_injectionWeights[29] = vec3(0.000951781, 0.000963583, 0.000869986);
-            bloom_injectionOffsets[61] = vec2(-29.292540702, 9.517723427);
-            bloom_injectionWeights[61] = vec3(0.001650937, 0.001539948, 0.001504491);
-            bloom_injectionOffsets[93] = vec2(12.343490298, -16.989356882);
-            bloom_injectionWeights[93] = vec3(0.002452526, 0.002346279, 0.002294142);
-            bloom_injectionOffsets[125] = vec2(-10.697691592, 14.724109298);
-            bloom_injectionWeights[125] = vec3(0.002964689, 0.002892687, 0.002847966);
-            bloom_injectionOffsets[157] = vec2(0.000000000, -15.400000000);
-            bloom_injectionWeights[157] = vec3(0.005524023, 0.005526415, 0.005494535);
-            bloom_injectionOffsets[189] = vec2(0.000000000, -60.200000000);
-            bloom_injectionWeights[189] = vec3(0.000048410, 0.000058168, 0.000063913);
-            bloom_injectionOffsets[221] = vec2(-0.000000000, 42.000000000);
-            bloom_injectionWeights[221] = vec3(0.001153354, 0.001109633, 0.001040893);
-            bloom_injectionOffsets[253] = vec2(-13.989289005, -19.254604466);
-            bloom_injectionWeights[253] = vec3(0.002043383, 0.001922815, 0.001878912);
-            bloom_injectionOffsets[285] = vec2(12.343490298, 16.989356882);
-            bloom_injectionWeights[285] = vec3(0.002452601, 0.002346300, 0.002294265);
-            bloom_injectionOffsets[317] = vec2(-17.309228597, -5.624109298);
-            bloom_injectionWeights[317] = vec3(0.003603487, 0.003531649, 0.003470183);
-            bloom_injectionOffsets[349] = vec2(7.988874737, 2.595742753);
-            bloom_injectionWeights[349] = vec3(0.009239600, 0.009449823, 0.009679809);
-            bloom_injectionOffsets[381] = vec2(50.596206667, 16.439704101);
-            bloom_injectionWeights[381] = vec3(0.000029605, 0.000025822, 0.000024314);
-            bloom_injectionOffsets[413] = vec2(-5.000000000, 2.000000000);
-            bloom_injectionWeights[413] = vec3(0.001754801, 0.001810087, 0.001821601);
-            bloom_injectionOffsets[445] = vec2(-5.000000000, -1.000000000);
-            bloom_injectionWeights[445] = vec3(0.000402263, 0.000451218, 0.000425935);
-            bloom_injectionOffsets[477] = vec2(5.000000000, -3.000000000);
-            bloom_injectionWeights[477] = vec3(0.000234312, 0.000323052, 0.000392604);
+            bloom_injectionOffsets[29] = vec2(-0.003891160, 61.701478114);
+            bloom_injectionWeights[29] = vec3(0.000856379, 0.000577241, 0.000331345);
+            bloom_injectionOffsets[61] = vec2(60.278844678, 20.115526992);
+            bloom_injectionWeights[61] = vec3(0.000314919, 0.000177600, 0.000093413);
+            bloom_injectionOffsets[93] = vec2(20.998196775, 28.943830501);
+            bloom_injectionWeights[93] = vec3(0.002642137, 0.002189901, 0.001700795);
             break;
         case 30u:
-            bloom_injectionOffsets[30] = vec2(39.944373684, -12.978713764);
-            bloom_injectionWeights[30] = vec3(0.000857486, 0.000888475, 0.000789542);
-            bloom_injectionOffsets[62] = vec2(-30.624019825, 9.950347219);
-            bloom_injectionWeights[62] = vec3(0.001518829, 0.001415746, 0.001376873);
-            bloom_injectionOffsets[94] = vec2(13.166389651, -18.121980674);
-            bloom_injectionWeights[94] = vec3(0.002235545, 0.002119089, 0.002070542);
-            bloom_injectionOffsets[126] = vec2(-11.520590945, 15.856733090);
-            bloom_injectionWeights[126] = vec3(0.002685005, 0.002594376, 0.002542925);
-            bloom_injectionOffsets[158] = vec2(0.000000000, -16.800000000);
-            bloom_injectionWeights[158] = vec3(0.004919467, 0.004877900, 0.004823436);
-            bloom_injectionOffsets[190] = vec2(0.000000000, -61.600000000);
-            bloom_injectionWeights[190] = vec3(0.000013446, 0.000005087, 0.000003242);
-            bloom_injectionOffsets[222] = vec2(-0.000000000, 43.400000000);
-            bloom_injectionWeights[222] = vec3(0.001079995, 0.001050766, 0.000976801);
-            bloom_injectionOffsets[254] = vec2(-14.812188358, -20.387228258);
-            bloom_injectionWeights[254] = vec3(0.001859132, 0.001741821, 0.001703031);
-            bloom_injectionOffsets[286] = vec2(13.166389651, 18.121980674);
-            bloom_injectionWeights[286] = vec3(0.002235500, 0.002118992, 0.002070517);
-            bloom_injectionOffsets[318] = vec2(-18.640707719, -6.056733090);
-            bloom_injectionWeights[318] = vec3(0.003265899, 0.003172740, 0.003102845);
-            bloom_injectionOffsets[350] = vec2(9.320353860, 3.028366545);
-            bloom_injectionWeights[350] = vec3(0.008050069, 0.008251375, 0.008370240);
-            bloom_injectionOffsets[382] = vec2(51.927685790, 16.872327893);
-            bloom_injectionWeights[382] = vec3(0.000001269, 0.000000880, 0.000001633);
-            bloom_injectionOffsets[414] = vec2(-4.000000000, 2.000000000);
-            bloom_injectionWeights[414] = vec3(0.000239353, 0.000156435, 0.000147750);
-            bloom_injectionOffsets[446] = vec2(-4.000000000, -1.000000000);
-            bloom_injectionWeights[446] = vec3(0.003034321, 0.003039719, 0.002965133);
-            bloom_injectionOffsets[478] = vec2(-5.000000000, -4.000000000);
-            bloom_injectionWeights[478] = vec3(0.000059599, 0.000000000, 0.000000000);
+            bloom_injectionOffsets[30] = vec2(-0.002794622, 53.371743445);
+            bloom_injectionWeights[30] = vec3(0.001920772, 0.001427846, 0.001008340);
+            bloom_injectionOffsets[62] = vec2(50.495798927, 16.978970964);
+            bloom_injectionWeights[62] = vec3(0.001059977, 0.000734798, 0.000452599);
+            bloom_injectionOffsets[94] = vec2(15.997933878, 22.005196505);
+            bloom_injectionWeights[94] = vec3(0.006140396, 0.004574161, 0.004071965);
             break;
         case 31u:
-            bloom_injectionOffsets[31] = vec2(41.275852807, -13.411337556);
-            bloom_injectionWeights[31] = vec3(0.000796423, 0.000807666, 0.000679130);
-            bloom_injectionOffsets[63] = vec2(-31.955498948, 10.382971011);
-            bloom_injectionWeights[63] = vec3(0.001400180, 0.001308625, 0.001264811);
-            bloom_injectionOffsets[95] = vec2(13.989289005, -19.254604466);
-            bloom_injectionWeights[95] = vec3(0.002043277, 0.001922695, 0.001878806);
-            bloom_injectionOffsets[127] = vec2(-12.343490298, 16.989356882);
-            bloom_injectionWeights[127] = vec3(0.002452557, 0.002346263, 0.002294211);
-            bloom_injectionOffsets[159] = vec2(0.000000000, -18.200000000);
-            bloom_injectionWeights[159] = vec3(0.004396887, 0.004321236, 0.004245248);
-            bloom_injectionOffsets[191] = vec2(0.000000000, -63.000000000);
-            bloom_injectionWeights[191] = vec3(0.000000000, 0.000000000, 0.000004895);
-            bloom_injectionOffsets[223] = vec2(-0.000000000, 44.800000000);
-            bloom_injectionWeights[223] = vec3(0.001018908, 0.000999892, 0.000921522);
-            bloom_injectionOffsets[255] = vec2(-15.635087711, -21.519852050);
-            bloom_injectionWeights[255] = vec3(0.001698218, 0.001584077, 0.001548476);
-            bloom_injectionOffsets[287] = vec2(13.989289005, 19.254604466);
-            bloom_injectionWeights[287] = vec3(0.002043069, 0.001922457, 0.001878598);
-            bloom_injectionOffsets[319] = vec2(-19.972186842, -6.489356882);
-            bloom_injectionWeights[319] = vec3(0.002982345, 0.002875852, 0.002802962);
-            bloom_injectionOffsets[351] = vec2(10.651832983, 3.460990337);
-            bloom_injectionWeights[351] = vec3(0.006976981, 0.007113824, 0.007181514);
-            bloom_injectionOffsets[383] = vec2(-4.000000000, 5.000000000);
-            bloom_injectionWeights[383] = vec3(0.001181627, 0.001166950, 0.001250912);
-            bloom_injectionOffsets[415] = vec2(-3.000000000, 2.000000000);
-            bloom_injectionWeights[415] = vec3(0.001416768, 0.001338693, 0.001503776);
-            bloom_injectionOffsets[447] = vec2(-3.000000000, -1.000000000);
-            bloom_injectionWeights[447] = vec3(0.003706982, 0.003740463, 0.003563476);
-            bloom_injectionOffsets[479] = vec2(-4.000000000, -4.000000000);
-            bloom_injectionWeights[479] = vec3(0.000531858, 0.000375515, 0.000685525);
+            bloom_injectionOffsets[31] = vec2(0.001197938, 44.503468432);
+            bloom_injectionWeights[31] = vec3(0.003491842, 0.003118415, 0.002528311);
+            bloom_injectionOffsets[63] = vec2(41.441823238, 14.000445058);
+            bloom_injectionWeights[63] = vec3(0.002480930, 0.002039652, 0.001542494);
+            bloom_injectionOffsets[95] = vec2(10.994954968, 15.011219287);
+            bloom_injectionWeights[95] = vec3(0.009790867, 0.011606878, 0.009393309);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    if (all(greaterThanEqual(center + vec2(-69.482472716, -80.357865683), vec2(0.5))) &&
+        all(lessThanEqual(center + vec2(69.465067441, 79.762958513), tile.zw - 0.5))) {
+        for (int i = 0; i < 27; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += transient_bloomRaw_sample((tile.xy + pos) * uval_mainImageSizeRcp).rgb * bloom_injectionWeights[i];
+        }
+        for (int i = 27; i < 45; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 0) * bloom_injectionWeights[i];
+        }
+        for (int i = 45; i < 61; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 1) * bloom_injectionWeights[i];
+        }
+        for (int i = 61; i < 76; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 2) * bloom_injectionWeights[i];
+        }
+        for (int i = 76; i < 90; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 3) * bloom_injectionWeights[i];
+        }
+        for (int i = 90; i < 104; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 4) * bloom_injectionWeights[i];
+        }
+        return value;
+    }
+    for (int i = 0; i < 27; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_sampleRaw(pos, tile) * bloom_injectionWeights[i];
+    }
+    for (int i = 27; i < 45; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 0) * bloom_injectionWeights[i];
+    }
+    for (int i = 45; i < 61; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 1) * bloom_injectionWeights[i];
+    }
+    for (int i = 61; i < 76; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 2) * bloom_injectionWeights[i];
+    }
+    for (int i = 76; i < 90; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 3) * bloom_injectionWeights[i];
+    }
+    for (int i = 90; i < 104; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 4) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
+const int bloom_injectionCount = 13;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.049943482, 0.077995636);
+            bloom_injectionWeights[0] = vec3(1.385684133, 1.381202459, 1.421267033);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.950596951, -0.042915687);
+            bloom_injectionWeights[1] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(2.228985730, -0.083350199);
+            bloom_injectionWeights[2] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(0.005898063, -3.000000000);
+            bloom_injectionWeights[3] = vec3(0.000461977, 0.000375173, 0.000000005);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(-0.996297623, 3.994328141);
+            bloom_injectionWeights[4] = vec3(0.000809240, 0.000815671, 0.001013343);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(0.513207207, 8.465296643);
+            bloom_injectionWeights[5] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(0.430248492, -8.494457455);
+            bloom_injectionWeights[6] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(-2.400000000, 12.410830535);
+            bloom_injectionWeights[7] = vec3(0.000212739, 0.000203335, 0.000164440);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(2.400000000, -12.482680889);
+            bloom_injectionWeights[8] = vec3(0.000189586, 0.000191300, 0.000188381);
+            break;
+        case 9u:
+            bloom_injectionOffsets[9] = vec2(-5.824469278, -0.002206547);
+            bloom_injectionWeights[9] = vec3(0.000711668, 0.000759424, 0.000740778);
+            break;
+        case 10u:
+            bloom_injectionOffsets[10] = vec2(-10.563709795, -0.987335424);
+            bloom_injectionWeights[10] = vec3(0.000111006, 0.000108454, 0.000098258);
+            break;
+        case 11u:
+            bloom_injectionOffsets[11] = vec2(-10.365285755, 0.619971130);
+            bloom_injectionWeights[11] = vec3(0.000220115, 0.000219888, 0.000209032);
+            break;
+        case 12u:
+            bloom_injectionOffsets[12] = vec2(7.613442022, -3.739496412);
+            bloom_injectionWeights[12] = vec3(0.000005115, 0.000002091, 0.000003600);
             break;
     }
     barrier();
@@ -4460,865 +2117,811 @@ vec3 bloom_injection(vec2 center, vec4 tile) {
     }
     return value;
 }
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124981463, 0.124978833, 0.124968648);
-}
 #elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 4
-void bloom_prepareInjection() {}
+const int bloom_injectionCount = 9;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.008205826, -0.006506504);
+            bloom_injectionWeights[0] = vec3(0.110509023, 0.111494124, 0.086550921);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.008900403, -0.983638566);
+            bloom_injectionWeights[1] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-0.929140775, 3.693024333);
+            bloom_injectionWeights[2] = vec3(0.001458201, 0.001470188, 0.001047998);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(0.160779983, -3.957874981);
+            bloom_injectionWeights[3] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(1.995789021, 5.824840713);
+            bloom_injectionWeights[4] = vec3(0.000881643, 0.000848070, 0.000000006);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(5.819796411, 0.008889931);
+            bloom_injectionWeights[5] = vec3(0.001156630, 0.001189149, 0.001042875);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(-2.361533683, 2.046059918);
+            bloom_injectionWeights[6] = vec3(0.000884626, 0.000950512, 0.001037900);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(5.400000000, -3.736219362);
+            bloom_injectionWeights[7] = vec3(0.000917651, 0.000920559, 0.000849231);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(5.052617680, 3.697760429);
+            bloom_injectionWeights[8] = vec3(0.000883637, 0.000881510, 0.000686275);
+            break;
+    }
+    barrier();
+}
 vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124981321, 0.124977119, 0.124968663);
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
 }
 #elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 5
-void bloom_prepareInjection() {}
+const int bloom_injectionCount = 7;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(0.020024873, -0.011104068);
+            bloom_injectionWeights[0] = vec3(0.131019428, 0.127536476, 0.129094899);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-1.003869391, 0.002778284);
+            bloom_injectionWeights[1] = vec3(0.000000005, 0.000000005, 0.000000005);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(4.400000000, 3.116334632);
+            bloom_injectionWeights[2] = vec3(0.001046369, 0.001143696, 0.001123417);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(2.001219090, -5.400000000);
+            bloom_injectionWeights[3] = vec3(0.000871083, 0.001005345, 0.001064382);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(-0.004507977, 1.328825874);
+            bloom_injectionWeights[4] = vec3(0.000366207, 0.000240266, 0.000616220);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(-6.364198336, -0.004037979);
+            bloom_injectionWeights[5] = vec3(0.000594750, 0.000556457, 0.000631766);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(5.149055548, -3.400000000);
+            bloom_injectionWeights[6] = vec3(0.001150906, 0.001206054, 0.001269147);
+            break;
+    }
+    barrier();
+}
 vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124982581, 0.124977827, 0.124968931);
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
 }
 #elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 6
-void bloom_prepareInjection() {}
+const int bloom_injectionCount = 5;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(0.020929062, 0.076147690);
+            bloom_injectionWeights[0] = vec3(0.119280539, 0.120241039, 0.122018054);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(1.781957001, -1.432319168);
+            bloom_injectionWeights[1] = vec3(0.000429993, 0.000503594, 0.000391095);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-1.950823990, -1.083303313);
+            bloom_injectionWeights[2] = vec3(0.001190160, 0.001560182, 0.001782927);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(-1.402405776, 1.890090361);
+            bloom_injectionWeights[3] = vec3(0.001151380, 0.001274312, 0.001299235);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(-0.494197123, -2.894345883);
+            bloom_injectionWeights[4] = vec3(0.001688785, 0.001558026, 0.001673243);
+            break;
+    }
+    barrier();
+}
 vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124982834, 0.124978200, 0.124969065);
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
 }
 #elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 7
-void bloom_prepareInjection() {}
+const int bloom_injectionCount = 3;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(0.107429846, 0.091791613);
+            bloom_injectionWeights[0] = vec3(0.130120635, 0.129560545, 0.130269155);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.452012843, -0.990661697);
+            bloom_injectionWeights[1] = vec3(0.001340383, 0.001396563, 0.001389848);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(0.254063613, 1.945008972);
+            bloom_injectionWeights[2] = vec3(0.001549376, 0.001599541, 0.001532920);
+            break;
+    }
+    barrier();
+}
 vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124982938, 0.124978431, 0.124969356);
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
 }
 #elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 8
-void bloom_prepareInjection() {}
+const int bloom_injectionCount = 2;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(0.041224903, -0.007263374);
+            bloom_injectionWeights[0] = vec3(0.136517003, 0.135664105, 0.135891885);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.081161329, -0.855090021);
+            bloom_injectionWeights[1] = vec3(0.002021845, 0.002046287, 0.001981111);
+            break;
+    }
+    barrier();
+}
 vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124982908, 0.124978341, 0.124969244);
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
 }
 #endif
 #ifdef BLOOM_FIRST_UPSAMPLE
-const vec3 bloom_deepestWeight = vec3(0.124982789, 0.124978177, 0.124969058);
+const vec3 bloom_deepestWeight = vec3(0.137754858, 0.137657925, 0.136740655);
 #endif
 
 #elif SETTING_BLOOM_SHAPE == 6 // cinema-star, fitted candidate
-// Bloom DPF recipe f06da9466b47027183e24fcfb3d249d6624eb40f87e4221336fa1144ce47a8e9
+// Bloom DPF recipe 4b0eb7aefae34c2e18574b0dd850a4781ca2bcc0a1178a59c88b54fd63255d38
+#define BLOOM_DPF_FEATURE_COUNT 4
+#if BLOOM_DPF_RUNTIME_CARRIER_LEVELS != 1
+#error D2 Bloom carriers require a level-aware Bloom shader runtime.
+#endif
+#define BLOOM_DPF_D2_MASK 8
+#if defined(BLOOM_DOWNSAMPLE) && (BLOOM_PASS == 2 || BLOOM_PASS == 3)
+vec3 bloom_dpfFeature(vec2 center, vec4 tile, int feature) {
+    vec3 value = vec3(0.0);
+#if BLOOM_PASS == 2
+    if (feature == 0) {
+        value += bloom_sample(center + vec2(-1.881779882, 0.012139234), tile) * vec3(0.197779685, 0.197854161, 0.194917589);
+        value += bloom_sample(center + vec2(-0.827045978, 0.026129946), tile) * vec3(0.200952470, 0.198444545, 0.197766110);
+        value += bloom_sample(center + vec2(-0.205715153, -0.011092271), tile) * vec3(0.188658342, 0.198800877, 0.202957988);
+        value += bloom_sample(center + vec2(0.934536279, 0.019119931), tile) * vec3(0.209892198, 0.206953451, 0.202055857);
+        value += bloom_sample(center + vec2(1.861297809, 0.018204735), tile) * vec3(0.202717319, 0.197946966, 0.202302471);
+    }
+#endif
+#if BLOOM_PASS == 2
+    if (feature == 1) {
+        value += bloom_sample(center + vec2(-1.952476214, 1.742646998), tile) * vec3(0.192079023, 0.193999559, 0.194940120);
+        value += bloom_sample(center + vec2(-1.020251734, 0.872783985), tile) * vec3(0.206412345, 0.208027780, 0.198826313);
+        value += bloom_sample(center + vec2(0.053291517, 0.011778444), tile) * vec3(0.262805313, 0.258211970, 0.261710286);
+        value += bloom_sample(center + vec2(1.003370595, -0.996563194), tile) * vec3(0.195746899, 0.198319644, 0.194891587);
+        value += bloom_sample(center + vec2(2.045768556, -1.845586402), tile) * vec3(0.142956421, 0.141441062, 0.149631694);
+    }
+#endif
+#if BLOOM_PASS == 2
+    if (feature == 2) {
+        value += bloom_sample(center + vec2(2.280446060, 1.951366778), tile) * vec3(0.165897712, 0.167625040, 0.174352974);
+        value += bloom_sample(center + vec2(1.098514183, 0.999711619), tile) * vec3(0.217079982, 0.214697093, 0.214425489);
+        value += bloom_sample(center + vec2(0.066200841, -0.045941595), tile) * vec3(0.236445248, 0.231460273, 0.230705947);
+        value += bloom_sample(center + vec2(-1.002450859, -0.820793190), tile) * vec3(0.199778453, 0.202287704, 0.195065305);
+        value += bloom_sample(center + vec2(-1.885246295, -1.648886433), tile) * vec3(0.180798590, 0.183929905, 0.185450286);
+    }
+#endif
+#if BLOOM_PASS == 3
+    if (feature == 3) {
+        value += bloom_sample(center + vec2(1.140223030, 0.975683389), tile) * vec3(0.165897712, 0.167625040, 0.174352974);
+        value += bloom_sample(center + vec2(0.549257091, 0.499855810), tile) * vec3(0.217079982, 0.214697093, 0.214425489);
+        value += bloom_sample(center + vec2(0.033100421, -0.022970798), tile) * vec3(0.236445248, 0.231460273, 0.230705947);
+        value += bloom_sample(center + vec2(-0.501225429, -0.410396595), tile) * vec3(0.199778453, 0.202287704, 0.195065305);
+        value += bloom_sample(center + vec2(-0.942623147, -0.824443216), tile) * vec3(0.180798590, 0.183929905, 0.185450286);
+    }
+#endif
+    return value;
+}
+#endif
 vec3 bloom_filter(vec2 center, vec4 tile) {
     vec3 value = vec3(0.0);
 #ifdef BLOOM_DOWNSAMPLE
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(0.215983973, 0.215983973, 0.215983973);
-    value += bloom_sample(center + vec2(-0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(-0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
+#if BLOOM_PASS == 1
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.225042164, 0.229218215, 0.244499937);
+    value += bloom_sample(center + vec2(-0.845519167, 0.739436638), tile) * vec3(0.193739459, 0.192695454, 0.188875020);
+    value += bloom_sample(center + vec2(-0.845519167, -0.739436638), tile) * vec3(0.193739459, 0.192695454, 0.188875020);
+    value += bloom_sample(center + vec2(0.845519167, 0.739436638), tile) * vec3(0.193739459, 0.192695454, 0.188875020);
+    value += bloom_sample(center + vec2(0.845519167, -0.739436638), tile) * vec3(0.193739459, 0.192695454, 0.188875020);
+#elif BLOOM_PASS == 2
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.259268671, 0.258536488, 0.276681393);
+    value += bloom_sample(center + vec2(-0.390515757, 0.751283495), tile) * vec3(0.092591412, 0.092682943, 0.090414830);
+    value += bloom_sample(center + vec2(-0.390515757, -0.751283495), tile) * vec3(0.092591412, 0.092682943, 0.090414830);
+    value += bloom_sample(center + vec2(0.390515757, 0.751283495), tile) * vec3(0.092591412, 0.092682943, 0.090414830);
+    value += bloom_sample(center + vec2(0.390515757, -0.751283495), tile) * vec3(0.092591412, 0.092682943, 0.090414830);
+    value += bloom_sample(center + vec2(-1.090515757, 0.751283495), tile) * vec3(0.092591412, 0.092682943, 0.090414830);
+    value += bloom_sample(center + vec2(-1.090515757, -0.751283495), tile) * vec3(0.092591412, 0.092682943, 0.090414830);
+    value += bloom_sample(center + vec2(1.090515757, 0.751283495), tile) * vec3(0.092591412, 0.092682943, 0.090414830);
+    value += bloom_sample(center + vec2(1.090515757, -0.751283495), tile) * vec3(0.092591412, 0.092682943, 0.090414830);
+#elif BLOOM_PASS == 3
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.184235707, 0.184070036, 0.182638898);
+    value += bloom_sample(center + vec2(-0.798506180, 0.877039415), tile) * vec3(0.203941077, 0.203982487, 0.204340279);
+    value += bloom_sample(center + vec2(-0.798506180, -0.877039415), tile) * vec3(0.203941077, 0.203982487, 0.204340279);
+    value += bloom_sample(center + vec2(0.798506180, 0.877039415), tile) * vec3(0.203941077, 0.203982487, 0.204340279);
+    value += bloom_sample(center + vec2(0.798506180, -0.877039415), tile) * vec3(0.203941077, 0.203982487, 0.204340279);
+#elif BLOOM_PASS == 4
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.215876073, 0.215888277, 0.219109908);
+    value += bloom_sample(center + vec2(-0.819391994, 0.891355538), tile) * vec3(0.196030989, 0.196027935, 0.195222527);
+    value += bloom_sample(center + vec2(-0.819391994, -0.891355538), tile) * vec3(0.196030989, 0.196027935, 0.195222527);
+    value += bloom_sample(center + vec2(0.819391994, 0.891355538), tile) * vec3(0.196030989, 0.196027935, 0.195222527);
+    value += bloom_sample(center + vec2(0.819391994, -0.891355538), tile) * vec3(0.196030989, 0.196027935, 0.195222527);
+#elif BLOOM_PASS == 5
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.168065757, 0.170088902, 0.170627043);
+    value += bloom_sample(center + vec2(-0.887225001, 0.839831470), tile) * vec3(0.207983568, 0.207477778, 0.207343236);
+    value += bloom_sample(center + vec2(-0.887225001, -0.839831470), tile) * vec3(0.207983568, 0.207477778, 0.207343236);
+    value += bloom_sample(center + vec2(0.887225001, 0.839831470), tile) * vec3(0.207983568, 0.207477778, 0.207343236);
+    value += bloom_sample(center + vec2(0.887225001, -0.839831470), tile) * vec3(0.207983568, 0.207477778, 0.207343236);
+#elif BLOOM_PASS == 6
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.215452403, 0.214558616, 0.216481194);
+    value += bloom_sample(center + vec2(-0.850424651, 0.812860348), tile) * vec3(0.196136892, 0.196360350, 0.195879698);
+    value += bloom_sample(center + vec2(-0.850424651, -0.812860348), tile) * vec3(0.196136892, 0.196360350, 0.195879698);
+    value += bloom_sample(center + vec2(0.850424651, 0.812860348), tile) * vec3(0.196136892, 0.196360350, 0.195879698);
+    value += bloom_sample(center + vec2(0.850424651, -0.812860348), tile) * vec3(0.196136892, 0.196360350, 0.195879698);
+#elif BLOOM_PASS == 7
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.186787635, 0.185461223, 0.183728531);
+    value += bloom_sample(center + vec2(-0.846552544, 0.873588465), tile) * vec3(0.203303099, 0.203634694, 0.204067871);
+    value += bloom_sample(center + vec2(-0.846552544, -0.873588465), tile) * vec3(0.203303099, 0.203634694, 0.204067871);
+    value += bloom_sample(center + vec2(0.846552544, 0.873588465), tile) * vec3(0.203303099, 0.203634694, 0.204067871);
+    value += bloom_sample(center + vec2(0.846552544, -0.873588465), tile) * vec3(0.203303099, 0.203634694, 0.204067871);
+#elif BLOOM_PASS == 8
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.179025665, 0.178488061, 0.181277111);
+    value += bloom_sample(center + vec2(-0.830608582, 0.869636023), tile) * vec3(0.205243587, 0.205377981, 0.204680726);
+    value += bloom_sample(center + vec2(-0.830608582, -0.869636023), tile) * vec3(0.205243587, 0.205377981, 0.204680726);
+    value += bloom_sample(center + vec2(0.830608582, 0.869636023), tile) * vec3(0.205243587, 0.205377981, 0.204680726);
+    value += bloom_sample(center + vec2(0.830608582, -0.869636023), tile) * vec3(0.205243587, 0.205377981, 0.204680726);
+#endif
 #else
 #if BLOOM_PASS == 1
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(1.000000000, 1.000000000, 1.000000000);
+    value += bloom_sample(center + vec2(0.025379063, -0.007502534), tile) * vec3(0.872195840, 0.869327188, 0.866946757);
+    value += bloom_sample(center + vec2(-0.897451565, -0.000099823), tile) * vec3(0.008491153, 0.008593127, 0.008631043);
+    value += bloom_sample(center + vec2(0.952304161, 0.001091399), tile) * vec3(0.008781717, 0.008921241, 0.008962158);
+    value += bloom_sample(center + vec2(-0.270711707, -0.277536146), tile) * vec3(0.029052414, 0.027475120, 0.029385496);
+    value += bloom_sample(center + vec2(0.023545872, 0.696726478), tile) * vec3(0.003442243, 0.003911515, 0.004441994);
+    value += bloom_sample(center + vec2(-0.331423325, 0.187564839), tile) * vec3(0.026107607, 0.027873443, 0.028456952);
+    value += bloom_sample(center + vec2(0.378507017, -0.207925586), tile) * vec3(0.027232615, 0.027512418, 0.028136823);
+    value += bloom_sample(center + vec2(0.397241649, 0.186931953), tile) * vec3(0.024696421, 0.026385926, 0.025038749);
 #elif BLOOM_PASS == 2
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-0.920042786, 0.019005813), tile) * vec3(0.034867592, 0.036076318, 0.039669450);
+    value += bloom_sample(center + vec2(0.786681666, -0.015198125), tile) * vec3(0.039646808, 0.040810194, 0.045934398);
+    value += bloom_sample(center + vec2(-0.048669484, -0.832123189), tile) * vec3(0.039312914, 0.039388891, 0.037821360);
+    value += bloom_sample(center + vec2(-0.051947521, 0.842114407), tile) * vec3(0.038139135, 0.038095508, 0.037335813);
+    value += bloom_sample(center + vec2(-0.167653676, -0.219829788), tile) * vec3(0.234229118, 0.234025016, 0.231672272);
+    value += bloom_sample(center + vec2(-0.175431235, 0.192545289), tile) * vec3(0.189083472, 0.189146653, 0.191221744);
+    value += bloom_sample(center + vec2(0.184737748, -0.196670620), tile) * vec3(0.193189979, 0.193245038, 0.191003382);
+    value += bloom_sample(center + vec2(0.190935200, 0.160411076), tile) * vec3(0.231530964, 0.229212388, 0.225341573);
 #elif BLOOM_PASS == 3
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.249362300, 0.009946036), tile) * vec3(0.069171883, 0.069321103, 0.069238603);
+    value += bloom_sample(center + vec2(1.289264477, 0.014908834), tile) * vec3(0.072697259, 0.072780922, 0.072873652);
+    value += bloom_sample(center + vec2(0.033959356, -1.267184896), tile) * vec3(0.069959998, 0.070011638, 0.069992431);
+    value += bloom_sample(center + vec2(0.036623447, 1.261002182), tile) * vec3(0.069167994, 0.069194496, 0.069168322);
+    value += bloom_sample(center + vec2(-0.460522728, -0.470985001), tile) * vec3(0.190202475, 0.190566882, 0.189977750);
+    value += bloom_sample(center + vec2(-0.455318819, 0.427958782), tile) * vec3(0.177745581, 0.177677542, 0.177770391);
+    value += bloom_sample(center + vec2(0.492219809, -0.473274676), tile) * vec3(0.181245536, 0.181348071, 0.180913135);
+    value += bloom_sample(center + vec2(0.498658466, 0.460527095), tile) * vec3(0.169809267, 0.169099346, 0.170065701);
 #elif BLOOM_PASS == 4
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.239813406, -0.025373711), tile) * vec3(0.065771468, 0.065797098, 0.066732168);
+    value += bloom_sample(center + vec2(1.270447241, -0.020356842), tile) * vec3(0.069114722, 0.069099605, 0.070333906);
+    value += bloom_sample(center + vec2(0.033284834, -1.263403326), tile) * vec3(0.069036841, 0.069120012, 0.070381522);
+    value += bloom_sample(center + vec2(0.034575932, 1.266270687), tile) * vec3(0.068240911, 0.068294466, 0.069517806);
+    value += bloom_sample(center + vec2(-0.434497952, -0.474046107), tile) * vec3(0.188270718, 0.188921735, 0.194003746);
+    value += bloom_sample(center + vec2(-0.431335052, 0.466340872), tile) * vec3(0.174890384, 0.174761921, 0.178017542);
+    value += bloom_sample(center + vec2(0.502904318, -0.475808332), tile) * vec3(0.186649948, 0.186711088, 0.181754008);
+    value += bloom_sample(center + vec2(0.511435160, 0.462439280), tile) * vec3(0.178024992, 0.177294075, 0.169259310);
 #elif BLOOM_PASS == 5
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.300485677, -0.024220223), tile) * vec3(0.066011123, 0.065977521, 0.065865219);
+    value += bloom_sample(center + vec2(1.321848994, -0.020494398), tile) * vec3(0.072742850, 0.072694808, 0.072612144);
+    value += bloom_sample(center + vec2(0.028694991, -1.251990433), tile) * vec3(0.068790652, 0.068888873, 0.068881921);
+    value += bloom_sample(center + vec2(0.018598131, 1.271187894), tile) * vec3(0.067877360, 0.067930192, 0.067934848);
+    value += bloom_sample(center + vec2(-0.451515757, -0.477472052), tile) * vec3(0.187303096, 0.187935740, 0.188987732);
+    value += bloom_sample(center + vec2(-0.455766723, 0.469658301), tile) * vec3(0.173758045, 0.173552439, 0.173749387);
+    value += bloom_sample(center + vec2(0.517224730, -0.477236737), tile) * vec3(0.185613811, 0.185610443, 0.185408264);
+    value += bloom_sample(center + vec2(0.527836656, 0.462119547), tile) * vec3(0.177903056, 0.177409992, 0.176560476);
 #elif BLOOM_PASS == 6
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.218525037, -0.022499324), tile) * vec3(0.064389952, 0.064472474, 0.064734183);
+    value += bloom_sample(center + vec2(1.241744333, -0.013343405), tile) * vec3(0.072759077, 0.072840311, 0.072970688);
+    value += bloom_sample(center + vec2(0.014137591, -1.243351893), tile) * vec3(0.068254419, 0.068456441, 0.068711028);
+    value += bloom_sample(center + vec2(-0.029535964, 1.245458017), tile) * vec3(0.067106038, 0.067223668, 0.067503728);
+    value += bloom_sample(center + vec2(-0.512292594, -0.482538858), tile) * vec3(0.183029369, 0.182856336, 0.181932494);
+    value += bloom_sample(center + vec2(-0.502480332, 0.480918814), tile) * vec3(0.174422666, 0.174204811, 0.174984917);
+    value += bloom_sample(center + vec2(0.522711138, -0.475651665), tile) * vec3(0.183358267, 0.183491841, 0.183978721);
+    value += bloom_sample(center + vec2(0.538028408, 0.464937186), tile) * vec3(0.186680213, 0.186454117, 0.185184240);
 #elif BLOOM_PASS == 7
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.191177325, -0.001833968), tile) * vec3(0.065828465, 0.065737791, 0.065832645);
+    value += bloom_sample(center + vec2(1.238844202, -0.008328933), tile) * vec3(0.069358863, 0.069077916, 0.068995945);
+    value += bloom_sample(center + vec2(-0.035354397, -1.152509566), tile) * vec3(0.069789879, 0.069946349, 0.070243992);
+    value += bloom_sample(center + vec2(-0.035537479, 1.294285883), tile) * vec3(0.070886627, 0.071087644, 0.071232207);
+    value += bloom_sample(center + vec2(-0.436117846, -0.486954194), tile) * vec3(0.185162544, 0.185278147, 0.182795241);
+    value += bloom_sample(center + vec2(-0.474688297, 0.508944939), tile) * vec3(0.179134190, 0.179140285, 0.179418117);
+    value += bloom_sample(center + vec2(0.460500941, -0.475521576), tile) * vec3(0.185567200, 0.185737476, 0.185680225);
+    value += bloom_sample(center + vec2(0.486695803, 0.482241027), tile) * vec3(0.174272239, 0.173994377, 0.175801635);
 #elif BLOOM_PASS == 8
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
+    value += bloom_sample(center + vec2(-1.239662248, 0.004081528), tile) * vec3(0.067814037, 0.067957081, 0.067811079);
+    value += bloom_sample(center + vec2(1.232416260, 0.003820931), tile) * vec3(0.067353688, 0.067327075, 0.067289941);
+    value += bloom_sample(center + vec2(-0.005648550, -1.268778242), tile) * vec3(0.065386228, 0.065313615, 0.065253802);
+    value += bloom_sample(center + vec2(-0.011707801, 1.314318706), tile) * vec3(0.067444690, 0.067493446, 0.067700729);
+    value += bloom_sample(center + vec2(-0.478792587, -0.432021153), tile) * vec3(0.189157158, 0.189006925, 0.190309241);
+    value += bloom_sample(center + vec2(-0.461507364, 0.474686163), tile) * vec3(0.178659827, 0.178604558, 0.178631783);
+    value += bloom_sample(center + vec2(0.465997710, -0.472656778), tile) * vec3(0.178947523, 0.179007113, 0.178911820);
+    value += bloom_sample(center + vec2(0.460002856, 0.471740357), tile) * vec3(0.185236841, 0.185290173, 0.184091613);
 #endif
 #endif
     return value;
 }
 
 #if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
-const int bloom_injectionCount = 337;
+const int bloom_injectionCount = 77;
 shared vec2 bloom_injectionOffsets[bloom_injectionCount];
 shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.120738730, 0.122045822, 0.121854015);
-            bloom_injectionOffsets[32] = vec2(44.800000000, -0.000000000);
-            bloom_injectionWeights[32] = vec3(0.002043432, 0.001969578, 0.001905340);
-            bloom_injectionOffsets[64] = vec2(-18.200000000, 0.000000000);
-            bloom_injectionWeights[64] = vec3(0.008172039, 0.008094504, 0.007994981);
-            bloom_injectionOffsets[96] = vec2(-63.000000000, 0.000000000);
-            bloom_injectionWeights[96] = vec3(0.000591311, 0.000624084, 0.000666690);
-            bloom_injectionOffsets[128] = vec2(25.738686835, -25.738686835);
-            bloom_injectionWeights[128] = vec3(0.000070561, 0.000064688, 0.000065790);
-            bloom_injectionOffsets[160] = vec2(0.000000000, -5.600000000);
-            bloom_injectionWeights[160] = vec3(0.006834402, 0.006669097, 0.006605514);
-            bloom_injectionOffsets[192] = vec2(-1.979898987, -1.979898987);
-            bloom_injectionWeights[192] = vec3(0.012521704, 0.013591289, 0.012829487);
-            bloom_injectionOffsets[224] = vec2(6.929646456, 6.929646456);
-            bloom_injectionWeights[224] = vec3(0.006275261, 0.006194090, 0.006097309);
-            bloom_injectionOffsets[256] = vec2(-5.000000000, 4.000000000);
-            bloom_injectionWeights[256] = vec3(0.000046655, 0.000186915, 0.000085938);
-            bloom_injectionOffsets[288] = vec2(-4.000000000, -0.000000000);
-            bloom_injectionWeights[288] = vec3(0.003806168, 0.004002979, 0.004172411);
-            bloom_injectionOffsets[320] = vec2(-1.000000000, -4.000000000);
-            bloom_injectionWeights[320] = vec3(0.000000000, 0.000003026, 0.000000000);
+            bloom_injectionOffsets[0] = vec2(-0.260114527, 0.231900469);
+            bloom_injectionWeights[0] = vec3(0.590182006, 0.600921273, 0.608480513);
+            bloom_injectionOffsets[32] = vec2(-48.407672936, 0.082984358);
+            bloom_injectionWeights[32] = vec3(0.007847065, 0.005976702, 0.004005109);
+            bloom_injectionOffsets[64] = vec2(-4.313902199, 3.275917154);
+            bloom_injectionWeights[64] = vec3(0.013785627, 0.013903300, 0.013963323);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(1.400000000, -0.000000000);
-            bloom_injectionWeights[1] = vec3(0.027211627, 0.027782774, 0.028143425);
-            bloom_injectionOffsets[33] = vec2(46.200000000, -0.000000000);
-            bloom_injectionWeights[33] = vec3(0.001937698, 0.001867921, 0.001805157);
-            bloom_injectionOffsets[65] = vec2(-19.600000000, 0.000000000);
-            bloom_injectionWeights[65] = vec3(0.007367456, 0.007256319, 0.007139828);
-            bloom_injectionOffsets[97] = vec2(-64.400000000, 0.000000000);
-            bloom_injectionWeights[97] = vec3(0.000445414, 0.000462772, 0.000448743);
-            bloom_injectionOffsets[129] = vec2(26.728636329, -26.728636329);
-            bloom_injectionWeights[129] = vec3(0.000001266, 0.000001744, 0.000000560);
-            bloom_injectionOffsets[161] = vec2(0.000000000, -7.000000000);
-            bloom_injectionWeights[161] = vec3(0.005257117, 0.005207626, 0.005168126);
-            bloom_injectionOffsets[193] = vec2(-2.969848481, -2.969848481);
-            bloom_injectionWeights[193] = vec3(0.012083152, 0.012291242, 0.012493648);
-            bloom_injectionOffsets[225] = vec2(7.919595949, 7.919595949);
-            bloom_injectionWeights[225] = vec3(0.005212898, 0.005096739, 0.004993747);
-            bloom_injectionOffsets[257] = vec2(-4.000000000, 4.000000000);
-            bloom_injectionWeights[257] = vec3(0.002063723, 0.001913166, 0.002133995);
-            bloom_injectionOffsets[289] = vec2(-3.000000000, -0.000000000);
-            bloom_injectionWeights[289] = vec3(0.004033964, 0.003764748, 0.003680831);
-            bloom_injectionOffsets[321] = vec2(0.000000000, -4.000000000);
-            bloom_injectionWeights[321] = vec3(0.001866587, 0.001919991, 0.002058372);
+            bloom_injectionOffsets[1] = vec2(-4.115047853, 0.631165121);
+            bloom_injectionWeights[1] = vec3(0.006417390, 0.007062486, 0.008911197);
+            bloom_injectionOffsets[33] = vec2(-43.337045916, 0.087245720);
+            bloom_injectionWeights[33] = vec3(0.011852679, 0.009177389, 0.006498450);
+            bloom_injectionOffsets[65] = vec2(4.590456932, -3.478502388);
+            bloom_injectionWeights[65] = vec3(0.013600060, 0.013717595, 0.013503471);
             break;
         case 2u:
-            bloom_injectionOffsets[2] = vec2(2.800000000, -0.000000000);
-            bloom_injectionWeights[2] = vec3(0.019186331, 0.019593019, 0.019441942);
-            bloom_injectionOffsets[34] = vec2(47.600000000, -0.000000000);
-            bloom_injectionWeights[34] = vec3(0.001842916, 0.001774510, 0.001713420);
-            bloom_injectionOffsets[66] = vec2(-21.000000000, 0.000000000);
-            bloom_injectionWeights[66] = vec3(0.006665540, 0.006540315, 0.006410936);
-            bloom_injectionOffsets[98] = vec2(-65.800000000, 0.000000000);
-            bloom_injectionWeights[98] = vec3(0.000347721, 0.000370551, 0.000321297);
-            bloom_injectionOffsets[130] = vec2(-0.989949494, 0.989949494);
-            bloom_injectionWeights[130] = vec3(0.017597182, 0.018112278, 0.017951556);
-            bloom_injectionOffsets[162] = vec2(0.000000000, -8.400000000);
-            bloom_injectionWeights[162] = vec3(0.003769204, 0.003666683, 0.003569196);
-            bloom_injectionOffsets[194] = vec2(-3.959797975, -3.959797975);
-            bloom_injectionWeights[194] = vec3(0.009907165, 0.009954099, 0.010204610);
-            bloom_injectionOffsets[226] = vec2(8.909545443, 8.909545443);
-            bloom_injectionWeights[226] = vec3(0.004359570, 0.004250517, 0.004160895);
-            bloom_injectionOffsets[258] = vec2(-3.000000000, 4.000000000);
-            bloom_injectionWeights[258] = vec3(0.000287586, 0.000355796, 0.000176095);
-            bloom_injectionOffsets[290] = vec2(-1.000000000, -0.000000000);
-            bloom_injectionWeights[290] = vec3(0.019025097, 0.018428639, 0.019471191);
-            bloom_injectionOffsets[322] = vec2(1.000000000, -4.000000000);
-            bloom_injectionWeights[322] = vec3(0.000000000, 0.000000912, 0.000000000);
+            bloom_injectionOffsets[2] = vec2(4.062414886, 1.142494858);
+            bloom_injectionWeights[2] = vec3(0.004827443, 0.005378793, 0.006745218);
+            bloom_injectionOffsets[34] = vec2(-38.283554484, 0.067210053);
+            bloom_injectionWeights[34] = vec3(0.021832032, 0.012470663, 0.010743543);
+            bloom_injectionOffsets[66] = vec2(6.862181199, -5.857991308);
+            bloom_injectionWeights[66] = vec3(0.019023763, 0.019607598, 0.023966810);
             break;
         case 3u:
-            bloom_injectionOffsets[3] = vec2(4.200000000, -0.000000000);
-            bloom_injectionWeights[3] = vec3(0.018904964, 0.019431511, 0.019708335);
-            bloom_injectionOffsets[35] = vec2(49.000000000, -0.000000000);
-            bloom_injectionWeights[35] = vec3(0.001751873, 0.001685890, 0.001626701);
-            bloom_injectionOffsets[67] = vec2(-22.400000000, 0.000000000);
-            bloom_injectionWeights[67] = vec3(0.006061215, 0.005923535, 0.005792815);
-            bloom_injectionOffsets[99] = vec2(-67.200000000, 0.000000000);
-            bloom_injectionWeights[99] = vec3(0.000204515, 0.000181989, 0.000169440);
-            bloom_injectionOffsets[131] = vec2(-1.979898987, 1.979898987);
-            bloom_injectionWeights[131] = vec3(0.012547400, 0.013562999, 0.012833294);
-            bloom_injectionOffsets[163] = vec2(0.000000000, -9.800000000);
-            bloom_injectionWeights[163] = vec3(0.003149374, 0.003052998, 0.002996466);
-            bloom_injectionOffsets[195] = vec2(-4.949747468, -4.949747468);
-            bloom_injectionWeights[195] = vec3(0.007914572, 0.008016728, 0.008011281);
-            bloom_injectionOffsets[227] = vec2(9.899494937, 9.899494937);
-            bloom_injectionWeights[227] = vec3(0.003713611, 0.003613888, 0.003539474);
-            bloom_injectionOffsets[259] = vec2(-1.000000000, 4.000000000);
-            bloom_injectionWeights[259] = vec3(0.000000000, 0.000004830, 0.000000000);
-            bloom_injectionOffsets[291] = vec2(1.000000000, -0.000000000);
-            bloom_injectionWeights[291] = vec3(0.019003617, 0.018450918, 0.019434569);
-            bloom_injectionOffsets[323] = vec2(3.000000000, -4.000000000);
-            bloom_injectionWeights[323] = vec3(0.000268420, 0.000340129, 0.000166599);
+            bloom_injectionOffsets[3] = vec2(0.020609144, 6.594885604);
+            bloom_injectionWeights[3] = vec3(0.008858015, 0.009523077, 0.012526848);
+            bloom_injectionOffsets[35] = vec2(-33.511979411, -0.037253493);
+            bloom_injectionWeights[35] = vec3(0.034220774, 0.022769121, 0.017411344);
+            bloom_injectionOffsets[67] = vec2(11.863280848, -9.925644255);
+            bloom_injectionWeights[67] = vec3(0.012759630, 0.014748584, 0.011308966);
             break;
         case 4u:
-            bloom_injectionOffsets[4] = vec2(5.600000000, -0.000000000);
-            bloom_injectionWeights[4] = vec3(0.021336706, 0.021388277, 0.021631906);
-            bloom_injectionOffsets[36] = vec2(50.400000000, -0.000000000);
-            bloom_injectionWeights[36] = vec3(0.001663685, 0.001598837, 0.001542667);
-            bloom_injectionOffsets[68] = vec2(-23.800000000, 0.000000000);
-            bloom_injectionWeights[68] = vec3(0.005541278, 0.005411687, 0.005290429);
-            bloom_injectionOffsets[100] = vec2(-68.600000000, 0.000000000);
-            bloom_injectionWeights[100] = vec3(0.000115000, 0.000111080, 0.000114922);
-            bloom_injectionOffsets[132] = vec2(-2.969848481, 2.969848481);
-            bloom_injectionWeights[132] = vec3(0.012081850, 0.012293567, 0.012497841);
-            bloom_injectionOffsets[164] = vec2(0.000000000, -11.200000000);
-            bloom_injectionWeights[164] = vec3(0.002490411, 0.002416716, 0.002371585);
-            bloom_injectionOffsets[196] = vec2(-5.939696962, -5.939696962);
-            bloom_injectionWeights[196] = vec3(0.007751133, 0.007789532, 0.007781830);
-            bloom_injectionOffsets[228] = vec2(10.889444430, 10.889444430);
-            bloom_injectionWeights[228] = vec3(0.003210720, 0.003118576, 0.003054867);
-            bloom_injectionOffsets[260] = vec2(0.000000000, 4.000000000);
-            bloom_injectionWeights[260] = vec3(0.001891158, 0.001939580, 0.002061015);
-            bloom_injectionOffsets[292] = vec2(3.000000000, -0.000000000);
-            bloom_injectionWeights[292] = vec3(0.003969324, 0.003687754, 0.003593307);
-            bloom_injectionOffsets[324] = vec2(4.000000000, -4.000000000);
-            bloom_injectionWeights[324] = vec3(0.002075315, 0.001949368, 0.002136661);
+            bloom_injectionOffsets[4] = vec2(-0.190131531, 14.169816413);
+            bloom_injectionWeights[4] = vec3(0.004256795, 0.003154719, 0.002947021);
+            bloom_injectionOffsets[36] = vec2(-28.828797576, 0.012967734);
+            bloom_injectionWeights[36] = vec3(0.031666547, 0.042222105, 0.025479570);
+            bloom_injectionOffsets[68] = vec2(17.973924874, -15.017432586);
+            bloom_injectionWeights[68] = vec3(0.008131013, 0.004953302, 0.003865355);
             break;
         case 5u:
-            bloom_injectionOffsets[5] = vec2(7.000000000, -0.000000000);
-            bloom_injectionWeights[5] = vec3(0.020626664, 0.021213295, 0.021377195);
-            bloom_injectionOffsets[37] = vec2(51.800000000, -0.000000000);
-            bloom_injectionWeights[37] = vec3(0.001584707, 0.001519675, 0.001466052);
-            bloom_injectionOffsets[69] = vec2(-25.200000000, 0.000000000);
-            bloom_injectionWeights[69] = vec3(0.005084154, 0.004959537, 0.004848694);
-            bloom_injectionOffsets[101] = vec2(-70.000000000, 0.000000000);
-            bloom_injectionWeights[101] = vec3(0.000037198, 0.000036185, 0.000033322);
-            bloom_injectionOffsets[133] = vec2(-3.959797975, 3.959797975);
-            bloom_injectionWeights[133] = vec3(0.009891583, 0.009929942, 0.010199482);
-            bloom_injectionOffsets[165] = vec2(0.000000000, -12.600000000);
-            bloom_injectionWeights[165] = vec3(0.002072772, 0.001994804, 0.001943330);
-            bloom_injectionOffsets[197] = vec2(-6.929646456, -6.929646456);
-            bloom_injectionWeights[197] = vec3(0.006276439, 0.006195231, 0.006098059);
-            bloom_injectionOffsets[229] = vec2(11.879393924, 11.879393924);
-            bloom_injectionWeights[229] = vec3(0.002801826, 0.002715777, 0.002658662);
-            bloom_injectionOffsets[261] = vec2(1.000000000, 4.000000000);
-            bloom_injectionWeights[261] = vec3(0.000000000, 0.000002019, 0.000000000);
-            bloom_injectionOffsets[293] = vec2(4.000000000, -0.000000000);
-            bloom_injectionWeights[293] = vec3(0.003803402, 0.004017375, 0.004218753);
-            bloom_injectionOffsets[325] = vec2(5.000000000, -4.000000000);
-            bloom_injectionWeights[325] = vec3(0.000045428, 0.000101472, 0.000087643);
+            bloom_injectionOffsets[5] = vec2(7.578007992, 18.692955889);
+            bloom_injectionWeights[5] = vec3(0.002094324, 0.001611078, 0.001117925);
+            bloom_injectionOffsets[37] = vec2(-24.241402583, -0.016496831);
+            bloom_injectionWeights[37] = vec3(0.039269190, 0.050389726, 0.044753093);
+            bloom_injectionOffsets[69] = vec2(30.044859899, -25.358237638);
+            bloom_injectionWeights[69] = vec3(0.000845601, 0.000607611, 0.000457017);
             break;
         case 6u:
-            bloom_injectionOffsets[6] = vec2(8.400000000, -0.000000000);
-            bloom_injectionWeights[6] = vec3(0.018076800, 0.018389132, 0.018544396);
-            bloom_injectionOffsets[38] = vec2(53.200000000, -0.000000000);
-            bloom_injectionWeights[38] = vec3(0.001508979, 0.001444029, 0.001391545);
-            bloom_injectionOffsets[70] = vec2(-26.600000000, 0.000000000);
-            bloom_injectionWeights[70] = vec3(0.004681567, 0.004561822, 0.004458963);
-            bloom_injectionOffsets[102] = vec2(-71.400000000, 0.000000000);
-            bloom_injectionWeights[102] = vec3(0.000002407, 0.000003549, 0.000003668);
-            bloom_injectionOffsets[134] = vec2(-4.949747468, 4.949747468);
-            bloom_injectionWeights[134] = vec3(0.007918748, 0.008013798, 0.008012105);
-            bloom_injectionOffsets[166] = vec2(0.000000000, -14.000000000);
-            bloom_injectionWeights[166] = vec3(0.001745807, 0.001682055, 0.001633494);
-            bloom_injectionOffsets[198] = vec2(-7.919595949, -7.919595949);
-            bloom_injectionWeights[198] = vec3(0.005213146, 0.005096903, 0.004993925);
-            bloom_injectionOffsets[230] = vec2(12.869343418, 12.869343418);
-            bloom_injectionWeights[230] = vec3(0.002466501, 0.002385164, 0.002330926);
-            bloom_injectionOffsets[262] = vec2(3.000000000, 4.000000000);
-            bloom_injectionWeights[262] = vec3(0.000292671, 0.000371893, 0.000171558);
-            bloom_injectionOffsets[294] = vec2(5.000000000, -0.000000000);
-            bloom_injectionWeights[294] = vec3(0.001311276, 0.001205983, 0.001288340);
-            bloom_injectionOffsets[326] = vec2(-5.000000000, -5.000000000);
-            bloom_injectionWeights[326] = vec3(0.001644075, 0.001630466, 0.001628963);
+            bloom_injectionOffsets[6] = vec2(-0.017167070, -6.621212808);
+            bloom_injectionWeights[6] = vec3(0.009217693, 0.009959245, 0.012872241);
+            bloom_injectionOffsets[38] = vec2(-19.509747975, -0.009674717);
+            bloom_injectionWeights[38] = vec3(0.052772000, 0.054915290, 0.076865725);
+            bloom_injectionOffsets[70] = vec2(16.907060071, 14.129225175);
+            bloom_injectionWeights[70] = vec3(0.006575272, 0.003863571, 0.003156362);
             break;
         case 7u:
-            bloom_injectionOffsets[7] = vec2(9.800000000, -0.000000000);
-            bloom_injectionWeights[7] = vec3(0.016653974, 0.016907489, 0.017078346);
-            bloom_injectionOffsets[39] = vec2(54.600000000, -0.000000000);
-            bloom_injectionWeights[39] = vec3(0.001443026, 0.001379282, 0.001328617);
-            bloom_injectionOffsets[71] = vec2(-28.000000000, 0.000000000);
-            bloom_injectionWeights[71] = vec3(0.004330860, 0.004221866, 0.004132587);
-            bloom_injectionOffsets[103] = vec2(0.989949494, -0.989949494);
-            bloom_injectionWeights[103] = vec3(0.017562933, 0.018122187, 0.017937174);
-            bloom_injectionOffsets[135] = vec2(-5.939696962, 5.939696962);
-            bloom_injectionWeights[135] = vec3(0.007749704, 0.007786237, 0.007780344);
-            bloom_injectionOffsets[167] = vec2(0.000000000, -15.400000000);
-            bloom_injectionWeights[167] = vec3(0.001499219, 0.001439305, 0.001387612);
-            bloom_injectionOffsets[199] = vec2(-8.909545443, -8.909545443);
-            bloom_injectionWeights[199] = vec3(0.004358931, 0.004249920, 0.004160358);
-            bloom_injectionOffsets[231] = vec2(13.859292911, 13.859292911);
-            bloom_injectionWeights[231] = vec3(0.002190080, 0.002113232, 0.002059117);
-            bloom_injectionOffsets[263] = vec2(4.000000000, 4.000000000);
-            bloom_injectionWeights[263] = vec3(0.002067696, 0.001919937, 0.002133969);
-            bloom_injectionOffsets[295] = vec2(-5.000000000, -1.000000000);
-            bloom_injectionWeights[295] = vec3(0.000289866, 0.000289769, 0.000088676);
-            bloom_injectionOffsets[327] = vec2(-4.000000000, -5.000000000);
-            bloom_injectionWeights[327] = vec3(0.000070963, 0.000159051, 0.000093647);
+            bloom_injectionOffsets[7] = vec2(-0.194914715, -14.171061247);
+            bloom_injectionWeights[7] = vec3(0.004249103, 0.003159649, 0.002949764);
+            bloom_injectionOffsets[39] = vec2(-14.570211000, -0.010298210);
+            bloom_injectionWeights[39] = vec3(0.068630576, 0.071124397, 0.080553636);
+            bloom_injectionOffsets[71] = vec2(12.033174187, 10.121962553);
+            bloom_injectionWeights[71] = vec3(0.013311123, 0.015123242, 0.011624791);
             break;
         case 8u:
-            bloom_injectionOffsets[8] = vec2(11.200000000, -0.000000000);
-            bloom_injectionWeights[8] = vec3(0.014643031, 0.014883494, 0.015022136);
-            bloom_injectionOffsets[40] = vec2(56.000000000, -0.000000000);
-            bloom_injectionWeights[40] = vec3(0.001383469, 0.001319491, 0.001273176);
-            bloom_injectionOffsets[72] = vec2(-29.400000000, 0.000000000);
-            bloom_injectionWeights[72] = vec3(0.004014837, 0.003904811, 0.003815905);
-            bloom_injectionOffsets[104] = vec2(1.979898987, -1.979898987);
-            bloom_injectionWeights[104] = vec3(0.012520713, 0.013556861, 0.012844992);
-            bloom_injectionOffsets[136] = vec2(-6.929646456, 6.929646456);
-            bloom_injectionWeights[136] = vec3(0.006276566, 0.006195195, 0.006098256);
-            bloom_injectionOffsets[168] = vec2(0.000000000, -16.800000000);
-            bloom_injectionWeights[168] = vec3(0.001303453, 0.001260119, 0.001217219);
-            bloom_injectionOffsets[200] = vec2(-9.899494937, -9.899494937);
-            bloom_injectionWeights[200] = vec3(0.003713309, 0.003613596, 0.003539207);
-            bloom_injectionOffsets[232] = vec2(14.849242405, 14.849242405);
-            bloom_injectionWeights[232] = vec3(0.001961646, 0.001889814, 0.001834510);
-            bloom_injectionOffsets[264] = vec2(5.000000000, 4.000000000);
-            bloom_injectionWeights[264] = vec3(0.000041826, 0.000150402, 0.000082660);
-            bloom_injectionOffsets[296] = vec2(-3.000000000, -1.000000000);
-            bloom_injectionWeights[296] = vec3(0.000115117, 0.000046962, 0.000489727);
-            bloom_injectionOffsets[328] = vec2(-3.000000000, -5.000000000);
-            bloom_injectionWeights[328] = vec3(0.000000000, 0.000000000, 0.000001500);
+            bloom_injectionOffsets[8] = vec2(-7.319192384, -27.210706763);
+            bloom_injectionWeights[8] = vec3(0.000444778, 0.000315083, 0.000200604);
+            bloom_injectionOffsets[40] = vec2(-9.716301655, -0.010127079);
+            bloom_injectionWeights[40] = vec3(0.072818153, 0.078317344, 0.081591606);
+            bloom_injectionOffsets[72] = vec2(6.110614386, 5.067927480);
+            bloom_injectionWeights[72] = vec3(0.032056969, 0.032693040, 0.037567880);
             break;
         case 9u:
-            bloom_injectionOffsets[9] = vec2(12.600000000, -0.000000000);
-            bloom_injectionWeights[9] = vec3(0.013044871, 0.013203611, 0.013310297);
-            bloom_injectionOffsets[41] = vec2(57.400000000, -0.000000000);
-            bloom_injectionWeights[41] = vec3(0.001297685, 0.001229464, 0.001193988);
-            bloom_injectionOffsets[73] = vec2(-30.800000000, 0.000000000);
-            bloom_injectionWeights[73] = vec3(0.003741015, 0.003637615, 0.003557111);
-            bloom_injectionOffsets[105] = vec2(2.969848481, -2.969848481);
-            bloom_injectionWeights[105] = vec3(0.012102108, 0.012306522, 0.012508461);
-            bloom_injectionOffsets[137] = vec2(-7.919595949, 7.919595949);
-            bloom_injectionWeights[137] = vec3(0.005213265, 0.005097049, 0.004994062);
-            bloom_injectionOffsets[169] = vec2(0.000000000, -18.200000000);
-            bloom_injectionWeights[169] = vec3(0.001128954, 0.001098015, 0.001058258);
-            bloom_injectionOffsets[201] = vec2(-10.889444430, -10.889444430);
-            bloom_injectionWeights[201] = vec3(0.003210580, 0.003118421, 0.003054733);
-            bloom_injectionOffsets[233] = vec2(15.839191899, 15.839191899);
-            bloom_injectionWeights[233] = vec3(0.001770532, 0.001704277, 0.001648168);
-            bloom_injectionOffsets[265] = vec2(-4.000000000, 3.000000000);
-            bloom_injectionWeights[265] = vec3(0.000321526, 0.000451240, 0.000265992);
-            bloom_injectionOffsets[297] = vec2(-1.000000000, -1.000000000);
-            bloom_injectionWeights[297] = vec3(0.004368043, 0.004587925, 0.004311476);
-            bloom_injectionOffsets[329] = vec2(-2.000000000, -5.000000000);
-            bloom_injectionWeights[329] = vec3(0.000000000, 0.000000027, 0.000001022);
+            bloom_injectionOffsets[9] = vec2(-6.207178725, 2.067200004);
+            bloom_injectionWeights[9] = vec3(0.007781261, 0.009037798, 0.007062572);
+            bloom_injectionOffsets[41] = vec2(-5.214929763, -0.027869589);
+            bloom_injectionWeights[41] = vec3(0.067082241, 0.070895351, 0.077123612);
+            bloom_injectionOffsets[73] = vec2(-4.203143854, -3.256664380);
+            bloom_injectionWeights[73] = vec3(0.013803073, 0.013844059, 0.013783457);
             break;
         case 10u:
-            bloom_injectionOffsets[10] = vec2(14.000000000, -0.000000000);
-            bloom_injectionWeights[10] = vec3(0.011549124, 0.011639957, 0.011665911);
-            bloom_injectionOffsets[42] = vec2(58.800000000, -0.000000000);
-            bloom_injectionWeights[42] = vec3(0.001172018, 0.001087017, 0.001062477);
-            bloom_injectionOffsets[74] = vec2(-32.200000000, 0.000000000);
-            bloom_injectionWeights[74] = vec3(0.003489863, 0.003388963, 0.003312600);
-            bloom_injectionOffsets[106] = vec2(3.959797975, -3.959797975);
-            bloom_injectionWeights[106] = vec3(0.009908265, 0.009971020, 0.010203097);
-            bloom_injectionOffsets[138] = vec2(-8.909545443, 8.909545443);
-            bloom_injectionWeights[138] = vec3(0.004359083, 0.004250054, 0.004160473);
-            bloom_injectionOffsets[170] = vec2(0.000000000, -19.600000000);
-            bloom_injectionWeights[170] = vec3(0.000982254, 0.000943126, 0.000918568);
-            bloom_injectionOffsets[202] = vec2(-11.879393924, -11.879393924);
-            bloom_injectionWeights[202] = vec3(0.002801726, 0.002715658, 0.002658622);
-            bloom_injectionOffsets[234] = vec2(16.829141392, 16.829141392);
-            bloom_injectionWeights[234] = vec3(0.001604919, 0.001543469, 0.001489367);
-            bloom_injectionOffsets[266] = vec2(-3.000000000, 3.000000000);
-            bloom_injectionWeights[266] = vec3(0.002250466, 0.002215044, 0.002371190);
-            bloom_injectionOffsets[298] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[298] = vec3(0.017795857, 0.017137678, 0.018111404);
-            bloom_injectionOffsets[330] = vec2(-1.000000000, -5.000000000);
-            bloom_injectionWeights[330] = vec3(0.000180231, 0.000095224, 0.000130554);
+            bloom_injectionOffsets[10] = vec2(-11.544300906, 4.379422605);
+            bloom_injectionWeights[10] = vec3(0.002766159, 0.002451563, 0.002097031);
+            bloom_injectionOffsets[42] = vec2(4.910597801, -0.052549247);
+            bloom_injectionWeights[42] = vec3(0.068262316, 0.073144600, 0.081209429);
+            bloom_injectionOffsets[74] = vec2(-7.049116051, -5.949399523);
+            bloom_injectionWeights[74] = vec3(0.019116189, 0.019305931, 0.024151223);
             break;
         case 11u:
-            bloom_injectionOffsets[11] = vec2(15.400000000, -0.000000000);
-            bloom_injectionWeights[11] = vec3(0.010254702, 0.010277068, 0.010270280);
-            bloom_injectionOffsets[43] = vec2(60.200000000, -0.000000000);
-            bloom_injectionWeights[43] = vec3(0.001003473, 0.000918406, 0.000922473);
-            bloom_injectionOffsets[75] = vec2(-33.600000000, 0.000000000);
-            bloom_injectionWeights[75] = vec3(0.003257782, 0.003157260, 0.003079828);
-            bloom_injectionOffsets[107] = vec2(4.949747468, -4.949747468);
-            bloom_injectionWeights[107] = vec3(0.007907554, 0.008014346, 0.008010164);
-            bloom_injectionOffsets[139] = vec2(-9.899494937, 9.899494937);
-            bloom_injectionWeights[139] = vec3(0.003713330, 0.003613620, 0.003539223);
-            bloom_injectionOffsets[171] = vec2(0.000000000, -21.000000000);
-            bloom_injectionWeights[171] = vec3(0.000674602, 0.000638745, 0.000645788);
-            bloom_injectionOffsets[203] = vec2(-12.869343418, -12.869343418);
-            bloom_injectionWeights[203] = vec3(0.002466281, 0.002384928, 0.002330854);
-            bloom_injectionOffsets[235] = vec2(17.819090886, 17.819090886);
-            bloom_injectionWeights[235] = vec3(0.001451685, 0.001393332, 0.001345563);
-            bloom_injectionOffsets[267] = vec2(-2.000000000, 3.000000000);
-            bloom_injectionWeights[267] = vec3(0.000721406, 0.000948844, 0.000910959);
-            bloom_injectionOffsets[299] = vec2(1.000000000, -1.000000000);
-            bloom_injectionWeights[299] = vec3(0.004300861, 0.004563181, 0.004269377);
-            bloom_injectionOffsets[331] = vec2(0.000000000, -5.000000000);
-            bloom_injectionWeights[331] = vec3(0.000276773, 0.000207503, 0.000104679);
+            bloom_injectionOffsets[11] = vec2(8.182742984, -2.966715983);
+            bloom_injectionWeights[11] = vec3(0.006902352, 0.004238447, 0.003692664);
+            bloom_injectionOffsets[43] = vec2(9.789622894, -0.010830515);
+            bloom_injectionWeights[43] = vec3(0.080727801, 0.086947672, 0.091219597);
+            bloom_injectionOffsets[75] = vec2(-12.022795257, -10.087174064);
+            bloom_injectionWeights[75] = vec3(0.013011595, 0.015367200, 0.012105568);
             break;
         case 12u:
-            bloom_injectionOffsets[12] = vec2(16.800000000, -0.000000000);
-            bloom_injectionWeights[12] = vec3(0.009127987, 0.009104098, 0.009046425);
-            bloom_injectionOffsets[44] = vec2(61.600000000, -0.000000000);
-            bloom_injectionWeights[44] = vec3(0.000808451, 0.000766937, 0.000802515);
-            bloom_injectionOffsets[76] = vec2(-35.000000000, 0.000000000);
-            bloom_injectionWeights[76] = vec3(0.003054106, 0.002960837, 0.002890982);
-            bloom_injectionOffsets[108] = vec2(5.939696962, -5.939696962);
-            bloom_injectionWeights[108] = vec3(0.007749099, 0.007788090, 0.007779090);
-            bloom_injectionOffsets[140] = vec2(-10.889444430, 10.889444430);
-            bloom_injectionWeights[140] = vec3(0.003210641, 0.003118501, 0.003054786);
-            bloom_injectionOffsets[172] = vec2(0.000000000, -22.400000000);
-            bloom_injectionWeights[172] = vec3(0.000315924, 0.000292409, 0.000316251);
-            bloom_injectionOffsets[204] = vec2(-13.859292911, -13.859292911);
-            bloom_injectionWeights[204] = vec3(0.002189671, 0.002112793, 0.002058922);
-            bloom_injectionOffsets[236] = vec2(18.809040380, 18.809040380);
-            bloom_injectionWeights[236] = vec3(0.001311528, 0.001251843, 0.001209381);
-            bloom_injectionOffsets[268] = vec2(-1.000000000, 3.000000000);
-            bloom_injectionWeights[268] = vec3(0.000011735, 0.000009444, 0.000150844);
-            bloom_injectionOffsets[300] = vec2(3.000000000, -1.000000000);
-            bloom_injectionWeights[300] = vec3(0.000112350, 0.000098786, 0.000461463);
-            bloom_injectionOffsets[332] = vec2(1.000000000, -5.000000000);
-            bloom_injectionWeights[332] = vec3(0.000183418, 0.000087668, 0.000124251);
+            bloom_injectionOffsets[12] = vec2(-6.119617214, -2.109616959);
+            bloom_injectionWeights[12] = vec3(0.004500213, 0.005077349, 0.004253122);
+            bloom_injectionOffsets[44] = vec2(15.080001354, -0.010864563);
+            bloom_injectionWeights[44] = vec3(0.065794535, 0.069151744, 0.080707915);
+            bloom_injectionOffsets[76] = vec2(-16.867124453, -14.034599032);
+            bloom_injectionWeights[76] = vec3(0.006736456, 0.003944932, 0.003196785);
             break;
         case 13u:
-            bloom_injectionOffsets[13] = vec2(18.200000000, -0.000000000);
-            bloom_injectionWeights[13] = vec3(0.008172072, 0.008094536, 0.007995016);
-            bloom_injectionOffsets[45] = vec2(63.000000000, -0.000000000);
-            bloom_injectionWeights[45] = vec3(0.000591987, 0.000628514, 0.000662391);
-            bloom_injectionOffsets[77] = vec2(-36.400000000, 0.000000000);
-            bloom_injectionWeights[77] = vec3(0.002865132, 0.002770121, 0.002697122);
-            bloom_injectionOffsets[109] = vec2(6.929646456, -6.929646456);
-            bloom_injectionWeights[109] = vec3(0.006275559, 0.006194373, 0.006097238);
-            bloom_injectionOffsets[141] = vec2(-11.879393924, 11.879393924);
-            bloom_injectionWeights[141] = vec3(0.002801756, 0.002715701, 0.002658581);
-            bloom_injectionOffsets[173] = vec2(0.000000000, -23.800000000);
-            bloom_injectionWeights[173] = vec3(0.000082437, 0.000091462, 0.000073607);
-            bloom_injectionOffsets[205] = vec2(-14.849242405, -14.849242405);
-            bloom_injectionWeights[205] = vec3(0.001961081, 0.001889186, 0.001834137);
-            bloom_injectionOffsets[237] = vec2(19.798989873, 19.798989873);
-            bloom_injectionWeights[237] = vec3(0.001190219, 0.001131995, 0.001094783);
-            bloom_injectionOffsets[269] = vec2(0.000000000, 3.000000000);
-            bloom_injectionWeights[269] = vec3(0.003478981, 0.002831068, 0.003144399);
-            bloom_injectionOffsets[301] = vec2(5.000000000, -1.000000000);
-            bloom_injectionWeights[301] = vec3(0.000303976, 0.000300180, 0.000097641);
-            bloom_injectionOffsets[333] = vec2(2.000000000, -5.000000000);
-            bloom_injectionWeights[333] = vec3(0.000000000, 0.000001036, 0.000000681);
+            bloom_injectionOffsets[13] = vec2(-10.585561803, -3.792474576);
+            bloom_injectionWeights[13] = vec3(0.003534138, 0.002885094, 0.002348797);
+            bloom_injectionOffsets[45] = vec2(19.861669211, -0.016405649);
+            bloom_injectionWeights[45] = vec3(0.051746957, 0.053117853, 0.073596485);
             break;
         case 14u:
-            bloom_injectionOffsets[14] = vec2(19.600000000, -0.000000000);
-            bloom_injectionWeights[14] = vec3(0.007367510, 0.007256372, 0.007139881);
-            bloom_injectionOffsets[46] = vec2(64.400000000, -0.000000000);
-            bloom_injectionWeights[46] = vec3(0.000427831, 0.000476864, 0.000442009);
-            bloom_injectionOffsets[78] = vec2(-37.800000000, 0.000000000);
-            bloom_injectionWeights[78] = vec3(0.002698591, 0.002608435, 0.002539695);
-            bloom_injectionOffsets[110] = vec2(7.919595949, -7.919595949);
-            bloom_injectionWeights[110] = vec3(0.005212936, 0.005096715, 0.004993741);
-            bloom_injectionOffsets[142] = vec2(-12.869343418, 12.869343418);
-            bloom_injectionWeights[142] = vec3(0.002466420, 0.002385079, 0.002330851);
-            bloom_injectionOffsets[174] = vec2(-0.000000000, 1.400000000);
-            bloom_injectionWeights[174] = vec3(0.019958412, 0.020440776, 0.020787366);
-            bloom_injectionOffsets[206] = vec2(-15.839191899, -15.839191899);
-            bloom_injectionWeights[206] = vec3(0.001770008, 0.001703673, 0.001647732);
-            bloom_injectionOffsets[238] = vec2(20.788939367, 20.788939367);
-            bloom_injectionWeights[238] = vec3(0.001077004, 0.001044076, 0.001014093);
-            bloom_injectionOffsets[270] = vec2(1.000000000, 3.000000000);
-            bloom_injectionWeights[270] = vec3(0.000000045, 0.000000973, 0.000000009);
-            bloom_injectionOffsets[302] = vec2(-5.000000000, -2.000000000);
-            bloom_injectionWeights[302] = vec3(0.000000000, 0.000000000, 0.000000988);
-            bloom_injectionOffsets[334] = vec2(3.000000000, -5.000000000);
-            bloom_injectionWeights[334] = vec3(0.000000035, 0.000000000, 0.000000983);
+            bloom_injectionOffsets[14] = vec2(10.114355726, 3.764558635);
+            bloom_injectionWeights[14] = vec3(0.004167538, 0.003781828, 0.003426163);
+            bloom_injectionOffsets[46] = vec2(24.466539910, -0.014173958);
+            bloom_injectionWeights[46] = vec3(0.038625214, 0.051016565, 0.041742243);
             break;
         case 15u:
-            bloom_injectionOffsets[15] = vec2(21.000000000, -0.000000000);
-            bloom_injectionWeights[15] = vec3(0.006665563, 0.006540338, 0.006410963);
-            bloom_injectionOffsets[47] = vec2(65.800000000, -0.000000000);
-            bloom_injectionWeights[47] = vec3(0.000330786, 0.000385741, 0.000321242);
-            bloom_injectionOffsets[79] = vec2(-39.200000000, 0.000000000);
-            bloom_injectionWeights[79] = vec3(0.002542392, 0.002455927, 0.002388793);
-            bloom_injectionOffsets[111] = vec2(8.909545443, -8.909545443);
-            bloom_injectionWeights[111] = vec3(0.004359427, 0.004250397, 0.004160800);
-            bloom_injectionOffsets[143] = vec2(-13.859292911, 13.859292911);
-            bloom_injectionWeights[143] = vec3(0.002189985, 0.002113130, 0.002059042);
-            bloom_injectionOffsets[175] = vec2(-0.000000000, 2.800000000);
-            bloom_injectionWeights[175] = vec3(0.008272776, 0.008874332, 0.008532611);
-            bloom_injectionOffsets[207] = vec2(-16.829141392, -16.829141392);
-            bloom_injectionWeights[207] = vec3(0.001604699, 0.001543267, 0.001489136);
-            bloom_injectionOffsets[239] = vec2(21.778888861, 21.778888861);
-            bloom_injectionWeights[239] = vec3(0.000923415, 0.000920279, 0.000897542);
-            bloom_injectionOffsets[271] = vec2(2.000000000, 3.000000000);
-            bloom_injectionWeights[271] = vec3(0.000719424, 0.000968379, 0.001002679);
-            bloom_injectionOffsets[303] = vec2(-3.000000000, -2.000000000);
-            bloom_injectionWeights[303] = vec3(0.000765387, 0.000854581, 0.000566005);
-            bloom_injectionOffsets[335] = vec2(4.000000000, -5.000000000);
-            bloom_injectionWeights[335] = vec3(0.000056526, 0.000150704, 0.000090832);
+            bloom_injectionOffsets[15] = vec2(-3.799743309, 7.811513994);
+            bloom_injectionWeights[15] = vec3(0.004869565, 0.005592939, 0.004805644);
+            bloom_injectionOffsets[47] = vec2(29.107912525, -0.025905995);
+            bloom_injectionWeights[47] = vec3(0.031285793, 0.040226731, 0.024858830);
             break;
         case 16u:
-            bloom_injectionOffsets[16] = vec2(22.400000000, -0.000000000);
-            bloom_injectionWeights[16] = vec3(0.006061199, 0.005923519, 0.005792801);
-            bloom_injectionOffsets[48] = vec2(67.200000000, -0.000000000);
-            bloom_injectionWeights[48] = vec3(0.000226099, 0.000168614, 0.000187569);
-            bloom_injectionOffsets[80] = vec2(-40.600000000, 0.000000000);
-            bloom_injectionWeights[80] = vec3(0.002400167, 0.002314249, 0.002244987);
-            bloom_injectionOffsets[112] = vec2(9.899494937, -9.899494937);
-            bloom_injectionWeights[112] = vec3(0.003713571, 0.003613852, 0.003539447);
-            bloom_injectionOffsets[144] = vec2(-14.849242405, 14.849242405);
-            bloom_injectionWeights[144] = vec3(0.001961546, 0.001889706, 0.001834434);
-            bloom_injectionOffsets[176] = vec2(-0.000000000, 4.200000000);
-            bloom_injectionWeights[176] = vec3(0.008051405, 0.008216794, 0.008318918);
-            bloom_injectionOffsets[208] = vec2(-17.819090886, -17.819090886);
-            bloom_injectionWeights[208] = vec3(0.001452010, 0.001393698, 0.001345841);
-            bloom_injectionOffsets[240] = vec2(22.768838354, 22.768838354);
-            bloom_injectionWeights[240] = vec3(0.000685752, 0.000684147, 0.000675364);
-            bloom_injectionOffsets[272] = vec2(3.000000000, 3.000000000);
-            bloom_injectionWeights[272] = vec3(0.002271926, 0.002229657, 0.002379160);
-            bloom_injectionOffsets[304] = vec2(-2.000000000, -2.000000000);
-            bloom_injectionWeights[304] = vec3(0.004155484, 0.003124089, 0.004229179);
-            bloom_injectionOffsets[336] = vec2(5.000000000, -5.000000000);
-            bloom_injectionWeights[336] = vec3(0.001636814, 0.001627876, 0.001627658);
+            bloom_injectionOffsets[16] = vec2(-5.261732666, 11.344578436);
+            bloom_injectionWeights[16] = vec3(0.004365481, 0.003079781, 0.002446211);
+            bloom_injectionOffsets[48] = vec2(33.723169645, -0.029442296);
+            bloom_injectionWeights[48] = vec3(0.031971913, 0.020856002, 0.016137324);
             break;
         case 17u:
-            bloom_injectionOffsets[17] = vec2(23.800000000, -0.000000000);
-            bloom_injectionWeights[17] = vec3(0.005541267, 0.005411677, 0.005290420);
-            bloom_injectionOffsets[49] = vec2(68.600000000, -0.000000000);
-            bloom_injectionWeights[49] = vec3(0.000105486, 0.000118183, 0.000104873);
-            bloom_injectionOffsets[81] = vec2(-42.000000000, 0.000000000);
-            bloom_injectionWeights[81] = vec3(0.002273063, 0.002193722, 0.002127229);
-            bloom_injectionOffsets[113] = vec2(10.889444430, -10.889444430);
-            bloom_injectionWeights[113] = vec3(0.003210631, 0.003118478, 0.003054782);
-            bloom_injectionOffsets[145] = vec2(-15.839191899, 15.839191899);
-            bloom_injectionWeights[145] = vec3(0.001770459, 0.001704198, 0.001648110);
-            bloom_injectionOffsets[177] = vec2(-0.000000000, 5.600000000);
-            bloom_injectionWeights[177] = vec3(0.006804418, 0.006622038, 0.006561602);
-            bloom_injectionOffsets[209] = vec2(-18.809040380, -18.809040380);
-            bloom_injectionWeights[209] = vec3(0.001311971, 0.001251613, 0.001209927);
-            bloom_injectionOffsets[241] = vec2(23.758787848, 23.758787848);
-            bloom_injectionWeights[241] = vec3(0.000470556, 0.000386216, 0.000388127);
-            bloom_injectionOffsets[273] = vec2(4.000000000, 3.000000000);
-            bloom_injectionWeights[273] = vec3(0.000312102, 0.000466086, 0.000246880);
-            bloom_injectionOffsets[305] = vec2(2.000000000, -2.000000000);
-            bloom_injectionWeights[305] = vec3(0.004105256, 0.003086578, 0.004204545);
+            bloom_injectionOffsets[17] = vec2(-8.218661357, 17.928590365);
+            bloom_injectionWeights[17] = vec3(0.001866611, 0.001487808, 0.001073626);
+            bloom_injectionOffsets[49] = vec2(38.425576924, 0.067994994);
+            bloom_injectionWeights[49] = vec3(0.021417087, 0.012204679, 0.010511823);
             break;
         case 18u:
-            bloom_injectionOffsets[18] = vec2(25.200000000, -0.000000000);
-            bloom_injectionWeights[18] = vec3(0.005084142, 0.004959524, 0.004848682);
-            bloom_injectionOffsets[50] = vec2(70.000000000, -0.000000000);
-            bloom_injectionWeights[50] = vec3(0.000038442, 0.000033925, 0.000035902);
-            bloom_injectionOffsets[82] = vec2(-43.400000000, 0.000000000);
-            bloom_injectionWeights[82] = vec3(0.002152449, 0.002074333, 0.002007503);
-            bloom_injectionOffsets[114] = vec2(11.879393924, -11.879393924);
-            bloom_injectionWeights[114] = vec3(0.002801771, 0.002715713, 0.002658651);
-            bloom_injectionOffsets[146] = vec2(-16.829141392, 16.829141392);
-            bloom_injectionWeights[146] = vec3(0.001604920, 0.001543476, 0.001489360);
-            bloom_injectionOffsets[178] = vec2(-0.000000000, 7.000000000);
-            bloom_injectionWeights[178] = vec3(0.005264276, 0.005215605, 0.005174319);
-            bloom_injectionOffsets[210] = vec2(-19.798989873, -19.798989873);
-            bloom_injectionWeights[210] = vec3(0.001190146, 0.001130668, 0.001094348);
-            bloom_injectionOffsets[242] = vec2(24.748737342, 24.748737342);
-            bloom_injectionWeights[242] = vec3(0.000239614, 0.000206043, 0.000238420);
-            bloom_injectionOffsets[274] = vec2(-5.000000000, 2.000000000);
-            bloom_injectionWeights[274] = vec3(0.000000000, 0.000000000, 0.000000750);
-            bloom_injectionOffsets[306] = vec2(3.000000000, -2.000000000);
-            bloom_injectionWeights[306] = vec3(0.000775550, 0.000890472, 0.000606757);
+            bloom_injectionOffsets[18] = vec2(-3.168982439, -7.100173375);
+            bloom_injectionWeights[18] = vec3(0.003789531, 0.003846651, 0.004697337);
+            bloom_injectionOffsets[50] = vec2(43.390174575, -0.101784110);
+            bloom_injectionWeights[50] = vec3(0.011961076, 0.009171992, 0.006457904);
             break;
         case 19u:
-            bloom_injectionOffsets[19] = vec2(26.600000000, -0.000000000);
-            bloom_injectionWeights[19] = vec3(0.004681542, 0.004561796, 0.004458936);
-            bloom_injectionOffsets[51] = vec2(71.400000000, -0.000000000);
-            bloom_injectionWeights[51] = vec3(0.000000601, 0.000003735, 0.000003379);
-            bloom_injectionOffsets[83] = vec2(-44.800000000, 0.000000000);
-            bloom_injectionWeights[83] = vec3(0.002043450, 0.001969602, 0.001905356);
-            bloom_injectionOffsets[115] = vec2(12.869343418, -12.869343418);
-            bloom_injectionWeights[115] = vec3(0.002466352, 0.002385004, 0.002330869);
-            bloom_injectionOffsets[147] = vec2(-17.819090886, 17.819090886);
-            bloom_injectionWeights[147] = vec3(0.001451822, 0.001393435, 0.001345619);
-            bloom_injectionOffsets[179] = vec2(-0.000000000, 8.400000000);
-            bloom_injectionWeights[179] = vec3(0.003766719, 0.003666416, 0.003568984);
-            bloom_injectionOffsets[211] = vec2(-20.788939367, -20.788939367);
-            bloom_injectionWeights[211] = vec3(0.001077364, 0.001043645, 0.001012750);
-            bloom_injectionOffsets[243] = vec2(25.738686835, 25.738686835);
-            bloom_injectionWeights[243] = vec3(0.000068637, 0.000077620, 0.000058595);
-            bloom_injectionOffsets[275] = vec2(-3.000000000, 2.000000000);
-            bloom_injectionWeights[275] = vec3(0.000841532, 0.000786406, 0.000653219);
-            bloom_injectionOffsets[307] = vec2(5.000000000, -2.000000000);
-            bloom_injectionWeights[307] = vec3(0.000000000, 0.000000000, 0.000001039);
+            bloom_injectionOffsets[19] = vec2(-6.764283446, -14.352130077);
+            bloom_injectionWeights[19] = vec3(0.003442724, 0.002602319, 0.002067669);
+            bloom_injectionOffsets[51] = vec2(48.386108270, 0.085973378);
+            bloom_injectionWeights[51] = vec3(0.007826385, 0.005948649, 0.003996594);
             break;
         case 20u:
-            bloom_injectionOffsets[20] = vec2(28.000000000, -0.000000000);
-            bloom_injectionWeights[20] = vec3(0.004330859, 0.004221866, 0.004132588);
-            bloom_injectionOffsets[52] = vec2(-1.400000000, 0.000000000);
-            bloom_injectionWeights[52] = vec3(0.027149051, 0.027747253, 0.028206544);
-            bloom_injectionOffsets[84] = vec2(-46.200000000, 0.000000000);
-            bloom_injectionWeights[84] = vec3(0.001937711, 0.001867936, 0.001805167);
-            bloom_injectionOffsets[116] = vec2(13.859292911, -13.859292911);
-            bloom_injectionWeights[116] = vec3(0.002189802, 0.002112931, 0.002058975);
-            bloom_injectionOffsets[148] = vec2(-18.809040380, 18.809040380);
-            bloom_injectionWeights[148] = vec3(0.001311580, 0.001251704, 0.001209340);
-            bloom_injectionOffsets[180] = vec2(-0.000000000, 9.800000000);
-            bloom_injectionWeights[180] = vec3(0.003148400, 0.003051440, 0.002994548);
-            bloom_injectionOffsets[212] = vec2(-21.778888861, -21.778888861);
-            bloom_injectionWeights[212] = vec3(0.000923652, 0.000921010, 0.000897135);
-            bloom_injectionOffsets[244] = vec2(26.728636329, 26.728636329);
-            bloom_injectionWeights[244] = vec3(0.000001032, 0.000000000, 0.000002594);
-            bloom_injectionOffsets[276] = vec2(-2.000000000, 2.000000000);
-            bloom_injectionWeights[276] = vec3(0.004116309, 0.003096166, 0.004174658);
-            bloom_injectionOffsets[308] = vec2(-4.000000000, -3.000000000);
-            bloom_injectionWeights[308] = vec3(0.000305366, 0.000395136, 0.000250901);
+            bloom_injectionOffsets[20] = vec2(3.133453437, -7.087478455);
+            bloom_injectionWeights[20] = vec3(0.003854498, 0.003936890, 0.004836101);
+            bloom_injectionOffsets[52] = vec2(53.494053772, 0.051981078);
+            bloom_injectionWeights[52] = vec3(0.005035204, 0.003382664, 0.002176676);
             break;
         case 21u:
-            bloom_injectionOffsets[21] = vec2(29.400000000, -0.000000000);
-            bloom_injectionWeights[21] = vec3(0.004014835, 0.003904809, 0.003815902);
-            bloom_injectionOffsets[53] = vec2(-2.800000000, 0.000000000);
-            bloom_injectionWeights[53] = vec3(0.019199008, 0.019642349, 0.019531438);
-            bloom_injectionOffsets[85] = vec2(-47.600000000, 0.000000000);
-            bloom_injectionWeights[85] = vec3(0.001842916, 0.001774514, 0.001713426);
-            bloom_injectionOffsets[117] = vec2(14.849242405, -14.849242405);
-            bloom_injectionWeights[117] = vec3(0.001961255, 0.001889379, 0.001834248);
-            bloom_injectionOffsets[149] = vec2(-19.798989873, 19.798989873);
-            bloom_injectionWeights[149] = vec3(0.001189928, 0.001131518, 0.001094601);
-            bloom_injectionOffsets[181] = vec2(-0.000000000, 11.200000000);
-            bloom_injectionWeights[181] = vec3(0.002491223, 0.002417555, 0.002372541);
-            bloom_injectionOffsets[213] = vec2(-22.768838354, -22.768838354);
-            bloom_injectionWeights[213] = vec3(0.000684011, 0.000687379, 0.000676422);
-            bloom_injectionOffsets[245] = vec2(-5.000000000, 5.000000000);
-            bloom_injectionWeights[245] = vec3(0.001648745, 0.001628125, 0.001629783);
-            bloom_injectionOffsets[277] = vec2(2.000000000, 2.000000000);
-            bloom_injectionWeights[277] = vec3(0.004073068, 0.003064502, 0.004162360);
-            bloom_injectionOffsets[309] = vec2(-3.000000000, -3.000000000);
-            bloom_injectionWeights[309] = vec3(0.002255005, 0.002212747, 0.002368252);
+            bloom_injectionOffsets[21] = vec2(6.316890055, -13.308776174);
+            bloom_injectionWeights[21] = vec3(0.002840024, 0.002201950, 0.001854711);
+            bloom_injectionOffsets[53] = vec2(58.208967183, 0.000126863);
+            bloom_injectionWeights[53] = vec3(0.001484322, 0.001008774, 0.000611994);
             break;
         case 22u:
-            bloom_injectionOffsets[22] = vec2(30.800000000, -0.000000000);
-            bloom_injectionWeights[22] = vec3(0.003741019, 0.003637621, 0.003557120);
-            bloom_injectionOffsets[54] = vec2(-4.200000000, 0.000000000);
-            bloom_injectionWeights[54] = vec3(0.018903499, 0.019413969, 0.019664040);
-            bloom_injectionOffsets[86] = vec2(-49.000000000, 0.000000000);
-            bloom_injectionWeights[86] = vec3(0.001751865, 0.001685875, 0.001626685);
-            bloom_injectionOffsets[118] = vec2(15.839191899, -15.839191899);
-            bloom_injectionWeights[118] = vec3(0.001770153, 0.001703845, 0.001647855);
-            bloom_injectionOffsets[150] = vec2(-20.788939367, 20.788939367);
-            bloom_injectionWeights[150] = vec3(0.001076779, 0.001044116, 0.001014110);
-            bloom_injectionOffsets[182] = vec2(-0.000000000, 12.600000000);
-            bloom_injectionWeights[182] = vec3(0.002072516, 0.001994630, 0.001943132);
-            bloom_injectionOffsets[214] = vec2(-23.758787848, -23.758787848);
-            bloom_injectionWeights[214] = vec3(0.000459918, 0.000399969, 0.000381883);
-            bloom_injectionOffsets[246] = vec2(-4.000000000, 5.000000000);
-            bloom_injectionWeights[246] = vec3(0.000058410, 0.000148701, 0.000091756);
-            bloom_injectionOffsets[278] = vec2(3.000000000, 2.000000000);
-            bloom_injectionWeights[278] = vec3(0.000864182, 0.000805898, 0.000678387);
-            bloom_injectionOffsets[310] = vec2(-2.000000000, -3.000000000);
-            bloom_injectionWeights[310] = vec3(0.000696953, 0.000874392, 0.000949492);
+            bloom_injectionOffsets[22] = vec2(10.919594170, -23.723455309);
+            bloom_injectionWeights[22] = vec3(0.000493586, 0.000411051, 0.000266102);
+            bloom_injectionOffsets[54] = vec2(62.813894274, -0.058896480);
+            bloom_injectionWeights[54] = vec3(0.002183774, 0.001356474, 0.000727310);
             break;
         case 23u:
-            bloom_injectionOffsets[23] = vec2(32.200000000, -0.000000000);
-            bloom_injectionWeights[23] = vec3(0.003489868, 0.003388968, 0.003312610);
-            bloom_injectionOffsets[55] = vec2(-5.600000000, 0.000000000);
-            bloom_injectionWeights[55] = vec3(0.021378599, 0.021432593, 0.021676049);
-            bloom_injectionOffsets[87] = vec2(-50.400000000, 0.000000000);
-            bloom_injectionWeights[87] = vec3(0.001663675, 0.001598822, 0.001542654);
-            bloom_injectionOffsets[119] = vec2(16.829141392, -16.829141392);
-            bloom_injectionWeights[119] = vec3(0.001604749, 0.001543322, 0.001489202);
-            bloom_injectionOffsets[151] = vec2(-21.778888861, 21.778888861);
-            bloom_injectionWeights[151] = vec3(0.000923086, 0.000921404, 0.000899065);
-            bloom_injectionOffsets[183] = vec2(-0.000000000, 14.000000000);
-            bloom_injectionWeights[183] = vec3(0.001746033, 0.001682306, 0.001633433);
-            bloom_injectionOffsets[215] = vec2(-24.748737342, -24.748737342);
-            bloom_injectionWeights[215] = vec3(0.000214531, 0.000225078, 0.000206636);
-            bloom_injectionOffsets[247] = vec2(-3.000000000, 5.000000000);
-            bloom_injectionWeights[247] = vec3(0.000000000, 0.000000000, 0.000000489);
-            bloom_injectionOffsets[279] = vec2(5.000000000, 2.000000000);
-            bloom_injectionWeights[279] = vec3(0.000000000, 0.000000000, 0.000005149);
-            bloom_injectionOffsets[311] = vec2(-1.000000000, -3.000000000);
-            bloom_injectionWeights[311] = vec3(0.000010878, 0.000007592, 0.000000145);
+            bloom_injectionOffsets[23] = vec2(3.153180188, 6.464882079);
+            bloom_injectionWeights[23] = vec3(0.007533638, 0.007737723, 0.009606179);
+            bloom_injectionOffsets[55] = vec2(68.918856480, -0.033228184);
+            bloom_injectionWeights[55] = vec3(0.000734097, 0.000383755, 0.000189881);
             break;
         case 24u:
-            bloom_injectionOffsets[24] = vec2(33.600000000, -0.000000000);
-            bloom_injectionWeights[24] = vec3(0.003257775, 0.003157254, 0.003079826);
-            bloom_injectionOffsets[56] = vec2(-7.000000000, 0.000000000);
-            bloom_injectionWeights[56] = vec3(0.020610904, 0.021207387, 0.021370979);
-            bloom_injectionOffsets[88] = vec2(-51.800000000, 0.000000000);
-            bloom_injectionWeights[88] = vec3(0.001584697, 0.001519653, 0.001466032);
-            bloom_injectionOffsets[120] = vec2(17.819090886, -17.819090886);
-            bloom_injectionWeights[120] = vec3(0.001451949, 0.001393602, 0.001345755);
-            bloom_injectionOffsets[152] = vec2(-22.768838354, 22.768838354);
-            bloom_injectionWeights[152] = vec3(0.000685020, 0.000686641, 0.000680405);
-            bloom_injectionOffsets[184] = vec2(-0.000000000, 15.400000000);
-            bloom_injectionWeights[184] = vec3(0.001499074, 0.001439412, 0.001388135);
-            bloom_injectionOffsets[216] = vec2(-25.738686835, -25.738686835);
-            bloom_injectionWeights[216] = vec3(0.000074535, 0.000063374, 0.000067613);
-            bloom_injectionOffsets[248] = vec2(-2.000000000, 5.000000000);
-            bloom_injectionWeights[248] = vec3(0.000000000, 0.000000000, 0.000000964);
-            bloom_injectionOffsets[280] = vec2(-5.000000000, 1.000000000);
-            bloom_injectionWeights[280] = vec3(0.000261413, 0.000283356, 0.000086105);
-            bloom_injectionOffsets[312] = vec2(0.000000000, -3.000000000);
-            bloom_injectionWeights[312] = vec3(0.003596823, 0.002878070, 0.003106382);
+            bloom_injectionOffsets[24] = vec2(4.354918735, 10.281794921);
+            bloom_injectionWeights[24] = vec3(0.003347024, 0.003491194, 0.003110234);
+            bloom_injectionOffsets[56] = vec2(74.065123363, -0.002163415);
+            bloom_injectionWeights[56] = vec3(0.000399075, 0.000194316, 0.000080682);
             break;
         case 25u:
-            bloom_injectionOffsets[25] = vec2(35.000000000, -0.000000000);
-            bloom_injectionWeights[25] = vec3(0.003054099, 0.002960833, 0.002890992);
-            bloom_injectionOffsets[57] = vec2(-8.400000000, 0.000000000);
-            bloom_injectionWeights[57] = vec3(0.018081710, 0.018391751, 0.018547153);
-            bloom_injectionOffsets[89] = vec2(-53.200000000, 0.000000000);
-            bloom_injectionWeights[89] = vec3(0.001508973, 0.001444008, 0.001391540);
-            bloom_injectionOffsets[121] = vec2(18.809040380, -18.809040380);
-            bloom_injectionWeights[121] = vec3(0.001311878, 0.001251726, 0.001209704);
-            bloom_injectionOffsets[153] = vec2(-23.758787848, 23.758787848);
-            bloom_injectionWeights[153] = vec3(0.000466698, 0.000398144, 0.000395653);
-            bloom_injectionOffsets[185] = vec2(-0.000000000, 16.800000000);
-            bloom_injectionWeights[185] = vec3(0.001304379, 0.001259973, 0.001216486);
-            bloom_injectionOffsets[217] = vec2(-26.728636329, -26.728636329);
-            bloom_injectionWeights[217] = vec3(0.000000000, 0.000002117, 0.000000020);
-            bloom_injectionOffsets[249] = vec2(-1.000000000, 5.000000000);
-            bloom_injectionWeights[249] = vec3(0.000194142, 0.000102095, 0.000140888);
-            bloom_injectionOffsets[281] = vec2(-3.000000000, 1.000000000);
-            bloom_injectionWeights[281] = vec3(0.000006225, 0.000010610, 0.000392403);
-            bloom_injectionOffsets[313] = vec2(1.000000000, -3.000000000);
-            bloom_injectionWeights[313] = vec3(0.000000068, 0.000000269, 0.000000000);
+            bloom_injectionOffsets[25] = vec2(-85.283401489, -0.040603925);
+            bloom_injectionWeights[25] = vec3(0.000100684, 0.000035581, 0.000010944);
+            bloom_injectionOffsets[57] = vec2(78.157278985, -0.014653621);
+            bloom_injectionWeights[57] = vec3(0.000101699, 0.000046707, 0.000014225);
             break;
         case 26u:
-            bloom_injectionOffsets[26] = vec2(36.400000000, -0.000000000);
-            bloom_injectionWeights[26] = vec3(0.002865111, 0.002770098, 0.002697107);
-            bloom_injectionOffsets[58] = vec2(-9.800000000, 0.000000000);
-            bloom_injectionWeights[58] = vec3(0.016656760, 0.016910404, 0.017081590);
-            bloom_injectionOffsets[90] = vec2(-54.600000000, 0.000000000);
-            bloom_injectionWeights[90] = vec3(0.001442991, 0.001379391, 0.001328670);
-            bloom_injectionOffsets[122] = vec2(19.798989873, -19.798989873);
-            bloom_injectionWeights[122] = vec3(0.001190129, 0.001130958, 0.001094462);
-            bloom_injectionOffsets[154] = vec2(-24.748737342, 24.748737342);
-            bloom_injectionWeights[154] = vec3(0.000225354, 0.000221784, 0.000241547);
-            bloom_injectionOffsets[186] = vec2(-0.000000000, 18.200000000);
-            bloom_injectionWeights[186] = vec3(0.001130609, 0.001099055, 0.001064159);
-            bloom_injectionOffsets[218] = vec2(0.989949494, 0.989949494);
-            bloom_injectionWeights[218] = vec3(0.017534329, 0.018087985, 0.017911946);
-            bloom_injectionOffsets[250] = vec2(0.000000000, 5.000000000);
-            bloom_injectionWeights[250] = vec3(0.000287891, 0.000235696, 0.000152438);
-            bloom_injectionOffsets[282] = vec2(-1.000000000, 1.000000000);
-            bloom_injectionWeights[282] = vec3(0.004335668, 0.004553082, 0.004283431);
-            bloom_injectionOffsets[314] = vec2(2.000000000, -3.000000000);
-            bloom_injectionWeights[314] = vec3(0.000696261, 0.000895167, 0.000979001);
+            bloom_injectionOffsets[26] = vec2(-79.644573926, 0.003924299);
+            bloom_injectionWeights[26] = vec3(0.000147891, 0.000063772, 0.000023202);
+            bloom_injectionOffsets[58] = vec2(81.980835746, -0.030895080);
+            bloom_injectionWeights[58] = vec3(0.000116921, 0.000049537, 0.000018529);
             break;
         case 27u:
-            bloom_injectionOffsets[27] = vec2(37.800000000, -0.000000000);
-            bloom_injectionWeights[27] = vec3(0.002698568, 0.002608413, 0.002539689);
-            bloom_injectionOffsets[59] = vec2(-11.200000000, 0.000000000);
-            bloom_injectionWeights[59] = vec3(0.014642061, 0.014882540, 0.015021097);
-            bloom_injectionOffsets[91] = vec2(-56.000000000, 0.000000000);
-            bloom_injectionWeights[91] = vec3(0.001383729, 0.001319633, 0.001273110);
-            bloom_injectionOffsets[123] = vec2(20.788939367, -20.788939367);
-            bloom_injectionWeights[123] = vec3(0.001077354, 0.001043221, 0.001013264);
-            bloom_injectionOffsets[155] = vec2(-25.738686835, 25.738686835);
-            bloom_injectionWeights[155] = vec3(0.000068474, 0.000070541, 0.000054125);
-            bloom_injectionOffsets[187] = vec2(-0.000000000, 19.600000000);
-            bloom_injectionWeights[187] = vec3(0.000984966, 0.000946607, 0.000930032);
-            bloom_injectionOffsets[219] = vec2(1.979898987, 1.979898987);
-            bloom_injectionWeights[219] = vec3(0.012551182, 0.013532488, 0.012859383);
-            bloom_injectionOffsets[251] = vec2(1.000000000, 5.000000000);
-            bloom_injectionWeights[251] = vec3(0.000195571, 0.000099360, 0.000145549);
-            bloom_injectionOffsets[283] = vec2(0.000000000, 1.000000000);
-            bloom_injectionWeights[283] = vec3(0.017788645, 0.017158920, 0.018136239);
-            bloom_injectionOffsets[315] = vec2(3.000000000, -3.000000000);
-            bloom_injectionWeights[315] = vec3(0.002274857, 0.002227261, 0.002381796);
+            bloom_injectionOffsets[27] = vec2(-74.159247782, -0.029002405);
+            bloom_injectionWeights[27] = vec3(0.000407607, 0.000199766, 0.000084531);
+            bloom_injectionOffsets[59] = vec2(87.054102491, 0.013656751);
+            bloom_injectionWeights[59] = vec3(0.000046222, 0.000015991, 0.000004238);
             break;
         case 28u:
-            bloom_injectionOffsets[28] = vec2(39.200000000, -0.000000000);
-            bloom_injectionWeights[28] = vec3(0.002542367, 0.002455900, 0.002388784);
-            bloom_injectionOffsets[60] = vec2(-12.600000000, 0.000000000);
-            bloom_injectionWeights[60] = vec3(0.013044343, 0.013202976, 0.013309649);
-            bloom_injectionOffsets[92] = vec2(-57.400000000, 0.000000000);
-            bloom_injectionWeights[92] = vec3(0.001298415, 0.001228647, 0.001193044);
-            bloom_injectionOffsets[124] = vec2(21.778888861, -21.778888861);
-            bloom_injectionWeights[124] = vec3(0.000923361, 0.000920172, 0.000897646);
-            bloom_injectionOffsets[156] = vec2(-26.728636329, 26.728636329);
-            bloom_injectionWeights[156] = vec3(0.000000767, 0.000000029, 0.000003090);
-            bloom_injectionOffsets[188] = vec2(-0.000000000, 21.000000000);
-            bloom_injectionWeights[188] = vec3(0.000683928, 0.000645870, 0.000665659);
-            bloom_injectionOffsets[220] = vec2(2.969848481, 2.969848481);
-            bloom_injectionWeights[220] = vec3(0.012102649, 0.012308428, 0.012508785);
-            bloom_injectionOffsets[252] = vec2(2.000000000, 5.000000000);
-            bloom_injectionWeights[252] = vec3(0.000000000, 0.000000109, 0.000001324);
-            bloom_injectionOffsets[284] = vec2(1.000000000, 1.000000000);
-            bloom_injectionWeights[284] = vec3(0.004271796, 0.004528109, 0.004243423);
-            bloom_injectionOffsets[316] = vec2(4.000000000, -3.000000000);
-            bloom_injectionWeights[316] = vec3(0.000283236, 0.000397585, 0.000241910);
+            bloom_injectionOffsets[28] = vec2(-68.640315296, 0.007230795);
+            bloom_injectionWeights[28] = vec3(0.000833319, 0.000446814, 0.000218468);
+            bloom_injectionOffsets[60] = vec2(-30.214462365, 25.465072793);
+            bloom_injectionWeights[60] = vec3(0.000814351, 0.000581348, 0.000431176);
             break;
         case 29u:
-            bloom_injectionOffsets[29] = vec2(40.600000000, -0.000000000);
-            bloom_injectionWeights[29] = vec3(0.002400128, 0.002314202, 0.002244950);
-            bloom_injectionOffsets[61] = vec2(-14.000000000, 0.000000000);
-            bloom_injectionWeights[61] = vec3(0.011548844, 0.011639728, 0.011665728);
-            bloom_injectionOffsets[93] = vec2(-58.800000000, 0.000000000);
-            bloom_injectionWeights[93] = vec3(0.001172498, 0.001085586, 0.001061651);
-            bloom_injectionOffsets[125] = vec2(22.768838354, -22.768838354);
-            bloom_injectionWeights[125] = vec3(0.000683226, 0.000686429, 0.000677188);
-            bloom_injectionOffsets[157] = vec2(0.000000000, -1.400000000);
-            bloom_injectionWeights[157] = vec3(0.019919440, 0.020400697, 0.020768825);
-            bloom_injectionOffsets[189] = vec2(-0.000000000, 22.400000000);
-            bloom_injectionWeights[189] = vec3(0.000337443, 0.000304460, 0.000347379);
-            bloom_injectionOffsets[221] = vec2(3.959797975, 3.959797975);
-            bloom_injectionWeights[221] = vec3(0.009898626, 0.009937744, 0.010200986);
-            bloom_injectionOffsets[253] = vec2(3.000000000, 5.000000000);
-            bloom_injectionWeights[253] = vec3(0.000000000, 0.000000000, 0.000000492);
-            bloom_injectionOffsets[285] = vec2(3.000000000, 1.000000000);
-            bloom_injectionWeights[285] = vec3(0.000000000, 0.000066369, 0.000358297);
-            bloom_injectionOffsets[317] = vec2(-5.000000000, -4.000000000);
-            bloom_injectionWeights[317] = vec3(0.000062105, 0.000135817, 0.000086447);
+            bloom_injectionOffsets[29] = vec2(-63.287270380, -0.042464546);
+            bloom_injectionWeights[29] = vec3(0.001660230, 0.001038875, 0.000575664);
+            bloom_injectionOffsets[61] = vec2(-18.027832335, 15.048662053);
+            bloom_injectionWeights[61] = vec3(0.008409464, 0.005044012, 0.003907783);
             break;
         case 30u:
-            bloom_injectionOffsets[30] = vec2(42.000000000, -0.000000000);
-            bloom_injectionWeights[30] = vec3(0.002273030, 0.002193687, 0.002127211);
-            bloom_injectionOffsets[62] = vec2(-15.400000000, 0.000000000);
-            bloom_injectionWeights[62] = vec3(0.010254673, 0.010277045, 0.010270250);
-            bloom_injectionOffsets[94] = vec2(-60.200000000, 0.000000000);
-            bloom_injectionWeights[94] = vec3(0.001002674, 0.000916883, 0.000923235);
-            bloom_injectionOffsets[126] = vec2(23.758787848, -23.758787848);
-            bloom_injectionWeights[126] = vec3(0.000459088, 0.000399288, 0.000384769);
-            bloom_injectionOffsets[158] = vec2(0.000000000, -2.800000000);
-            bloom_injectionWeights[158] = vec3(0.008223919, 0.008920155, 0.008723700);
-            bloom_injectionOffsets[190] = vec2(-0.000000000, 23.800000000);
-            bloom_injectionWeights[190] = vec3(0.000095892, 0.000102657, 0.000085196);
-            bloom_injectionOffsets[222] = vec2(4.949747468, 4.949747468);
-            bloom_injectionWeights[222] = vec3(0.007920796, 0.008015796, 0.008010145);
-            bloom_injectionOffsets[254] = vec2(4.000000000, 5.000000000);
-            bloom_injectionWeights[254] = vec3(0.000040818, 0.000150904, 0.000083797);
-            bloom_injectionOffsets[286] = vec2(5.000000000, 1.000000000);
-            bloom_injectionWeights[286] = vec3(0.000303334, 0.000286893, 0.000095058);
-            bloom_injectionOffsets[318] = vec2(-4.000000000, -4.000000000);
-            bloom_injectionWeights[318] = vec3(0.002076258, 0.001935284, 0.002138880);
+            bloom_injectionOffsets[30] = vec2(-58.650593942, 0.000919388);
+            bloom_injectionWeights[30] = vec3(0.001892708, 0.001247583, 0.000749692);
+            bloom_injectionOffsets[62] = vec2(-12.054437051, 10.122687086);
+            bloom_injectionWeights[62] = vec3(0.013138355, 0.015406855, 0.012141326);
             break;
         case 31u:
-            bloom_injectionOffsets[31] = vec2(43.400000000, -0.000000000);
-            bloom_injectionWeights[31] = vec3(0.002152417, 0.002074289, 0.002007464);
-            bloom_injectionOffsets[63] = vec2(-16.800000000, 0.000000000);
-            bloom_injectionWeights[63] = vec3(0.009127993, 0.009104094, 0.009046409);
-            bloom_injectionOffsets[95] = vec2(-61.600000000, 0.000000000);
-            bloom_injectionWeights[95] = vec3(0.000805113, 0.000764547, 0.000804972);
-            bloom_injectionOffsets[127] = vec2(24.748737342, -24.748737342);
-            bloom_injectionWeights[127] = vec3(0.000213948, 0.000229414, 0.000215576);
-            bloom_injectionOffsets[159] = vec2(0.000000000, -4.200000000);
-            bloom_injectionWeights[159] = vec3(0.008021943, 0.008195484, 0.008307250);
-            bloom_injectionOffsets[191] = vec2(-0.989949494, -0.989949494);
-            bloom_injectionWeights[191] = vec3(0.017629027, 0.018146252, 0.017978830);
-            bloom_injectionOffsets[223] = vec2(5.939696962, 5.939696962);
-            bloom_injectionWeights[223] = vec3(0.007749144, 0.007783864, 0.007777910);
-            bloom_injectionOffsets[255] = vec2(5.000000000, 5.000000000);
-            bloom_injectionWeights[255] = vec3(0.001650593, 0.001629913, 0.001627617);
-            bloom_injectionOffsets[287] = vec2(-5.000000000, -0.000000000);
-            bloom_injectionWeights[287] = vec3(0.001292913, 0.001175917, 0.001252294);
-            bloom_injectionOffsets[319] = vec2(-3.000000000, -4.000000000);
-            bloom_injectionWeights[319] = vec3(0.000261526, 0.000338567, 0.000161418);
+            bloom_injectionOffsets[31] = vec2(-53.525336879, 0.048272958);
+            bloom_injectionWeights[31] = vec3(0.005036523, 0.003373557, 0.002170928);
+            bloom_injectionOffsets[63] = vec2(-7.110406153, 6.006137497);
+            bloom_injectionWeights[63] = vec3(0.018827464, 0.019144919, 0.024094235);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    if (all(greaterThanEqual(center + vec2(-85.283401489, -27.210706763), vec2(0.5))) &&
+        all(lessThanEqual(center + vec2(87.054102491, 25.465072793), tile.zw - 0.5))) {
+        for (int i = 0; i < 25; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += transient_bloomRaw_sample((tile.xy + pos) * uval_mainImageSizeRcp).rgb * bloom_injectionWeights[i];
+        }
+        for (int i = 25; i < 60; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 0) * bloom_injectionWeights[i];
+        }
+        for (int i = 60; i < 70; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 1) * bloom_injectionWeights[i];
+        }
+        for (int i = 70; i < 77; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 2) * bloom_injectionWeights[i];
+        }
+        return value;
+    }
+    for (int i = 0; i < 25; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_sampleRaw(pos, tile) * bloom_injectionWeights[i];
+    }
+    for (int i = 25; i < 60; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 0) * bloom_injectionWeights[i];
+    }
+    for (int i = 60; i < 70; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 1) * bloom_injectionWeights[i];
+    }
+    for (int i = 70; i < 77; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 2) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
+const int bloom_injectionCount = 23;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.002347705, 0.004292545);
+            bloom_injectionWeights[0] = vec3(3.120724678, 3.103859425, 3.073771477);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.976601924, -0.011314547);
+            bloom_injectionWeights[1] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-8.928753935, 0.112788839);
+            bloom_injectionWeights[2] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(8.950136439, 0.137640122);
+            bloom_injectionWeights[3] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(-12.997907557, 0.030678594);
+            bloom_injectionWeights[4] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(13.006995259, -0.005415533);
+            bloom_injectionWeights[5] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(17.103708541, -0.000760607);
+            bloom_injectionWeights[6] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(-17.097764285, 0.001329288);
+            bloom_injectionWeights[7] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(5.976287160, -0.000131363);
+            bloom_injectionWeights[8] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 9u:
+            bloom_injectionOffsets[9] = vec2(-5.954494819, -0.000024078);
+            bloom_injectionWeights[9] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 10u:
+            bloom_injectionOffsets[10] = vec2(2.970480064, 0.044906995);
+            bloom_injectionWeights[10] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 11u:
+            bloom_injectionOffsets[11] = vec2(20.434839419, -0.001903699);
+            bloom_injectionWeights[11] = vec3(0.000001076, 0.000024658, 0.000039293);
+            break;
+        case 12u:
+            bloom_injectionOffsets[12] = vec2(-20.407101717, 0.001323080);
+            bloom_injectionWeights[12] = vec3(0.000000767, 0.000025121, 0.000039841);
+            break;
+        case 13u:
+            bloom_injectionOffsets[13] = vec2(18.527957714, 16.029631265);
+            bloom_injectionWeights[13] = vec3(0.000097200, 0.000081999, 0.000083422);
+            break;
+        case 14u:
+            bloom_injectionOffsets[14] = vec2(16.598537723, 13.924298000);
+            bloom_injectionWeights[14] = vec3(0.000177994, 0.000131068, 0.000086457);
+            break;
+        case 15u:
+            bloom_injectionOffsets[15] = vec2(14.648556925, 12.278374928);
+            bloom_injectionWeights[15] = vec3(0.000164349, 0.000101364, 0.000076766);
+            break;
+        case 16u:
+            bloom_injectionOffsets[16] = vec2(13.211861741, 11.129323317);
+            bloom_injectionWeights[16] = vec3(0.000367111, 0.000239123, 0.000161454);
+            break;
+        case 17u:
+            bloom_injectionOffsets[17] = vec2(11.103699235, 9.327839581);
+            bloom_injectionWeights[17] = vec3(0.001576528, 0.001130643, 0.000757767);
+            break;
+        case 18u:
+            bloom_injectionOffsets[18] = vec2(-11.141495911, -9.315348489);
+            bloom_injectionWeights[18] = vec3(0.001499839, 0.001073575, 0.000709620);
+            break;
+        case 19u:
+            bloom_injectionOffsets[19] = vec2(-13.123575914, -10.998857812);
+            bloom_injectionWeights[19] = vec3(0.000390490, 0.000247972, 0.000185784);
+            break;
+        case 20u:
+            bloom_injectionOffsets[20] = vec2(-14.734061733, -12.261826602);
+            bloom_injectionWeights[20] = vec3(0.000158087, 0.000126829, 0.000085166);
+            break;
+        case 21u:
+            bloom_injectionOffsets[21] = vec2(-16.618746320, -13.942546969);
+            bloom_injectionWeights[21] = vec3(0.000191281, 0.000144704, 0.000098080);
+            break;
+        case 22u:
+            bloom_injectionOffsets[22] = vec2(-18.504929763, -16.022983245);
+            bloom_injectionWeights[22] = vec3(0.000107941, 0.000092288, 0.000093458);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    if (all(greaterThanEqual(center + vec2(-20.407101717, -16.022983245), vec2(0.5))) &&
+        all(lessThanEqual(center + vec2(20.434839419, 16.029631265), tile.zw - 0.5))) {
+        for (int i = 0; i < 13; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += transient_bloomRaw_sample((tile.xy + pos) * uval_mainImageSizeRcp).rgb * bloom_injectionWeights[i];
+        }
+        for (int i = 13; i < 23; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 3) * bloom_injectionWeights[i];
+        }
+        return value;
+    }
+    for (int i = 0; i < 13; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_sampleRaw(pos, tile) * bloom_injectionWeights[i];
+    }
+    for (int i = 13; i < 23; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 3) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 4
+const int bloom_injectionCount = 9;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.001484547, -0.001545376);
+            bloom_injectionWeights[0] = vec3(0.125465468, 0.124691136, 0.124802500);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.961517081, 0.000021286);
+            bloom_injectionWeights[1] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-4.948900031, 0.146000090);
+            bloom_injectionWeights[2] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(4.969559294, -0.108991663);
+            bloom_injectionWeights[3] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(8.064936068, -0.127392728);
+            bloom_injectionWeights[4] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(-8.071663962, -0.118330075);
+            bloom_injectionWeights[5] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(1.942171497, 0.012708376);
+            bloom_injectionWeights[6] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(12.200000000, -1.200000000);
+            bloom_injectionWeights[7] = vec3(0.000033791, 0.000082003, 0.000112212);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(-12.200000000, -1.200000000);
+            bloom_injectionWeights[8] = vec3(0.000053994, 0.000084575, 0.000109656);
             break;
     }
     barrier();
@@ -5330,727 +2933,39 @@ vec3 bloom_injection(vec2 center, vec4 tile) {
     }
     return value;
 }
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999709, 0.124998599, 0.124999180);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 4
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999739, 0.124998644, 0.124999352);
-}
 #elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 5
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999851, 0.124998771, 0.124999493);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 6
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999896, 0.124998860, 0.124999546);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 7
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999896, 0.124998868, 0.124999546);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 8
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999858, 0.124998815, 0.124999501);
-}
-#endif
-#ifdef BLOOM_FIRST_UPSAMPLE
-const vec3 bloom_deepestWeight = vec3(0.124999814, 0.124998771, 0.124999464);
-#endif
-
-#elif SETTING_BLOOM_SHAPE == 7 // prismatic-streak, fitted candidate
-// Bloom DPF recipe e02e3800a1f6303b2a83100c507c5a83fee09637a4ba7bd8764f7791590e148e
-vec3 bloom_filter(vec2 center, vec4 tile) {
-    vec3 value = vec3(0.0);
-#ifdef BLOOM_DOWNSAMPLE
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(0.215983973, 0.215983973, 0.215983973);
-    value += bloom_sample(center + vec2(-0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(-0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, -0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-    value += bloom_sample(center + vec2(0.818871032, 0.818871032), tile) * vec3(0.196004007, 0.196004007, 0.196004007);
-#else
-#if BLOOM_PASS == 1
-    value += bloom_sample(center + vec2(0.000000000, 0.000000000), tile) * vec3(1.000000000, 1.000000000, 1.000000000);
-#elif BLOOM_PASS == 2
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 3
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 4
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 5
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 6
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 7
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#elif BLOOM_PASS == 8
-    value += bloom_sample(center + vec2(-1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(1.250000000, 0.000000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, -1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(0.000000000, 1.250000000), tile) * vec3(0.067822948, 0.067822948, 0.067822948);
-    value += bloom_sample(center + vec2(-0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(-0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, -0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-    value += bloom_sample(center + vec2(0.457436126, 0.457436126), tile) * vec3(0.182177052, 0.182177052, 0.182177052);
-#endif
-#endif
-    return value;
-}
-
-#if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
-const int bloom_injectionCount = 268;
+const int bloom_injectionCount = 7;
 shared vec2 bloom_injectionOffsets[bloom_injectionCount];
 shared vec3 bloom_injectionWeights[bloom_injectionCount];
 void bloom_prepareInjection() {
     switch (gl_LocalInvocationIndex) {
         case 0u:
-            bloom_injectionOffsets[0] = vec2(0.000000000, -0.000000000);
-            bloom_injectionWeights[0] = vec3(0.073197119, 0.073501699, 0.073873460);
-            bloom_injectionOffsets[32] = vec2(44.800000000, -0.000000000);
-            bloom_injectionWeights[32] = vec3(0.006473362, 0.001946712, 0.001812319);
-            bloom_injectionOffsets[64] = vec2(-18.200000000, 0.000000000);
-            bloom_injectionWeights[64] = vec3(0.010131498, 0.010132033, 0.011196868);
-            bloom_injectionOffsets[96] = vec2(-63.000000000, 0.000000000);
-            bloom_injectionWeights[96] = vec3(0.000983259, 0.000946376, 0.000937372);
-            bloom_injectionOffsets[128] = vec2(25.000000000, -0.000000000);
-            bloom_injectionWeights[128] = vec3(0.001011603, 0.001773108, 0.021065012);
-            bloom_injectionOffsets[160] = vec2(-40.000000000, -0.000000000);
-            bloom_injectionWeights[160] = vec3(0.011469617, 0.005401968, 0.000733913);
-            bloom_injectionOffsets[192] = vec2(3.000000000, 4.000000000);
-            bloom_injectionWeights[192] = vec3(0.000013005, 0.000024687, 0.000050534);
-            bloom_injectionOffsets[224] = vec2(4.000000000, -0.000000000);
-            bloom_injectionWeights[224] = vec3(0.005236174, 0.005157019, 0.004985438);
-            bloom_injectionOffsets[256] = vec2(5.000000000, -4.000000000);
-            bloom_injectionWeights[256] = vec3(0.000000372, 0.000009177, 0.000011459);
+            bloom_injectionOffsets[0] = vec2(-0.068996463, 0.125460626);
+            bloom_injectionWeights[0] = vec3(0.124680139, 0.124422349, 0.124301538);
             break;
         case 1u:
-            bloom_injectionOffsets[1] = vec2(1.400000000, -0.000000000);
-            bloom_injectionWeights[1] = vec3(0.038470291, 0.038652238, 0.038767252);
-            bloom_injectionOffsets[33] = vec2(46.200000000, -0.000000000);
-            bloom_injectionWeights[33] = vec3(0.005762816, 0.001842822, 0.001934731);
-            bloom_injectionOffsets[65] = vec2(-19.600000000, 0.000000000);
-            bloom_injectionWeights[65] = vec3(0.008853907, 0.008884799, 0.010982377);
-            bloom_injectionOffsets[97] = vec2(-64.400000000, 0.000000000);
-            bloom_injectionWeights[97] = vec3(0.000727339, 0.000696641, 0.000723362);
-            bloom_injectionOffsets[129] = vec2(24.000000000, -0.000000000);
-            bloom_injectionWeights[129] = vec3(0.001098369, 0.001183634, 0.021970995);
-            bloom_injectionOffsets[161] = vec2(-41.000000000, -0.000000000);
-            bloom_injectionWeights[161] = vec3(0.015279232, 0.003156595, 0.000739905);
-            bloom_injectionOffsets[193] = vec2(4.000000000, 4.000000000);
-            bloom_injectionWeights[193] = vec3(0.000000000, 0.000016250, 0.000000009);
-            bloom_injectionOffsets[225] = vec2(5.000000000, -0.000000000);
-            bloom_injectionWeights[225] = vec3(0.001402116, 0.001610483, 0.001559336);
-            bloom_injectionOffsets[257] = vec2(-5.000000000, -5.000000000);
-            bloom_injectionWeights[257] = vec3(0.000006389, 0.000006572, 0.000000288);
+            bloom_injectionOffsets[1] = vec2(-1.012555669, 0.010099059);
+            bloom_injectionWeights[1] = vec3(0.000000006, 0.000000006, 0.000000006);
             break;
         case 2u:
-            bloom_injectionOffsets[2] = vec2(2.800000000, -0.000000000);
-            bloom_injectionWeights[2] = vec3(0.030528093, 0.030694190, 0.030949570);
-            bloom_injectionOffsets[34] = vec2(47.600000000, -0.000000000);
-            bloom_injectionWeights[34] = vec3(0.004792799, 0.001574048, 0.001376162);
-            bloom_injectionOffsets[66] = vec2(-21.000000000, 0.000000000);
-            bloom_injectionWeights[66] = vec3(0.009895724, 0.009896847, 0.026626470);
-            bloom_injectionOffsets[98] = vec2(-65.800000000, 0.000000000);
-            bloom_injectionWeights[98] = vec3(0.000498076, 0.000468348, 0.000451562);
-            bloom_injectionOffsets[130] = vec2(23.000000000, -0.000000000);
-            bloom_injectionWeights[130] = vec3(0.000988369, 0.000987151, 0.021739392);
-            bloom_injectionOffsets[162] = vec2(-43.000000000, -0.000000000);
-            bloom_injectionWeights[162] = vec3(0.020703474, 0.001280758, 0.000608261);
-            bloom_injectionOffsets[194] = vec2(5.000000000, 4.000000000);
-            bloom_injectionWeights[194] = vec3(0.000000762, 0.000000561, 0.000000752);
-            bloom_injectionOffsets[226] = vec2(-5.000000000, -1.000000000);
-            bloom_injectionWeights[226] = vec3(0.000314599, 0.000138923, 0.000269031);
-            bloom_injectionOffsets[258] = vec2(-4.000000000, -5.000000000);
-            bloom_injectionWeights[258] = vec3(0.000000452, 0.000008285, 0.000008255);
+            bloom_injectionOffsets[2] = vec2(2.021340606, -0.022254769);
+            bloom_injectionWeights[2] = vec3(0.000000006, 0.000000006, 0.000000006);
             break;
         case 3u:
-            bloom_injectionOffsets[3] = vec2(4.200000000, -0.000000000);
-            bloom_injectionWeights[3] = vec3(0.029638834, 0.029661883, 0.029803799);
-            bloom_injectionOffsets[35] = vec2(49.000000000, -0.000000000);
-            bloom_injectionWeights[35] = vec3(0.011201487, 0.002513309, 0.002500705);
-            bloom_injectionOffsets[67] = vec2(-22.400000000, 0.000000000);
-            bloom_injectionWeights[67] = vec3(0.007251740, 0.007266664, 0.011227515);
-            bloom_injectionOffsets[99] = vec2(-67.200000000, 0.000000000);
-            bloom_injectionWeights[99] = vec3(0.000269659, 0.000312141, 0.000300128);
-            bloom_injectionOffsets[131] = vec2(22.000000000, -0.000000000);
-            bloom_injectionWeights[131] = vec3(0.000998689, 0.001005852, 0.018989509);
-            bloom_injectionOffsets[163] = vec2(-44.000000000, -0.000000000);
-            bloom_injectionWeights[163] = vec3(0.021899173, 0.000607130, 0.000667751);
-            bloom_injectionOffsets[195] = vec2(-5.000000000, 3.000000000);
-            bloom_injectionWeights[195] = vec3(0.000007485, 0.000011436, 0.000000182);
-            bloom_injectionOffsets[227] = vec2(-4.000000000, -1.000000000);
-            bloom_injectionWeights[227] = vec3(0.000005239, 0.000033377, 0.000046026);
-            bloom_injectionOffsets[259] = vec2(-3.000000000, -5.000000000);
-            bloom_injectionWeights[259] = vec3(0.000000009, 0.000018316, 0.000024815);
+            bloom_injectionOffsets[3] = vec2(-4.042167838, -0.035458269);
+            bloom_injectionWeights[3] = vec3(0.000000006, 0.000000006, 0.000000006);
             break;
         case 4u:
-            bloom_injectionOffsets[4] = vec2(5.600000000, -0.000000000);
-            bloom_injectionWeights[4] = vec3(0.033265140, 0.033295803, 0.033177059);
-            bloom_injectionOffsets[36] = vec2(50.400000000, -0.000000000);
-            bloom_injectionWeights[36] = vec3(0.002850770, 0.001442408, 0.001090231);
-            bloom_injectionOffsets[68] = vec2(-23.800000000, 0.000000000);
-            bloom_injectionWeights[68] = vec3(0.006790274, 0.006809506, 0.010838625);
-            bloom_injectionOffsets[100] = vec2(-68.600000000, 0.000000000);
-            bloom_injectionWeights[100] = vec3(0.000170845, 0.000160850, 0.000157808);
-            bloom_injectionOffsets[132] = vec2(20.000000000, -0.000000000);
-            bloom_injectionWeights[132] = vec3(0.001172716, 0.001206137, 0.012427907);
-            bloom_injectionOffsets[164] = vec2(-45.000000000, -0.000000000);
-            bloom_injectionWeights[164] = vec3(0.020332068, 0.000813019, 0.000908289);
-            bloom_injectionOffsets[196] = vec2(-4.000000000, 3.000000000);
-            bloom_injectionWeights[196] = vec3(0.000059891, 0.000062259, 0.000052961);
-            bloom_injectionOffsets[228] = vec2(-3.000000000, -1.000000000);
-            bloom_injectionWeights[228] = vec3(0.000048508, 0.000013574, 0.000030028);
-            bloom_injectionOffsets[260] = vec2(-2.000000000, -5.000000000);
-            bloom_injectionWeights[260] = vec3(0.000006167, 0.000010205, 0.000011647);
+            bloom_injectionOffsets[4] = vec2(5.403520894, -1.200000000);
+            bloom_injectionWeights[4] = vec3(0.000025957, 0.000026278, 0.000036906);
             break;
         case 5u:
-            bloom_injectionOffsets[5] = vec2(7.000000000, -0.000000000);
-            bloom_injectionWeights[5] = vec3(0.031287897, 0.031225149, 0.031352218);
-            bloom_injectionOffsets[37] = vec2(51.800000000, -0.000000000);
-            bloom_injectionWeights[37] = vec3(0.002281242, 0.001415201, 0.001408868);
-            bloom_injectionOffsets[69] = vec2(-25.200000000, 0.000000000);
-            bloom_injectionWeights[69] = vec3(0.006216278, 0.006398709, 0.010052285);
-            bloom_injectionOffsets[101] = vec2(-70.000000000, 0.000000000);
-            bloom_injectionWeights[101] = vec3(0.000053737, 0.000055036, 0.000057120);
-            bloom_injectionOffsets[133] = vec2(19.000000000, -0.000000000);
-            bloom_injectionWeights[133] = vec3(0.001272509, 0.001265692, 0.008869963);
-            bloom_injectionOffsets[165] = vec2(-46.000000000, -0.000000000);
-            bloom_injectionWeights[165] = vec3(0.018080724, 0.000781789, 0.000721455);
-            bloom_injectionOffsets[197] = vec2(-3.000000000, 3.000000000);
-            bloom_injectionWeights[197] = vec3(0.000193129, 0.000189390, 0.000125342);
-            bloom_injectionOffsets[229] = vec2(-1.000000000, -1.000000000);
-            bloom_injectionWeights[229] = vec3(0.001903751, 0.001920406, 0.001954782);
-            bloom_injectionOffsets[261] = vec2(-1.000000000, -5.000000000);
-            bloom_injectionWeights[261] = vec3(0.000048591, 0.000028016, 0.000006518);
+            bloom_injectionOffsets[5] = vec2(0.015673278, -3.124440314);
+            bloom_injectionWeights[5] = vec3(0.001019624, 0.001183186, 0.001278194);
             break;
         case 6u:
-            bloom_injectionOffsets[6] = vec2(8.400000000, -0.000000000);
-            bloom_injectionWeights[6] = vec3(0.027768461, 0.027835812, 0.027780261);
-            bloom_injectionOffsets[38] = vec2(53.200000000, -0.000000000);
-            bloom_injectionWeights[38] = vec3(0.001746612, 0.001164039, 0.001132390);
-            bloom_injectionOffsets[70] = vec2(-26.600000000, 0.000000000);
-            bloom_injectionWeights[70] = vec3(0.005613049, 0.006146171, 0.008950770);
-            bloom_injectionOffsets[102] = vec2(-71.400000000, 0.000000000);
-            bloom_injectionWeights[102] = vec3(0.000006182, 0.000006607, 0.000005281);
-            bloom_injectionOffsets[134] = vec2(18.000000000, -0.000000000);
-            bloom_injectionWeights[134] = vec3(0.001687539, 0.001670977, 0.006425239);
-            bloom_injectionOffsets[166] = vec2(-47.000000000, -0.000000000);
-            bloom_injectionWeights[166] = vec3(0.015306913, 0.000649076, 0.000693763);
-            bloom_injectionOffsets[198] = vec2(-2.000000000, 3.000000000);
-            bloom_injectionWeights[198] = vec3(0.000024178, 0.000000000, 0.000017380);
-            bloom_injectionOffsets[230] = vec2(0.000000000, -1.000000000);
-            bloom_injectionWeights[230] = vec3(0.020463658, 0.020166095, 0.020110492);
-            bloom_injectionOffsets[262] = vec2(0.000000000, -5.000000000);
-            bloom_injectionWeights[262] = vec3(0.000050733, 0.000057339, 0.000053044);
-            break;
-        case 7u:
-            bloom_injectionOffsets[7] = vec2(9.800000000, -0.000000000);
-            bloom_injectionWeights[7] = vec3(0.025464809, 0.025412215, 0.025458582);
-            bloom_injectionOffsets[39] = vec2(54.600000000, -0.000000000);
-            bloom_injectionWeights[39] = vec3(0.001856046, 0.001998865, 0.001995071);
-            bloom_injectionOffsets[71] = vec2(-28.000000000, 0.000000000);
-            bloom_injectionWeights[71] = vec3(0.006407693, 0.011960424, 0.018987140);
-            bloom_injectionOffsets[103] = vec2(54.000000000, -0.000000000);
-            bloom_injectionWeights[103] = vec3(0.000421731, 0.000287948, 0.000316418);
-            bloom_injectionOffsets[135] = vec2(17.000000000, -0.000000000);
-            bloom_injectionWeights[135] = vec3(0.001840859, 0.001832968, 0.004610807);
-            bloom_injectionOffsets[167] = vec2(-48.000000000, -0.000000000);
-            bloom_injectionWeights[167] = vec3(0.011157773, 0.000668744, 0.000803576);
-            bloom_injectionOffsets[199] = vec2(2.000000000, 3.000000000);
-            bloom_injectionWeights[199] = vec3(0.000000000, 0.000000000, 0.000013227);
-            bloom_injectionOffsets[231] = vec2(1.000000000, -1.000000000);
-            bloom_injectionWeights[231] = vec3(0.001808625, 0.001847486, 0.001868512);
-            bloom_injectionOffsets[263] = vec2(1.000000000, -5.000000000);
-            bloom_injectionWeights[263] = vec3(0.000050480, 0.000020671, 0.000051599);
-            break;
-        case 8u:
-            bloom_injectionOffsets[8] = vec2(11.200000000, -0.000000000);
-            bloom_injectionWeights[8] = vec3(0.022337673, 0.022336582, 0.022343365);
-            bloom_injectionOffsets[40] = vec2(56.000000000, -0.000000000);
-            bloom_injectionWeights[40] = vec3(0.002071334, 0.002026362, 0.002037464);
-            bloom_injectionOffsets[72] = vec2(-29.400000000, 0.000000000);
-            bloom_injectionWeights[72] = vec3(0.004816367, 0.006691756, 0.006238461);
-            bloom_injectionOffsets[104] = vec2(53.000000000, -0.000000000);
-            bloom_injectionWeights[104] = vec3(0.001138326, 0.000796089, 0.000784733);
-            bloom_injectionOffsets[136] = vec2(16.000000000, -0.000000000);
-            bloom_injectionWeights[136] = vec3(0.001719469, 0.001705714, 0.003262775);
-            bloom_injectionOffsets[168] = vec2(-50.000000000, -0.000000000);
-            bloom_injectionWeights[168] = vec3(0.005275072, 0.000599031, 0.000843438);
-            bloom_injectionOffsets[200] = vec2(3.000000000, 3.000000000);
-            bloom_injectionWeights[200] = vec3(0.000212227, 0.000220694, 0.000162911);
-            bloom_injectionOffsets[232] = vec2(3.000000000, -1.000000000);
-            bloom_injectionWeights[232] = vec3(0.000046528, 0.000018530, 0.000011095);
-            bloom_injectionOffsets[264] = vec2(2.000000000, -5.000000000);
-            bloom_injectionWeights[264] = vec3(0.000018108, 0.000050947, 0.000000956);
-            break;
-        case 9u:
-            bloom_injectionOffsets[9] = vec2(12.600000000, -0.000000000);
-            bloom_injectionWeights[9] = vec3(0.019828768, 0.019849746, 0.019844215);
-            bloom_injectionOffsets[41] = vec2(57.400000000, -0.000000000);
-            bloom_injectionWeights[41] = vec3(0.001841083, 0.001855335, 0.001864037);
-            bloom_injectionOffsets[73] = vec2(-30.800000000, 0.000000000);
-            bloom_injectionWeights[73] = vec3(0.004579584, 0.007341873, 0.005222507);
-            bloom_injectionOffsets[105] = vec2(52.000000000, -0.000000000);
-            bloom_injectionWeights[105] = vec3(0.001877984, 0.000728661, 0.000772456);
-            bloom_injectionOffsets[137] = vec2(15.000000000, -0.000000000);
-            bloom_injectionWeights[137] = vec3(0.001694751, 0.001727217, 0.002399799);
-            bloom_injectionOffsets[169] = vec2(-51.000000000, -0.000000000);
-            bloom_injectionWeights[169] = vec3(0.003060806, 0.000561919, 0.000667887);
-            bloom_injectionOffsets[201] = vec2(4.000000000, 3.000000000);
-            bloom_injectionWeights[201] = vec3(0.000076761, 0.000041962, 0.000048295);
-            bloom_injectionOffsets[233] = vec2(4.000000000, -1.000000000);
-            bloom_injectionWeights[233] = vec3(0.000018101, 0.000045723, 0.000040687);
-            bloom_injectionOffsets[265] = vec2(3.000000000, -5.000000000);
-            bloom_injectionWeights[265] = vec3(0.000000229, 0.000000000, 0.000008789);
-            break;
-        case 10u:
-            bloom_injectionOffsets[10] = vec2(14.000000000, -0.000000000);
-            bloom_injectionWeights[10] = vec3(0.017516132, 0.017528452, 0.017632002);
-            bloom_injectionOffsets[42] = vec2(58.800000000, -0.000000000);
-            bloom_injectionWeights[42] = vec3(0.001709893, 0.001681211, 0.001704208);
-            bloom_injectionOffsets[74] = vec2(-32.200000000, 0.000000000);
-            bloom_injectionWeights[74] = vec3(0.004345244, 0.007836662, 0.004555652);
-            bloom_injectionOffsets[106] = vec2(51.000000000, -0.000000000);
-            bloom_injectionWeights[106] = vec3(0.003060812, 0.000561909, 0.000667878);
-            bloom_injectionOffsets[138] = vec2(-15.000000000, -0.000000000);
-            bloom_injectionWeights[138] = vec3(0.001694686, 0.001727167, 0.002399727);
-            bloom_injectionOffsets[170] = vec2(-52.000000000, -0.000000000);
-            bloom_injectionWeights[170] = vec3(0.001877988, 0.000728692, 0.000772509);
-            bloom_injectionOffsets[202] = vec2(5.000000000, 3.000000000);
-            bloom_injectionWeights[202] = vec3(0.000000007, 0.000003080, 0.000000106);
-            bloom_injectionOffsets[234] = vec2(5.000000000, -1.000000000);
-            bloom_injectionWeights[234] = vec3(0.000273938, 0.000144072, 0.000288337);
-            bloom_injectionOffsets[266] = vec2(4.000000000, -5.000000000);
-            bloom_injectionWeights[266] = vec3(0.000000116, 0.000049634, 0.000001398);
-            break;
-        case 11u:
-            bloom_injectionOffsets[11] = vec2(15.400000000, -0.000000000);
-            bloom_injectionWeights[11] = vec3(0.012507148, 0.012540311, 0.012817462);
-            bloom_injectionOffsets[43] = vec2(60.200000000, -0.000000000);
-            bloom_injectionWeights[43] = vec3(0.001408650, 0.001432339, 0.001432721);
-            bloom_injectionOffsets[75] = vec2(-33.600000000, 0.000000000);
-            bloom_injectionWeights[75] = vec3(0.004055349, 0.008421570, 0.004001539);
-            bloom_injectionOffsets[107] = vec2(50.000000000, -0.000000000);
-            bloom_injectionWeights[107] = vec3(0.005275069, 0.000598966, 0.000843374);
-            bloom_injectionOffsets[139] = vec2(-16.000000000, -0.000000000);
-            bloom_injectionWeights[139] = vec3(0.001719608, 0.001705837, 0.003262908);
-            bloom_injectionOffsets[171] = vec2(-53.000000000, -0.000000000);
-            bloom_injectionWeights[171] = vec3(0.001138350, 0.000796125, 0.000784753);
-            bloom_injectionOffsets[203] = vec2(-4.000000000, 2.000000000);
-            bloom_injectionWeights[203] = vec3(0.000022326, 0.000065774, 0.000054133);
-            bloom_injectionOffsets[235] = vec2(-4.000000000, -2.000000000);
-            bloom_injectionWeights[235] = vec3(0.000007140, 0.000049072, 0.000052919);
-            bloom_injectionOffsets[267] = vec2(5.000000000, -5.000000000);
-            bloom_injectionWeights[267] = vec3(0.000000513, 0.000000000, 0.000000059);
-            break;
-        case 12u:
-            bloom_injectionOffsets[12] = vec2(16.800000000, -0.000000000);
-            bloom_injectionWeights[12] = vec3(0.011390194, 0.011398133, 0.011950421);
-            bloom_injectionOffsets[44] = vec2(61.600000000, -0.000000000);
-            bloom_injectionWeights[44] = vec3(0.001202185, 0.001200937, 0.001188911);
-            bloom_injectionOffsets[76] = vec2(-35.000000000, 0.000000000);
-            bloom_injectionWeights[76] = vec3(0.005345756, 0.027670011, 0.004523745);
-            bloom_injectionOffsets[108] = vec2(48.000000000, -0.000000000);
-            bloom_injectionWeights[108] = vec3(0.011157773, 0.000668949, 0.000803692);
-            bloom_injectionOffsets[140] = vec2(-17.000000000, -0.000000000);
-            bloom_injectionWeights[140] = vec3(0.001840778, 0.001832890, 0.004610736);
-            bloom_injectionOffsets[172] = vec2(-54.000000000, -0.000000000);
-            bloom_injectionWeights[172] = vec3(0.000421793, 0.000287936, 0.000316397);
-            bloom_injectionOffsets[204] = vec2(-3.000000000, 2.000000000);
-            bloom_injectionWeights[204] = vec3(0.000090758, 0.000056807, 0.000063235);
-            bloom_injectionOffsets[236] = vec2(-3.000000000, -2.000000000);
-            bloom_injectionWeights[236] = vec3(0.000117230, 0.000094652, 0.000037486);
-            break;
-        case 13u:
-            bloom_injectionOffsets[13] = vec2(18.200000000, -0.000000000);
-            bloom_injectionWeights[13] = vec3(0.010131496, 0.010132027, 0.011196869);
-            bloom_injectionOffsets[45] = vec2(63.000000000, -0.000000000);
-            bloom_injectionWeights[45] = vec3(0.000994413, 0.000951914, 0.000935836);
-            bloom_injectionOffsets[77] = vec2(-36.400000000, 0.000000000);
-            bloom_injectionWeights[77] = vec3(0.003847902, 0.007070189, 0.003209363);
-            bloom_injectionOffsets[109] = vec2(47.000000000, -0.000000000);
-            bloom_injectionWeights[109] = vec3(0.015306914, 0.000649237, 0.000693745);
-            bloom_injectionOffsets[141] = vec2(-18.000000000, -0.000000000);
-            bloom_injectionWeights[141] = vec3(0.001687556, 0.001670999, 0.006425251);
-            bloom_injectionOffsets[173] = vec2(-5.000000000, 5.000000000);
-            bloom_injectionWeights[173] = vec3(0.000000724, 0.000006198, 0.000000120);
-            bloom_injectionOffsets[205] = vec2(3.000000000, 2.000000000);
-            bloom_injectionWeights[205] = vec3(0.000112653, 0.000089409, 0.000084309);
-            bloom_injectionOffsets[237] = vec2(3.000000000, -2.000000000);
-            bloom_injectionWeights[237] = vec3(0.000106442, 0.000079576, 0.000069184);
-            break;
-        case 14u:
-            bloom_injectionOffsets[14] = vec2(19.600000000, -0.000000000);
-            bloom_injectionWeights[14] = vec3(0.008853919, 0.008884816, 0.010982390);
-            bloom_injectionOffsets[46] = vec2(64.400000000, -0.000000000);
-            bloom_injectionWeights[46] = vec3(0.000772149, 0.000714663, 0.000720565);
-            bloom_injectionOffsets[78] = vec2(-37.800000000, 0.000000000);
-            bloom_injectionWeights[78] = vec3(0.004177997, 0.005542704, 0.002949322);
-            bloom_injectionOffsets[110] = vec2(46.000000000, -0.000000000);
-            bloom_injectionWeights[110] = vec3(0.018080721, 0.000781975, 0.000721442);
-            bloom_injectionOffsets[142] = vec2(-19.000000000, -0.000000000);
-            bloom_injectionWeights[142] = vec3(0.001272455, 0.001265635, 0.008869910);
-            bloom_injectionOffsets[174] = vec2(-4.000000000, 5.000000000);
-            bloom_injectionWeights[174] = vec3(0.000000046, 0.000011393, 0.000000047);
-            bloom_injectionOffsets[206] = vec2(4.000000000, 2.000000000);
-            bloom_injectionWeights[206] = vec3(0.000011991, 0.000074747, 0.000055039);
-            bloom_injectionOffsets[238] = vec2(4.000000000, -2.000000000);
-            bloom_injectionWeights[238] = vec3(0.000006963, 0.000064544, 0.000071514);
-            break;
-        case 15u:
-            bloom_injectionOffsets[15] = vec2(21.000000000, -0.000000000);
-            bloom_injectionWeights[15] = vec3(0.009895781, 0.009896902, 0.026626520);
-            bloom_injectionOffsets[47] = vec2(65.800000000, -0.000000000);
-            bloom_injectionWeights[47] = vec3(0.000558439, 0.000483237, 0.000464390);
-            bloom_injectionOffsets[79] = vec2(-39.200000000, 0.000000000);
-            bloom_injectionWeights[79] = vec3(0.004687360, 0.004498729, 0.002577087);
-            bloom_injectionOffsets[111] = vec2(45.000000000, -0.000000000);
-            bloom_injectionWeights[111] = vec3(0.020332072, 0.000812995, 0.000909487);
-            bloom_injectionOffsets[143] = vec2(-20.000000000, -0.000000000);
-            bloom_injectionWeights[143] = vec3(0.001172731, 0.001206147, 0.012427920);
-            bloom_injectionOffsets[175] = vec2(-3.000000000, 5.000000000);
-            bloom_injectionWeights[175] = vec3(0.000000002, 0.000016208, 0.000000032);
-            bloom_injectionOffsets[207] = vec2(-5.000000000, 1.000000000);
-            bloom_injectionWeights[207] = vec3(0.000288256, 0.000152971, 0.000263365);
-            bloom_injectionOffsets[239] = vec2(-5.000000000, -3.000000000);
-            bloom_injectionWeights[239] = vec3(0.000000009, 0.000009442, 0.000017604);
-            break;
-        case 16u:
-            bloom_injectionOffsets[16] = vec2(22.400000000, -0.000000000);
-            bloom_injectionWeights[16] = vec3(0.007251733, 0.007266656, 0.011227510);
-            bloom_injectionOffsets[48] = vec2(67.200000000, -0.000000000);
-            bloom_injectionWeights[48] = vec3(0.000303148, 0.000291668, 0.000300968);
-            bloom_injectionOffsets[80] = vec2(-40.600000000, 0.000000000);
-            bloom_injectionWeights[80] = vec3(0.005748486, 0.003610407, 0.002307543);
-            bloom_injectionOffsets[112] = vec2(44.000000000, -0.000000000);
-            bloom_injectionWeights[112] = vec3(0.021899167, 0.000607130, 0.000668529);
-            bloom_injectionOffsets[144] = vec2(-22.000000000, -0.000000000);
-            bloom_injectionWeights[144] = vec3(0.000998716, 0.001005880, 0.018989531);
-            bloom_injectionOffsets[176] = vec2(-2.000000000, 5.000000000);
-            bloom_injectionWeights[176] = vec3(0.000042275, 0.000007063, 0.000027135);
-            bloom_injectionOffsets[208] = vec2(-4.000000000, 1.000000000);
-            bloom_injectionWeights[208] = vec3(0.000000878, 0.000006425, 0.000031262);
-            bloom_injectionOffsets[240] = vec2(-4.000000000, -3.000000000);
-            bloom_injectionWeights[240] = vec3(0.000093508, 0.000069836, 0.000008150);
-            break;
-        case 17u:
-            bloom_injectionOffsets[17] = vec2(23.800000000, -0.000000000);
-            bloom_injectionWeights[17] = vec3(0.006790265, 0.006809497, 0.010838615);
-            bloom_injectionOffsets[49] = vec2(68.600000000, -0.000000000);
-            bloom_injectionWeights[49] = vec3(0.000164522, 0.000163700, 0.000164061);
-            bloom_injectionOffsets[81] = vec2(-42.000000000, 0.000000000);
-            bloom_injectionWeights[81] = vec3(0.023826823, 0.005101894, 0.003337508);
-            bloom_injectionOffsets[113] = vec2(43.000000000, -0.000000000);
-            bloom_injectionWeights[113] = vec3(0.020703478, 0.001280724, 0.000608807);
-            bloom_injectionOffsets[145] = vec2(-23.000000000, -0.000000000);
-            bloom_injectionWeights[145] = vec3(0.000988343, 0.000987127, 0.021739369);
-            bloom_injectionOffsets[177] = vec2(-1.000000000, 5.000000000);
-            bloom_injectionWeights[177] = vec3(0.000053429, 0.000041810, 0.000030351);
-            bloom_injectionOffsets[209] = vec2(-3.000000000, 1.000000000);
-            bloom_injectionWeights[209] = vec3(0.000003477, 0.000000771, 0.000000000);
-            bloom_injectionOffsets[241] = vec2(-3.000000000, -3.000000000);
-            bloom_injectionWeights[241] = vec3(0.000098038, 0.000116679, 0.000144374);
-            break;
-        case 18u:
-            bloom_injectionOffsets[18] = vec2(25.200000000, -0.000000000);
-            bloom_injectionWeights[18] = vec3(0.006216280, 0.006398710, 0.010052287);
-            bloom_injectionOffsets[50] = vec2(70.000000000, -0.000000000);
-            bloom_injectionWeights[50] = vec3(0.000053128, 0.000056522, 0.000057750);
-            bloom_injectionOffsets[82] = vec2(-43.400000000, 0.000000000);
-            bloom_injectionWeights[82] = vec3(0.006993538, 0.002471341, 0.002109287);
-            bloom_injectionOffsets[114] = vec2(41.000000000, -0.000000000);
-            bloom_injectionWeights[114] = vec3(0.015279233, 0.003156595, 0.000739784);
-            bloom_injectionOffsets[146] = vec2(-24.000000000, -0.000000000);
-            bloom_injectionWeights[146] = vec3(0.001098388, 0.001183651, 0.021971013);
-            bloom_injectionOffsets[178] = vec2(0.000000000, 5.000000000);
-            bloom_injectionWeights[178] = vec3(0.000039283, 0.000079907, 0.000047330);
-            bloom_injectionOffsets[210] = vec2(-1.000000000, 1.000000000);
-            bloom_injectionWeights[210] = vec3(0.001826778, 0.001848121, 0.001884213);
-            bloom_injectionOffsets[242] = vec2(-2.000000000, -3.000000000);
-            bloom_injectionWeights[242] = vec3(0.000005500, 0.000000000, 0.000000029);
-            break;
-        case 19u:
-            bloom_injectionOffsets[19] = vec2(26.600000000, -0.000000000);
-            bloom_injectionWeights[19] = vec3(0.005613042, 0.006146164, 0.008950763);
-            bloom_injectionOffsets[51] = vec2(71.400000000, -0.000000000);
-            bloom_injectionWeights[51] = vec3(0.000006781, 0.000005303, 0.000005916);
-            bloom_injectionOffsets[83] = vec2(-44.800000000, 0.000000000);
-            bloom_injectionWeights[83] = vec3(0.006473362, 0.001946710, 0.001813869);
-            bloom_injectionOffsets[115] = vec2(40.000000000, -0.000000000);
-            bloom_injectionWeights[115] = vec3(0.011469614, 0.005401962, 0.000733958);
-            bloom_injectionOffsets[147] = vec2(-25.000000000, -0.000000000);
-            bloom_injectionWeights[147] = vec3(0.001011594, 0.001773100, 0.021065004);
-            bloom_injectionOffsets[179] = vec2(1.000000000, 5.000000000);
-            bloom_injectionWeights[179] = vec3(0.000084046, 0.000052215, 0.000053393);
-            bloom_injectionOffsets[211] = vec2(0.000000000, 1.000000000);
-            bloom_injectionWeights[211] = vec3(0.020502236, 0.020198323, 0.020137729);
-            bloom_injectionOffsets[243] = vec2(3.000000000, -3.000000000);
-            bloom_injectionWeights[243] = vec3(0.000199232, 0.000195809, 0.000178680);
-            break;
-        case 20u:
-            bloom_injectionOffsets[20] = vec2(28.000000000, -0.000000000);
-            bloom_injectionWeights[20] = vec3(0.006407685, 0.011960411, 0.018987130);
-            bloom_injectionOffsets[52] = vec2(-1.400000000, 0.000000000);
-            bloom_injectionWeights[52] = vec3(0.038433991, 0.038617998, 0.038729593);
-            bloom_injectionOffsets[84] = vec2(-46.200000000, 0.000000000);
-            bloom_injectionWeights[84] = vec3(0.005762818, 0.001843037, 0.001934651);
-            bloom_injectionOffsets[116] = vec2(39.000000000, -0.000000000);
-            bloom_injectionWeights[116] = vec3(0.007958267, 0.008027237, 0.000916822);
-            bloom_injectionOffsets[148] = vec2(-26.000000000, -0.000000000);
-            bloom_injectionWeights[148] = vec3(0.000811095, 0.002330826, 0.019204687);
-            bloom_injectionOffsets[180] = vec2(2.000000000, 5.000000000);
-            bloom_injectionWeights[180] = vec3(0.000001511, 0.000015853, 0.000013649);
-            bloom_injectionOffsets[212] = vec2(1.000000000, 1.000000000);
-            bloom_injectionWeights[212] = vec3(0.001730448, 0.001771925, 0.001797271);
-            bloom_injectionOffsets[244] = vec2(4.000000000, -3.000000000);
-            bloom_injectionWeights[244] = vec3(0.000030288, 0.000029736, 0.000001837);
-            break;
-        case 21u:
-            bloom_injectionOffsets[21] = vec2(29.400000000, -0.000000000);
-            bloom_injectionWeights[21] = vec3(0.004816355, 0.006691756, 0.006238461);
-            bloom_injectionOffsets[53] = vec2(-2.800000000, 0.000000000);
-            bloom_injectionWeights[53] = vec3(0.030542096, 0.030717783, 0.030969154);
-            bloom_injectionOffsets[85] = vec2(-47.600000000, 0.000000000);
-            bloom_injectionWeights[85] = vec3(0.004792798, 0.001574374, 0.001376299);
-            bloom_injectionOffsets[117] = vec2(38.000000000, -0.000000000);
-            bloom_injectionWeights[117] = vec3(0.005328734, 0.011297607, 0.000831324);
-            bloom_injectionOffsets[149] = vec2(-27.000000000, -0.000000000);
-            bloom_injectionWeights[149] = vec3(0.000755413, 0.003715327, 0.015363689);
-            bloom_injectionOffsets[181] = vec2(3.000000000, 5.000000000);
-            bloom_injectionWeights[181] = vec3(0.000002621, 0.000004199, 0.000011426);
-            bloom_injectionOffsets[213] = vec2(3.000000000, 1.000000000);
-            bloom_injectionWeights[213] = vec3(0.000001358, 0.000000001, 0.000000000);
-            bloom_injectionOffsets[245] = vec2(5.000000000, -3.000000000);
-            bloom_injectionWeights[245] = vec3(0.000015738, 0.000021242, 0.000004933);
-            break;
-        case 22u:
-            bloom_injectionOffsets[22] = vec2(30.800000000, -0.000000000);
-            bloom_injectionWeights[22] = vec3(0.004579610, 0.007341874, 0.005222506);
-            bloom_injectionOffsets[54] = vec2(-4.200000000, 0.000000000);
-            bloom_injectionWeights[54] = vec3(0.029604049, 0.029635370, 0.029773450);
-            bloom_injectionOffsets[86] = vec2(-49.000000000, 0.000000000);
-            bloom_injectionWeights[86] = vec3(0.011201487, 0.002513299, 0.002500713);
-            bloom_injectionOffsets[118] = vec2(37.000000000, -0.000000000);
-            bloom_injectionWeights[118] = vec3(0.003398214, 0.015260723, 0.000612147);
-            bloom_injectionOffsets[150] = vec2(-29.000000000, -0.000000000);
-            bloom_injectionWeights[150] = vec3(0.000647454, 0.008168348, 0.008472302);
-            bloom_injectionOffsets[182] = vec2(4.000000000, 5.000000000);
-            bloom_injectionWeights[182] = vec3(0.000003214, 0.000003030, 0.000002283);
-            bloom_injectionOffsets[214] = vec2(4.000000000, 1.000000000);
-            bloom_injectionWeights[214] = vec3(0.000001110, 0.000004245, 0.000030284);
-            bloom_injectionOffsets[246] = vec2(-5.000000000, -4.000000000);
-            bloom_injectionWeights[246] = vec3(0.000000423, 0.000010840, 0.000000022);
-            break;
-        case 23u:
-            bloom_injectionOffsets[23] = vec2(32.200000000, -0.000000000);
-            bloom_injectionWeights[23] = vec3(0.004345158, 0.007836661, 0.004555653);
-            bloom_injectionOffsets[55] = vec2(-5.600000000, 0.000000000);
-            bloom_injectionWeights[55] = vec3(0.033288591, 0.033345383, 0.033236641);
-            bloom_injectionOffsets[87] = vec2(-50.400000000, 0.000000000);
-            bloom_injectionWeights[87] = vec3(0.002850770, 0.001442334, 0.001090179);
-            bloom_injectionOffsets[119] = vec2(36.000000000, -0.000000000);
-            bloom_injectionWeights[119] = vec3(0.001962620, 0.018720264, 0.000625914);
-            bloom_injectionOffsets[151] = vec2(-30.000000000, -0.000000000);
-            bloom_injectionWeights[151] = vec3(0.000687178, 0.011922701, 0.005479021);
-            bloom_injectionOffsets[183] = vec2(5.000000000, 5.000000000);
-            bloom_injectionWeights[183] = vec3(0.000001049, 0.000006455, 0.000000038);
-            bloom_injectionOffsets[215] = vec2(5.000000000, 1.000000000);
-            bloom_injectionWeights[215] = vec3(0.000347882, 0.000157854, 0.000296615);
-            bloom_injectionOffsets[247] = vec2(-4.000000000, -4.000000000);
-            bloom_injectionWeights[247] = vec3(0.000000000, 0.000024237, 0.000032727);
-            break;
-        case 24u:
-            bloom_injectionOffsets[24] = vec2(33.600000000, -0.000000000);
-            bloom_injectionWeights[24] = vec3(0.004055201, 0.008421571, 0.004001538);
-            bloom_injectionOffsets[56] = vec2(-7.000000000, 0.000000000);
-            bloom_injectionWeights[56] = vec3(0.031274971, 0.031213555, 0.031334806);
-            bloom_injectionOffsets[88] = vec2(-51.800000000, 0.000000000);
-            bloom_injectionWeights[88] = vec3(0.002281245, 0.001415177, 0.001408816);
-            bloom_injectionOffsets[120] = vec2(34.000000000, -0.000000000);
-            bloom_injectionWeights[120] = vec3(0.000623523, 0.021864109, 0.000547955);
-            bloom_injectionOffsets[152] = vec2(-31.000000000, -0.000000000);
-            bloom_injectionWeights[152] = vec3(0.000721577, 0.015193526, 0.003543913);
-            bloom_injectionOffsets[184] = vec2(-5.000000000, 4.000000000);
-            bloom_injectionWeights[184] = vec3(0.000000297, 0.000014731, 0.000005642);
-            bloom_injectionOffsets[216] = vec2(-5.000000000, -0.000000000);
-            bloom_injectionWeights[216] = vec3(0.001350383, 0.001577404, 0.001544658);
-            bloom_injectionOffsets[248] = vec2(-3.000000000, -4.000000000);
-            bloom_injectionWeights[248] = vec3(0.000078669, 0.000022647, 0.000009578);
-            break;
-        case 25u:
-            bloom_injectionOffsets[25] = vec2(35.000000000, -0.000000000);
-            bloom_injectionWeights[25] = vec3(0.005345825, 0.027670011, 0.004523745);
-            bloom_injectionOffsets[57] = vec2(-8.400000000, 0.000000000);
-            bloom_injectionWeights[57] = vec3(0.027781006, 0.027840348, 0.027783206);
-            bloom_injectionOffsets[89] = vec2(-53.200000000, 0.000000000);
-            bloom_injectionWeights[89] = vec3(0.001746571, 0.001163998, 0.001132389);
-            bloom_injectionOffsets[121] = vec2(33.000000000, -0.000000000);
-            bloom_injectionWeights[121] = vec3(0.000425688, 0.021194195, 0.001382368);
-            bloom_injectionOffsets[153] = vec2(-32.000000000, -0.000000000);
-            bloom_injectionWeights[153] = vec3(0.000702853, 0.018305028, 0.002187084);
-            bloom_injectionOffsets[185] = vec2(-4.000000000, 4.000000000);
-            bloom_injectionWeights[185] = vec3(0.000006132, 0.000004398, 0.000000040);
-            bloom_injectionOffsets[217] = vec2(-4.000000000, -0.000000000);
-            bloom_injectionWeights[217] = vec3(0.005205627, 0.005132149, 0.004951170);
-            bloom_injectionOffsets[249] = vec2(-2.000000000, -4.000000000);
-            bloom_injectionWeights[249] = vec3(0.000096708, 0.000115244, 0.000045061);
-            break;
-        case 26u:
-            bloom_injectionOffsets[26] = vec2(36.400000000, -0.000000000);
-            bloom_injectionWeights[26] = vec3(0.003847891, 0.007070188, 0.003209423);
-            bloom_injectionOffsets[58] = vec2(-9.800000000, 0.000000000);
-            bloom_injectionWeights[58] = vec3(0.025465906, 0.025413947, 0.025460953);
-            bloom_injectionOffsets[90] = vec2(-54.600000000, 0.000000000);
-            bloom_injectionWeights[90] = vec3(0.001855984, 0.001998882, 0.001995099);
-            bloom_injectionOffsets[122] = vec2(32.000000000, -0.000000000);
-            bloom_injectionWeights[122] = vec3(0.000702839, 0.018305028, 0.002187086);
-            bloom_injectionOffsets[154] = vec2(-33.000000000, -0.000000000);
-            bloom_injectionWeights[154] = vec3(0.000425516, 0.021194195, 0.001382374);
-            bloom_injectionOffsets[186] = vec2(-3.000000000, 4.000000000);
-            bloom_injectionWeights[186] = vec3(0.000038403, 0.000015780, 0.000022621);
-            bloom_injectionOffsets[218] = vec2(-3.000000000, -0.000000000);
-            bloom_injectionWeights[218] = vec3(0.006060380, 0.005970769, 0.005837413);
-            bloom_injectionOffsets[250] = vec2(-1.000000000, -4.000000000);
-            bloom_injectionWeights[250] = vec3(0.000101909, 0.000076042, 0.000141237);
-            break;
-        case 27u:
-            bloom_injectionOffsets[27] = vec2(37.800000000, -0.000000000);
-            bloom_injectionWeights[27] = vec3(0.004177999, 0.005542702, 0.002949301);
-            bloom_injectionOffsets[59] = vec2(-11.200000000, 0.000000000);
-            bloom_injectionWeights[59] = vec3(0.022336289, 0.022336142, 0.022342756);
-            bloom_injectionOffsets[91] = vec2(-56.000000000, 0.000000000);
-            bloom_injectionWeights[91] = vec3(0.002071387, 0.002026281, 0.002037448);
-            bloom_injectionOffsets[123] = vec2(31.000000000, -0.000000000);
-            bloom_injectionWeights[123] = vec3(0.000721619, 0.015193529, 0.003543913);
-            bloom_injectionOffsets[155] = vec2(-34.000000000, -0.000000000);
-            bloom_injectionWeights[155] = vec3(0.000623521, 0.021864109, 0.000547954);
-            bloom_injectionOffsets[187] = vec2(-2.000000000, 4.000000000);
-            bloom_injectionWeights[187] = vec3(0.000071942, 0.000124959, 0.000103711);
-            bloom_injectionOffsets[219] = vec2(-2.000000000, -0.000000000);
-            bloom_injectionWeights[219] = vec3(0.000130708, 0.000000000, 0.000000000);
-            bloom_injectionOffsets[251] = vec2(0.000000000, -4.000000000);
-            bloom_injectionWeights[251] = vec3(0.000073842, 0.000104155, 0.000017153);
-            break;
-        case 28u:
-            bloom_injectionOffsets[28] = vec2(39.200000000, -0.000000000);
-            bloom_injectionWeights[28] = vec3(0.004687359, 0.004498732, 0.002577040);
-            bloom_injectionOffsets[60] = vec2(-12.600000000, 0.000000000);
-            bloom_injectionWeights[60] = vec3(0.019828383, 0.019849204, 0.019843698);
-            bloom_injectionOffsets[92] = vec2(-57.400000000, 0.000000000);
-            bloom_injectionWeights[92] = vec3(0.001841112, 0.001855527, 0.001863719);
-            bloom_injectionOffsets[124] = vec2(30.000000000, -0.000000000);
-            bloom_injectionWeights[124] = vec3(0.000687142, 0.011922693, 0.005479015);
-            bloom_injectionOffsets[156] = vec2(-36.000000000, -0.000000000);
-            bloom_injectionWeights[156] = vec3(0.001962636, 0.018720262, 0.000625950);
-            bloom_injectionOffsets[188] = vec2(-1.000000000, 4.000000000);
-            bloom_injectionWeights[188] = vec3(0.000086174, 0.000086249, 0.000071290);
-            bloom_injectionOffsets[220] = vec2(-1.000000000, -0.000000000);
-            bloom_injectionWeights[220] = vec3(0.021889944, 0.021617563, 0.021344801);
-            bloom_injectionOffsets[252] = vec2(1.000000000, -4.000000000);
-            bloom_injectionWeights[252] = vec3(0.000026374, 0.000044821, 0.000072581);
-            break;
-        case 29u:
-            bloom_injectionOffsets[29] = vec2(40.600000000, -0.000000000);
-            bloom_injectionWeights[29] = vec3(0.005748486, 0.003610404, 0.002307616);
-            bloom_injectionOffsets[61] = vec2(-14.000000000, 0.000000000);
-            bloom_injectionWeights[61] = vec3(0.017515872, 0.017528174, 0.017631756);
-            bloom_injectionOffsets[93] = vec2(-58.800000000, 0.000000000);
-            bloom_injectionWeights[93] = vec3(0.001708962, 0.001681404, 0.001707278);
-            bloom_injectionOffsets[125] = vec2(29.000000000, -0.000000000);
-            bloom_injectionWeights[125] = vec3(0.000647457, 0.008168353, 0.008472306);
-            bloom_injectionOffsets[157] = vec2(-37.000000000, -0.000000000);
-            bloom_injectionWeights[157] = vec3(0.003398219, 0.015260725, 0.000612154);
-            bloom_injectionOffsets[189] = vec2(0.000000000, 4.000000000);
-            bloom_injectionWeights[189] = vec3(0.000105390, 0.000099340, 0.000078820);
-            bloom_injectionOffsets[221] = vec2(1.000000000, -0.000000000);
-            bloom_injectionWeights[221] = vec3(0.021886699, 0.021641079, 0.021359446);
-            bloom_injectionOffsets[253] = vec2(2.000000000, -4.000000000);
-            bloom_injectionWeights[253] = vec3(0.000084883, 0.000104142, 0.000103994);
-            break;
-        case 30u:
-            bloom_injectionOffsets[30] = vec2(42.000000000, -0.000000000);
-            bloom_injectionWeights[30] = vec3(0.023826817, 0.005101895, 0.003337602);
-            bloom_injectionOffsets[62] = vec2(-15.400000000, 0.000000000);
-            bloom_injectionWeights[62] = vec3(0.012507165, 0.012540330, 0.012817471);
-            bloom_injectionOffsets[94] = vec2(-60.200000000, 0.000000000);
-            bloom_injectionWeights[94] = vec3(0.001408250, 0.001432031, 0.001427456);
-            bloom_injectionOffsets[126] = vec2(27.000000000, -0.000000000);
-            bloom_injectionWeights[126] = vec3(0.000755418, 0.003715331, 0.015363691);
-            bloom_injectionOffsets[158] = vec2(-38.000000000, -0.000000000);
-            bloom_injectionWeights[158] = vec3(0.005328731, 0.011297609, 0.000831307);
-            bloom_injectionOffsets[190] = vec2(1.000000000, 4.000000000);
-            bloom_injectionWeights[190] = vec3(0.000022498, 0.000045237, 0.000057734);
-            bloom_injectionOffsets[222] = vec2(2.000000000, -0.000000000);
-            bloom_injectionWeights[222] = vec3(0.000031290, 0.000000000, 0.000000000);
-            bloom_injectionOffsets[254] = vec2(3.000000000, -4.000000000);
-            bloom_injectionWeights[254] = vec3(0.000048809, 0.000022067, 0.000023974);
-            break;
-        case 31u:
-            bloom_injectionOffsets[31] = vec2(43.400000000, -0.000000000);
-            bloom_injectionWeights[31] = vec3(0.006993537, 0.002471384, 0.002108281);
-            bloom_injectionOffsets[63] = vec2(-16.800000000, 0.000000000);
-            bloom_injectionWeights[63] = vec3(0.011390157, 0.011398096, 0.011950391);
-            bloom_injectionOffsets[95] = vec2(-61.600000000, 0.000000000);
-            bloom_injectionWeights[95] = vec3(0.001201412, 0.001199404, 0.001182197);
-            bloom_injectionOffsets[127] = vec2(26.000000000, -0.000000000);
-            bloom_injectionWeights[127] = vec3(0.000811070, 0.002330802, 0.019204667);
-            bloom_injectionOffsets[159] = vec2(-39.000000000, -0.000000000);
-            bloom_injectionWeights[159] = vec3(0.007958268, 0.008027233, 0.000916839);
-            bloom_injectionOffsets[191] = vec2(2.000000000, 4.000000000);
-            bloom_injectionWeights[191] = vec3(0.000130020, 0.000139184, 0.000078720);
-            bloom_injectionOffsets[223] = vec2(3.000000000, -0.000000000);
-            bloom_injectionWeights[223] = vec3(0.006017277, 0.005926601, 0.005792219);
-            bloom_injectionOffsets[255] = vec2(4.000000000, -4.000000000);
-            bloom_injectionWeights[255] = vec3(0.000004046, 0.000000000, 0.000000048);
+            bloom_injectionOffsets[6] = vec2(-0.267280836, 4.006443378);
+            bloom_injectionWeights[6] = vec3(0.001067045, 0.001255372, 0.001360799);
             break;
     }
     barrier();
@@ -6062,39 +2977,97 @@ vec3 bloom_injection(vec2 center, vec4 tile) {
     }
     return value;
 }
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999404, 0.124999590, 0.124999382);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 4
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999546, 0.124999695, 0.124999501);
-}
-#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 5
-void bloom_prepareInjection() {}
-vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999620, 0.124999754, 0.124999560);
-}
 #elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 6
-void bloom_prepareInjection() {}
+const int bloom_injectionCount = 5;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.066210970, -0.045886460);
+            bloom_injectionWeights[0] = vec3(0.130727619, 0.130691022, 0.136432469);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(0.959288893, 0.083165544);
+            bloom_injectionWeights[1] = vec3(0.000000006, 0.000000006, 0.000000006);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-1.766434004, -0.279563867);
+            bloom_injectionWeights[2] = vec3(0.000020139, 0.000070450, 0.000215033);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(-0.464910609, -2.923617701);
+            bloom_injectionWeights[3] = vec3(0.001896010, 0.001863442, 0.001829369);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(0.281448286, 2.760806386);
+            bloom_injectionWeights[4] = vec3(0.001528037, 0.001486931, 0.001450997);
+            break;
+    }
+    barrier();
+}
 vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999635, 0.124999776, 0.124999583);
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
 }
 #elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 7
-void bloom_prepareInjection() {}
+const int bloom_injectionCount = 3;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.047447193, 0.062547415);
+            bloom_injectionWeights[0] = vec3(0.119832247, 0.119958252, 0.121112838);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(0.939891553, 0.066335924);
+            bloom_injectionWeights[1] = vec3(0.001227351, 0.001290034, 0.001348698);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-1.853088613, 0.050693464);
+            bloom_injectionWeights[2] = vec3(0.001353790, 0.001345796, 0.001337137);
+            break;
+    }
+    barrier();
+}
 vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999642, 0.124999776, 0.124999583);
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
 }
 #elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 8
-void bloom_prepareInjection() {}
+const int bloom_injectionCount = 2;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(0.009669690, -0.009551556);
+            bloom_injectionWeights[0] = vec3(0.137625486, 0.137291908, 0.137403533);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.957652853, 0.047047626);
+            bloom_injectionWeights[1] = vec3(0.001821001, 0.001783882, 0.001773675);
+            break;
+    }
+    barrier();
+}
 vec3 bloom_injection(vec2 center, vec4 tile) {
-    return bloom_sampleRaw(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.124999627, 0.124999762, 0.124999568);
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
 }
 #endif
 #ifdef BLOOM_FIRST_UPSAMPLE
-const vec3 bloom_deepestWeight = vec3(0.124999605, 0.124999747, 0.124999553);
+const vec3 bloom_deepestWeight = vec3(0.130567193, 0.130243927, 0.130904943);
 #endif
 
 #elif SETTING_BLOOM_SHAPE == 8 // digits-67, fitted candidate
@@ -8019,6 +4992,684 @@ vec3 bloom_injection(vec2 center, vec4 tile) {
 #endif
 #ifdef BLOOM_FIRST_UPSAMPLE
 const vec3 bloom_deepestWeight = vec3(0.125000000, 0.125000000, 0.125000000);
+#endif
+
+#elif SETTING_BLOOM_SHAPE == 11 // user-8, fitted candidate
+// Bloom DPF recipe 96179fa0b507ac72f9ca5eb9101d4cc5de360ba027f1cb259642cc5f3c542c10
+#define BLOOM_DPF_FEATURE_COUNT 3
+#if defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
+vec3 bloom_dpfFeature(vec2 center, vec4 tile, int feature) {
+    vec3 value = vec3(0.0);
+    if (feature == 0) {
+        value += bloom_sample(center + vec2(-2.674114691, -0.000367115), tile) * vec3(0.242005065, 0.230832651, 0.232803926);
+        value += bloom_sample(center + vec2(-0.676444991, -0.000916232), tile) * vec3(0.170559764, 0.192088693, 0.200222075);
+        value += bloom_sample(center + vec2(-0.316494863, -0.000847895), tile) * vec3(0.174891397, 0.152308553, 0.158187628);
+        value += bloom_sample(center + vec2(0.816570332, 0.000115448), tile) * vec3(0.204473376, 0.224733040, 0.221775413);
+        value += bloom_sample(center + vec2(2.694701181, -0.000411133), tile) * vec3(0.208070397, 0.200037077, 0.187010959);
+    }
+    if (feature == 1) {
+        value += bloom_sample(center + vec2(-2.282250898, 1.001491929), tile) * vec3(0.250007063, 0.260345787, 0.265216619);
+        value += bloom_sample(center + vec2(-0.711310880, 0.002921367), tile) * vec3(0.204505831, 0.209071472, 0.230299905);
+        value += bloom_sample(center + vec2(-0.443407622, 0.000246224), tile) * vec3(0.191602468, 0.195133939, 0.201673746);
+        value += bloom_sample(center + vec2(1.101468945, -0.995351442), tile) * vec3(0.212088481, 0.205640569, 0.174105555);
+        value += bloom_sample(center + vec2(1.082462632, -1.004660838), tile) * vec3(0.141796142, 0.129808217, 0.128704175);
+    }
+    if (feature == 2) {
+        value += bloom_sample(center + vec2(-0.487201311, 2.122177786), tile) * vec3(0.776373506, 0.783312201, 0.795386434);
+        value += bloom_sample(center + vec2(0.003041558, 0.742426430), tile) * vec3(0.148745179, 0.134507895, 0.107996367);
+        value += bloom_sample(center + vec2(0.712403041, -0.549943199), tile) * vec3(0.020908227, 0.022647042, 0.035563108);
+        value += bloom_sample(center + vec2(-1.769686729, -1.742024065), tile) * vec3(0.027201753, 0.029512225, 0.033945959);
+        value += bloom_sample(center + vec2(1.826129554, -2.675501856), tile) * vec3(0.026771326, 0.030020637, 0.027108118);
+    }
+    return value;
+}
+#endif
+vec3 bloom_filter(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+#ifdef BLOOM_DOWNSAMPLE
+#if BLOOM_PASS == 1
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.208455712, 0.217311263, 0.204985172);
+    value += bloom_sample(center + vec2(-0.825329452, 0.761006412), tile) * vec3(0.197886065, 0.195672184, 0.198753700);
+    value += bloom_sample(center + vec2(-0.825329452, -0.761006412), tile) * vec3(0.197886065, 0.195672184, 0.198753700);
+    value += bloom_sample(center + vec2(0.825329452, 0.761006412), tile) * vec3(0.197886065, 0.195672184, 0.198753700);
+    value += bloom_sample(center + vec2(0.825329452, -0.761006412), tile) * vec3(0.197886065, 0.195672184, 0.198753700);
+#elif BLOOM_PASS == 2
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.177490056, 0.160089195, 0.131771907);
+    value += bloom_sample(center + vec2(-0.856999421, 0.894154484), tile) * vec3(0.205627486, 0.209977701, 0.217057019);
+    value += bloom_sample(center + vec2(-0.856999421, -0.894154484), tile) * vec3(0.205627486, 0.209977701, 0.217057019);
+    value += bloom_sample(center + vec2(0.856999421, 0.894154484), tile) * vec3(0.205627486, 0.209977701, 0.217057019);
+    value += bloom_sample(center + vec2(0.856999421, -0.894154484), tile) * vec3(0.205627486, 0.209977701, 0.217057019);
+#elif BLOOM_PASS == 3
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.079776675, 0.081986204, 0.096130788);
+    value += bloom_sample(center + vec2(-0.880297756, 1.068145745), tile) * vec3(0.230055839, 0.229503453, 0.225967303);
+    value += bloom_sample(center + vec2(-0.880297756, -1.068145745), tile) * vec3(0.230055839, 0.229503453, 0.225967303);
+    value += bloom_sample(center + vec2(0.880297756, 1.068145745), tile) * vec3(0.230055839, 0.229503453, 0.225967303);
+    value += bloom_sample(center + vec2(0.880297756, -1.068145745), tile) * vec3(0.230055839, 0.229503453, 0.225967303);
+#elif BLOOM_PASS == 4
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.061512828, 0.058748093, 0.062582463);
+    value += bloom_sample(center + vec2(-1.045791175, 1.046878136), tile) * vec3(0.234621793, 0.235312983, 0.234354392);
+    value += bloom_sample(center + vec2(-1.045791175, -1.046878136), tile) * vec3(0.234621793, 0.235312983, 0.234354392);
+    value += bloom_sample(center + vec2(1.045791175, 1.046878136), tile) * vec3(0.234621793, 0.235312983, 0.234354392);
+    value += bloom_sample(center + vec2(1.045791175, -1.046878136), tile) * vec3(0.234621793, 0.235312983, 0.234354392);
+#elif BLOOM_PASS == 5
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.088509664, 0.089381866, 0.095189057);
+    value += bloom_sample(center + vec2(-1.043659859, 0.952973680), tile) * vec3(0.227872580, 0.227654532, 0.226202741);
+    value += bloom_sample(center + vec2(-1.043659859, -0.952973680), tile) * vec3(0.227872580, 0.227654532, 0.226202741);
+    value += bloom_sample(center + vec2(1.043659859, 0.952973680), tile) * vec3(0.227872580, 0.227654532, 0.226202741);
+    value += bloom_sample(center + vec2(1.043659859, -0.952973680), tile) * vec3(0.227872580, 0.227654532, 0.226202741);
+#elif BLOOM_PASS == 6
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.118404925, 0.120079085, 0.120999455);
+    value += bloom_sample(center + vec2(-0.964964140, 0.903688155), tile) * vec3(0.220398769, 0.219980225, 0.219750136);
+    value += bloom_sample(center + vec2(-0.964964140, -0.903688155), tile) * vec3(0.220398769, 0.219980225, 0.219750136);
+    value += bloom_sample(center + vec2(0.964964140, 0.903688155), tile) * vec3(0.220398769, 0.219980225, 0.219750136);
+    value += bloom_sample(center + vec2(0.964964140, -0.903688155), tile) * vec3(0.220398769, 0.219980225, 0.219750136);
+#elif BLOOM_PASS == 7
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.262157738, 0.259164482, 0.254168481);
+    value += bloom_sample(center + vec2(-0.816541067, 0.838312787), tile) * vec3(0.184460565, 0.185208887, 0.186457887);
+    value += bloom_sample(center + vec2(-0.816541067, -0.838312787), tile) * vec3(0.184460565, 0.185208887, 0.186457887);
+    value += bloom_sample(center + vec2(0.816541067, 0.838312787), tile) * vec3(0.184460565, 0.185208887, 0.186457887);
+    value += bloom_sample(center + vec2(0.816541067, -0.838312787), tile) * vec3(0.184460565, 0.185208887, 0.186457887);
+#elif BLOOM_PASS == 8
+    value += bloom_sample(center + vec2(0.000000000, -0.000000000), tile) * vec3(0.215313330, 0.217602834, 0.219500095);
+    value += bloom_sample(center + vec2(-0.863110337, 0.851586746), tile) * vec3(0.196171671, 0.195599288, 0.195124984);
+    value += bloom_sample(center + vec2(-0.863110337, -0.851586746), tile) * vec3(0.196171671, 0.195599288, 0.195124984);
+    value += bloom_sample(center + vec2(0.863110337, 0.851586746), tile) * vec3(0.196171671, 0.195599288, 0.195124984);
+    value += bloom_sample(center + vec2(0.863110337, -0.851586746), tile) * vec3(0.196171671, 0.195599288, 0.195124984);
+#endif
+#else
+#if BLOOM_PASS == 1
+    value += bloom_sample(center + vec2(-0.003677123, 0.001406708), tile) * vec3(0.813657761, 0.878969431, 0.894172907);
+    value += bloom_sample(center + vec2(-0.891308289, 0.034091664), tile) * vec3(0.014298291, 0.009097276, 0.008043284);
+    value += bloom_sample(center + vec2(0.774940054, -0.026669918), tile) * vec3(0.016015351, 0.008649054, 0.007044937);
+    value += bloom_sample(center + vec2(-0.071837449, 0.225141934), tile) * vec3(0.006558873, 0.004329871, 0.004809991);
+    value += bloom_sample(center + vec2(-0.514009609, -0.110337878), tile) * vec3(0.039214656, 0.027302708, 0.022540223);
+    value += bloom_sample(center + vec2(-0.525578842, 0.102758490), tile) * vec3(0.038997229, 0.026543397, 0.022378126);
+    value += bloom_sample(center + vec2(0.606501862, -0.182938118), tile) * vec3(0.036725529, 0.023911720, 0.022215789);
+    value += bloom_sample(center + vec2(0.563944849, 0.125037320), tile) * vec3(0.034532323, 0.021196559, 0.018794717);
+#elif BLOOM_PASS == 2
+    value += bloom_sample(center + vec2(-0.919327604, 0.053231848), tile) * vec3(0.062429555, 0.063318253, 0.060169920);
+    value += bloom_sample(center + vec2(1.012178185, -0.037526179), tile) * vec3(0.062517680, 0.063409314, 0.056296289);
+    value += bloom_sample(center + vec2(-0.128331299, -1.059614458), tile) * vec3(0.059738066, 0.059153892, 0.059682727);
+    value += bloom_sample(center + vec2(0.042081445, 1.064500516), tile) * vec3(0.063466974, 0.062449675, 0.061347686);
+    value += bloom_sample(center + vec2(-0.431396368, -0.366916196), tile) * vec3(0.194364220, 0.189918503, 0.176956922);
+    value += bloom_sample(center + vec2(-0.410030067, 0.338666726), tile) * vec3(0.183331445, 0.181985915, 0.198066175);
+    value += bloom_sample(center + vec2(0.381610800, -0.343589245), tile) * vec3(0.178731501, 0.180930048, 0.195875376);
+    value += bloom_sample(center + vec2(0.404312362, 0.405351005), tile) * vec3(0.195420563, 0.198834404, 0.191604912);
+#elif BLOOM_PASS == 3
+    value += bloom_sample(center + vec2(-1.121891461, -0.128559323), tile) * vec3(0.060483735, 0.059877872, 0.061323307);
+    value += bloom_sample(center + vec2(1.197555088, 0.168519535), tile) * vec3(0.064310275, 0.064393319, 0.064209707);
+    value += bloom_sample(center + vec2(-0.096191386, -1.279567355), tile) * vec3(0.070039548, 0.070016399, 0.068465725);
+    value += bloom_sample(center + vec2(0.094133900, 1.349503928), tile) * vec3(0.075489365, 0.074332751, 0.072471432);
+    value += bloom_sample(center + vec2(-0.449193758, -0.504001088), tile) * vec3(0.189382881, 0.187838361, 0.185971409);
+    value += bloom_sample(center + vec2(-0.326488098, 0.494721953), tile) * vec3(0.164590284, 0.167527124, 0.162845448);
+    value += bloom_sample(center + vec2(0.381382792, -0.426739309), tile) * vec3(0.179437786, 0.180101544, 0.187898085);
+    value += bloom_sample(center + vec2(0.443618661, 0.534539266), tile) * vec3(0.196266130, 0.195912629, 0.196814895);
+#elif BLOOM_PASS == 4
+    value += bloom_sample(center + vec2(-1.195494576, -0.083779102), tile) * vec3(0.063240491, 0.063505657, 0.061666071);
+    value += bloom_sample(center + vec2(1.342307473, -0.006246930), tile) * vec3(0.066971928, 0.067755438, 0.067128465);
+    value += bloom_sample(center + vec2(-0.026754172, -1.261849528), tile) * vec3(0.067450143, 0.067529090, 0.066562742);
+    value += bloom_sample(center + vec2(0.114261460, 1.221567046), tile) * vec3(0.065558702, 0.065433092, 0.064481750);
+    value += bloom_sample(center + vec2(-0.437057384, -0.461427734), tile) * vec3(0.191362008, 0.189548254, 0.193626627);
+    value += bloom_sample(center + vec2(-0.383494292, 0.424809388), tile) * vec3(0.156267583, 0.155541599, 0.158367977);
+    value += bloom_sample(center + vec2(0.439842704, -0.437506511), tile) * vec3(0.190218329, 0.190920234, 0.189308554);
+    value += bloom_sample(center + vec2(0.499665643, 0.440709194), tile) * vec3(0.198930815, 0.199766621, 0.198857814);
+#elif BLOOM_PASS == 5
+    value += bloom_sample(center + vec2(-1.214771919, -0.058418753), tile) * vec3(0.064203374, 0.063551374, 0.063555427);
+    value += bloom_sample(center + vec2(1.352454466, -0.034127539), tile) * vec3(0.071553297, 0.071239784, 0.072830379);
+    value += bloom_sample(center + vec2(0.025661666, -1.406556863), tile) * vec3(0.070002384, 0.068887562, 0.070305087);
+    value += bloom_sample(center + vec2(0.048564034, 1.209643374), tile) * vec3(0.064359516, 0.063296519, 0.064500399);
+    value += bloom_sample(center + vec2(-0.457768552, -0.495507744), tile) * vec3(0.195551813, 0.203666538, 0.195401460);
+    value += bloom_sample(center + vec2(-0.425680800, 0.436580645), tile) * vec3(0.154013619, 0.151894152, 0.153238282);
+    value += bloom_sample(center + vec2(0.520076859, -0.488299976), tile) * vec3(0.198812187, 0.197074503, 0.194240198);
+    value += bloom_sample(center + vec2(0.565440992, 0.425243841), tile) * vec3(0.181503832, 0.180389583, 0.185928777);
+#elif BLOOM_PASS == 6
+    value += bloom_sample(center + vec2(-1.199931051, 0.000404769), tile) * vec3(0.064012147, 0.064526752, 0.062168993);
+    value += bloom_sample(center + vec2(1.234218262, -0.041359160), tile) * vec3(0.068176694, 0.069019035, 0.068273075);
+    value += bloom_sample(center + vec2(-0.038545637, -1.416456088), tile) * vec3(0.076682433, 0.076336272, 0.075665675);
+    value += bloom_sample(center + vec2(0.000110984, 1.214943042), tile) * vec3(0.066533610, 0.065924965, 0.064560167);
+    value += bloom_sample(center + vec2(-0.474587596, -0.538621813), tile) * vec3(0.188871011, 0.188351259, 0.193616107);
+    value += bloom_sample(center + vec2(-0.435374793, 0.466423632), tile) * vec3(0.157497823, 0.157234192, 0.159857586);
+    value += bloom_sample(center + vec2(0.494428521, -0.519280132), tile) * vec3(0.197535604, 0.197804600, 0.196896866);
+    value += bloom_sample(center + vec2(0.519159859, 0.432438232), tile) * vec3(0.180690676, 0.180802926, 0.178961530);
+#elif BLOOM_PASS == 7
+    value += bloom_sample(center + vec2(-1.320701474, 0.074938765), tile) * vec3(0.071161076, 0.070516557, 0.071668230);
+    value += bloom_sample(center + vec2(1.284948445, 0.034766591), tile) * vec3(0.069033854, 0.068176657, 0.067596257);
+    value += bloom_sample(center + vec2(-0.031321909, -1.269283940), tile) * vec3(0.065795034, 0.066181883, 0.065854028);
+    value += bloom_sample(center + vec2(-0.058532750, 1.368505531), tile) * vec3(0.073082738, 0.073309742, 0.074005902);
+    value += bloom_sample(center + vec2(-0.500332839, -0.467095307), tile) * vec3(0.179386511, 0.177786767, 0.175764248);
+    value += bloom_sample(center + vec2(-0.530289645, 0.554043335), tile) * vec3(0.177294463, 0.178042918, 0.176659957);
+    value += bloom_sample(center + vec2(0.464347917, -0.470768789), tile) * vec3(0.185274988, 0.185890526, 0.187586248);
+    value += bloom_sample(center + vec2(0.508189428, 0.498759371), tile) * vec3(0.178971335, 0.180094957, 0.180865124);
+#elif BLOOM_PASS == 8
+    value += bloom_sample(center + vec2(-1.048868586, -0.001393881), tile) * vec3(0.074344262, 0.074380711, 0.070146888);
+    value += bloom_sample(center + vec2(1.152214168, 0.053245106), tile) * vec3(0.069256030, 0.068928860, 0.069210976);
+    value += bloom_sample(center + vec2(-0.043025452, -1.288911734), tile) * vec3(0.063706942, 0.063671343, 0.060609099);
+    value += bloom_sample(center + vec2(-0.009180857, 1.012570214), tile) * vec3(0.071948245, 0.071821213, 0.072448298);
+    value += bloom_sample(center + vec2(-0.501326284, -0.383377946), tile) * vec3(0.193354622, 0.193805769, 0.202241227);
+    value += bloom_sample(center + vec2(-0.458724700, 0.492325842), tile) * vec3(0.178705886, 0.177932456, 0.177594334);
+    value += bloom_sample(center + vec2(0.456072904, -0.460933495), tile) * vec3(0.179262012, 0.179919988, 0.180870384);
+    value += bloom_sample(center + vec2(0.459583300, 0.517204543), tile) * vec3(0.169422001, 0.169539645, 0.166878805);
+#endif
+#endif
+    return value;
+}
+
+#if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2
+const int bloom_injectionCount = 74;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(0.130802535, 0.935805853);
+            bloom_injectionWeights[0] = vec3(0.063458726, 0.062066216, 0.060426097);
+            bloom_injectionOffsets[32] = vec2(-30.322689099, 0.000802099);
+            bloom_injectionWeights[32] = vec3(0.036364809, 0.053336468, 0.030710474);
+            bloom_injectionOffsets[64] = vec2(-15.955329288, 26.402652841);
+            bloom_injectionWeights[64] = vec3(0.001707184, 0.001257187, 0.000940348);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-3.471047542, -0.090987363);
+            bloom_injectionWeights[1] = vec3(0.015683703, 0.016646843, 0.017891634);
+            bloom_injectionOffsets[33] = vec2(-25.643104237, 0.001793045);
+            bloom_injectionWeights[33] = vec3(0.048483964, 0.057422902, 0.051005140);
+            bloom_injectionOffsets[65] = vec2(-10.986384954, 17.753765557);
+            bloom_injectionWeights[65] = vec3(0.006264692, 0.004178613, 0.003611092);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(2.537646468, 5.316509697);
+            bloom_injectionWeights[2] = vec3(0.009386906, 0.011185030, 0.010711398);
+            bloom_injectionOffsets[34] = vec2(-20.659554472, -0.002367992);
+            bloom_injectionWeights[34] = vec3(0.063740782, 0.063984007, 0.088535078);
+            bloom_injectionOffsets[66] = vec2(-8.001836465, 12.611563586);
+            bloom_injectionWeights[66] = vec3(0.005342465, 0.006219208, 0.005065948);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(6.002039032, 10.406806655);
+            bloom_injectionWeights[3] = vec3(0.006947678, 0.007090467, 0.008645981);
+            bloom_injectionOffsets[35] = vec2(-15.497620409, -0.004541688);
+            bloom_injectionWeights[35] = vec3(0.079843618, 0.078981303, 0.087552220);
+            bloom_injectionOffsets[67] = vec2(-6.000116081, 8.854215138);
+            bloom_injectionWeights[67] = vec3(0.007643942, 0.007921292, 0.009092687);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(-0.459368439, -5.495893140);
+            bloom_injectionWeights[4] = vec3(0.008086285, 0.009090940, 0.008208169);
+            bloom_injectionOffsets[36] = vec2(-10.356120823, 0.013780344);
+            bloom_injectionWeights[36] = vec3(0.085636109, 0.089336321, 0.089852490);
+            bloom_injectionOffsets[68] = vec2(-2.651986767, 5.126790388);
+            bloom_injectionWeights[68] = vec3(0.006519294, 0.007057600, 0.007111828);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(-5.800369852, -9.777032281);
+            bloom_injectionWeights[5] = vec3(0.006619237, 0.006662175, 0.008110716);
+            bloom_injectionOffsets[37] = vec2(-5.533116308, -0.000387844);
+            bloom_injectionWeights[37] = vec3(0.078752056, 0.084806785, 0.093403868);
+            bloom_injectionOffsets[69] = vec2(0.419401731, -2.259916382);
+            bloom_injectionWeights[69] = vec3(0.391155332, 0.401207060, 0.410799205);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(-5.608357401, -3.224213357);
+            bloom_injectionWeights[6] = vec3(0.007069044, 0.007304086, 0.008790040);
+            bloom_injectionOffsets[38] = vec2(4.400093162, 0.006375998);
+            bloom_injectionWeights[38] = vec3(0.085407220, 0.091714315, 0.097880833);
+            bloom_injectionOffsets[70] = vec2(4.984519742, -8.884687239);
+            bloom_injectionWeights[70] = vec3(0.006914834, 0.007434609, 0.008312501);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(5.430609795, 3.239429448);
+            bloom_injectionWeights[7] = vec3(0.008539144, 0.008786675, 0.010466130);
+            bloom_injectionOffsets[39] = vec2(9.465986893, -0.008748713);
+            bloom_injectionWeights[39] = vec3(0.087986760, 0.092145689, 0.098332353);
+            bloom_injectionOffsets[71] = vec2(7.984483817, -14.864397398);
+            bloom_injectionWeights[71] = vec3(0.007213761, 0.007954857, 0.007911583);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(2.545804570, -0.199462225);
+            bloom_injectionWeights[8] = vec3(0.003347846, 0.003322162, 0.003340138);
+            bloom_injectionOffsets[40] = vec2(14.742481053, -0.001682765);
+            bloom_injectionWeights[40] = vec3(0.081107579, 0.084144726, 0.090362869);
+            bloom_injectionOffsets[72] = vec2(9.993111232, -18.488645628);
+            bloom_injectionWeights[72] = vec3(0.007158330, 0.006311656, 0.004775242);
+            break;
+        case 9u:
+            bloom_injectionOffsets[9] = vec2(9.831775279, 16.831697462);
+            bloom_injectionWeights[9] = vec3(0.005536996, 0.005961435, 0.004374032);
+            bloom_injectionOffsets[41] = vec2(20.218240765, -0.002021044);
+            bloom_injectionWeights[41] = vec3(0.068385653, 0.068262368, 0.093144007);
+            bloom_injectionOffsets[73] = vec2(15.000173207, -27.239085191);
+            bloom_injectionWeights[73] = vec3(0.002412543, 0.001816806, 0.001369121);
+            break;
+        case 10u:
+            bloom_injectionOffsets[10] = vec2(16.169362686, 28.179333550);
+            bloom_injectionWeights[10] = vec3(0.001126277, 0.000818041, 0.000582947);
+            bloom_injectionOffsets[42] = vec2(25.383043599, -0.002333425);
+            bloom_injectionWeights[42] = vec3(0.053514145, 0.062056154, 0.060911894);
+            break;
+        case 11u:
+            bloom_injectionOffsets[11] = vec2(-10.698638917, -18.486088056);
+            bloom_injectionWeights[11] = vec3(0.005744722, 0.004436349, 0.003558309);
+            bloom_injectionOffsets[43] = vec2(30.321087769, 0.001040401);
+            bloom_injectionWeights[43] = vec3(0.037098750, 0.056858689, 0.033094455);
+            break;
+        case 12u:
+            bloom_injectionOffsets[12] = vec2(-15.887647794, -27.490095608);
+            bloom_injectionWeights[12] = vec3(0.001495262, 0.001082833, 0.000786403);
+            bloom_injectionOffsets[44] = vec2(34.843201950, -0.000108879);
+            bloom_injectionWeights[44] = vec3(0.039882202, 0.029900026, 0.021303009);
+            break;
+        case 13u:
+            bloom_injectionOffsets[13] = vec2(0.021693801, 15.377557494);
+            bloom_injectionWeights[13] = vec3(0.003643437, 0.002951803, 0.002562164);
+            bloom_injectionOffsets[45] = vec2(39.647972657, -0.000865541);
+            bloom_injectionWeights[45] = vec3(0.041215532, 0.019078750, 0.015444115);
+            break;
+        case 14u:
+            bloom_injectionOffsets[14] = vec2(-0.008741111, -11.474133414);
+            bloom_injectionWeights[14] = vec3(0.006944959, 0.006624095, 0.004689765);
+            bloom_injectionOffsets[46] = vec2(44.548172746, 0.000940495);
+            bloom_injectionWeights[46] = vec3(0.016139723, 0.011066324, 0.008694430);
+            break;
+        case 15u:
+            bloom_injectionOffsets[15] = vec2(0.071027840, -19.374257232);
+            bloom_injectionWeights[15] = vec3(0.001328924, 0.001024017, 0.000757597);
+            bloom_injectionOffsets[47] = vec2(49.572967775, 0.003647326);
+            bloom_injectionWeights[47] = vec3(0.009075599, 0.007424507, 0.006169594);
+            break;
+        case 16u:
+            bloom_injectionOffsets[16] = vec2(-12.236021940, -6.882493432);
+            bloom_injectionWeights[16] = vec3(0.003198016, 0.002569806, 0.002170136);
+            bloom_injectionOffsets[48] = vec2(53.891133656, -0.007659743);
+            bloom_injectionWeights[48] = vec3(0.003997329, 0.002785084, 0.001868701);
+            break;
+        case 17u:
+            bloom_injectionOffsets[17] = vec2(10.390831405, 5.996557985);
+            bloom_injectionWeights[17] = vec3(0.002607181, 0.002712644, 0.002426420);
+            bloom_injectionOffsets[49] = vec2(58.523162747, 0.000483800);
+            bloom_injectionWeights[49] = vec3(0.005743941, 0.004430480, 0.003032792);
+            break;
+        case 18u:
+            bloom_injectionOffsets[18] = vec2(16.304452038, 9.352465998);
+            bloom_injectionWeights[18] = vec3(0.000984015, 0.000720773, 0.000540644);
+            bloom_injectionOffsets[50] = vec2(65.302186438, -0.001529095);
+            bloom_injectionWeights[50] = vec3(0.003673656, 0.002378281, 0.001392924);
+            break;
+        case 19u:
+            bloom_injectionOffsets[19] = vec2(-94.659439228, -0.001539905);
+            bloom_injectionWeights[19] = vec3(0.000113114, 0.000045554, 0.000015413);
+            bloom_injectionOffsets[51] = vec2(70.649282199, -0.002610402);
+            bloom_injectionWeights[51] = vec3(0.001109299, 0.000625872, 0.000389134);
+            break;
+        case 20u:
+            bloom_injectionOffsets[20] = vec2(-89.580960730, -0.003309967);
+            bloom_injectionWeights[20] = vec3(0.000128641, 0.000057753, 0.000017601);
+            bloom_injectionOffsets[52] = vec2(74.269375521, 0.036563662);
+            bloom_injectionWeights[52] = vec3(0.001109995, 0.000664760, 0.000338393);
+            break;
+        case 21u:
+            bloom_injectionOffsets[21] = vec2(-85.170179306, -0.015763040);
+            bloom_injectionWeights[21] = vec3(0.000334790, 0.000160555, 0.000065039);
+            bloom_injectionOffsets[53] = vec2(79.722898456, -0.002255365);
+            bloom_injectionWeights[53] = vec3(0.000741065, 0.000396475, 0.000181013);
+            break;
+        case 22u:
+            bloom_injectionOffsets[22] = vec2(-79.660346628, 0.008821100);
+            bloom_injectionWeights[22] = vec3(0.000690414, 0.000370274, 0.000165027);
+            bloom_injectionOffsets[54] = vec2(85.349293904, -0.007162116);
+            bloom_injectionWeights[54] = vec3(0.000327743, 0.000158453, 0.000064456);
+            break;
+        case 23u:
+            bloom_injectionOffsets[23] = vec2(-74.407383389, 0.009162947);
+            bloom_injectionWeights[23] = vec3(0.001192622, 0.000709612, 0.000352163);
+            bloom_injectionOffsets[55] = vec2(90.780818334, 0.006578734);
+            bloom_injectionWeights[55] = vec3(0.000174999, 0.000074635, 0.000027756);
+            break;
+        case 24u:
+            bloom_injectionOffsets[24] = vec2(-70.451535602, 0.001361576);
+            bloom_injectionWeights[24] = vec3(0.000960227, 0.000589401, 0.000363034);
+            bloom_injectionOffsets[56] = vec2(97.352472800, -0.010799201);
+            bloom_injectionWeights[56] = vec3(0.000085589, 0.000033138, 0.000009558);
+            break;
+        case 25u:
+            bloom_injectionOffsets[25] = vec2(-65.472247147, -0.001508296);
+            bloom_injectionWeights[25] = vec3(0.003343216, 0.002103115, 0.001207143);
+            bloom_injectionOffsets[57] = vec2(-18.253555626, 10.976906782);
+            bloom_injectionWeights[57] = vec3(0.001116363, 0.000738351, 0.000339337);
+            break;
+        case 26u:
+            bloom_injectionOffsets[26] = vec2(-59.352967253, -0.000314183);
+            bloom_injectionWeights[26] = vec3(0.005418882, 0.003991666, 0.002579116);
+            bloom_injectionOffsets[58] = vec2(-13.006592775, 7.908600203);
+            bloom_injectionWeights[58] = vec3(0.006076155, 0.004724916, 0.003481349);
+            break;
+        case 27u:
+            bloom_injectionOffsets[27] = vec2(-53.360726325, -0.002132530);
+            bloom_injectionWeights[27] = vec3(0.006929934, 0.005494246, 0.004085332);
+            bloom_injectionOffsets[59] = vec2(-7.998603487, 5.011573792);
+            bloom_injectionWeights[59] = vec3(0.012059715, 0.012765205, 0.010169925);
+            break;
+        case 28u:
+            bloom_injectionOffsets[28] = vec2(-47.844053639, 0.001424911);
+            bloom_injectionWeights[28] = vec3(0.010152057, 0.008297756, 0.006527025);
+            bloom_injectionOffsets[60] = vec2(-4.915458538, 3.005275534);
+            bloom_injectionWeights[60] = vec3(0.020530136, 0.021019522, 0.021000050);
+            break;
+        case 29u:
+            bloom_injectionOffsets[29] = vec2(-42.962888751, -0.000483868);
+            bloom_injectionWeights[29] = vec3(0.019815408, 0.012490257, 0.009815504);
+            bloom_injectionOffsets[61] = vec2(5.876343549, -3.003490042);
+            bloom_injectionWeights[61] = vec3(0.024723632, 0.026704757, 0.025673237);
+            break;
+        case 30u:
+            bloom_injectionOffsets[30] = vec2(-38.693107393, -0.000358457);
+            bloom_injectionWeights[30] = vec3(0.037937019, 0.016403334, 0.013348565);
+            bloom_injectionOffsets[62] = vec2(10.995624295, -5.997150615);
+            bloom_injectionWeights[62] = vec3(0.010466055, 0.008075937, 0.007208326);
+            break;
+        case 31u:
+            bloom_injectionOffsets[31] = vec2(-34.565129273, 0.000586525);
+            bloom_injectionWeights[31] = vec3(0.035708841, 0.028720710, 0.020138890);
+            bloom_injectionOffsets[63] = vec2(16.104122898, -8.987360686);
+            bloom_injectionWeights[63] = vec3(0.002565735, 0.001922038, 0.001505603);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    if (all(greaterThanEqual(center + vec2(-94.659439228, -27.490095608), vec2(0.5))) &&
+        all(lessThanEqual(center + vec2(97.352472800, 28.179333550), tile.zw - 0.5))) {
+        for (int i = 0; i < 19; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += transient_bloomRaw_sample((tile.xy + pos) * uval_mainImageSizeRcp).rgb * bloom_injectionWeights[i];
+        }
+        for (int i = 19; i < 57; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 0) * bloom_injectionWeights[i];
+        }
+        for (int i = 57; i < 64; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 1) * bloom_injectionWeights[i];
+        }
+        for (int i = 64; i < 74; ++i) {
+            vec2 pos = center + bloom_injectionOffsets[i];
+            value += bloom_featureSample(pos * uval_mainImageSizeRcp, 2) * bloom_injectionWeights[i];
+        }
+        return value;
+    }
+    for (int i = 0; i < 19; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_sampleRaw(pos, tile) * bloom_injectionWeights[i];
+    }
+    for (int i = 19; i < 57; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 0) * bloom_injectionWeights[i];
+    }
+    for (int i = 57; i < 64; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 1) * bloom_injectionWeights[i];
+    }
+    for (int i = 64; i < 74; ++i) {
+        vec2 pos = center + bloom_injectionOffsets[i];
+        value += bloom_featureSampleEdge(pos, tile.zw, 2) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 3
+const int bloom_injectionCount = 13;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.003238771, 0.071473745);
+            bloom_injectionWeights[0] = vec3(1.144110322, 1.154330015, 1.168028235);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.858257147, -0.851312952);
+            bloom_injectionWeights[1] = vec3(0.000078979, 0.000024402, 0.000000004);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-9.865972103, 0.257231115);
+            bloom_injectionWeights[2] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(9.884694852, 0.209150752);
+            bloom_injectionWeights[3] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(14.897043543, 0.288812107);
+            bloom_injectionWeights[4] = vec3(0.000000003, 0.000000003, 0.000000003);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(-14.879334742, 0.254549875);
+            bloom_injectionWeights[5] = vec3(0.000000003, 0.000000003, 0.000000003);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(-6.970009466, 0.198511975);
+            bloom_injectionWeights[6] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(6.967033654, 0.063680406);
+            bloom_injectionWeights[7] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(19.052624325, 0.332883471);
+            bloom_injectionWeights[8] = vec3(0.000000003, 0.000000003, 0.000000003);
+            break;
+        case 9u:
+            bloom_injectionOffsets[9] = vec2(-19.094722410, 0.266502948);
+            bloom_injectionWeights[9] = vec3(0.000000003, 0.000000003, 0.000000003);
+            break;
+        case 10u:
+            bloom_injectionOffsets[10] = vec2(3.954517924, 0.190396030);
+            bloom_injectionWeights[10] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 11u:
+            bloom_injectionOffsets[11] = vec2(-3.937562897, -0.128052021);
+            bloom_injectionWeights[11] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 12u:
+            bloom_injectionOffsets[12] = vec2(22.122780138, 0.339085491);
+            bloom_injectionWeights[12] = vec3(0.000000003, 0.000000003, 0.000000003);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 4
+const int bloom_injectionCount = 9;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.004791250, -0.365221841);
+            bloom_injectionWeights[0] = vec3(0.156469673, 0.150402084, 0.149382874);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-4.931009378, -0.077257377);
+            bloom_injectionWeights[1] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(5.006368792, -0.189685759);
+            bloom_injectionWeights[2] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(-0.967129504, -0.052504188);
+            bloom_injectionWeights[3] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(7.949357263, -0.470272131);
+            bloom_injectionWeights[4] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(-7.901304294, -0.252909883);
+            bloom_injectionWeights[5] = vec3(0.000000004, 0.000000003, 0.000000004);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(1.928946787, 0.126656637);
+            bloom_injectionWeights[6] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 7u:
+            bloom_injectionOffsets[7] = vec2(11.100755872, -0.427675149);
+            bloom_injectionWeights[7] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 8u:
+            bloom_injectionOffsets[8] = vec2(-11.158450630, -0.340161235);
+            bloom_injectionWeights[8] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 5
+const int bloom_injectionCount = 7;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.015507443, 0.082226190);
+            bloom_injectionWeights[0] = vec3(0.126918867, 0.123725921, 0.121431075);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(2.150787618, -0.133180771);
+            bloom_injectionWeights[1] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-1.998535644, -0.076061658);
+            bloom_injectionWeights[2] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(-5.110751284, -0.185657935);
+            bloom_injectionWeights[3] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(5.000687467, -0.338960496);
+            bloom_injectionWeights[4] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 5u:
+            bloom_injectionOffsets[5] = vec2(0.011241392, -2.351798368);
+            bloom_injectionWeights[5] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 6u:
+            bloom_injectionOffsets[6] = vec2(0.000922176, 2.212299262);
+            bloom_injectionWeights[6] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 6
+const int bloom_injectionCount = 5;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.116777008, 0.105614964);
+            bloom_injectionWeights[0] = vec3(0.134938940, 0.136668473, 0.136763811);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(1.623393203, 0.225562562);
+            bloom_injectionWeights[1] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-1.753624045, -0.747681244);
+            bloom_injectionWeights[2] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 3u:
+            bloom_injectionOffsets[3] = vec2(4.202634289, -0.993559196);
+            bloom_injectionWeights[3] = vec3(0.000000004, 0.000000005, 0.000000006);
+            break;
+        case 4u:
+            bloom_injectionOffsets[4] = vec2(0.510685941, -3.754323287);
+            bloom_injectionWeights[4] = vec3(0.000241746, 0.000250838, 0.000260266);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 7
+const int bloom_injectionCount = 3;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.138333574, 0.160575825);
+            bloom_injectionWeights[0] = vec3(0.093991406, 0.095116712, 0.095753446);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(0.924936420, -0.353099582);
+            bloom_injectionWeights[1] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+        case 2u:
+            bloom_injectionOffsets[2] = vec2(-2.095820376, -0.341929953);
+            bloom_injectionWeights[2] = vec3(0.000000004, 0.000000004, 0.000000004);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#elif !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 8
+const int bloom_injectionCount = 2;
+shared vec2 bloom_injectionOffsets[bloom_injectionCount];
+shared vec3 bloom_injectionWeights[bloom_injectionCount];
+void bloom_prepareInjection() {
+    switch (gl_LocalInvocationIndex) {
+        case 0u:
+            bloom_injectionOffsets[0] = vec2(-0.010096721, 0.003777375);
+            bloom_injectionWeights[0] = vec3(0.118472613, 0.118406974, 0.117606401);
+            break;
+        case 1u:
+            bloom_injectionOffsets[1] = vec2(-0.796270102, 0.158603292);
+            bloom_injectionWeights[1] = vec3(0.000000003, 0.000000003, 0.000000003);
+            break;
+    }
+    barrier();
+}
+vec3 bloom_injection(vec2 center, vec4 tile) {
+    vec3 value = vec3(0.0);
+    for (int i = 0; i < bloom_injectionCount; ++i) {
+        value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];
+    }
+    return value;
+}
+#endif
+#ifdef BLOOM_FIRST_UPSAMPLE
+const vec3 bloom_deepestWeight = vec3(0.121736400, 0.122108571, 0.121887133);
 #endif
 
 #endif

@@ -3,7 +3,8 @@
 
 #include "/Base.glsl"
 
-#if defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 1 && SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0
+#if (defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 1) || defined(BLOOM_FINAL_RECONSTRUCTION)
+#if SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0
 #include "/util/AgxInvertible.glsl"
 #if SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE == 1
 #include "/util/Colors.glsl"
@@ -39,6 +40,15 @@ vec3 bloom_compressHighlights(vec3 color) {
 }
 #endif
 
+vec3 bloom_sampleInput(vec2 uv) {
+    vec3 value = max(texture(usam_main, uv).rgb, 0.0);
+    #if SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0
+    value = bloom_compressHighlights(value);
+    #endif
+    return value;
+}
+#endif
+
 vec3 bloom_sample(vec2 pos, vec4 tile) {
     // Clamp inside the input mip before converting to atlas coordinates.
     vec2 texel = tile.xy + clamp(pos, vec2(0.5), tile.zw - 0.5);
@@ -48,10 +58,7 @@ vec3 bloom_sample(vec2 pos, vec4 tile) {
     vec2 coverage = clamp(min(pos, tile.zw - pos) + 0.5, 0.0, 1.0);
     #endif
     #if defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 1
-    vec3 value = max(texture(usam_main, uv).rgb, 0.0);
-    #if SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0
-    value = bloom_compressHighlights(value);
-    #endif
+    vec3 value = bloom_sampleInput(uv);
     #else
     #if defined(BLOOM_DOWNSAMPLE) || defined(BLOOM_FIRST_UPSAMPLE)
     vec3 value = transient_bloomRaw_sample(uv).rgb;
@@ -65,11 +72,37 @@ vec3 bloom_sample(vec2 pos, vec4 tile) {
     return value;
 }
 
-#if !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS > 1
+#if !defined(BLOOM_DOWNSAMPLE) && (BLOOM_PASS > 1 || defined(BLOOM_FINAL_RECONSTRUCTION))
 vec3 bloom_sampleRaw(vec2 pos, vec4 tile) {
     vec2 texel = tile.xy + clamp(pos, vec2(0.5), tile.zw - 0.5);
     vec2 coverage = clamp(min(pos, tile.zw - pos) + 0.5, 0.0, 1.0);
-    return transient_bloomRaw_sample(texel * uval_mainImageSizeRcp).rgb * (coverage.x * coverage.y);
+    vec2 uv = texel * uval_mainImageSizeRcp;
+    #ifdef BLOOM_FINAL_RECONSTRUCTION
+    vec3 value = bloom_sampleInput(uv);
+    #else
+    vec3 value = transient_bloomRaw_sample(uv).rgb;
+    #endif
+    return value * (coverage.x * coverage.y);
+}
+#endif
+
+#define BLOOM_DPF_RUNTIME_D0 1
+#define BLOOM_DPF_RUNTIME_CARRIER_LEVELS 1
+#define BLOOM_DPF_RUNTIME_MAX_CARRIERS 6
+#if !defined(BLOOM_DOWNSAMPLE) && (BLOOM_PASS == 2 || BLOOM_PASS == 3)
+vec3 bloom_featureSample(vec2 uv, int feature) {
+    if (feature == 0) return transient_gi_blurDiff2_sample(uv).rgb;
+    if (feature == 1) return transient_gi_blurSpec2_sample(uv).rgb;
+    if (feature == 2) return transient_gi_diffShadingOutput_sample(uv).rgb;
+    if (feature == 3) return transient_gi3Reprojected_sample(uv).rgb;
+    if (feature == 4) return transient_gi_specShadingOutput_sample(uv).rgb;
+    return transient_gi_blurSpec1_sample(uv).rgb;
+}
+
+vec3 bloom_featureSampleEdge(vec2 pos, vec2 size, int feature) {
+    vec2 texel = clamp(pos, vec2(0.5), size - 0.5);
+    vec2 coverage = max(1.0 - abs(pos - texel), 0.0);
+    return bloom_featureSample(texel * uval_mainImageSizeRcp, feature) * (coverage.x * coverage.y);
 }
 #endif
 

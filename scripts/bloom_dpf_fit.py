@@ -15,8 +15,9 @@ from scipy.sparse import csr_matrix, kron, vstack
 
 from bloom_dpf_model import LEVELS, Cascade, Filter, axis_filter, downsample, impulse, reference_taps
 from bloom_dpf_target import (
-    LOBE_REFERENCE_AREA, PRESETS, Recipe, lobe_channels, lobe_extent, lobe_fit_geometry,
-    lobe_longitudinal, preset_seed_taps, reference_shape_tables, reference_tail, resize_mass, target_components,
+    BUILTIN_PRESETS, LOBE_REFERENCE_AREA, RasterTarget, Recipe, lobe_channels, lobe_extent, lobe_fit_geometry,
+    lobe_longitudinal, lobe_response, bitmap_seed_taps, reference_shape_tables, reference_tail, resize_mass,
+    target_components,
 )
 
 
@@ -50,7 +51,7 @@ def stage_offsets(signal, budget):
 
 
 def target_mass(recipe, complete):
-    if recipe.lobes is not None:
+    if isinstance(recipe, RasterTarget) or recipe.lobes is not None:
         return complete.sum(axis=(1,2),dtype=np.float64)
     shape_gain = reference_shape_tables()[recipe.preset][0] if recipe.preset != "standard" else 0.
     return recipe.tail_gain + recipe.core_gain + recipe.shape_gain * shape_gain
@@ -191,6 +192,36 @@ class SparseInjection:
 
 
 # Offsets and RGB weights must fit in the minimum OpenGL compute shared memory.
+class FullResolutionInjection:
+    """Native texel taps of the unit impulse in the fine and pooled readouts."""
+    def __init__(self, offsets, side, phases, radius, pool):
+        coordinates = -offsets
+        self.fine = np.max(np.abs(coordinates),axis=1) <= radius
+        self.x,self.y = (coordinates[self.fine]+radius).T
+        self.pooled = [(coordinates+side//2+phase)//pool for phase in phases]
+        self.area = pool**2
+
+    def add(self, weights, image, pooled, regions):
+        fine = weights[self.fine].T
+        coarse = weights/self.area
+        for i,(region,coordinates) in enumerate(zip(regions,self.pooled,strict=True)):
+            image[region][:,self.y,self.x] += fine
+            x,y = coordinates.T
+            np.add.at(pooled[i].transpose(1,2,0),(y,x),coarse)
+
+    def gradient(self, image, pooled, regions):
+        result = np.zeros((len(self.fine),3),dtype=np.float64)
+        for i,(region,coordinates) in enumerate(zip(regions,self.pooled,strict=True)):
+            result[self.fine] += image[region][:,self.y,self.x].T
+            x,y = coordinates.T
+            result += pooled[i][:,y,x].T/self.area
+        return result
+
+    def outer_mass(self, weights, masks):
+        return np.mean([weights[mask[xy[:,1],xy[:,0]]].sum(axis=0,dtype=np.float64)
+                        for xy,mask in zip(self.pooled,masks,strict=True)],axis=0)
+
+
 MAX_INJECTION_TAPS = 1024
 
 
@@ -211,12 +242,14 @@ def injection_variances(down, up, first_center):
     return down_variance*np.cumsum(pixel_variance) + first_variance + np.r_[0,up_variance*np.cumsum(pixel_variance[1:])]
 
 
-def lobe_injection_seed(recipe, variances):
+def lobe_injection_seed(recipe, variances, radius, *, half_resolution):
     """Sample each analytic lobe at the level that can still resolve its cross section."""
     profiles = recipe.resolved()
     levels = [{} for _ in range(LEVELS)]
     if not recipe.shape_gain:
-        return levels
+        return {},levels
+    narrow = {}
+    density = None
     for lobe in recipe.lobes:
         if not lobe.gain:
             continue
@@ -225,8 +258,14 @@ def lobe_injection_seed(recipe, variances):
         power = lobe.profile
         sigma = width*math.sqrt(2**(2/power)*math.gamma(3/power)/math.gamma(1/power))
         level = min(LEVELS-1,max(1,int(np.searchsorted(variances,sigma**2,side="right"))))
+        if not half_resolution and sigma**2 <= variances[0]:
+            response = lobe_response(lobe,radius,1.,recipe.size,profiles["camera"],profiles["prism"])
+            density = response if density is None else density + response
+            taps = narrow
+        else:
+            taps = levels[level-1]
         step = 2**level
-        spacing = 1.35*step
+        spacing = (.86 if half_resolution else 1.35)*step
         channels = tuple(lobe_channels(lobe,recipe.size,profiles["camera"],profiles["prism"]))
         fraction = .30*profiles["prism"]
         reach,_ = lobe_extent(channels,width,profiles["prism"],4)
@@ -251,29 +290,54 @@ def lobe_injection_seed(recipe, variances):
             cross_weight /= cross_weight.sum()
         angle = math.radians(lobe.angle)
         c,s = math.cos(angle),math.sin(angle)
-        taps = levels[level-1]
         for u,weight in zip(along,weights,strict=True):
             for v,factor in zip(cross,cross_weight,strict=True):
                 value = weight*factor
                 if value.max() >= mass*2e-5:
                     offset = (-float(u*c-v*s)/step,-float(u*s+v*c)/step)
                     taps[offset] = taps.get(offset,0.) + value
-    return levels
+    if density is None:
+        return {},levels
+
+    # Keep native texel centers for the narrow detail and seed the remaining
+    # mass in D1. The fit still compares both against the complete response.
+    density *= recipe.shape_gain
+    mass = density.sum(axis=(1,2),dtype=np.float64)
+    score = density.max(axis=0).ravel()
+    support = np.flatnonzero((score > 0) & (score >= mass.max()*2e-5))
+    y,x = np.unravel_index(support,density.shape[1:])
+    weights = density[:,y,x].T
+    retained = np.divide(weights.sum(axis=0,dtype=np.float64),mass,out=np.zeros(3),where=mass>0)
+    for offset,weight in narrow.items():
+        levels[0][offset] = levels[0].get(offset,0.) + weight*(1-retained)
+    direct = dict(zip(zip(radius-x,radius-y,strict=True),weights,strict=True))
+    return direct,levels
 
 
-def filtered_injection_seed(recipe, signal, down, up, first_center):
+def filtered_injection_seed(recipe, signal, down, up, first_center, core, *, half_resolution):
     # Same-level offsets use the raw level's texel spacing.
     geometry = stage_offsets(signal,(12,12,8,6,4,2,1,0))
     variances = injection_variances(down,up,first_center)
-    authored = lobe_injection_seed(recipe,variances) if recipe.lobes is not None else [{} for _ in range(LEVELS)]
+    radius = signal.shape[-1]//2
+    if recipe.lobes is not None:
+        d0,authored = lobe_injection_seed(recipe,variances,radius,half_resolution=half_resolution)
+    else:
+        d0 = {}
+        authored = [{} for _ in range(LEVELS)]
     if recipe.lobes is None and recipe.preset != "standard" and recipe.shape_gain:
-        for x,y,*rgb in preset_seed_taps(recipe):
+        for x,y,*rgb in bitmap_seed_taps(recipe):
             xy = (x,y)
             authored[0][xy] = authored[0].get(xy,0.) + np.asarray(rgb)
     if recipe.core_gain:
         core_variance = (recipe.core_sigma*recipe.size)**2
-        level = int(np.argmin(np.abs(np.log(variances/core_variance))))
-        authored[level][(0.,0.)] = authored[level].get((0.,0.),0.) + recipe.core_gain
+        if not half_resolution and core_variance <= variances[0]:
+            y,x = np.nonzero((core > 0) & (core >= recipe.core_gain*2e-5))
+            for i,j in zip(y,x,strict=True):
+                offset = (radius-j,radius-i)
+                d0[offset] = d0.get(offset,np.zeros(3)) + core[i,j]
+        else:
+            level = int(np.argmin(np.abs(np.log(variances/core_variance))))
+            authored[level][(0.,0.)] = authored[level].get((0.,0.),0.) + recipe.core_gain
     result = []
     for i, positions in enumerate(geometry):
         residual_weight = .00002 if recipe.lobes is not None else .001
@@ -288,7 +352,8 @@ def filtered_injection_seed(recipe, signal, down, up, first_center):
         if len(initial) > MAX_INJECTION_TAPS:
             raise ValueError(f"Bloom level {i+1} requires {len(initial)} taps; the shared-memory limit is {MAX_INJECTION_TAPS}")
         result.append((np.array(list(initial)), np.array(list(initial.values()))))
-    return result
+    direct = np.asarray(list(d0),dtype=np.intp).reshape(-1,2),np.asarray(list(d0.values())).reshape(-1,3)
+    return direct,result
 
 
 def refine_center(raw, up_offsets, up_weights, side, regions, image, target, offsets, weights):
@@ -382,7 +447,7 @@ def refine_fine_injection(raw, side, offsets, weights, up_offsets, up_weights, c
 
 
 def fit_filtered_recipe(recipe, *, radius=None, outer_radius=None, iterations=18, progress=None,
-                        cancelled=None, seed=None, return_outer=False):
+                        cancelled=None, seed=None, return_outer=False, half_resolution=False):
     """Fit the complete target with same-level stencils inside the reconstruction chain.
 
     Raw D_i stays alive until the reconstruction of level i. D1 and the
@@ -408,7 +473,7 @@ def fit_filtered_recipe(recipe, *, radius=None, outer_radius=None, iterations=18
         first_center=.75 if recipe.preset != "standard" else .05
         w0=[np.repeat(np.r_[first_center,(1-first_center)*up[:,2]][:,None],3,axis=1)]
         w0.extend([np.repeat(up[:,2:3],3,axis=1)]*(LEVELS-1))
-        injections=filtered_injection_seed(recipe,signal,down,up,first_center)
+        d0,injections=filtered_injection_seed(recipe,signal,down,up,first_center,full["core"],half_resolution=half_resolution)
     else:
         if seed["recipe_sha256"] != recipe.digest() or seed["topology"] != "filtered-injection":
             raise ValueError("Filtered refit seed belongs to a different recipe or topology")
@@ -416,11 +481,25 @@ def fit_filtered_recipe(recipe, *, radius=None, outer_radius=None, iterations=18
         w0=[np.asarray(stage["rgb_weights"]) for stage in seed["upsample"]]
         injections=[(np.asarray(stage["offsets"]),np.asarray(stage["rgb_weights"])/mass)
                     for stage in seed["injection"]]
+        stage=seed.get("d0_injection",{"offsets":[],"rgb_weights":[]})
+        if half_resolution and stage["offsets"]:
+            raise ValueError("A half-resolution fit cannot use a D0 seed")
+        d0=(np.asarray(stage["offsets"],dtype=np.intp).reshape(-1,2),
+            np.asarray(stage["rgb_weights"]).reshape(-1,3)/mass)
+    d0_count=len(d0[0])
     all_offsets=[xy for xy,_ in injections]
-    initial=[np.concatenate([w for _,w in injections]),*w0]
+    initial=[np.concatenate([d0[1],*[w for _,w in injections]]),*w0]
     widths=np.cumsum([0,*(a.size for a in initial)])
     splits=np.cumsum([len(xy) for xy in all_offsets])[:-1]
     x0=np.concatenate([a.ravel() for a in initial])
+    ray_taps = np.empty(0,dtype=np.intp)
+    if half_resolution and recipe.lobes:
+        # Let the distant taps change strength without introducing independent RGB peaks.
+        fine_seed = initial[0][:len(all_offsets[0])]
+        distant = np.linalg.norm(all_offsets[0],axis=1) >= 5.
+        ray_taps = np.flatnonzero(distant & (fine_seed.sum(axis=1) > .00015))
+    ray_colors = initial[0][ray_taps]
+    ray_colors /= ray_colors.sum(axis=1,keepdims=True)
     all_phases=TRAIN_PHASES+HELD_PHASES
     margin=max(max(abs(x),abs(y)) for x,y in all_phases)
     side=((2*(outer_radius+margin+8)+255)//256)*256
@@ -435,25 +514,32 @@ def fit_filtered_recipe(recipe, *, radius=None, outer_radius=None, iterations=18
         pyramid=[d[:,None] for d in raw]
         model=Cascade((side,side),pyramid,up_offsets,roi=roi,pool=pool)
         coarse,mask=coarse_target(complete,side,phases,pool,shape_limit)
-        return model,operators,regions,coarse,mask
+        direct=FullResolutionInjection(d0[0],side,phases,radius,pool)
+        return model,operators,regions,coarse,mask,direct
 
     def predict(x,model,operators):
         raw=[x[widths[i]:widths[i+1]].reshape(a.shape) for i,a in enumerate(initial)]
+        if ray_taps.size:
+            raw[0] = raw[0].copy()
+            raw[0][ray_taps] = raw[0][ray_taps].sum(axis=1,keepdims=True)*ray_colors
         unit=[a/a.sum(axis=0) for a in raw]
         weights=[w.astype(np.float32) for w in unit[1:]]
-        combined=np.split((mass*unit[0]).astype(np.float32),splits)
+        injection=(mass*unit[0]).astype(np.float32)
+        direct_weights=injection[:d0_count]
+        combined=np.split(injection[d0_count:],splits)
         injected=[op.apply(w) for op,w in zip(operators,combined,strict=True)]
         image,inputs=model.forward(weights,ones,injected)
         pooled=model.pooled.apply(inputs[0],weights[0])
-        return image,pooled,(raw,unit,weights,combined,injected,inputs)
+        direct.add(direct_weights,image,pooled,regions)
+        return image,pooled,(raw,unit,weights,combined,injected,inputs,direct_weights)
 
-    model,operators,regions,coarse,mask=prepare(TRAIN_PHASES)
+    model,operators,regions,coarse,mask,direct=prepare(TRAIN_PHASES)
     history=[]
     def objective(x):
         if cancelled and cancelled():
             raise InterruptedError("Fit cancelled")
         image,pooled,state=predict(x,model,operators)
-        raw,unit,weights,_,injected,inputs=state
+        raw,unit,weights,_,_,inputs,_=state
         grad=np.zeros_like(image)
         loss=0.
         for r in regions:
@@ -462,8 +548,11 @@ def fit_filtered_recipe(recipe, *, radius=None, outer_radius=None, iterations=18
             loss+=.5*np.sum(grad[r]*diff,dtype=np.float64)
         outer,pgrad=coarse_loss(pooled,coarse,mask,pool,mass)
         dw,dp=model.backward(grad,inputs,weights,pgrad)
-        dv=mass*np.concatenate([op.gradient(g) for op,g in zip(operators,dp,strict=True)])
+        dv=mass*np.concatenate([direct.gradient(grad,pgrad,regions),
+                               *[op.gradient(g) for op,g in zip(operators,dp,strict=True)]])
         gradient=[(d-np.sum(d*u,axis=0))/a.sum(axis=0) for d,u,a in zip([dv,*dw],unit,raw,strict=True)]
+        if ray_taps.size:
+            gradient[0][ray_taps] = np.sum(gradient[0][ray_taps]*ray_colors,axis=1,keepdims=True)
         if not history:
             history.append({"iteration":0,"loss":float(loss+outer)})
         return loss+outer,np.concatenate([v.ravel() for v in gradient])
@@ -484,12 +573,12 @@ def fit_filtered_recipe(recipe, *, radius=None, outer_radius=None, iterations=18
     refinement_budget = 0
     if seed is None and recipe.core_gain:
         current,_,state = predict(result.x,model,operators)
-        _,_,up_weights,combined,_,_ = state
+        _,_,up_weights,combined,_,_,_ = state
         near = np.linalg.norm(all_offsets[0],axis=1)<=2.5
         probabilities = refine_center(model.pyramid[0][:,0],up_offsets[0],up_weights[0],side,regions,
                                       current,target,all_offsets[0][near],combined[0][near])
         start = result.x.copy()
-        local = start[:len(all_offsets[0])*3].reshape(-1,3)
+        local = start[3*d0_count:3*(d0_count+len(all_offsets[0]))].reshape(-1,3)
         local[near] = np.maximum(probabilities*local[near].sum(axis=0),1e-9)
         if objective(start)[0] < result.fun:
             refinement_budget = 6
@@ -500,7 +589,7 @@ def fit_filtered_recipe(recipe, *, radius=None, outer_radius=None, iterations=18
     fine_refinement = None
     if recipe.lobes is None and np.any(parts["shape"]):
         current,_,state = predict(chosen,model,operators)
-        _,_,up_weights,combined,_,_ = state
+        _,_,up_weights,combined,_,_,_ = state
         coverage = np.max(parts["shape"]/np.maximum(target,floor),axis=0)
         shape_weak = maximum_filter(coverage,size=7)*weak
         fine_importance = importance+2.5*shape_weak/np.sum(target**2*shape_weak,dtype=np.float64)
@@ -515,15 +604,19 @@ def fit_filtered_recipe(recipe, *, radius=None, outer_radius=None, iterations=18
                            "full_loss_before":final_loss,"full_loss_after":fine_loss}
         if fine_refinement["accepted"]:
             chosen,final_loss = start,fine_loss
-    model,operators,regions,coarse,mask=prepare(HELD_PHASES)
+    model,operators,regions,coarse,mask,direct=prepare(HELD_PHASES)
     image,pooled,state=predict(chosen,model,operators)
     start,baseline_pooled,_=predict(x0,model,operators)
-    _,_,weights,combined,injected,_=state
+    _,_,weights,combined,injected,_,direct_weights=state
     if not np.isfinite(image).all() or image.min()<0:
         raise RuntimeError("Nonfinite or negative fitted response")
     metrics=lambda i,p:measure(i,target,p,coarse,mask,regions,HELD_PHASES,radius,pool,recipe.size,shape_limit)
     stages=lambda xy,w:[{"offsets":a.tolist(),"rgb_weights":b.tolist()} for a,b in zip(xy,w,strict=True)]
     breakdown=[]
+    if d0_count:
+        breakdown.append({"level":0,"tap_count":d0_count,
+                          "injection_rgb":direct_weights.sum(axis=0,dtype=np.float64).tolist(),
+                          "outer_mass_rgb":direct.outer_mass(direct_weights,mask).tolist()})
     for i in range(LEVELS):
         x=injected[i]
         for j in range(i,0,-1):
@@ -547,15 +640,24 @@ def fit_filtered_recipe(recipe, *, radius=None, outer_radius=None, iterations=18
         "target_mass_rgb_in_outer_canvas":complete.sum(axis=(1,2),dtype=np.float64).tolist(),
         "downsample":stages([down[:,:2]]*LEVELS,[np.repeat(down[:,2:3],3,axis=1)]*LEVELS),
         "upsample":stages(up_offsets,weights),"injection":stages(all_offsets,combined),
-        "weighted_bilinear_fetches_per_full_res_pixel":sum(
+        **({"d0_injection":stages([d0[0]],[direct_weights])[0]} if d0_count else {}),
+        "weighted_bilinear_fetches_per_full_res_pixel":d0_count+sum(
             (len(down)+len(xy))/4**(i+1)+len(u)/4**i
             for i,(xy,u) in enumerate(zip(all_offsets,up_offsets,strict=True))),
     },readout
 
 def shader_coefficients(recipe, fitted):
     """Emit stage taps for the filtered-injection shader consumer."""
-    if fitted["recipe_sha256"] != recipe.digest() or fitted["topology"] != "filtered-injection":
-        raise ValueError("Fit coefficients are stale or use a different topology")
+    if fitted["recipe_sha256"] != recipe.digest():
+        raise ValueError("Fit coefficients belong to a different recipe")
+    topology = fitted["topology"]
+    if topology not in ("filtered-injection","differentiable-stencil","factorized-stencil"):
+        raise ValueError("Unsupported DPF topology")
+    features = fitted.get("features",())
+    if bool(features) != (topology == "factorized-stencil") or len(features) > 6:
+        raise ValueError("A factorized DPF fit requires one to six carriers")
+    if features and fitted.get("d0_injection"):
+        raise ValueError("Directional carriers require half-resolution reconstruction")
 
     def vec2(offset):
         x,y = offset
@@ -568,13 +670,62 @@ def shader_coefficients(recipe, fitted):
         return [f"    value += bloom_sample(center + {vec2(xy)}, tile) * {vec3(rgb)};"
                 for xy,rgb in zip(stage["offsets"],stage["rgb_weights"],strict=True)]
 
-    lines = ["// Bloom DPF recipe " + recipe.digest(),
-             "vec3 bloom_filter(vec2 center, vec4 tile) {",
-             "    vec3 value = vec3(0.0);", "#ifdef BLOOM_DOWNSAMPLE"]
+    def load_lines(pairs):
+        code = ["    switch (gl_LocalInvocationIndex) {"]
+        for lane in range(min(len(pairs),32)):
+            code.append(f"        case {lane}u:")
+            for i in range(lane,len(pairs),32):
+                xy,rgb = pairs[i]
+                code.extend([f"            bloom_injectionOffsets[{i}] = {vec2(xy)};",
+                             f"            bloom_injectionWeights[{i}] = {vec3(rgb)};"])
+            code.append("            break;")
+        return [*code,"    }","    barrier();"]
+
+    lines = ["// Bloom DPF recipe " + recipe.digest()]
+    feature_levels = [f.get("level",1) for f in features]
+    if any(level not in (1,2) or level >= len(fitted["injection"]) for level in feature_levels):
+        raise ValueError("Directional carrier level is outside the reconstruction chain")
+    if features:
+        lines.append(f"#define BLOOM_DPF_FEATURE_COUNT {len(features)}")
+        if len(features) == 6:
+            lines.extend(["#if BLOOM_DPF_RUNTIME_MAX_CARRIERS < 6",
+                          "#error Six Bloom carriers require a six-carrier Bloom shader runtime.",
+                          "#endif"])
+        d2_mask = sum(1 << index for index,level in enumerate(feature_levels) if level==2)
+        if d2_mask:
+            lines.extend(["#if BLOOM_DPF_RUNTIME_CARRIER_LEVELS != 1",
+                          "#error D2 Bloom carriers require a level-aware Bloom shader runtime.",
+                          "#endif",
+                          f"#define BLOOM_DPF_D2_MASK {d2_mask}",
+                          "#if defined(BLOOM_DOWNSAMPLE) && (BLOOM_PASS == 2 || BLOOM_PASS == 3)"])
+        else:
+            lines.append("#if defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == 2")
+        lines.extend(["vec3 bloom_dpfFeature(vec2 center, vec4 tile, int feature) {",
+                      "    vec3 value = vec3(0.0);"])
+        for index,branch in enumerate(features):
+            if d2_mask:
+                lines.append(f"#if BLOOM_PASS == {feature_levels[index]+1}")
+            lines.append(f"    if (feature == {index}) {{")
+            lines.extend("    " + line for line in filter_lines(branch["short"]))
+            lines.append("    }")
+            if d2_mask:
+                lines.append("#endif")
+        lines.extend(["    return value;","}","#endif"])
+    d0 = fitted.get("d0_injection")
+    if d0:
+        lines.extend(["#if BLOOM_DPF_RUNTIME_D0 != 1",
+                      "#error D0 Bloom coefficients require a D0-compatible Bloom shader runtime.",
+                      "#endif", "#define BLOOM_DPF_HAS_D0"])
+    lines.extend(["vec3 bloom_filter(vec2 center, vec4 tile) {",
+                  "    vec3 value = vec3(0.0);", "#ifdef BLOOM_DOWNSAMPLE"])
     down = fitted["downsample"]
-    if any(stage != down[0] for stage in down[1:]):
-        raise ValueError("Filtered-injection downsample must use the same taps at every level")
-    lines.extend(filter_lines(down[0]))
+    if all(stage == down[0] for stage in down[1:]):
+        lines.extend(filter_lines(down[0]))
+    else:
+        for level,stage in enumerate(down,1):
+            lines.append(f"#{'if' if level == 1 else 'elif'} BLOOM_PASS == {level}")
+            lines.extend(filter_lines(stage))
+        lines.append("#endif")
     lines.append("#else")
     for level,stage in enumerate(fitted["upsample"],1):
         lines.append(f"#{'if' if level == 1 else 'elif'} BLOOM_PASS == {level}")
@@ -582,8 +733,28 @@ def shader_coefficients(recipe, fitted):
     lines.extend(["#endif", "#endif", "    return value;", "}", ""])
 
     injection = fitted["injection"]
+    if d0:
+        pairs = list(zip(d0["offsets"],d0["rgb_weights"],strict=True))
+        shared_count = min(len(pairs),MAX_INJECTION_TAPS)
+        lines.extend(["#ifdef BLOOM_FINAL_RECONSTRUCTION",
+                      f"shared vec2 bloom_injectionOffsets[{shared_count}];",
+                      f"shared vec3 bloom_injectionWeights[{shared_count}];",
+                      "vec3 bloom_fullResolutionInjection(vec2 center, vec4 tile, bool valid) {",
+                      "    vec3 value = vec3(0.0);"])
+        for start in range(0,len(pairs),shared_count):
+            if start:
+                lines.append("    barrier();")
+            chunk = pairs[start:start+shared_count]
+            lines.extend([*load_lines(chunk),"    if (valid) {",
+                          f"        for (int i = 0; i < {len(chunk)}; ++i) {{",
+                          "            value += bloom_sampleRaw(center + bloom_injectionOffsets[i], tile) * bloom_injectionWeights[i];",
+                          "        }","    }"])
+        lines.extend(["    return value;","}","#endif"])
     for level,stage in enumerate(injection[:-1],2):
-        pairs = list(zip(stage["offsets"],stage["rgb_weights"],strict=True))
+        slots = [index for index,d in enumerate(feature_levels) if d==level-1]
+        stages = (stage, *(features[index]["long"] for index in slots))
+        groups = [list(zip(s["offsets"],s["rgb_weights"],strict=True)) for s in stages]
+        pairs = [pair for group in groups for pair in group]
         lines.append(f"#{'if' if level == 2 else 'elif'} !defined(BLOOM_DOWNSAMPLE) && BLOOM_PASS == {level}")
         if len(pairs) > MAX_INJECTION_TAPS:
             raise ValueError("An injection stage exceeds the shader's shared tap capacity")
@@ -597,18 +768,34 @@ def shader_coefficients(recipe, fitted):
         lines.extend([f"const int bloom_injectionCount = {len(pairs)};",
                       "shared vec2 bloom_injectionOffsets[bloom_injectionCount];",
                       "shared vec3 bloom_injectionWeights[bloom_injectionCount];",
-                      "void bloom_prepareInjection() {", "    switch (gl_LocalInvocationIndex) {"])
-        for lane in range(min(len(pairs),32)):
-            lines.append(f"        case {lane}u:")
-            for i in range(lane,len(pairs),32):
-                xy,rgb = pairs[i]
-                lines.extend([f"            bloom_injectionOffsets[{i}] = {vec2(xy)};",
-                              f"            bloom_injectionWeights[{i}] = {vec3(rgb)};"])
-            lines.append("            break;")
-        lines.extend(["    }", "    barrier();", "}",
+                      "void bloom_prepareInjection() {", *load_lines(pairs), "}",
                       "vec3 bloom_injection(vec2 center, vec4 tile) {",
                       "    vec3 value = vec3(0.0);"])
-        if level == 2 and recipe.lobes is not None:
+        if len(groups) > 1:
+            lo = min(x for (x, _), _ in pairs), max(y for (_, y), _ in pairs)
+            hi = max(x for (x, _), _ in pairs), min(y for (_, y), _ in pairs)
+            lines.extend([f"    if (all(greaterThanEqual(center + {vec2(lo)}, vec2(0.5))) &&",
+                          f"        all(lessThanEqual(center + {vec2(hi)}, tile.zw - 0.5))) {{"])
+            for interior in (True,False):
+                indent = "        " if interior else "    "
+                begin = 0
+                for group,taps in enumerate(groups):
+                    end = begin + len(taps)
+                    if group == 0:
+                        fetch = ("transient_bloomRaw_sample((tile.xy + pos) * uval_mainImageSizeRcp).rgb"
+                                 if interior else "bloom_sampleRaw(pos, tile)")
+                    else:
+                        slot = slots[group-1]
+                        fetch = (f"bloom_featureSample(pos * uval_mainImageSizeRcp, {slot})"
+                                 if interior else f"bloom_featureSampleEdge(pos, tile.zw, {slot})")
+                    lines.extend([f"{indent}for (int i = {begin}; i < {end}; ++i) {{",
+                                  f"{indent}    vec2 pos = center + bloom_injectionOffsets[i];",
+                                  f"{indent}    value += {fetch} * bloom_injectionWeights[i];",
+                                  f"{indent}}}"])
+                    begin = end
+                if interior:
+                    lines.extend(["        return value;","    }"])
+        elif level == 2 and recipe.lobes is not None:
             lo = (min(x for (x, _), _ in pairs), max(y for (_, y), _ in pairs))
             hi = (max(x for (x, _), _ in pairs), min(y for (_, y), _ in pairs))
             lines.extend([f"    if (all(greaterThanEqual(center + {vec2(lo)}, vec2(0.5))) &&",
@@ -639,28 +826,6 @@ def shader_coefficients(recipe, fitted):
     return "\n".join(lines)
 
 
-def builtin_seed(name):
-    """Project the reference tables onto the common reconstruction for initial candidates."""
-    recipe = Recipe(name)
-    down,up = reference_taps()
-    def neutral(taps):
-        return {"offsets":taps[:,:2].tolist(),"rgb_weights":np.repeat(taps[:,2:3],3,axis=1).tolist()}
-    center = {"offsets":[[0.,0.]],"rgb_weights":[[1/LEVELS]*3]}
-    injection = [center]*LEVELS
-    upsample = [neutral(up)]*LEVELS
-    if name != "standard":
-        # Keep the shape carrier near the reference while the complete response is refitted.
-        gain,taps = reference_shape_tables()[name]
-        merged = {(0.,0.):np.full(3,1/LEVELS)}
-        for x,y,r,g,b in taps:
-            key = (x,y)
-            merged[key] = merged.get(key,0.) + gain*np.array([r,g,b])
-        injection[0] = {"offsets":[list(xy) for xy in merged],"rgb_weights":[w.tolist() for w in merged.values()]}
-        upsample[0] = neutral(np.vstack(([[0.,0.,.98]],np.column_stack((up[:,:2],.02*up[:,2])))))
-    return {"topology":"filtered-injection","recipe_sha256":recipe.digest(),
-            "downsample":[neutral(down)]*LEVELS,"upsample":upsample,"injection":injection}
-
-
 KERNEL_INPUTS = Path(__file__).with_name("assets") / "bloom-dpf-kernels.json"
 
 
@@ -678,6 +843,11 @@ def write_kernel_inputs(path, kernels):
         lines.extend([f'    "{name}":{{',
                       f'      "status":{compact(preset["status"])},',
                       f'      "recipe_sha256":{compact(preset["recipe_sha256"])},'])
+        if "topology" in preset:
+            lines.append(f'      "topology":{compact(preset["topology"])},')
+            lines.append(f'      "downsample":{compact(preset["downsample"])},')
+            if "features" in preset:
+                lines.append(f'      "features":{compact(preset["features"])},')
         for j,kind in enumerate(("upsample","injection")):
             lines.append(f'      "{kind}":[')
             rows = preset[kind]
@@ -693,13 +863,23 @@ def select_kernel_fit(kernels, fit):
     name = fit["recipe"]["preset"]
     if name not in kernels["presets"]:
         raise ValueError("Only built-in preset fits can be selected")
+    if fit.get("d0_injection"):
+        raise ValueError("Built-in kernels use half-resolution reconstruction")
     shader_coefficients(Recipe(name),fit)
-    if kernel_rows(fit["downsample"][0]) != kernels["downsample"]:
-        raise ValueError("The selected fit does not use the built-in downsample")
-    kernels["presets"][name] = {
+    entry = {
         "status":"fitted candidate","recipe_sha256":fit["recipe_sha256"],
         **{kind:[kernel_rows(stage) for stage in fit[kind]] for kind in ("upsample","injection")},
     }
+    downsample = [kernel_rows(stage) for stage in fit["downsample"]]
+    if fit["topology"] != "filtered-injection" or any(rows != kernels["downsample"] for rows in downsample):
+        entry.update(topology=fit["topology"],downsample=downsample)
+    if fit.get("features"):
+        entry["features"] = [
+            dict(angle=branch["angle"],short=kernel_rows(branch["short"]),long=kernel_rows(branch["long"]),
+                 **({"level":branch["level"]} if "level" in branch else {}))
+            for branch in fit["features"]
+        ]
+    kernels["presets"][name] = entry
 
 
 def write_shader_kernels(output, kernels):
@@ -707,16 +887,22 @@ def write_shader_kernels(output, kernels):
     def stage(rows):
         return {"offsets":[row[:2] for row in rows],"rgb_weights":[row[2:] for row in rows]}
     presets = kernels["presets"]
-    if set(presets) != set(PRESETS[:-1]):
+    if set(presets) != set(BUILTIN_PRESETS.values()):
         raise ValueError("The runtime coefficient file must contain every built-in preset")
     down = [stage(kernels["downsample"])]*LEVELS
     parts = ["// Generated by scripts/bloom_dpf_fit.py."]
     standard = None
-    for index,name in enumerate(PRESETS[:-1]):
+    for index,name in BUILTIN_PRESETS.items():
         entry = presets[name]
-        fit = {"topology":"filtered-injection","recipe_sha256":entry["recipe_sha256"],
-               "downsample":down,
+        fit = {"topology":entry.get("topology","filtered-injection"),"recipe_sha256":entry["recipe_sha256"],
+               "downsample":[stage(rows) for rows in entry["downsample"]] if "downsample" in entry else down,
                **{kind:[stage(rows) for rows in entry[kind]] for kind in ("upsample","injection")}}
+        if "features" in entry:
+            fit["features"] = [
+                dict(angle=branch["angle"],short=stage(branch["short"]),long=stage(branch["long"]),
+                     **({"level":branch["level"]} if "level" in branch else {}))
+                for branch in entry["features"]
+            ]
         glsl = shader_coefficients(Recipe(name),fit)
         if index == 0:
             standard = glsl

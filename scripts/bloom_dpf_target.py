@@ -14,26 +14,16 @@ from bloom_dpf_model import (
 )
 
 
-REFERENCE_PRESETS = (
-    "standard", "diamond-four", "horizontal-streak", "cross-four", "camera-six", "camera-ten",
-    "cinema-star", "prismatic-streak", "digits-67", "trollface",
-)
+BUILTIN_PRESETS = {
+    0:"standard", 2:"horizontal-streak", 4:"camera-six",
+    5:"camera-ten", 6:"cinema-star", 8:"digits-67", 9:"trollface", 11:"user-8",
+}
+BITMAP_PRESETS = ("digits-67", "trollface")
 LOBE_PRESET = "custom-lobes"
-PRESETS = (*REFERENCE_PRESETS, LOBE_PRESET)
+PRESETS = (*BUILTIN_PRESETS.values(), LOBE_PRESET)
 MAX_LOBES = 24
 LOBE_TAIL_SIGMAS = 6
 LOBE_REFERENCE_AREA = math.tau * 32 * 2  # Gain units for a neutral 96 px by 2 px lobe.
-CAMERA_PRESETS = frozenset(("diamond-four", "cross-four", "camera-six", "camera-ten", "cinema-star"))
-RAY_PRESETS = {
-    "diamond-four": ((35, 145), (144, 144), (32, 32), 1., .025, None),
-    "cross-four": ((0, 90), (144, 144), (32, 32), 1., .025, None),
-    "camera-six": ((0, 60, 120), (144,)*3, (32,)*3, .55, .035, None),
-    "camera-ten": ((18, 54, 90, 126, 162), (110, 96, 126, 96, 110),
-                   (27.5, 24, 31.5, 24, 27.5), .55, .035, None),
-    "cinema-star": ((0, 45, 90, 135), (144, 76, 50, 76), (32, 76*2/9, 50*2/9, 76*2/9),
-                    1., .025, (.48, .20, .12, .20)),
-    "prismatic-streak": ((0,), (144,), (32,), 1., .035, None),
-}
 REFERENCE_PHASES = ((-109, -111), (-78, 71), (-53, -26), (-20, 102),
                     (18, -69), (51, 36), (84, -12), (117, 125))
 REFERENCE_RADIUS = 768
@@ -59,14 +49,63 @@ class Lobe:
         object.__setattr__(self,"angle",self.angle % 360)
 
 
+def paired_lobes(angles, lengths, gains, widths):
+    return tuple(Lobe(angle+opposite,length,width,gain,pair=i)
+                 for opposite in (0,180)
+                 for i,(angle,length,gain,width) in enumerate(zip(angles,lengths,gains,widths,strict=True)))
+
+
+GAUSSIAN_LOBES = {
+    "horizontal-streak": paired_lobes((0,),(128,),(.75,),(1.,)),
+    "camera-six": paired_lobes((0,60,120),(112,)*3,(.40,)*3,(.75,)*3),
+    "camera-ten": paired_lobes((18,54,90,126,162),(112,96,128,96,112),(.25,)*5,(.75,)*5),
+    "cinema-star": (
+        Lobe(0,128,1,0.75,2,pair=0),
+        Lobe(40,72,1,0.15,2,pair=1),
+        Lobe(140,72,1,0.15,2,pair=2),
+        Lobe(180,128,1,0.75,2,pair=0),
+        Lobe(220,72,1,0.15,2,pair=1),
+        Lobe(320,72,1,0.15,2,pair=2),
+        Lobe(90,48,1,0.2,2,pair=3),
+        Lobe(270,48,1,0.2,2,pair=3),
+        Lobe(20,32,0.75,0.25,2,pair=4),
+        Lobe(200,32,0.75,0.25,2,pair=4),
+        Lobe(340,32,0.75,0.25,2,pair=5),
+        Lobe(160,32,0.75,0.25,2,pair=5),
+        Lobe(65,48,0.75,0.15,2,pair=6),
+        Lobe(295,48,0.75,0.15,2,pair=7),
+        Lobe(245,48,0.75,0.15,2,pair=6),
+        Lobe(115,48,0.75,0.15,2,pair=7),
+    ),
+    "user-8": (
+        Lobe(0,144,1,0.8,2,pair=0),
+        Lobe(60,84,1,0.15,2,pair=1),
+        Lobe(120,84,1,0.15,2,pair=2),
+        Lobe(180,144,1,0.8,2,pair=0),
+        Lobe(240,84,1,0.15,2,pair=1),
+        Lobe(300,84,1,0.15,2,pair=2),
+        Lobe(90,48,1,0.2,2,pair=3),
+        Lobe(270,48,1,0.2,2,pair=3),
+        Lobe(105,32,0.75,0.25,2,pair=4),
+        Lobe(285,32,0.75,0.25,2,pair=4),
+        Lobe(30,48,0.75,0.25,2,pair=5),
+        Lobe(210,48,0.75,0.25,2,pair=5),
+        Lobe(75,32,0.75,0.15,2,pair=6),
+        Lobe(330,48,0.75,0.15,2,pair=7),
+        Lobe(255,32,0.75,0.15,2,pair=6),
+        Lobe(150,48,0.75,0.15,2,pair=7),
+    ),
+}
+
+
 @dataclass(frozen=True)
 class Recipe:
     preset: str = "standard"
     size: float = 1.
-    core_gain: float = 0.
-    core_sigma: float = 3.
-    tail_gain: float = 1.
-    shape_gain: float = 1.
+    core_gain: float | None = None
+    core_sigma: float | None = None
+    tail_gain: float | None = None
+    shape_gain: float | None = None
     camera: float | None = None
     prism: float | None = None
     lobes: tuple[Lobe, ...] | None = None
@@ -74,6 +113,16 @@ class Recipe:
     def __post_init__(self):
         if self.preset not in PRESETS:
             raise ValueError(f"Unknown Bloom preset {self.preset!r}")
+        if self.preset == "user-8":
+            defaults = (1,3,1,.9,2,.2)
+        elif self.preset in GAUSSIAN_LOBES:
+            defaults = (3.1,2.45,1.1,.93,2.,.22)
+        else:
+            defaults = (0.,3.,1.,1.,0.,0.)
+        for name,default in zip(("core_gain","core_sigma","tail_gain","shape_gain","camera","prism"),
+                                defaults,strict=True):
+            if getattr(self,name) is None:
+                object.__setattr__(self,name,default)
         if not .25 <= self.size <= 4:
             raise ValueError("size must be in [.25, 4]")
         if not .25 <= self.core_sigma <= 64:
@@ -86,26 +135,26 @@ class Recipe:
             if value is not None and (not math.isfinite(value) or not 0 <= value <= 2):
                 raise ValueError(f"{name} must be in [0, 2]")
 
-        if self.preset == LOBE_PRESET:
-            if self.lobes is None:
+        lobes = self.lobes
+        if self.preset in GAUSSIAN_LOBES:
+            if lobes is None:
+                lobes = GAUSSIAN_LOBES[self.preset]
+        elif self.preset == LOBE_PRESET:
+            if lobes is None:
                 lobes = tuple(Lobe(angle,pair=i % 3) for i,angle in enumerate(range(0,360,60)))
-            else:
-                if not isinstance(self.lobes,(list,tuple)) or len(self.lobes) > MAX_LOBES:
-                    raise ValueError(f"Expected at most {MAX_LOBES} lobes")
-                lobes = tuple(lobe if isinstance(lobe,Lobe) else Lobe(**lobe) for lobe in self.lobes)
+        elif lobes is not None:
+            raise ValueError("This preset does not accept directional lobes")
+        if lobes is not None:
+            if not isinstance(lobes,(list,tuple)) or len(lobes) > MAX_LOBES:
+                raise ValueError(f"Expected at most {MAX_LOBES} lobes")
+            lobes = tuple(lobe if isinstance(lobe,Lobe) else Lobe(**lobe) for lobe in lobes)
             pairs = [lobe.pair for lobe in lobes if lobe.pair is not None]
             if any(pairs.count(pair) != 2 for pair in set(pairs)):
                 raise ValueError("Each linked pair must contain two lobes")
             object.__setattr__(self,"lobes",lobes)
-        elif self.lobes is not None:
-            raise ValueError("Only the custom lobe preset accepts lobes")
 
     def resolved(self):
         values = asdict(self)
-        if self.camera is None:
-            values["camera"] = float(self.preset in CAMERA_PRESETS)
-        if self.prism is None:
-            values["prism"] = float(self.preset == "prismatic-streak")
         if self.lobes is None:
             del values["lobes"]
         return values
@@ -124,10 +173,12 @@ def reference_shape_tables():
     """Frozen cd33a99c authoring reference, independent of generated runtime GLSL."""
     with np.load(REFERENCE, allow_pickle=False) as archive:
         names = archive["shape_names"].tolist()
-        if tuple(names) != REFERENCE_PRESETS[1:]:
-            raise ValueError("The published shape table is incomplete")
-        return {name: (float(gain), archive[f"shape_{i}"])
-                for i, (name, gain) in enumerate(zip(names, archive["shape_gains"], strict=True), 1)}
+        tables = {name:(float(gain),archive[f"shape_{i}"])
+                  for i,(name,gain) in enumerate(zip(names,archive["shape_gains"],strict=True),1)
+                  if name in BITMAP_PRESETS}
+        if set(tables) != set(BITMAP_PRESETS):
+            raise ValueError("The published bitmap table is incomplete")
+        return tables
 
 
 @lru_cache(maxsize=2)
@@ -194,13 +245,13 @@ def resize_axis(source_radius, target_radius, scale, shift=0.):
                       shape=(2 * target_radius + 1, 2 * source_radius + 1))
 
 
-def resize_mass(image, radius, scale, *, shift_x=0., horizontal=False):
+def resize_mass(image, radius, scale, *, shift_x=0.):
     x = axis_filter(image, resize_axis(image.shape[-1] // 2, radius, scale, shift_x))
-    y = resize_axis(image.shape[-2] // 2, radius, 1. if horizontal else scale)
+    y = resize_axis(image.shape[-2] // 2, radius, scale)
     return axis_filter(x.swapaxes(-2, -1), y).swapaxes(-2, -1)
 
 
-def color_raster(image, camera, prism, shifts, *, horizontal=False):
+def color_raster(image, camera, prism, shifts):
     """Tint a neutral target while retaining each channel's total mass."""
     radius = image.shape[-1] // 2
     fraction = .30 * prism
@@ -213,7 +264,7 @@ def color_raster(image, camera, prism, shifts, *, horizontal=False):
             b = resize_mass(image, radius, 1., shift_x=-offset)
             channel = (1 - fraction) * image + .5 * fraction * (a + b)
         if camera:
-            channel = resize_mass(channel, radius, stretch, horizontal=horizontal)
+            channel = resize_mass(channel, radius, stretch)
         output.append(channel * np.float32(image.sum(dtype=np.float64) / channel.sum(dtype=np.float64)))
     return np.stack(output)
 
@@ -235,109 +286,18 @@ def halo_target(radius, scale, camera, prism):
     return np.stack(result)
 
 
-def smoothstep(t):
-    t = np.clip(t, 0, 1)
-    return t * t * (3 - 2 * t)
-
-
-def axis_taps(angle, length, taper_width, stretch, *, scaled_dispersion, spacing):
-    angle = np.deg2rad(angle)
-    direction = np.array([np.cos(angle), np.sin(angle)])
-    r = np.arange(spacing, length, spacing)
-    taper = smoothstep((length - r) / taper_width)
-    scaled = r * (144 / length)
-    ramp = smoothstep(((scaled if scaled_dispersion else r) - 18) / 30)
-    d = scaled[:, None] / (1 + ramp[:, None] * (np.asarray(stretch) - 1))
-    weights = taper[:, None] * (.4 * np.exp(-.5 * (d / 16)**2) + .6 / (1 + (d / 34)**2))
-    weights *= spacing / 2.8
-    taps = []
-    for sign in (-1, 1):
-        for distance, weight in zip(r, weights, strict=True):
-            x, y = -sign * distance * direction / 2
-            taps.append((x, y, weight))
-    return taps
-
-
-def prism_axis(angle, length, camera, prism, dispersion, scaled_dispersion, *, spacing=2.):
-    count = int(length // spacing)
-    r = np.arange(-count,count+1,dtype=float)*spacing
-    distance = np.abs(r) * (144 / length)
-    ramp_input = distance if scaled_dispersion else np.abs(r)
-    ramp = smoothstep((ramp_input - 18) / 30)
-    stretch = 1 + ramp[:, None] * np.array([dispersion*camera, 0., -dispersion*camera])
-    center = np.array([88, 68, 48]) * (1 + .15 * (prism - 1))
-    delta = np.abs(distance[:, None] / stretch - center)
-    weights = np.exp(-.5 * (delta / 7)**2) * smoothstep((21 - delta) / 3)
-    weights /= weights.sum(axis=0)
-    angle = np.deg2rad(angle)
-    direction = -np.array([np.cos(angle), np.sin(angle)]) / 2
-    taps = []
-    for distance, w in zip(r, weights, strict=True):
-        if np.any(w):
-            x, y = distance * direction
-            taps.append((x, y, w))
-    return taps
-
-
-def ray_taps(name, camera, prism, scale=1.):
-    angles, lengths, tapers, origin, dispersion, axis_shares = RAY_PRESETS[name]
-    stretch = (1 + dispersion*camera, 1., 1 - dispersion*camera)
-    scaled = name == "cinema-star"
-    groups = [axis_taps(a,l,t,stretch,scaled_dispersion=scaled,spacing=2.8/max(1.,scale))
-              for a, l, t in zip(angles, lengths, tapers, strict=True)]
-    if axis_shares is None:
-        # Each preset has one shared origin tap, divided over its axes here.
-        center_share = origin / len(groups)
-        masses = np.array([np.sum([w for _, _, w in taps], axis=0) + center_share for taps in groups])
-        axis_shares = masses / masses.sum(axis=0)
-    else:
-        center_share = origin
-    result = []
-    fraction = .30 * prism
-    for a, l, group, share in zip(angles, lengths, groups, axis_shares, strict=True):
-        needle = [(0., 0., np.full(3, center_share)), *group]
-        mass = np.sum([weight for _,_,weight in needle],axis=0)
-        needle = [(x,y,weight/mass) for x,y,weight in needle]
-        result.extend((x, y, w * (1 - fraction) * share) for x, y, w in needle)
-        if fraction:
-            lobes = prism_axis(a,l,camera,prism,dispersion,scaled,spacing=2./max(1.,scale))
-            result.extend((x, y, w * fraction * share) for x, y, w in lobes)
-    return np.asarray([(x,y,*w) for x,y,w in result])
-
-
-def colored_shape(recipe):
-    p = recipe.resolved()
-    camera, prism = p["camera"], p["prism"]
+def colored_bitmap_shape(recipe):
     reference = reference_shape(recipe.preset)
-    defaults = Recipe(recipe.preset).resolved()
-    if (camera, prism) == (defaults["camera"], defaults["prism"]):
+    if not (recipe.camera or recipe.prism):
         return reference
-    gain = reference_shape_tables()[recipe.preset][0]
-    if recipe.preset in RAY_PRESETS:
-        response = shape_response(ray_taps(recipe.preset,camera,prism))
-        return response * (gain / response.sum(axis=(1, 2), dtype=np.float64)).astype(np.float32)[:, None, None]
-    if recipe.preset == "horizontal-streak":
-        needle = color_raster(reference.mean(axis=0), camera, 0., (0, 0, 0), horizontal=True)
-        if not prism:
-            return needle
-        lobes = shape_response([(x, y, *w) for x, y, w in prism_axis(0, 144, camera, prism, .035, False)])
-        fraction = .30 * prism
-        return (1 - fraction) * needle + gain * fraction * lobes
     width = 44 if recipe.preset == "digits-67" else 60
-    return color_raster(reference.mean(axis=0), camera, prism, (.20*width, .14*width, .08*width))
+    return color_raster(reference.mean(axis=0), recipe.camera, recipe.prism, (.20*width, .14*width, .08*width))
 
 
-def preset_seed_taps(recipe):
-    """Resample the author's support for the current preset geometry and dispersion."""
-    name = recipe.preset
-    gain, frozen = reference_shape_tables()[name]
-    resolved = recipe.resolved()
-    default = Recipe(name).resolved()
-    camera,prism = resolved["camera"],resolved["prism"]
-    same_color = (camera,prism) == (default["camera"],default["prism"])
-    if name in RAY_PRESETS and (not same_color or recipe.size > 1):
-        taps = ray_taps(name,camera,prism,recipe.size)
-    elif same_color:
+def bitmap_seed_taps(recipe):
+    gain,frozen = reference_shape_tables()[recipe.preset]
+    camera,prism = recipe.camera,recipe.prism
+    if not (camera or prism):
         taps = frozen.copy()
     else:
         xy = frozen[:,:2]
@@ -345,22 +305,14 @@ def preset_seed_taps(recipe):
         rgb = np.eye(3)
         stretch = (1+.035*camera,1.,1-.035*camera)
         fraction = .30*prism
-        if name == "horizontal-streak":
-            parts = [np.column_stack((xy*[scale,1],weights[:,None]*color*(1-fraction)))
-                     for scale,color in zip(stretch,rgb,strict=True)]
+        width = 44 if recipe.preset == "digits-67" else 60
+        parts = []
+        for scale,shift,color in zip(stretch,(.20*width,.14*width,.08*width),rgb,strict=True):
+            parts.append(np.column_stack((xy*scale,weights[:,None]*color*(1-fraction))))
             if fraction:
-                parts.append(np.asarray([(x,y,*(w*fraction)) for x,y,w in
-                                         prism_axis(0,144,camera,prism,.035,False,spacing=2./max(1.,recipe.size))]))
-        else:
-            width = 44 if name == "digits-67" else 60
-            parts = []
-            for scale,shift,color in zip(stretch,(.20*width,.14*width,.08*width),rgb,strict=True):
-                parts.append(np.column_stack((xy*scale,weights[:,None]*color*(1-fraction))))
-                if fraction:
-                    delta = .5*shift*prism
-                    for sign in (-1,1):
-                        parts.append(np.column_stack(((xy+[sign*delta,0])*scale,
-                                                      weights[:,None]*color*(.5*fraction))))
+                delta = .5*shift*prism
+                for sign in (-1,1):
+                    parts.append(np.column_stack(((xy+[sign*delta,0])*scale,weights[:,None]*color*(.5*fraction))))
         taps = np.concatenate(parts)
     taps[:,:2] *= recipe.size
     taps[:,2:] *= gain*recipe.shape_gain/taps[:,2:].sum(axis=0)
@@ -452,10 +404,55 @@ def lobe_response(lobe, radius, pixel_scale, size, camera, prism):
     return resize_mass(images,radius,1/pixel_scale)
 
 
+@dataclass(frozen=True, eq=False)
+class RasterTarget:
+    """Linear RGB mass with an explicit optical origin and full-resolution pixel spacing."""
+    pixels: np.ndarray
+    origin: tuple[float, float] | None = None
+    pixel_size: float = 1.
+
+    def __post_init__(self):
+        pixels = np.array(self.pixels, dtype=np.float32, order="C", copy=True)
+        if pixels.ndim != 3 or pixels.shape[0] != 3 or any(n % 2 != 1 for n in pixels.shape[1:]):
+            raise ValueError("A raster target requires three channels and odd spatial dimensions")
+        if not np.isfinite(pixels).all() or np.any(pixels < 0) or np.any(pixels.sum(axis=(1,2)) <= 0):
+            raise ValueError("A raster target requires finite nonnegative RGB with positive channel energy")
+        if not math.isfinite(self.pixel_size) or self.pixel_size <= 0:
+            raise ValueError("Raster pixel spacing must be positive and finite")
+        origin = self.origin or ((pixels.shape[2]-1)/2, (pixels.shape[1]-1)/2)
+        if len(origin) != 2 or not all(math.isfinite(x) for x in origin):
+            raise ValueError("Raster optical origin must contain two finite coordinates")
+        pixels.flags.writeable = False
+        object.__setattr__(self, "pixels", pixels)
+        object.__setattr__(self, "origin", tuple(map(float,origin)))
+        object.__setattr__(self, "pixel_size", float(self.pixel_size))
+        header = json.dumps((pixels.shape, self.origin, self.pixel_size)).encode()
+        object.__setattr__(self, "_digest", hashlib.sha256(header + pixels.tobytes()).hexdigest())
+
+    size = 1.
+    lobes = None
+
+    def digest(self):
+        return self._digest
+
+    def resolved(self):
+        return dict(raster_sha256=self.digest(), origin=self.origin, pixel_size=self.pixel_size,
+                    dimensions=self.pixels.shape)
+
+
 def target_components(recipe, radius, pixel_scale=1.):
     """Return mass per full-res pixel on a centered canvas; outside the canvas is clipped."""
     if radius < 1:
         raise ValueError("Target radius must be positive")
+    if isinstance(recipe, RasterTarget):
+        height, width = recipe.pixels.shape[1:]
+        scale = recipe.pixel_size / pixel_scale
+        x = resize_axis(width//2, radius, scale, (width//2-recipe.origin[0])*scale)
+        y = resize_axis(height//2, radius, scale, (height//2-recipe.origin[1])*scale)
+        image = axis_filter(axis_filter(recipe.pixels, x).swapaxes(-2,-1), y).swapaxes(-2,-1)
+        # Area integration produces mass per represented pixel. Consumers use density.
+        image /= np.float32(pixel_scale**2)
+        return dict(tail=np.zeros_like(image), core=np.zeros_like(image), shape=image)
     p = recipe.resolved()
     side = 2 * radius + 1
     scale = recipe.size / pixel_scale
@@ -475,8 +472,8 @@ def target_components(recipe, radius, pixel_scale=1.):
             if lobe.gain:
                 shape += lobe_response(lobe,radius,pixel_scale,recipe.size,p["camera"],p["prism"])
         shape *= recipe.shape_gain
-    elif recipe.preset != "standard" and recipe.shape_gain:
-        shape = resize_mass(colored_shape(recipe), radius, scale) * recipe.shape_gain
+    elif recipe.preset in BITMAP_PRESETS and recipe.shape_gain:
+        shape = resize_mass(colored_bitmap_shape(recipe), radius, scale) * recipe.shape_gain
     area = np.float32(pixel_scale**2)
     return {"tail": tail / area, "core": core / area, "shape": shape / area}
 

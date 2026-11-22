@@ -1,17 +1,20 @@
-"""Local Bloom target preview and CPU fit. Run: python -B scripts/bloom_dpf_web.py."""
+"""Local Bloom target preview and spatial DPF fit. Set BLOOM_DPF_CUDA_LIBRARY to the compiled bloom_dpf_filter library for CUDA fitting."""
 import argparse
 import base64
+from functools import lru_cache
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import io
 import json
 import math
+import os
 from pathlib import Path
 import sys
 import threading
 from urllib.parse import urlsplit
 import zipfile
 
-from bloom_dpf_fit import fit_filtered_recipe, shader_coefficients
+from bloom_dpf_fit import coarse_target, shader_coefficients
+from bloom_dpf_policy import fit_spatial_recipe
 from bloom_dpf_target import PRESETS, Recipe, reference_tail, resize_mass, target_kernel
 import numpy as np
 from PIL import Image
@@ -88,8 +91,56 @@ def view_fitted(response, phase, radius):
     return np.mean(images,axis=0)
 
 
+@lru_cache(maxsize=2)
+def profile_target(recipe, fine_radius, outer_radius, side, phases, pool):
+    complete = target_kernel(recipe, outer_radius)
+    pooled, _ = coarse_target(complete, side, phases, pool, fine_radius)
+    fine = target_kernel(recipe, fine_radius)
+    return dict(fine=np.repeat(fine[None], len(phases), axis=0), pooled=pooled,
+                side=side, phases=phases, pool=pool)
+
+
+def profile_views(recipe, completed, phase, radius):
+    if completed is None:
+        return target_kernel(recipe, PREVIEW_RADIUS, radius/PREVIEW_RADIUS), None, None
+    result, response = completed
+    if phase != "mean" and (type(phase) is not int or not 0 <= phase < len(response["fine"])):
+        raise ValueError("Unknown validation phase")
+    target = profile_target(recipe, response["fine"].shape[-1]//2,
+                            result["outer_radius"], response["side"],
+                            tuple(map(tuple,response["phases"])), response["pool"])
+    return view_fitted(target,phase,radius), view_fitted(response,phase,radius), response
+
+
+def line_profile(recipe, completed, phase, radius, endpoints):
+    ends = np.asarray(endpoints,dtype=np.float64)
+    if ends.shape != (2,2) or not np.isfinite(ends).all() or np.any(np.abs(ends)>radius):
+        raise ValueError("Expected two endpoints within the preview in full-resolution pixels")
+    target, fitted, response = profile_views(recipe,completed,phase,radius)
+    step = radius/PREVIEW_RADIUS
+    length = float(np.linalg.norm(ends[1]-ends[0]))
+    distance = np.linspace(0,length,max(2,math.ceil(length/step)+1))
+    points = ends[0]+np.linspace(0,1,len(distance))[:,None]*(ends[1]-ends[0])
+    coordinates = (points/step+PREVIEW_RADIUS).T[::-1]
+    def samples(image):
+        rgb = np.stack([map_coordinates(channel,coordinates,order=1,mode="nearest") for channel in image],axis=1)
+        return dict(rgb=rgb.tolist(),luminance=(rgb @ np.array([.2126,.7152,.0722])).tolist())
+    footprint = np.full(len(distance),step)
+    if response is not None:
+        fine_limit = response["fine"].shape[-1]//2+.5-step/2
+        footprint[np.ceil(np.max(np.abs(points),axis=1)/step)*step>fine_limit] = response["pool"]
+    return dict(recipe_sha256=recipe.digest(),endpoints=ends.tolist(),phase=phase,
+                distance=distance.tolist(),target=samples(target),
+                fitted=None if fitted is None else samples(fitted),
+                pixel_spacing=step,footprint=footprint.tolist(),pool=None if response is None else response["pool"])
+
+
 class FitSlot:
-    def __init__(self):
+    def __init__(self, filter_class=None):
+        if filter_class is None and os.environ.get("BLOOM_DPF_CUDA_LIBRARY"):
+            from bloom_dpf_cuda import Filter
+            filter_class = Filter
+        self.filter_class = filter_class
         self.lock = threading.Lock()
         self.state = {"status":"empty"}
         self.result = None
@@ -111,9 +162,9 @@ class FitSlot:
                 self.state.update(iteration=iteration,loss=loss)
         try:
             idle_worker()
-            result, images = fit_filtered_recipe(recipe,radius=preview_radius(recipe),
+            result, images = fit_spatial_recipe(recipe,radius=preview_radius(recipe),
                                         outer_radius=math.ceil(768*max(1,recipe.size)),
-                                        progress=progress,cancelled=cancel.is_set,return_outer=True)
+                                        progress=progress,cancelled=cancel.is_set,filter_class=self.filter_class)
         except InterruptedError:
             with self.lock:
                 self.state["status"] = "cancelled"
@@ -141,9 +192,15 @@ class FitSlot:
             return dict(self.state)
 
     def completed(self, recipe):
+        result = self.matching(recipe)
+        if result is None:
+            raise ValueError("The completed fit belongs to a different recipe")
+        return result
+
+    def matching(self, recipe):
         with self.lock:
             if not self.result or self.state["recipe_sha256"] != recipe.digest():
-                raise ValueError("The completed fit belongs to a different recipe")
+                return None
             return self.result
 
 
@@ -191,13 +248,17 @@ class Handler(BaseHTTPRequestHandler):
                 self.json(self.fit.status())
                 return
             recipe = Recipe(**body["recipe"])
-            if path in ("/api/target","/api/fitted"):
+            if path in ("/api/target","/api/fitted","/api/profile"):
                 radius = body.get("radius",160)
                 if radius not in VIEWS:
                     raise ValueError("Unknown preview range")
                 logarithmic = body.get("display","log") == "log"
+                phase = body.get("phase","mean")
+                if path == "/api/profile":
+                    self.json(line_profile(recipe,self.fit.matching(recipe),phase,radius,body["endpoints"]))
+                    return
                 if path == "/api/target":
-                    kernel = target_kernel(recipe,PREVIEW_RADIUS,radius/PREVIEW_RADIUS)
+                    kernel,_,_ = profile_views(recipe,self.fit.matching(recipe),phase,radius)
                 else:
                     _, response = self.fit.completed(recipe)
                     phase = body["phase"]

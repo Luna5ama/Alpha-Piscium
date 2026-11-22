@@ -36,7 +36,11 @@ void main() {
         if (isEyeInWater == 1) {
             bloomIntensity += SETTING_BLOOM_UNDERWATER_BOOST;
         }
+        #ifdef BLOOM_DPF_HAS_D0
+        vec3 glow = transient_bloomRaw_fetch(texelPos).rgb;
+        #else
         vec3 glow = bloom_filterPixel(texelPos);
+        #endif
         outputColor.rgb += glow * exp2(bloomIntensity);
         #endif
 

@@ -2859,36 +2859,32 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             comment = "使明亮区域发光并渗透到周围像素，就像光线使相机过曝一样。"
                         }
                     }
-                    slider("SETTING_BLOOM_SHAPE", 0, 0..10) {
+                    slider("SETTING_BLOOM_SHAPE", 0, listOf(0, 2, 4, 5, 6, 8, 9, 10, 11)) {
                         lang {
                             name = "Bloom Kernel"
                             comment = "Choose the complete bloom kernel. Custom uses the kernel exported by the Bloom editor."
                             0 value "Standard"
-                            1 value "Diamond Four"
-                            2 value "Horizontal Streak"
-                            3 value "Cross Four"
+                            2 value "Camera Streak"
                             4 value "Camera Six"
                             5 value "Camera Ten"
                             6 value "Cinema Star"
-                            7 value "Prismatic Streak"
                             8 value "67"
                             9 value "Trollface"
                             10 value "Custom"
+                            11 value "User 8"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "泛光核"
                             comment = "选择完整泛光核。自定义选项使用泛光编辑器导出的核。"
                             0 value "标准"
-                            1 value "菱形四芒"
-                            2 value "横向光带"
-                            3 value "正十字"
+                            2 value "摄影横向光带"
                             4 value "摄影六芒"
                             5 value "摄影十芒"
                             6 value "电影星芒"
-                            7 value "棱镜光带"
                             8 value "67"
                             9 value "Trollface"
                             10 value "自定义"
+                            11 value "User 8"
                         }
                     }
                     slider("SETTING_BLOOM_INTENSITY", 0.0, -8.0..8.0 step 0.25) {

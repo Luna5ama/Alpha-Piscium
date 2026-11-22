@@ -17,15 +17,33 @@ def reference_taps():
 
 
 @lru_cache(maxsize=512)
-def axis_matrix(source, destination, offset, down, start, pool):
+def axis_matrix(source, destination, offset, down, start, pool, derivative=False, source_start=0, full_source=None):
     axis = start + np.arange(destination)[:, None] * pool + np.arange(pool)
+    full_source = source if full_source is None else full_source
     position = (2 * axis + .5 if down else .5 * axis - .25) + offset
     if not down:
-        position = np.clip(position, 0, source - 1)
+        position = np.clip(position, 0, full_source - 1)
+    position -= source_start
     low = np.floor(position).astype(int)
     fraction = position - low
-    columns = np.stack((low, low + 1), axis=2)
-    weights = np.stack((1 - fraction, fraction), axis=2) / pool
+    if derivative:
+        at_knot = fraction == 0
+        columns = np.stack((low - 1, low, low + 1), axis=2)
+        weights = np.stack((-.5 * at_knot, -1. * ~at_knot, np.where(at_knot, .5, 1.)), axis=2)
+        if not down:
+            unclamped = .5 * axis - .25 + offset
+            weights *= ((unclamped >= 0) & (unclamped <= full_source - 1))[..., None]
+            # At the clip boundary the centered derivative has one interior slope.
+            at_lower = unclamped == 0
+            at_upper = unclamped == full_source - 1
+            weights[at_lower] = (0., -.5, .5)
+            weights[at_upper] = (-.5, .5, 0.)
+            if full_source == 1:
+                weights.fill(0.)
+    else:
+        columns = np.stack((low, low + 1), axis=2)
+        weights = np.stack((1 - fraction, fraction), axis=2)
+    weights /= pool
     rows = np.broadcast_to(np.arange(destination)[:, None, None], columns.shape)
     keep = (weights != 0) & (columns >= 0) & (columns < source)
     matrix = csr_matrix((weights[keep].astype(np.float32), (rows[keep], columns[keep])),
@@ -38,10 +56,13 @@ def axis_filter(image, matrix):
 
 
 class Filter:
-    def __init__(self, source, destination, offsets, *, down=False, start=(0, 0), pool=1):
+    def __init__(self, source, destination, offsets, *, down=False, start=(0, 0), pool=1,
+                 source_start=(0, 0), full_source=None):
         self.destination = destination
-        self.x = tuple(axis_matrix(source[1], destination[1], float(x), down, start[1], pool) for x, _ in offsets)
-        self.y = tuple(axis_matrix(source[0], destination[0], float(y), down, start[0], pool) for _, y in offsets)
+        full_source = source if full_source is None else full_source
+        self.geometry = source, offsets, down, start, pool, source_start, full_source
+        self.x = tuple(axis_matrix(source[1], destination[1], float(x), down, start[1], pool, False, source_start[1], full_source[1]) for x, _ in offsets)
+        self.y = tuple(axis_matrix(source[0], destination[0], float(y), down, start[0], pool, False, source_start[0], full_source[0]) for _, y in offsets)
 
     def tap(self, image, i):
         x = axis_filter(image, self.x[i][0])
@@ -65,6 +86,30 @@ class Filter:
             dw.append(np.sum(derivative * self.tap(image, j), axis=(0, 2, 3), dtype=np.float64))
             dx += self.transpose_tap(derivative * weight[:, None, None], j)
         return dx, np.asarray(dw)
+
+
+    def backward_positions(self, image, derivative, weights, *, input_gradient=True):
+        """Adjoint for the input, coefficient weights and continuous sample offsets."""
+        source, offsets, down, start, pool, source_start, full_source = self.geometry
+        dx = np.zeros_like(derivative, shape=(*derivative.shape[:-2], *source)) if input_gradient else None
+        dw = np.zeros_like(weights, dtype=np.float64)
+        dp = np.zeros_like(offsets, dtype=np.float64)
+        for i, (weight, (ox, oy)) in enumerate(zip(weights, offsets, strict=True)):
+            mx, my = self.x[i], self.y[i]
+            x = axis_filter(image, mx[0])
+            y = axis_filter(x.swapaxes(-2, -1), my[0]).swapaxes(-2, -1)
+            product = derivative * y
+            dw[i] = np.sum(product, dtype=np.float64) if np.ndim(weight)==0 else np.sum(product, axis=(0,2,3),dtype=np.float64)
+            delta = derivative * weight[..., None, None]
+            x_grad = axis_filter(delta.swapaxes(-2,-1),my[1]).swapaxes(-2,-1)
+            if input_gradient:
+                dx += axis_filter(x_grad,mx[1])
+            x_pos = axis_matrix(source[1],self.destination[1],float(ox),down,start[1],pool,True,source_start[1],full_source[1])[0]
+            y_pos = axis_matrix(source[0],self.destination[0],float(oy),down,start[0],pool,True,source_start[0],full_source[0])[0]
+            dp[i,0] = np.sum(x_grad * axis_filter(image,x_pos),dtype=np.float64)
+            dy = axis_filter(x.swapaxes(-2,-1),y_pos).swapaxes(-2,-1)
+            dp[i,1] = np.sum(delta * dy,dtype=np.float64)
+        return dx,dw,dp
 
 
 def downsample(image, taps, levels=LEVELS):

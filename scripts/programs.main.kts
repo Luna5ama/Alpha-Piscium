@@ -364,6 +364,12 @@ programs {
                 cond("defined(SETTING_BLOOM)")
             }
         }
+        pass("/techniques/Bloom.comp.glsl") {
+            constDefine("BLOOM_PASS", 1)
+            constDefine("BLOOM_FINAL_RECONSTRUCTION")
+            constDefine("BLOOM_RENDER_SCALE", 1.0)
+            cond("defined(SETTING_BLOOM) && SETTING_BLOOM_SHAPE == 10")
+        }
         pass(
             "/techniques/rtwsm/IMapBlur.comp.glsl",
             "/pass/composite/PostComposite.comp.glsl"

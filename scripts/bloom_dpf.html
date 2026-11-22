@@ -13,7 +13,11 @@ select,button,input{font:inherit;accent-color:#78b9ff} button,select{padding:.35
 label{display:block;margin:8px 0} input[type=range]{width:100%} output{float:right}
 .controls,.buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 #kernel,#lights,#hdr{display:block;width:100%;image-rendering:pixelated;background:#000}
-#kernel{aspect-ratio:1;max-width:600px;margin:12px auto 6px}
+#kernelView{position:relative;max-width:600px;margin:12px auto 6px}
+#kernel{aspect-ratio:1;margin:0}
+#profileLine{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+#profilePlot{display:block;width:100%;height:200px;background:#121416;margin:8px 0}
+#profileInfo,#profileReadout{display:block;float:none;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 #lights,#hdr{max-width:480px;margin:0 auto}
 #hdr[hidden]{display:none}
 #lobeEditor{margin:12px 0}
@@ -62,7 +66,11 @@ label{display:block;margin:8px 0} input[type=range]{width:100%} output{float:rig
 <select id="display" aria-label="显示曲线"><option value="log">对数显示</option><option value="linear">线性显示</option></select>
 </div>
 <label>显示曝光 <output id="evValue">0 EV</output><input id="ev" type="range" min="-4" max="4" step=".25" value="0"></label>
-<img id="kernel" alt="Bloom 点扩散核">
+<div id="kernelView"><img id="kernel" alt="Bloom 点扩散核"><canvas id="profileLine" aria-label="拖线测量核剖面"></canvas></div>
+<small>在核图上拖线，对照目标与生成结果的亮度。</small>
+<canvas id="profilePlot" aria-label="目标和生成结果的亮度剖面"></canvas>
+<small id="profileInfo">拖线后显示端点、相位和采样覆盖。</small>
+<output id="profileReadout"></output>
 <img id="lights" alt="白、暖、青三种点光响应">
 <small><span id="scale"></span> <span id="sync" role="status"></span> 两种预览使用同一坐标和显示曝光，外圈拟合图来自分块均值。光点从左到右为白、暖、青。</small>
 <figure id="hdrPreview" hidden>
@@ -79,13 +87,14 @@ const sliders=[
  ['core_sigma','高斯宽度（像素）',.75,16,.05], ['tail_gain','长尾强度',0,4,.01],
  ['shape_gain','造型强度',0,4,.01], ['camera','相机色散',0,2,.01], ['prism','棱镜色散',0,2,.01]
 ];
-const names={'standard':'标准','diamond-four':'菱形四芒','horizontal-streak':'横向光带','cross-four':'正十字',
- 'camera-six':'摄影六芒','camera-ten':'摄影十芒','cinema-star':'电影星芒','prismatic-streak':'棱镜光带',
+const names={'standard':'标准','horizontal-streak':'摄影横向光带',
+ 'camera-six':'摄影六芒','camera-ten':'摄影十芒','cinema-star':'电影星芒','user-8':'User 8',
  'digits-67':'67','trollface':'Trollface','custom-lobes':'自定义瓣'};
 const inputs={};
 let presets, recipe, targetHash, mode='target', state={status:'empty'};
 let selectedLobe=0, sequence=0, timer, previewPending=true;
 let inFlight=false, queued=false, lastRequest=0;
+let profileEnds=null,profileData=null,profileEpoch=0,profileTimer,dragging=false;
 const maxLobes=24;
 const lobeFields=[
  ['angle','角度（°）',0,360,.1], ['length','高斯长度（像素）',6,240,.1],
@@ -111,9 +120,9 @@ function lobeLabel(lobe,index){
  return '瓣 '+(index+1)+' · '+fieldValue(lobe.angle,.1)+'°';
 }
 function renderLobes(){
- const custom=recipe.preset==='custom-lobes';
- $('lobeEditor').hidden=!custom;
- if(!custom){$('hdrPreview').hidden=true;return;}
+ const editable=Array.isArray(recipe.lobes);
+ $('lobeEditor').hidden=!editable;
+ if(!editable){$('hdrPreview').hidden=true;return;}
  const list=$('selectedLobe'), fields=$('lobeFields'), actions=$('lobeActions');
  const lobes=recipe.lobes;
  list.replaceChildren(...lobes.map((lobe,index)=>new Option(lobeLabel(lobe,index),String(index))));
@@ -216,7 +225,7 @@ function loadRecipe(x){
   if(!Number.isFinite(candidate[key])||candidate[key]<min||candidate[key]>max)
    throw new Error(label+'超出当前界面的范围');
  }
- if(candidate.preset==='custom-lobes'){
+ if(Array.isArray(presets[candidate.preset].lobes)){
   if(!Array.isArray(candidate.lobes)||candidate.lobes.length>maxLobes)throw new Error('瓣数量超出范围');
   for(const lobe of candidate.lobes){
    for(const [key,label,min,max] of lobeFields){
@@ -238,7 +247,8 @@ function loadRecipe(x){
  renderLobes();changed();
 }
 function changed(){
- targetHash=null;previewPending=true;mode='target';renderState();schedule();
+ targetHash=null;previewPending=true;mode='target';profileData=null;++profileEpoch;
+ renderProfile();renderState();schedule();
 }
 function schedule(){++sequence;queued=true;$('sync').textContent='正在更新预览…';pump();}
 function pump(){
@@ -265,6 +275,7 @@ async function draw(){
   $('sync').textContent='';
   if(which==='target'){targetHash=x.recipe_sha256;previewPending=false;}
   renderState();
+  refreshProfile();
  }catch(e){if(epoch===sequence)$('status').textContent=e.message;}
 }
 function renderState(){
@@ -273,7 +284,7 @@ function renderState(){
  $('fit').disabled=state.status==='running'||previewPending;
  $('cancel').disabled=state.status!=='running';
  $('export').disabled=!ready;$('fitted').disabled=!ready;
- $('phase').disabled=!ready||mode!=='fitted';
+ $('phase').disabled=!ready;
  $('diagnostics').hidden=state.status!=='finished';
  if(state.status==='running'){
   const loss=state.loss===undefined?'':', loss '+state.loss.toFixed(4);
@@ -290,10 +301,16 @@ function renderState(){
 }
 function updateState(s){
  const rebuild=s.status==='finished'&&(state.status!==s.status||state.recipe_sha256!==s.recipe_sha256);
+ const started=s.status==='running'&&state.status!=='running';
  state=s;
+ if(started){
+  profileData=null;++profileEpoch;mode='target';renderProfile();schedule();
+ }
  if(rebuild){
+  profileData=null;++profileEpoch;renderProfile();
   const phase=$('phase');
   phase.replaceChildren(new Option('留出相位平均','mean'),...s.phases.map(([x,y],i)=>new Option('相位 '+x+', '+y,String(i))));
+  schedule();
  }
  renderState();
 }
@@ -305,13 +322,88 @@ function download(blob,name){
  const uri=URL.createObjectURL(blob), link=document.createElement('a');
  link.href=uri;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(uri),1000);
 }
+function canvasContext(id){
+ const canvas=$(id), ratio=window.devicePixelRatio||1;
+ const {width,height}=canvas.getBoundingClientRect();
+ canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);
+ const context=canvas.getContext('2d');context.scale(ratio,ratio);
+ return {context,width,height};
+}
+function renderProfile(){
+ const line=canvasContext('profileLine');
+ if(profileEnds){
+  const radius=Number($('view').value), scale=line.width/321;
+  const p=profileEnds.map(([x,y])=>[(x/radius*160+160.5)*scale,(y/radius*160+160.5)*scale]);
+  const c=line.context;c.strokeStyle='#fff';c.lineWidth=1.5;c.shadowColor='#000';c.shadowBlur=3;
+  c.beginPath();c.moveTo(...p[0]);c.lineTo(...p[1]);c.stroke();
+  for(const [x,y] of p){c.beginPath();c.arc(x,y,3,0,Math.PI*2);c.stroke();}
+ }
+ const {context:c,width,height}=canvasContext('profilePlot');
+ c.font='12px system-ui';c.fillStyle='#bfc3c9';
+ if(!profileData){
+  const text=profileEnds?'正在更新剖面…':'拖线查看亮度剖面';
+  c.fillText(text,16,28);$('profileInfo').textContent=text;$('profileReadout').textContent='';return;
+ }
+ const d=profileData,ev=Number($('ev').value),log=$('display').value==='log';
+ const transform=y=>{const v=Math.max(0,y)*2**ev;return log?Math.log1p(v/2e-6)/Math.log1p(.012/2e-6):v/.012;};
+ const curves=[['目标','#f4c66d',d.target],['生成结果','#78b9ff',d.fitted]].filter(x=>x[2]);
+ const maximum=Math.max(1e-12,...curves.flatMap(x=>x[2].luminance.map(transform)));
+ const left=52,right=width-14,top=30,bottom=height-34,length=d.distance.at(-1);
+ c.strokeStyle='#44484f';c.beginPath();c.moveTo(left,top);c.lineTo(left,bottom);c.lineTo(right,bottom);c.stroke();
+ c.fillText(log?'亮度 · 对数':'亮度 · 线性',left,16);
+ c.fillText(maximum.toPrecision(3),2,top+5);c.fillText('0',36,bottom+3);
+ c.fillText('0',left,bottom+17);c.textAlign='right';c.fillText(length.toFixed(1)+' px',right,bottom+17);c.textAlign='left';
+ c.fillText('距第一端点的全分辨率像素距离',left,bottom+31);
+ curves.forEach(([label,color,values],j)=>{
+  c.fillStyle=color;c.fillText(label,right-130+j*72,16);c.strokeStyle=color;c.lineWidth=1.5;c.beginPath();
+  values.luminance.forEach((v,i)=>{const x=left+(length?d.distance[i]/length:0)*(right-left),y=bottom-transform(v)/maximum*(bottom-top);i?c.lineTo(x,y):c.moveTo(x,y);});c.stroke();
+ });
+ const endpoints=d.endpoints.map(p=>'('+p.map(x=>x.toFixed(2)).join(', ')+')').join(' → ');
+ const phase=d.phase==='mean'?'留出相位平均':$('phase').selectedOptions[0].textContent;
+ const footprint=Math.max(...d.footprint);
+ $('profileInfo').textContent=endpoints+' px · '+phase+' · 点距 ≤ '+d.pixel_spacing.toFixed(2)+' px，方形覆盖边长 '+Math.min(...d.footprint).toFixed(2)+'–'+footprint.toFixed(2)+' px'+(d.pool&&d.footprint.includes(d.pool)?'，外圈为 '+d.pool+'×'+d.pool+' 像素均值的双线性插值。':'。')+' 亮度权重 RGB = 0.2126 / 0.7152 / 0.0722。';
+}
+function refreshProfile(){
+ clearTimeout(profileTimer);const epoch=++profileEpoch;
+ if(!profileEnds)return;
+ profileTimer=setTimeout(async()=>{
+  try{
+   const phase=$('phase').value==='mean'?'mean':Number($('phase').value);
+   const d=await data('/api/profile',{recipe,phase,radius:Number($('view').value),endpoints:profileEnds});
+   if(epoch!==profileEpoch)return;profileData=d;renderProfile();
+  }catch(e){if(epoch===profileEpoch)$('profileInfo').textContent=e.message;}
+ },60);
+}
+function linePoint(event){
+ const rect=$('profileLine').getBoundingClientRect(),radius=Number($('view').value);
+ return [event.clientX-rect.left,event.clientY-rect.top].map(v=>Math.max(-radius,Math.min(radius,(v/rect.width*321-160.5)*radius/160)));
+}
+$('profileLine').onpointerdown=event=>{
+ if(event.button!==0)return;dragging=true;profileEnds=[linePoint(event),linePoint(event)];profileData=null;
+ $('profileLine').setPointerCapture(event.pointerId);renderProfile();refreshProfile();
+};
+$('profileLine').onpointermove=event=>{if(dragging){profileEnds[1]=linePoint(event);profileData=null;renderProfile();refreshProfile();}};
+function finishLine(event){if(dragging){profileEnds[1]=linePoint(event);profileData=null;dragging=false;renderProfile();refreshProfile();}}
+$('profileLine').onpointerup=finishLine;$('profileLine').onpointercancel=()=>{dragging=false;};
+$('profilePlot').onpointermove=event=>{
+ if(!profileData)return;
+ const width=$('profilePlot').getBoundingClientRect().width,left=$('profilePlot').getBoundingClientRect().left;
+ const i=Math.round(Math.max(0,Math.min(1,(event.clientX-left-52)/(width-66)))*(profileData.distance.length-1));
+ const value=s=>s?' Y '+s.luminance[i].toExponential(5)+'，RGB '+s.rgb[i].map(x=>x.toExponential(4)).join(' / '):'';
+ $('profileReadout').textContent='距起点 '+profileData.distance[i].toFixed(3)+' px · 目标'+value(profileData.target)+(profileData.fitted?' · 生成结果'+value(profileData.fitted):'');
+};
+new ResizeObserver(renderProfile).observe($('kernelView'));
 $('fit').onclick=async()=>{try{updateState(await data('/api/fit',{recipe}));poll();}catch(e){$('status').textContent=e.message;}};
 $('cancel').onclick=async()=>{try{updateState(await data('/api/cancel',{}));}catch(e){$('status').textContent=e.message;}};
 $('export').onclick=async()=>{try{download(await (await api('/api/export',{recipe})).blob(),'bloom-dpf.zip');}catch(e){$('status').textContent=e.message;}};
 $('target').onclick=()=>{mode='target';schedule();};
 $('fitted').onclick=()=>{mode='fitted';schedule();};
-$('phase').onchange=schedule;$('ev').oninput=schedule;
-$('view').onchange=schedule;$('display').onchange=schedule;
+$('phase').onchange=()=>{profileData=null;++profileEpoch;renderProfile();schedule();};$('ev').oninput=schedule;
+$('view').onchange=()=>{
+ const radius=Number($('view').value);
+ if(profileEnds)profileEnds=profileEnds.map(p=>p.map(x=>Math.max(-radius,Math.min(radius,x))));
+ profileData=null;++profileEpoch;renderProfile();schedule();
+};$('display').onchange=schedule;
 $('preset').onchange=()=>loadRecipe(presets[$('preset').value]);
 $('save').onclick=()=>download(new Blob([JSON.stringify(recipe,null,2)],{type:'application/json'}),'bloom-recipe.json');
 $('load').onclick=()=>$('file').click();
