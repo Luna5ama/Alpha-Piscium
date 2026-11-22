@@ -47,7 +47,7 @@ Files under the `scripts` directory are licensed under the MIT License. All othe
 
 ## Development
 
-Alpha Piscium keeps pass entry points, reusable rendering techniques, generated bindings, and developer tooling separate. Start with the English [developer documentation](docs/en/README.md), then use the [quick start](docs/en/development/quick-start.md), [project structure](docs/en/development/project-structure.md), [workflow guide](docs/en/development/workflows.md), and [pipeline overview](docs/en/modules/pipeline.md).
+Alpha Piscium keeps pass entry points, reusable rendering techniques, generated bindings, and developer tooling separate. The [developer documentation](docs/README.md) links to the [project structure](docs/development/project-structure.md), [generator workflows](docs/development/generators.md), and [pipeline dependencies](docs/rendering/pipeline.md).
 
 Project outline:
 
@@ -58,4 +58,4 @@ Project outline:
 - [`scripts/`](scripts/): Kotlin/PowerShell generators, packaging, and asset tools.
 - [`docs/`](docs/): project-specific workflows and module maps.
 
-Ordinary `.glsl` edits need no generation step. Run the owning generator after changing the program list, options, the hand-maintained [`scripts/shaders.properties`](scripts/shaders.properties), or [`shaders/shadesmith.json`](shaders/shadesmith.json); the exact commands are listed in the [quick start](docs/en/development/quick-start.md).
+Ordinary `.glsl` edits need no generation step. Run the owning generator after changing the program list, options, the hand-maintained [`scripts/shaders.properties`](scripts/shaders.properties), or [`shaders/shadesmith.json`](shaders/shadesmith.json). See the [generation commands](docs/development/generators.md#what-to-run-after-a-change).
