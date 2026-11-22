@@ -48,19 +48,25 @@
 
 ### 程序化积云建模
 
-从实验分支已接收的 `033741ccc` 继续修整浅积云的底边、薄肩与云瓣，落实逐级向内的 LOD 侵蚀。以同镜位实机彩色图和透射图复核，整帧预算沿用首版原始基线。[本轮建模规格](docs/rendering/atmosphere-clouds.md#积云轮廓与细节层级修订)
+实验分支已接收 `8e09035ce` 的浅积云轮廓与嵌套 LOD，实机记录在 `33c3e618f`。[建模规格与结果](docs/rendering/atmosphere-clouds.md#积云轮廓与细节层级修订)
 
 <!-- vela:ready {"item":"procedural-cloud-shapes","rev":"8eafcf48395cc45eaec34bb0e7cfe26ffa064150","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
 
+### 层积云与高积云建模
+
+原云形建模会话在同一可飞入的世界云场实施低层云卷与中层成片云块，交付地面、层间和俯视对照，以及光照两线可取用的密度版本。[建模与交付规格](docs/rendering/atmosphere-clouds.md#层积云与高积云的建模交付)
+
+<!-- vela:ready {"item":"stratocumulus-altocumulus-shapes","rev":"ca28802c7edebcd463fe86ef10b8981b9985f335","spec":"docs/rendering/atmosphere-clouds.md","after":["procedural-cloud-shapes@8eafcf48395cc45eaec34bb0e7cfe26ffa064150"]} -->
+
 ### 云光照的物理输运对照
 
-在形状、光源与相机固定时增减邻塔，将实时单次和多次散射与同介质的离线参考对照。可从固定样本云体开工，以侧光和逆光的参考误差、运动时的噪声和实机开销决定候选去留。[云光照规格与双球基准](docs/rendering/atmosphere-clouds.md#云光照的物理对照)
+比较同一介质的实时散射与离线参考。固定双塔用于诊断，下一组在已接收的程序化云形上核对误差和实机成本。[云光照规格](docs/rendering/atmosphere-clouds.md#云光照的物理对照) · [在途实验的云形版本](docs/rendering/atmosphere-clouds.md#两项光照实验如何跟进云形)
 
 <!-- vela:ready {"item":"cloud-light-transport-comparison","rev":"d2f1ef0fe2b1ac9a962a062fe7d2af7f922611ba","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
 
 ### 学习式云散射独立实验
 
-交给独立的 GPT-6.2 Astra、max 执行会话，在 48–72 小时预算内比较小型神经网络与小 LUT 对不同液态积云高阶散射的预测，使用同密度路径追踪参考。可与云形及物理输运实验同时开工。[实验规格、预算与交付](docs/rendering/atmosphere-clouds.md#学习式云散射独立实验)
+独立的 GPT-6.2 Astra、max 执行会话在原 48–72 小时内比较小网络与小 LUT 对液态云高阶散射的预测，并以固定权重做新云形的整云留出检验。[实验规格与预算](docs/rendering/atmosphere-clouds.md#学习式云散射独立实验) · [跨版本对照](docs/rendering/atmosphere-clouds.md#两项光照实验如何跟进云形)
 
 <!-- vela:ready {"item":"cloud-learned-multiple-scattering","rev":"9356e3e28a49b7c5be4b93b179b38a66ce28e082","spec":"docs/rendering/atmosphere-clouds.md","after":[]} -->
 
