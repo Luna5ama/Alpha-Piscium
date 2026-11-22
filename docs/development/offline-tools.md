@@ -458,6 +458,16 @@ samples, and measured coefficient counts at each level. See the
 [experiment record](../../experiments/dpf-bloom-20261108.md) for the conditional
 gate decision, assumptions and evidence identities.
 
+Following the same ray after rotating the target 9.5°, with the two flank probes
+also rotated, gives a longest below-half-contrast run of 49 pixels in the prior
+low-cost shared layout, two in the fine layout and seven in the split layout
+over radii 96–144. The four fresh phases reproduce both candidate results.
+The star placement search used a native window of radius 170. The farthest
+split D1 tap centers measured along either screen axis were 149 pixels for
+User 8 and 143 for the rotation. Their reference centers reached 192.6 and
+190.0 pixels. A follow-up can score the pooled outer halo while placing taps
+and measure both bright overshoots and dark gaps along each traced line.
+
 <!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"protocol.json"} -->
 <!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"reproduce.md"} -->
 <!-- vela:evidence {"run":"44758c93-76de-4f66-9a63-90228267ee65","path":"reproducer-source.zip"} -->
