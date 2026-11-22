@@ -47,21 +47,30 @@ struct CuField {
 // A thermal grows from the common condensation floor. A developed updraft leans
 // and branches above its stem. Shallow thermals spread and end close to the floor.
 float clouds_cu_thermal(vec3 p, float development, float variation) {
-    float rise = clamp(p.y, 0.0, 1.0);
-    p.xz -= rise * vec2(0.16 + 0.52 * development, (variation - 0.5) * 0.68);
-    float stem = 1.0 - length((p - vec3(0.0, 0.19, 0.0)) / vec3(1.04, 0.68, 0.94));
-    float split = mix(0.20, 0.42, development);
-    vec3 q = p - vec3(split, 0.52 + 0.06 * variation, 0.12);
-    float head = 1.0 - length(q / vec3(0.70, 0.35, 0.72));
-    vec3 bud = q - vec3(0.03 + 0.24 * variation, 0.19 + 0.02 * variation, -0.11);
-    head = max(head, 1.0 - length(bud / vec3(0.48, 0.28, 0.48)));
-    bud = q - vec3(-0.32, 0.13 - 0.08 * variation, 0.27);
-    head = max(head, 1.0 - length(bud / vec3(0.42, 0.22, 0.37)));
-    q = p - vec3(-split, 0.43 + 0.14 * (1.0 - variation), -0.25);
-    float shoulder = 1.0 - length(q / vec3(0.58, 0.31, 0.61));
-    float crown = max(head, shoulder);
-    float blend = max(0.20 - abs(stem - crown), 0.0);
-    return max(stem, crown) + 1.25 * blend * blend;
+    float rise = smoothstep(0.10, 0.77, p.y);
+    p.xz -= rise * vec2(mix(0.10, 0.55, variation) * development, (variation - 0.5) * 0.48);
+    float root = 1.0 - length((p - vec3(0.0, 0.12, 0.0)) / vec3(1.04, 0.46, 0.96));
+    float waist = mix(0.80, 0.55 + 0.12 * variation, development);
+    float stem = 1.0 - length((p - vec3(0.04, 0.40, -0.03)) / vec3(waist, 0.44, waist));
+    vec3 side = p - vec3(-0.48, 0.29 + 0.12 * variation, 0.13);
+    float shoulder = 1.0 - length(side / vec3(0.52, 0.27, 0.51));
+    side = p - vec3(0.12 + 0.23 * variation, 0.47, 0.40);
+    shoulder = max(shoulder, 1.0 - length(side / vec3(0.44, 0.21, 0.48)));
+    vec3 q = p - vec3(0.10 + 0.14 * variation, 0.62, 0.04);
+    float head = 1.0 - length(q / vec3(0.70, 0.26, 0.65));
+    vec3 bud = q - vec3(0.26, 0.13 + 0.07 * variation, -0.16);
+    head = max(head, 1.0 - length(bud / vec3(0.46, 0.19, 0.44)));
+    bud = q - vec3(-0.26, 0.15 - 0.09 * variation, 0.24);
+    head = max(head, 1.0 - length(bud / vec3(0.40, 0.17, 0.40)));
+    bud = q - vec3(-0.32, 0.03, -0.26);
+    head = max(head, 1.0 - length(bud / vec3(0.46, 0.22, 0.45)));
+    float column = max(max(root, shoulder), stem);
+    float blend = max(0.22 - abs(column - head), 0.0);
+    return max(column, head) + blend * blend;
+}
+
+float clouds_cu_thermalEnvelope(vec3 p) {
+    return 2.0 * (1.0 - length((p - vec3(0.16, 0.34, 0.0)) / vec3(1.45, 0.84, 1.31))) - 0.003;
 }
 
 // A shallow cloud can be wide, but individual turrets still have rounded tops.
@@ -69,7 +78,7 @@ float clouds_cu_thermal(vec3 p, float development, float variation) {
 float clouds_cu_shallowBud(vec2 uv, float y) {
     vec2 variation = hash_uintToFloat(hash_22_q1(uvec2(ivec2(floor(uv)))));
     vec2 delta = fract(uv) - 0.5 - 0.09 * (variation - 0.5);
-    float radius = mix(0.32, 0.45, variation.x);
+    float radius = mix(0.24, 0.45, variation.x);
     return radius - length(vec3(delta, y - mix(0.26, 0.56, variation.y)));
 }
 
@@ -139,20 +148,34 @@ void clouds_cu_cluster(vec3 pos, vec3 direction, bool lower, float lod, bool den
     float phase = (float((worldDay % 4 + 4) % 4) + float(worldTime) / 24000.0) * (6.2831853 * 0.25);
     drift += 0.045 * sin(phase + 6.2831853 * seed.yzx);
     #endif
-    vec3 q = p - drift * vec3(0.76, 0.45, 0.76);
+    vec3 warp = drift * vec3(0.76, 0.45, 0.76);
     float tall = lower ? 0.25 * growth : growth;
-    vec3 main = (q - vec3(0.02 + 0.17 * seed.y, 0.0, -0.10)) / vec3(0.56, 1.0, 0.64);
-    vec3 side = (q - vec3(-0.36, 0.0, 0.14)) / vec3(0.56, mix(0.80, 0.38 + 0.29 * seed.x, tall), 0.53);
-    vec3 young = (q - vec3(0.44, 0.0, 0.17)) / vec3(0.44, mix(0.49, 0.76, seed.y) * (1.0 - 0.36 * tall), 0.42);
-    float shape = max(clouds_cu_thermal(main, tall, seed.x), clouds_cu_thermal(side.zyx, tall, seed.y));
-    shape = max(shape, clouds_cu_thermal(young, tall, seed.z));
-    float shallow = 1.0 - smoothstep(0.38, 0.86, height / radius);
+    vec3 mainSize = vec3(0.56, 1.0, 0.64);
+    vec3 sideSize = vec3(0.56, mix(0.80, 0.38 + 0.29 * seed.x, tall), 0.53);
+    vec3 youngSize = vec3(0.44, mix(0.49, 0.76, seed.y) * (1.0 - 0.36 * tall), 0.42);
+    vec3 mainParent = (p - vec3(0.02 + 0.17 * seed.y, 0.0, -0.10)) / mainSize;
+    vec3 sideParent = (p - vec3(-0.36, 0.0, 0.14)) / sideSize;
+    vec3 youngParent = (p - vec3(0.44, 0.0, 0.17)) / youngSize;
+    vec3 envelopes = vec3(clouds_cu_thermalEnvelope(mainParent), clouds_cu_thermalEnvelope(sideParent.zyx),
+        clouds_cu_thermalEnvelope(youngParent));
+    vec3 main = mainParent - warp / mainSize;
+    vec3 side = sideParent - warp / sideSize;
+    vec3 young = youngParent - warp / youngSize;
+    vec3 thermals = min(envelopes, vec3(clouds_cu_thermal(main, tall, seed.x), clouds_cu_thermal(side.zyx, tall, seed.y),
+        clouds_cu_thermal(young, tall, seed.z)));
+    float shape = max(thermals.x, max(thermals.y, thermals.z));
+    float foot = 1.0 - min(length(main.xz), min(length(side.xz), length(young.xz)));
+    float shallow = (1.0 - smoothstep(0.22, 0.49, height / max(float(SETTING_CLOUDS_CU_THICKNESS), 0.001)))
+        * (1.0 - smoothstep(0.53, 0.99, height / radius));
+    float leeward = smoothstep(-0.28, 0.62, dot(delta / radius, vec2(0.83205, 0.55470)) + 0.19 * curl.x);
+    float rim = 1.0 - smoothstep(0.10, 0.66, foot);
+    float entrained = shallow * rim * (0.22 + 0.78 * leeward);
     if (shallow > 0.0) {
-        float foot = 1.0 - min(length(main.xz), min(length(side.xz), length(young.xz)));
-        float h = p.y + 0.37 * (1.0 - smoothstep(0.04, 0.65, foot));
-        vec2 uv = vec2(dot(delta, axis), dot(delta, across)) / height + 12.0 * seed.xy + 0.12 * curl.xz;
-        float buds = max(0.0, max(clouds_cu_shallowBud(uv, h), 0.76 * clouds_cu_shallowBud(uv / 0.76 + 0.43, h / 0.76)));
-        float body = 0.38 + 0.16 * foot - h;
+        float h = p.y + 0.24 * rim + 0.11 * entrained;
+        vec2 uv = vec2(dot(delta, axis), dot(delta, across)) / height + 12.0 * seed.xy + 0.27 * curl.xz;
+        vec2 smaller = mat2(0.8, 0.6, -0.6, 0.8) * uv / 0.68 + 0.43;
+        float buds = max(0.0, max(clouds_cu_shallowBud(uv, h), 0.68 * clouds_cu_shallowBud(smaller, h / 0.68)));
+        float body = 0.29 + 0.20 * foot + 0.12 * curl.y - h;
         shape = mix(shape, min(foot, 2.5 * max(body, buds)), shallow);
     }
     if (shape <= 0.0) return;
@@ -165,10 +188,18 @@ void clouds_cu_cluster(vec3 pos, vec3 direction, bool lower, float lod, bool den
     float erosion = (1.0 - sqrt(billow)) * 0.57 + (1.0 - fine) * 0.12;
     erosion += mix((1.0 - wisp) * 0.025, 0.018, lod);
     erosion *= mix(0.63, 1.0, smoothstep(0.05, 0.45, p.y));
+    float moistPocket = smoothstep(0.14, 0.46, billow + 0.14 * (fine - 0.28));
+    erosion += entrained * mix(0.48, 0.03, moistPocket);
     float floorHeight = min(0.16, (0.018 + 0.022 * curl.z + 0.065 * (1.0 - sqrt(billow))) / max(height, 0.001));
+    floorHeight += entrained * (0.035 + 0.093 * (1.0 - billow));
     float outer = min(-parentBox / min(radius, height) - 0.0005, (p.y - floorHeight) * 1.8);
+    outer = min(outer, max(envelopes.x, max(envelopes.y, envelopes.z)));
     float bulk = clamp(min(shape, outer) / 0.15, 0.0, 1.0);
     float rho = clamp(min(shape - erosion, outer) / 0.15, 0.0, 1.0) * mix(0.44, 1.15, smoothstep(0.015, 0.35, p.y));
+    float wetCore = smoothstep(0.11, 0.72, foot + 0.22 * (billow - 0.4) - 0.16 * leeward);
+    float moisture = mix(1.0, mix(0.12 + 0.19 * billow, 1.0, wetCore), shallow);
+    rho *= moisture;
+    bulk *= moisture;
     if (rho > field.density) {
         field.density = rho;
         field.bulk = bulk;
