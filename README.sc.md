@@ -50,7 +50,7 @@ Discord 服务器：https://discord.gg/E2Uq2MmHgq
 
 ## 开发
 
-Alpha Piscium 将 pass 入口、可复用渲染模块、生成绑定和开发脚本分开维护。请先阅读中文版[开发文档](docs/sc/README.md)，再按需查看[快速入门](docs/sc/development/quick-start.md)、[项目结构](docs/sc/development/project-structure.md)、[工作流](docs/sc/development/workflows.md)和[管线总览](docs/sc/modules/pipeline.md)。
+Alpha Piscium 将 pass 入口、可复用渲染模块、生成绑定和开发脚本分开维护。可从[开发文档](docs/README.md)查阅[项目结构](docs/development/project-structure.md)、[生成流程](docs/development/generators.md)和[管线依赖](docs/rendering/pipeline.md)。
 
 项目结构大纲：
 
@@ -61,4 +61,4 @@ Alpha Piscium 将 pass 入口、可复用渲染模块、生成绑定和开发脚
 - [`scripts/`](scripts/)：Kotlin、PowerShell 生成器、打包和资源工具。
 - [`docs/`](docs/)：项目特定工作流与模块说明。
 
-普通 `.glsl` 改动不需要生成步骤。修改 program list、options、手写的 [`scripts/shaders.properties`](scripts/shaders.properties) 或 [`shaders/shadesmith.json`](shaders/shadesmith.json) 后运行对应生成器，准确命令见[快速入门](docs/sc/development/quick-start.md)。
+普通 `.glsl` 改动不需要生成步骤。修改 program list、options、手写的 [`scripts/shaders.properties`](scripts/shaders.properties) 或 [`shaders/shadesmith.json`](shaders/shadesmith.json) 后运行对应生成器，准确命令见[生成流程](docs/development/generators.md#what-to-run-after-a-change)。
