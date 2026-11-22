@@ -73,13 +73,14 @@ float clouds_cu_thermalEnvelope(vec3 p) {
     return 2.0 * (1.0 - length((p - vec3(0.16, 0.34, 0.0)) / vec3(1.45, 0.84, 1.31))) - 0.003;
 }
 
-// A shallow cloud can be wide, but individual turrets still have rounded tops.
-// Coordinates here use the same physical length on all three axes.
-float clouds_cu_shallowBud(vec2 uv, float y) {
+// Relief above a shared shallow layer. Each turret joins the body down to its local floor.
+float clouds_cu_shallowBud(vec2 uv) {
     vec2 variation = hash_uintToFloat(hash_22_q1(uvec2(ivec2(floor(uv)))));
-    vec2 delta = fract(uv) - 0.5 - 0.09 * (variation - 0.5);
-    float radius = mix(0.24, 0.45, variation.x);
-    return radius - length(vec3(delta, y - mix(0.26, 0.56, variation.y)));
+    float radius = mix(0.23, 0.47, variation.x);
+    vec2 delta = (fract(uv) - 0.5 - (0.48 - radius) * (2.0 * variation.yx - 1.0)) / radius;
+    delta.y *= 1.0 + 0.55 * variation.y;
+    float dome = max(1.0 - dot(delta, delta), 0.0);
+    return dome * mix(0.07, 0.47, variation.y * variation.y);
 }
 
 void clouds_cu_cluster(vec3 pos, vec3 direction, bool lower, float lod, bool density, inout CuField field) {
@@ -167,31 +168,39 @@ void clouds_cu_cluster(vec3 pos, vec3 direction, bool lower, float lod, bool den
     float foot = 1.0 - min(length(main.xz), min(length(side.xz), length(young.xz)));
     float shallow = (1.0 - smoothstep(0.22, 0.49, height / max(float(SETTING_CLOUDS_CU_THICKNESS), 0.001)))
         * (1.0 - smoothstep(0.53, 0.99, height / radius));
-    float leeward = smoothstep(-0.28, 0.62, dot(delta / radius, vec2(0.83205, 0.55470)) + 0.19 * curl.x);
+    const vec2 windDirection = vec2(0.83205, 0.55470);
+    float alongWind = dot(delta, windDirection);
+    float leeward = smoothstep(-0.28, 0.62, alongWind / radius + 0.19 * curl.x);
     float rim = 1.0 - smoothstep(0.10, 0.66, foot);
     float entrained = shallow * rim * (0.22 + 0.78 * leeward);
     if (shallow > 0.0) {
-        float h = p.y + 0.24 * rim + 0.11 * entrained;
+        float h = p.y + 0.16 * rim + 0.055 * entrained;
         vec2 uv = vec2(dot(delta, axis), dot(delta, across)) / height + 12.0 * seed.xy + 0.27 * curl.xz;
         vec2 smaller = mat2(0.8, 0.6, -0.6, 0.8) * uv / 0.68 + 0.43;
-        float buds = max(0.0, max(clouds_cu_shallowBud(uv, h), 0.68 * clouds_cu_shallowBud(smaller, h / 0.68)));
-        float body = 0.29 + 0.20 * foot + 0.12 * curl.y - h;
-        shape = mix(shape, min(foot, 2.5 * max(body, buds)), shallow);
+        float buds = max(clouds_cu_shallowBud(uv), 0.55 * clouds_cu_shallowBud(smaller));
+        float activity = smoothstep(-0.10, 0.55, foot + 0.28 * curl.y - 0.22 * leeward);
+        float top = 0.29 + 0.24 * foot + 0.13 * curl.y + buds * mix(0.35, 1.0, activity);
+        shape = mix(shape, min(1.28 * foot, 2.5 * (top - h)), shallow);
     }
     if (shape <= 0.0) return;
 
     float billow = textureLod(usam_cumulusDetail1, noisePos * (0.75 * exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ)) + drift, 0.0).r;
-    float fine = textureLod(usam_cumulusDetail2, noisePos * (2.6 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ))
+    vec2 localWind = vec2(dot(axis, windDirection), dot(across, windDirection));
+    vec3 edgePos = noisePos;
+    edgePos.xz -= localWind * (0.62 * shallow * alongWind);
+    float fine = textureLod(usam_cumulusDetail2, edgePos * (2.6 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ))
         + curl * (0.11 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_CURL_STR)), 0.0).r;
-    float wisp = textureLod(usam_cumulusDetail2, noisePos * (5.1 * exp2(SETTING_CLOUDS_LOW_WISPS_FREQ))
+    float wisp = textureLod(usam_cumulusDetail2, edgePos * (5.1 * exp2(SETTING_CLOUDS_LOW_WISPS_FREQ))
         + curl * (0.05 * exp2(SETTING_CLOUDS_LOW_WISPS_CURL_STR)), 0.0).r;
     float erosion = (1.0 - sqrt(billow)) * 0.57 + (1.0 - fine) * 0.12;
-    erosion += mix((1.0 - wisp) * 0.025, 0.018, lod);
+    // The coarse edge is shared at every LOD. Finer evaluation only removes material.
+    erosion += 0.018 + (1.0 - lod) * (1.0 - wisp) * mix(0.012, 0.065, entrained);
     erosion *= mix(0.63, 1.0, smoothstep(0.05, 0.45, p.y));
-    float moistPocket = smoothstep(0.14, 0.46, billow + 0.14 * (fine - 0.28));
-    erosion += entrained * mix(0.48, 0.03, moistPocket);
+    float moistPocket = smoothstep(0.20, 0.46, billow + 0.48 * (fine - 0.28));
+    erosion *= 1.0 - 0.40 * entrained * moistPocket;
+    erosion += entrained * mix(0.60, 0.025, moistPocket);
     float floorHeight = min(0.16, (0.018 + 0.022 * curl.z + 0.065 * (1.0 - sqrt(billow))) / max(height, 0.001));
-    floorHeight += entrained * (0.035 + 0.093 * (1.0 - billow));
+    floorHeight += entrained * (0.025 + 0.14 * (1.0 - moistPocket));
     float outer = min(-parentBox / min(radius, height) - 0.0005, (p.y - floorHeight) * 1.8);
     outer = min(outer, max(envelopes.x, max(envelopes.y, envelopes.z)));
     float bulk = clamp(min(shape, outer) / 0.15, 0.0, 1.0);
