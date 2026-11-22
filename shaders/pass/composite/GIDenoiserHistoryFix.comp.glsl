@@ -17,6 +17,9 @@ layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
+#ifdef SETTING_DENOISER_SPATIAL
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
+#endif
 layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 #ifndef SETTING_DENOISER_SPATIAL
@@ -126,6 +129,19 @@ void main() {
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos = ivec2(mortonGlobalPosU);
+    #ifdef SETTING_DENOISER_SPATIAL
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        vec3 geometric = transient_geomViewNormal_fetch(texelPos).rgb;
+        vec3 shading = transient_viewNormal_fetch(texelPos).rgb;
+        vec4 specular = transient_specularPBRData_fetch(texelPos);
+        float depth = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
+        uvec3 g = uvec3(roundEven(geometric * 1023.0));
+        uvec3 n = uvec3(roundEven(shading * 1023.0));
+        transient_gi_blurTap_store(texelPos, uvec4(
+            g.x | (g.y << 10u) | (g.z << 20u), n.x | (n.y << 10u) | (n.z << 20u),
+            packUnorm4x8(specular), floatBitsToUint(depth)));
+    }
+    #endif
     history_edgeMask_store(texelPos, transient_edgeMaskDilated_fetch(texelPos));
 
     if (hiz_groupGroundCheck(swizzledWGPos, 4)) {

@@ -45,6 +45,33 @@ GeomData _gi_readGeomData(ivec2 texelPos, vec2 screenPos) {
     return geomData;
 }
 
+vec3 gi_unpackTapNormal(uint bits) {
+    uvec3 channels = (uvec3(bits) >> uvec3(0u, 10u, 20u)) & 1023u;
+    vec3 code = vec3(channels);
+    // The residual of the rounded reciprocal reproduces texture-unit UNORM rounding.
+    vec3 normalized = fma(code, vec3(1.0 / 1023.0), code * 9.1038375e-13);
+    return normalized * 2.0 - 1.0;
+}
+
+GeomData gi_readTap(ivec2 texelPos, vec2 screenPos) {
+    uvec4 tapWords = transient_gi_blurTap_fetch(texelPos);
+    GeomData tap;
+    float depth = uintBitsToFloat(tapWords.w);
+    // At UV 1 the atlas clamps, while the original full-screen depth fetch uses the border texel coordinate.
+    if (any(greaterThanEqual(uvec2(texelPos), uvec2(uval_mainImageSizeI)))) {
+        depth = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
+    }
+    tap.viewPos = coords_toViewCoord(screenPos, depth, global_camProjInverse);
+    tap.geomNormal = gi_unpackTapNormal(tapWords.x);
+    tap.normal = gi_unpackTapNormal(tapWords.y);
+    vec2 code = vec2(uvec2(tapWords.z, tapWords.z >> 8u) & 255u);
+    // Apply the same reciprocal correction to the two UNORM8 material channels.
+    vec2 specular = fma(code, vec2(1.0 / 255.0), code * -2.3191758e-10);
+    tap.roughness = max(pow2(specular.x), 0.001);
+    tap.dielectric = specular.y;
+    return tap;
+}
+
 vec4 _gi_readDiff(ivec2 texelPos) {
     #if GI_DENOISE_PASS == 1
     return transient_gi_blurDiff2_fetch(texelPos);
@@ -198,7 +225,7 @@ void main() {
                     float16_t kernelWeight = exp2(sigma * radialSample);
                     ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
-                    GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
+                    GeomData geomData = gi_readTap(sampleTexelPos, sampleUV);
 
                     float edgeWeightLog2 = normalWeightLog2(centerGeomData, geomData, baseNormalWeight);
                     edgeWeightLog2 += planeDistanceWeightLog2(
@@ -303,7 +330,7 @@ void main() {
                     float16_t kernelWeight = exp2(sigma * radialSample);
                     ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
-                    GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
+                    GeomData geomData = gi_readTap(sampleTexelPos, sampleUV);
 
                     float edgeWeightLog2 = normalWeightLog2(centerGeomData, geomData, baseNormalWeight);
                     edgeWeightLog2 += planeDistanceWeightLog2(
