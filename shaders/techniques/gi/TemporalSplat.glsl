@@ -16,14 +16,6 @@ void restir_temporalSplatInitShared() {
     }
 }
 
-ReSTIRReservoir restir_temporalSplatReadPreviousReservoir(ivec2 texelPos) {
-    return restir_reservoir_unpack(history_restir_reservoirTemporal_fetch(texelPos));
-}
-
-uint restir_temporalSplatReadPreviousPrimary(ivec2 texelPos) {
-    return history_restir_primary_fetch(texelPos).x;
-}
-
 void restir_temporalSplatWriteMetadata(
     ivec2 texelPos,
     uint nextNode,
@@ -40,9 +32,9 @@ void restir_temporalSplatWriteMetadata(
 }
 
 void restir_temporalSplat(ivec2 texelPos) {
-    ReSTIRReservoir previousReservoir = restir_temporalSplatReadPreviousReservoir(texelPos);
-    uint packedPrimary = restir_temporalSplatReadPreviousPrimary(texelPos);
-    if (!restir_isReservoirValid(previousReservoir) || packedPrimary == 0u) {
+    // Temporal reuse writes a nonzero primary only for a valid reservoir.
+    uint packedPrimary = history_restir_primary_fetch(texelPos).x;
+    if (packedPrimary == 0u) {
         return;
     }
 

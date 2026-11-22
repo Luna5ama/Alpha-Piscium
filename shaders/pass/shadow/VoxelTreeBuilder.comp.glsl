@@ -25,7 +25,7 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 
 #extension GL_KHR_shader_subgroup_shuffle : enable
-#define VOXEL_BRICK_DATA_MODIFIER restrict readonly buffer
+#define VOXEL_BRICK_DATA_MODIFIER restrict buffer
 #define VOXEL_MATERIAL_VEC4 a
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
@@ -188,23 +188,28 @@ void main() {
     #endif
 
     if (allocID != VOXEL_UNALLOCATED) {
-        // Each lane supplies distinct nibbles of the same leaf mask.
+        // The previous root and new raster writes cover every leaf that can contain a material.
+        uvec2 previous = voxel_tree[uint(VOXEL_TREE_OFFSET_L2) + brickMorton];
+        uint pending = voxel_brickOccupancy[brickMorton];
         uint lanes = min(gl_SubgroupSize, 4u);
         uint lane = subRegion & (lanes - 1u);
         for (uint tile = 0u; tile < lanes; ++tile) {
             uint leaf = tile * (64u / lanes) + subRegion / lanes;
             uint baseIndex = allocID * 1024u + leaf * 16u;
             uvec4 masks = uvec4(0u);
-            for (uint i = lane; i < 8u; i += lanes) {
-                uvec4 a = voxel_materials_v4[baseIndex + i];
-                uvec4 b = voxel_materials_v4[baseIndex + i + 8u];
-                uvec4 nibble = uvec4(voxel_materialNibble(notEqual(a, uvec4(0u))),
-                    voxel_materialNibble(notEqual(b, uvec4(0u))), 0u, 0u);
-                #ifdef SETTING_RC_ENABLE
-                nibble.z = voxel_materialNibble(greaterThanEqual(a, uvec4(4u)));
-                nibble.w = voxel_materialNibble(greaterThanEqual(b, uvec4(4u)));
-                #endif
-                masks |= nibble << (i * 4u);
+            uint wasOccupied = previous[leaf >> 5u] >> (leaf & 31u);
+            if (((wasOccupied | (pending >> (leaf >> 1u))) & 1u) != 0u) {
+                for (uint i = lane; i < 8u; i += lanes) {
+                    uvec4 a = voxel_materials_v4[baseIndex + i];
+                    uvec4 b = voxel_materials_v4[baseIndex + i + 8u];
+                    uvec4 nibble = uvec4(voxel_materialNibble(notEqual(a, uvec4(0u))),
+                        voxel_materialNibble(notEqual(b, uvec4(0u))), 0u, 0u);
+                    #ifdef SETTING_RC_ENABLE
+                    nibble.z = voxel_materialNibble(greaterThanEqual(a, uvec4(4u)));
+                    nibble.w = voxel_materialNibble(greaterThanEqual(b, uvec4(4u)));
+                    #endif
+                    masks |= nibble << (i * 4u);
+                }
             }
             for (uint shift = 1u; shift < lanes; shift *= 2u) {
                 masks |= subgroupShuffle(masks, gl_SubgroupInvocationID ^ shift);
@@ -298,6 +303,9 @@ void main() {
     // Allocated roots are disjoint from the unallocated roots cleared above.
     if (subRegion == 0u && allocID != VOXEL_UNALLOCATED) {
         uint rootIdx = uint(VOXEL_TREE_OFFSET_L2) + brickMorton;
-        voxel_tree[rootIdx] = uvec2(rootMaskLo[groupBrick], rootMaskHi[groupBrick]);
+        // The allocator consumes one occupancy flag per brick on the following frame.
+        uvec2 occupied = uvec2(rootMaskLo[groupBrick], rootMaskHi[groupBrick]);
+        voxel_tree[rootIdx] = occupied;
+        voxel_brickOccupancy[brickMorton] = uint(any(notEqual(occupied, uvec2(0u))));
     }
 }

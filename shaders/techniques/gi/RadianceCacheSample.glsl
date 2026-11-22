@@ -16,7 +16,10 @@ void rc_lookupSampleFace(
     ivec3 worldCellCoord,
     uint faceId,
     float interpWeight,
-    float thickness
+    float thickness,
+    uint tracedMaterial,
+    uint tracedFace,
+    Material tracedSurface
 ) {
     if (interpWeight <= 0.0) {
         return;
@@ -76,8 +79,13 @@ void rc_lookupSampleFace(
     hit.hitPos = P;
     hit.normal = faceNormal;
     hit.materialID = voxel_getMaterialID(ivec3(floor(ownerP)));
-    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
-    surface.material.roughness = max(surface.material.roughness, RC_MAX_ROUGHNESS);
+    Material material;
+    if (hit.materialID == tracedMaterial && faceId == tracedFace) {
+        material = tracedSurface;
+    } else {
+        material = voxel_sampleVoxelSurface(hit, 0.0).material;
+    }
+    material.roughness = max(material.roughness, RC_MAX_ROUGHNESS);
     float NoV = dot(N, V);
     if (NoV <= 0.0) {
         result.misses++;
@@ -86,8 +94,8 @@ void rc_lookupSampleFace(
 
     // The face stores the cosine-weighted mean incident radiance; shade it as uniform incidence so the result
     // does not depend on the face reservoir's current sample direction. A zero estimate is a valid hit.
-    vec2 uniformAlbedo = resampleMaterial_uniformIncidenceAlbedo(resampleMaterial_fromMaterial(surface.material), NoV);
-    vec3 estimatedRadiance = (surface.material.albedo * uniformAlbedo.x + uniformAlbedo.y) * rc_reservoirEstimateRadiance(reservoir);
+    vec2 uniformAlbedo = resampleMaterial_uniformIncidenceAlbedo(resampleMaterial_fromMaterial(material), NoV);
+    vec3 estimatedRadiance = (material.albedo * uniformAlbedo.x + uniformAlbedo.y) * rc_reservoirEstimateRadiance(reservoir);
     if (!all(lessThanEqual(abs(estimatedRadiance), vec3(FLT_MAX)))) {
         result.misses++;
         return;
@@ -175,10 +183,10 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 V, vec3 P, vec3 N, vec3 geomN) {
     cell11[int(axis0)] = u0 + 1;
     cell11[int(axis1)] = v0 + 1;
 
-    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell00, faceId, w00, thickness);
-    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell10, faceId, w10, thickness);
-    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell01, faceId, w01, thickness);
-    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell11, faceId, w11, thickness);
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell00, faceId, w00, thickness, RC_INVALID, RC_INVALID, material_init());
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell10, faceId, w10, thickness, RC_INVALID, RC_INVALID, material_init());
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell01, faceId, w01, thickness, RC_INVALID, RC_INVALID, material_init());
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell11, faceId, w11, thickness, RC_INVALID, RC_INVALID, material_init());
 
     if (result.weight > 0.0) {
         result.radiance /= result.weight;
@@ -187,7 +195,9 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 V, vec3 P, vec3 N, vec3 geomN) {
     return result;
 }
 
-RCLookupResult rc_lookupDiffuseGI(vec3 V, vec3 P, vec3 N, vec3 geomN) {
+RCLookupResult rc_lookupDiffuseGI(
+    vec3 V, vec3 P, vec3 N, vec3 geomN, uint tracedMaterial, uint tracedFace, Material tracedSurface
+) {
     RCLookupResult result = rc_lookupInit();
 
     uint level = rc_selectLevel(P);
@@ -215,7 +225,8 @@ RCLookupResult rc_lookupDiffuseGI(vec3 V, vec3 P, vec3 N, vec3 geomN) {
         ownerCell,
         faceId,
         1.0,
-        ldexp(2.0, int(level))
+        ldexp(2.0, int(level)),
+        tracedMaterial, tracedFace, tracedSurface
     );
 
     if (result.weight > 0.0) {
@@ -223,6 +234,10 @@ RCLookupResult rc_lookupDiffuseGI(vec3 V, vec3 P, vec3 N, vec3 geomN) {
     }
 
     return result;
+}
+
+RCLookupResult rc_lookupDiffuseGI(vec3 V, vec3 P, vec3 N, vec3 geomN) {
+    return rc_lookupDiffuseGI(V, P, N, geomN, RC_INVALID, RC_INVALID, material_init());
 }
 
 #endif

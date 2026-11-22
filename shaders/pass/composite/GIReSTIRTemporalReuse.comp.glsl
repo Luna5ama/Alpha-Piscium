@@ -24,7 +24,6 @@ layout(local_size_x = 16, local_size_y = 16) in;
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
-layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(r32ui) uniform restrict uimage2D uimg_r32ui;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
@@ -685,19 +684,8 @@ float evaluateTemporalConfidence(
     float canonicalConfidence
 ) {
     vec2 gatherPos = vec2(gatherTexelPos);
-    uvec4 primaries = history_restir_primary_gatherTexel(gatherPos, 0);
     uvec4 confidenceBits = history_restir_reservoirTemporal_gatherTexel(gatherPos, 1);
-    uvec4 avgWYBits = history_restir_reservoirTemporal_gatherTexel(gatherPos, 2);
-    uvec4 hitDistanceBits = history_restir_reservoirTemporal_gatherTexel(gatherPos, 3);
-    vec4 confidence = uintBitsToFloat(confidenceBits);
-    const uvec4 exponentMask = uvec4(0x7f800000u);
-    uvec4 valid = uvec4(notEqual(primaries, uvec4(0u)))
-        & uvec4(greaterThan(confidence, vec4(0.0)))
-        & uvec4(lessThan(confidenceBits, exponentMask))
-        & uvec4(greaterThan(uintBitsToFloat(avgWYBits), vec4(0.0)))
-        & uvec4(lessThan(avgWYBits, exponentMask))
-        & uvec4(notEqual(hitDistanceBits & exponentMask, exponentMask));
-    vec4 previousConfidence = mix(vec4(0.0), confidence, bvec4(valid));
+    vec4 previousConfidence = uintBitsToFloat(confidenceBits);
     float historyConfidence = dot(bilinearWeights, previousConfidence);
     return min(canonicalConfidence + historyConfidence, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
 }
@@ -1150,30 +1138,6 @@ void main() {
                 finalPackedHitNormal,
                 packHalf4x16(clamp(finalSample, 0.0, FP16_MAX))
             ));
-
-            #ifndef SETTING_GI_SPATIAL_REUSE
-            vec4 ssgiDiffOut = vec4(0.0);
-            vec4 ssgiSpecOut = vec4(0.0);
-            if (finalReservoirValid) {
-                vec3 winV = normalize(-finalPrimaryViewPos);
-                restir_shadeSample(
-                    finalSample.rgb,
-                    temporalReservoir.Y,
-                    temporalReservoir.avgWY,
-                    targetGeomNormal,
-                    targetNormal,
-                    winV,
-                    winV,
-                    storedMaterial,
-                    texelPos,
-                    ssgiDiffOut,
-                    ssgiSpecOut
-                );
-            }
-
-            transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);
-            transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
-            #endif
         }
         if (!finalReservoirValid) {
             temporalReservoir.Y.w = -1.0;

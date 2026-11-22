@@ -5,6 +5,9 @@ The 2.0 hybrid candidate adds screen-space segments. See the [candidate results]
 live under [`shaders/techniques/gi/`](../../shaders/techniques/gi/) and entry points are in [
 `shaders/pass/composite/`](../../shaders/pass/composite/).
 
+The [four-hour GI experiment](../experiments/2026-11-22-gi-continuous.md) records the voxel-tree, material lookup,
+denoising and temporal-reuse changes measured against `5ba8718d4`, including paired GPU timings and image comparisons.
+
 ## Code map
 
 | Path | Responsibility |

@@ -38,8 +38,13 @@ const uint NO_TRACE = 8u;
 uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos, inout uvec2 trainRecord) {
     transient_gi_shadowHint_store(texelPos, vec4(0.0));
     uvec4 packedTemporalReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
-    history_restir_reservoirTemporal_store(texelPos, packedTemporalReservoir);
     uint packedPrimary = restir_splatFetchCurrentPrimary(texelPos);
+    uvec4 historyReservoir = packedTemporalReservoir;
+    // Invalid primaries contribute zero to the next frame's bilinear confidence gather.
+    if (packedPrimary == 0u) {
+        historyReservoir.y = 0u;
+    }
+    history_restir_reservoirTemporal_store(texelPos, historyReservoir);
     history_restir_primary_store(texelPos, uvec4(packedPrimary));
 
     float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);

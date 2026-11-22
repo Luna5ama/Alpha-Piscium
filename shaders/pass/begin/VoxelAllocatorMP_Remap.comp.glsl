@@ -1,6 +1,6 @@
 // Multi-pass Brick Allocator — Pass 2/4: Remap + Count
 //
-// Reads voxel_brickOccupancy[] written by the previous frame's shadow pass,
+// Reads the previous frame's finalized voxel_brickOccupancy[],
 // remaps each occupied brick from the old camera's coordinate space to the
 // current camera's coordinate space, writes voxel_brickAllocID[newMorton] = 1u
 // for in-range bricks, accumulates per-bucket counts into voxel_bucketCounts[]

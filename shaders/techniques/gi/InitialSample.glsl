@@ -218,7 +218,9 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     candidate.radiance = surface.material.emissive
         + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal);
     #if defined(SETTING_RC_ENABLE) && SETTING_GI_USE_REFERENCE != 2
-    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, hit.hitPos, hit.normal, hit.normal);
+    RCLookupResult rcLookup = rc_lookupDiffuseGI(
+        V, hit.hitPos, hit.normal, hit.normal, hit.materialID, voxel_faceIndexFromNormal(hit.normal), surface.material
+    );
     if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
         candidate.radiance += rcLookup.radiance;
     }
