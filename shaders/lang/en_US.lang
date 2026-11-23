@@ -588,11 +588,11 @@ option.SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE.comment=How sharply center weight
 option.SETTING_EXPOSURE_AVG_LUM_TIME=Overall Brightness Adapt Speed
 option.SETTING_EXPOSURE_AVG_LUM_TIME.comment=How quickly exposure adapts based on overall brightness. Lower = faster adjustment.
 option.SETTING_EXPOSURE_AVG_LUM_MIN_TARGET=Dark Scene Target Brightness
-option.SETTING_EXPOSURE_AVG_LUM_MIN_TARGET.comment=Target brightness for dark environments (caves, night). Higher values make dark scenes brighter.
+option.SETTING_EXPOSURE_AVG_LUM_MIN_TARGET.comment=Target scene-linear luminance after exposure in dark environments, in units of 1/255.
 option.SETTING_EXPOSURE_AVG_LUM_MAX_TARGET=Bright Scene Target Brightness
-option.SETTING_EXPOSURE_AVG_LUM_MAX_TARGET.comment=Target brightness for bright environments (daylight outdoors). Higher values make bright scenes brighter.
+option.SETTING_EXPOSURE_AVG_LUM_MAX_TARGET.comment=Target scene-linear luminance after exposure in bright environments, in units of 1/255.
 option.SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE=Medium Brightness Curve
-option.SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE.comment=Affects medium-brightness scenes (sunset/sunrise). Lower values darken these transitional lighting conditions.
+option.SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE.comment=At intermediate scene brightness, higher values favor the dark-scene target and lower values favor the bright-scene target.
 option.SETTING_EXPOSURE_H_PERCENT=Highlight Area %
 option.SETTING_EXPOSURE_H_PERCENT.comment=Fraction of weighted samples trimmed at the bright end before metering.
 option.SETTING_EXPOSURE_S_PERCENT=Shadow Area %

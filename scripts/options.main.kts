@@ -2994,7 +2994,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     empty()
-                    slider("SETTING_EXPOSURE_MIN_EV", -5.0, -32.0..32.0 step 0.5) {
+                    slider("SETTING_EXPOSURE_MIN_EV", -6.5, -32.0..32.0 step 0.5) {
                         lang {
                             name = "Auto Exposure Min EV"
                         }
@@ -3070,22 +3070,22 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         lang {
                             name = "Dark Scene Target Brightness"
                             comment =
-                                "Target brightness for dark environments (caves, night). Higher values make dark scenes brighter."
+                                "Target scene-linear luminance after exposure in dark environments, in units of 1/255."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "暗场景目标亮度"
-                            comment = "黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。"
+                            comment = "洞穴、夜晚等暗环境曝光后的场景线性亮度目标，单位为 1/255。"
                         }
                     }
-                    slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 96, 1..255) {
+                    slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 40, 1..255) {
                         lang {
                             name = "Bright Scene Target Brightness"
                             comment =
-                                "Target brightness for bright environments (daylight outdoors). Higher values make bright scenes brighter."
+                                "Target scene-linear luminance after exposure in bright environments, in units of 1/255."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "亮场景目标亮度"
-                            comment = "明亮环境（日光户外）的目标亮度。数值越高，亮场景越亮。"
+                            comment = "户外日光等亮环境曝光后的场景线性亮度目标，单位为 1/255。"
                         }
                     }
                     slider(
@@ -3096,11 +3096,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         lang {
                             name = "Medium Brightness Curve"
                             comment =
-                                "Affects medium-brightness scenes (sunset/sunrise). Lower values darken these transitional lighting conditions."
+                                "At intermediate scene brightness, higher values favor the dark-scene target and lower values favor the bright-scene target."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "中等亮度曲线"
-                            comment = "影响中等亮度场景（日落/日出）。数值越低，这些过渡光照条件越暗。"
+                            comment = "在中等亮度环境中，数值越高越接近暗场目标，越低越接近亮场目标。"
                         }
                     }
                     empty()

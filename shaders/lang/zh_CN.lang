@@ -565,11 +565,11 @@ option.SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE.comment=中心权重聚焦于中�
 option.SETTING_EXPOSURE_AVG_LUM_TIME=平均亮度自动曝光时间
 option.SETTING_EXPOSURE_AVG_LUM_TIME.comment=基于整体亮度的曝光适应速度。数值越低 = 调整越快。
 option.SETTING_EXPOSURE_AVG_LUM_MIN_TARGET=暗场景目标亮度
-option.SETTING_EXPOSURE_AVG_LUM_MIN_TARGET.comment=黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。
+option.SETTING_EXPOSURE_AVG_LUM_MIN_TARGET.comment=洞穴、夜晚等暗环境曝光后的场景线性亮度目标，单位为 1/255。
 option.SETTING_EXPOSURE_AVG_LUM_MAX_TARGET=亮场景目标亮度
-option.SETTING_EXPOSURE_AVG_LUM_MAX_TARGET.comment=明亮环境（日光户外）的目标亮度。数值越高，亮场景越亮。
+option.SETTING_EXPOSURE_AVG_LUM_MAX_TARGET.comment=户外日光等亮环境曝光后的场景线性亮度目标，单位为 1/255。
 option.SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE=中等亮度曲线
-option.SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE.comment=影响中等亮度场景（日落/日出）。数值越低，这些过渡光照条件越暗。
+option.SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE.comment=在中等亮度环境中，数值越高越接近暗场目标，越低越接近亮场目标。
 option.SETTING_EXPOSURE_H_PERCENT=高光区域占比
 option.SETTING_EXPOSURE_H_PERCENT.comment=从测光直方图亮端剔除的累计权重百分比。
 option.SETTING_EXPOSURE_S_PERCENT=阴影区域占比
