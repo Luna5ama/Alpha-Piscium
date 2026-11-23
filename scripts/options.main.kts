@@ -2994,7 +2994,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     empty()
-                    slider("SETTING_EXPOSURE_MIN_EV", -3.0, -32.0..32.0 step 0.5) {
+                    slider("SETTING_EXPOSURE_MIN_EV", -5.0, -32.0..32.0 step 0.5) {
                         lang {
                             name = "Auto Exposure Min EV"
                         }
