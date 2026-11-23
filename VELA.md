@@ -118,6 +118,12 @@
 
 <!-- vela:ready {"item":"dpf-bloom-feature-continuity","rev":"e1f10bebd1e1f13f681306ac67b638a5d0bb84f4","spec":"docs/development/offline-tools.md","after":["dpf-bloom-reference-compression@f17d8f14afb3737b00a00de9c4e4ff69d3cdec9d"]} -->
 
+### 在相同读取预算下拟合 DPF Bloom 细芒和外圈光晕
+
+由[原 DPF 实现会话](codex://threads/01a1bd0c-c1f4-78d0-bed2-b153fb306371)接续离线拟合。沿用 User 8、旋转 9.5° 的版本和位图 67 的既有预算，同时核对细芒上的亮点和断段、芒间暗谷与外圈光晕。用半分辨率参考判断是否进入导出和实机验证。[冻结的实验范围与验收条件](experiments/dpf-bloom-20261108.md#fitting-ridges-and-outer-halos-at-the-same-read-budget)
+
+<!-- vela:ready {"item":"dpf-bloom-ridge-halo-fit","rev":"9d3eda19aed4a4e3fe298d3cab984fd83e5e6498","spec":"experiments/dpf-bloom-20261108.md","after":["dpf-bloom-feature-continuity@e1f10bebd1e1f13f681306ac67b638a5d0bb84f4"]} -->
+
 ### GI 算法与体素追踪四小时性能实验
 
 从 2.0/dev 已落地的 GI 管线出发，按相当画质下每帧节省的 GI 毫秒验收。排期补充 `a6867d91`：两项 2.0 发布工作用完资源后，从优化者同时取得 GPU 和专用实例起连续四小时，到点一次交付。[实验规格](docs/rendering/global-illumination.md#four-hour-gi-performance-experiment-2026-11-22)
