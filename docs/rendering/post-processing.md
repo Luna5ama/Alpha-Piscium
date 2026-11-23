@@ -208,6 +208,8 @@ At 96/255 with a −5 EV floor (`c75a8dc61`), daylight surfaces in the 2.1 SDR s
 
 The six matched 1280 × 720 SDR pairs use Minecraft 1.21.11, Iris 1.10.6-vibris.3, Skibidi, neutral Look, and automatic exposure. They cover day and night in the courtyard, snow, the cave mouth, an indoor mall and a mountain lake. Vela run `c23818a2-c6d0-4fac-99a9-53e6566c3e36` holds `exposure-review.zip` with the photographs, setting and camera readbacks, four recorded histograms replayed through both shader revisions, and the earlier courtyard reference. Each pair has the same scene and preset hashes.
 
+<!-- vela:evidence {"run":"c23818a2-c6d0-4fac-99a9-53e6566c3e36","path":"exposure-review.zip"} -->
+
 ### GPU timings
 
 On the 720p Dump Taiga snow preset, eight runs compared the former default on `792ffe98a` with the 2.1 default on `c651b6c0`. Each direction included 80 warmup frames and 96 measured frames. Values below are the medians of the per-run medians in milliseconds. Matched PresentMon windows each contained 92 frames after a 40 ms guard at both ends.
