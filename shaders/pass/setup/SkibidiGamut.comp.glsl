@@ -160,7 +160,7 @@ void writeOuterRadius(ivec2 p) {
 // Iris can run separate setup programs concurrently on resize. Keep the dependent
 // writes and reads in one workgroup so each barrier covers all producers.
 layout(local_size_x = 256) in;
-const ivec3 workGroups = ivec3(1);
+const ivec3 workGroups = ivec3(1, 1, 1);
 
 void main() {
     uint lane = gl_LocalInvocationIndex;
