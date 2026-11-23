@@ -206,7 +206,9 @@ The default low/high trims are 3%/5% by weight. In the cave exit the weighted me
 
 At 96/255 with a −5 EV floor (`c75a8dc61`), daylight surfaces in the 2.1 SDR scene gallery looked washed out even after the camera settled. At 40/255 with a −6.5 EV floor (`0c2a23af3`), the noon courtyard went from −2.07 to −3.34 EV. The area at or above 0.95 encoded luma fell from 15.58% to 0.58%. Median encoded luma was 0.53 previously, 0.35 after tuning, and 0.27 in the earlier default AgX rendering (`792ffe98a`). In the snow preset, sunlit and shaded patches measured 0.887 and 0.570, previously 0.957 and 0.759. The midnight courtyard moved from +7.06 to +6.62 EV.
 
-The six matched 1280 × 720 SDR pairs use Minecraft 1.21.11, Iris 1.10.6-vibris.3, Skibidi, neutral Look, and automatic exposure. They cover day and night in the courtyard, snow, the cave mouth, an indoor mall and a mountain lake. Vela run `c23818a2-c6d0-4fac-99a9-53e6566c3e36` holds `exposure-review.zip` with the photographs, setting and camera readbacks, four recorded histograms replayed through both shader revisions, and the earlier courtyard reference. Each pair has the same scene and preset hashes.
+The six matched 1280 × 720 SDR pairs use Minecraft 1.21.11, Iris 1.10.6-vibris.3, Skibidi, neutral Look, and automatic exposure. They cover day and night in the courtyard, snow, the cave mouth, an indoor mall and a mountain lake. Each pair has the same scene and preset hashes.
+
+The main checkout retains Vela run `c23818a2-c6d0-4fac-99a9-53e6566c3e36` in `builds/exposure-target-20261123/exposure-review.zip` (SHA-256 `f8a19d862694e1c495898411588162f8d58ebf124c835fca7052228763927129`). The archive contains the photographs, effective settings and camera readbacks, four recorded histograms replayed through both shader revisions, and the earlier courtyard reference. Open `comparison.html` from the archive for the six pairs.
 
 <!-- vela:evidence {"run":"c23818a2-c6d0-4fac-99a9-53e6566c3e36","path":"exposure-review.zip"} -->
 
