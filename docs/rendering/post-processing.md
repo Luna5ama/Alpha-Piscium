@@ -193,6 +193,14 @@ After tone mapping, the result is converted to the configured color-grading colo
 
 Related settings cover material transfer/color space, internal working space, DRT working space, color-grading color space/transfer function, tone-map look/dynamic range/offset/slope/power/saturation, and monitor color space/transfer function.
 
+### Skibidi 色域 LUT 的重载成本
+
+2.1 候选 `b384fe2ae` 在 RTX 3080 Ti、Minecraft 1.21.11、Iris `1.10.6-vibris.3` 上启用默认 Skibidi 和 Display P3。相同街机场景的两次整包 `shader.reload` 用了 21.31 s 和 17.03 s。独立 OpenGL 时间查询在程序编译链接后开始，P3 制表单次派发用 6.66 ms。旧四阶段实验由宿主显式同步，四次派发合计 0.134 ms。AP 开启并发计算，合并阶段的候选用一个 256 线程工作组同步表的生产与读取。重设工作组数量前，需解决阶段间图像和 SSBO 的可见性。原始查询在项目运行 `d2481554-868d-4549-9ccc-efb659257cee/nvidia-{single,fixed}.log`。
+
+候选实验仍按显示器原色在 setup 中制表。192 个色相、每个色相 15 个饱和度各自取 79 个亮度样本，同一方向的样本共用 11 个插值系数。枚举这些方向仅访问 7,203 个网格节点中的 4,168 个，原型在格线附近多留 12 个节点。需要拟合的控制点由 79,233 减至 45,980，227,520 个训练样本全部保留。将四邻点的系数按方向各读一次，源码中的控制点读取由 10,010,880 次减至 126,720 次。P3、Rec.2020、手填 P3 和窄色域在 llvmpipe 上逐项对照，每个目标共 9,417 个有效 LUT 表值，最大绝对差为 `1.67e-6`。显卡上的加速幅度待同输入计时，尤其要核对保存 11 个系数的寄存器成本。`builds/skibidi-setup-20261122/check_fit.py` 可重做软件对照，`software.json` 保存四组结果。
+
+2026-11-22 17:00（洛杉矶）关闭的专用实例运行云实验 `031e136d5` 加 `c66921dd` 补丁。冻结源码中的 `setup23` 清空体素数据，包内没有 Skibidi 程序。Vibris 重试同一快照后，单独记录到重载 64.30 s、应用场景 16.64 s。云分支早先在同卡回放另一快照 `7f787bf60`，五个程序的驱动链接合计 73.79 s。此次中断缺逐程序计时，具体调用仍待定位。源包和重试回执在云检出 `.vibris/jobs/100ff5af-0088-47b8-b646-64ef2fd0c924/`，现场摘录在主检出 `builds/skibidi-setup-20261122/incident.json`。
+
 ## Debug and special modes
 
 Debug output in [`shaders/techniques/debug/`](../../shaders/techniques/debug/) can inspect TAA, PostFX, tone-mapping,
