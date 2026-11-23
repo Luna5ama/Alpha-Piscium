@@ -16,7 +16,7 @@ For Iris's stage semantics, see the [Iris Shaders documentation](https://github.
 | Current screen importance → RTWSM collapse/blur/get warp/write warp → next-frame shadows | RTWSM has independent resources alongside post-processing. Preserve the cross-frame producer/consumer order even when some programs share a dispatch slot with post passes. |
 
 Root raster wrappers connect the geometry and final entries. The compute generator handles numbered `.csh` wrappers.
-The shader pack enables concurrent compute except when Skibidi needs ordered setup dispatches in [`scripts/shaders.properties`](../../scripts/shaders.properties).
+The shader pack enables concurrent compute in [`scripts/shaders.properties`](../../scripts/shaders.properties).
 Entries with the same number and different suffixes may execute together. For example, `PostComposite` can share a
 number with `IMapBlur` because they use independent data. Air and water can share slots with the corresponding
 denoiser blur passes when spatial denoising is enabled. Their standalone branches preserve the volume work when it

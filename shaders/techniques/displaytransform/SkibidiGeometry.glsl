@@ -6,10 +6,6 @@ const mat3 _SKM_AP0_TO_2020 = mat3(
     1.4904095204641685, -0.080167499789955743, 0.003227631189166242,
     -0.26617091926120029, 1.1821671210756719, -0.034776475744413553,
     -0.22423860133350684, -0.10199962123816354, 1.0315488446031458);
-const mat3 _SKM_XYZ_TO_2020 = mat3(
-    1.7166511879712678, -0.66668435183248875, 0.01763985744531079,
-    -0.35567078377639244, 1.6164812366349386, -0.04277061325780853,
-    -0.2533662813736598, 0.015768545813911117, 0.94210312123547391);
 const mat3 _SKM_WORK_TO_CONES = mat3(
     0.43709755437267739, 0.15444390512757628, 0.010631898739802335,
     0.50987830803393519, 0.76900909280752683, 0.054973543971973578,
@@ -30,10 +26,6 @@ const mat3 _SKM_2020_TO_SRGB = mat3(
     1.6604910021084347, -0.12455047452159082, -0.01815076335490522,
     -0.58764113878854973, 1.1328998971259605, -0.10057889800800744,
     -0.072849863319884856, -0.0083494226043694577, 1.1187296613629127);
-const mat3 _SKM_SRGB_TO_2020 = mat3(
-    0.62740389593469892, 0.069097289358232089, 0.016391438875150235,
-    0.32928303837788364, 0.91954039507545848, 0.088013307877225749,
-    0.043313065687417197, 0.011362315566309157, 0.8955952532476239);
 const vec3 _SKM_UV_DEN = vec3(4.5774612284702956, 10.398806055516538, 4.2413618953444736);
 const vec3 _SKM_U_OFFSET = vec3(1.6422730079695582, -1.4787282566955753, -0.16354475127398393);
 const vec3 _SKM_V_OFFSET = vec3(0.22058528875168149, 1.2320138443808659, -1.4525991331325476);
@@ -57,13 +49,9 @@ const vec4 _SKM_OUTER_FIELD = vec4(74.0, 80.0, 47.0, 96.0);
 const vec4 _SKM_CUSP_FIELD = vec4(0.0, 0.0, 0.0, 120.0);
 const vec4 _SKM_DISPLAY_FIELD = vec4(0.0, 177.0, 144.0, 31.0);
 
-
-
 // Scalar radial capacities are sampled from the fixed source/display geometry.
 // Exposure, hue transport, radius allocation, SI5 and EO18 run per pixel.
 const float _SK_PI = 3.14159265358979323846;
-const mat3 _SK_D60_TO_D65 = mat3(.9872240087, -.0075983718, .0030725771, -.0061132286, 1.0018614847,
-                                 -.0050959615, .0159532883, .0053300358, 1.0816806031);
 
 float _sk_div(float a, float b) { return b > 0.0 ? a / b : 0.0; }
 float _sk_response(float x) {
@@ -193,7 +181,18 @@ vec2 skPlane(vec3 delta) {
 }
 
 float skGeometry(vec2 xy) {
+    #ifdef SKIBIDI_GAMUT_SETUP
+    // Within this dispatch use coherent image loads for the freshly baked texels.
+    ivec2 cell = ivec2(floor(xy));
+    ivec2 lo = clamp(cell, ivec2(0), ivec2(144, 80));
+    ivec2 hi = clamp(cell + 1, ivec2(0), ivec2(144, 80));
+    vec2 f = fract(xy);
+    float a = mix(persistent_drtGeometry_load(lo).r, persistent_drtGeometry_load(ivec2(hi.x, lo.y)).r, f.x);
+    float b = mix(persistent_drtGeometry_load(ivec2(lo.x, hi.y)).r, persistent_drtGeometry_load(hi).r, f.x);
+    return mix(a, b, f.y);
+    #else
     return persistent_drtGeometry_sample((xy + 0.5) / vec2(145, 81)).r;
+    #endif
 }
 
 float _sk_cusp(float hue) {

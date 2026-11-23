@@ -144,11 +144,8 @@ programs {
         pass("/pass/begin/ClearVoxelData.comp.glsl") {
             constDefine("VOXEL_CLEAR_ALL", 1)
         }
-        for (stage in 0..3) {
-            pass("/pass/setup/SkibidiGamut.comp.glsl") {
-                constDefine("SKIBIDI_BAKE_STAGE", stage)
-                cond("SETTING_DRT_TYPE == 0 && SETTING_TARGET_GAMUT != 0")
-            }
+        pass("/pass/setup/SkibidiGamut.comp.glsl") {
+            cond("SETTING_DRT_TYPE == 0 && SETTING_TARGET_GAMUT != 0")
         }
     }
 
