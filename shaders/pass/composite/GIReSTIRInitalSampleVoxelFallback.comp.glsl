@@ -87,13 +87,12 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
         if (retained) {
             vec4 surface = texelFetch(usam_hiz, hitPixel + ivec2(0, 2 * uval_mainImageSizeI.y), 0);
             uvec2 outgoing = floatBitsToUint(surface.zw) - 0x00800000u;
-            vec3 normal, tangent;
-            nzpacking_unpackNormalOct16(uint(surface.y), normal, tangent);
+            vec3 normal = gi_retainedContactNormal;
             candidate.hitDistance = t;
             candidate.hitNormalView = coords_dir_worldToView(normal);
             candidate.screenOnly = true;
             candidate.radiance = colors_FP16LuvToWorkingColor(outgoing.y);
-            if (dot(normal, dir) < 0.0) candidate.radiance += colors_FP16LuvToWorkingColor(outgoing.x) * global_giWideDiffuseValidity;
+            if (dot(normal, dir) < 0.0 && dot(normal, gi_wideNormal(uint(surface.y))) > 0.99) candidate.radiance += colors_FP16LuvToWorkingColor(outgoing.x) * global_giWideDiffuseValidity;
             candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
             return;
         }

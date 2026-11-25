@@ -19,13 +19,7 @@ layout(r32i) uniform restrict iimage2D uimg_csr32f;
 
 shared uvec4 shared_voxyData[18][18];
 
-vec3 voxy_faceWorldNormal(uint face) {
-    return normalize(vec3(
-        uint((face >> 1u) == 2u),
-        uint((face >> 1u) == 0u),
-        uint((face >> 1u) == 1u)
-    ) * (float(int(face) & 1) * 2.0 - 1.0));
-}
+#include "/util/VoxyFaceNormal.glsl"
 
 vec3 voxy_faceWorldTangent(uint face) {
     return ((face >> 1u) == 2u) ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);

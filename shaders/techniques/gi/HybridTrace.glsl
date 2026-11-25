@@ -4,6 +4,17 @@
 #include "/util/GBufferData.glsl"
 #include "/techniques/voxel/VoxelTraversal.glsl"
 
+#if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
+#include "/util/VoxyFaceNormal.glsl"
+vec3 gi_wideNormal(uint code) {
+    if (code >= 65536u) return voxy_faceWorldNormal(code & 7u);
+    vec3 n, tangent;
+    nzpacking_unpackNormalOct16(code, n, tangent);
+    return n;
+}
+vec3 gi_retainedContactNormal;
+#endif
+
 const float GI_SCREEN_NEAR_DISTANCE = 4.0;
 const float GI_RAY_END = 1e20;
 const int GI_SCREEN_CLEAR = 0;
@@ -126,7 +137,7 @@ int gi_traceProjection(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
                 GBufferData data = gbufferData_init();
                 #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
                 if (wide) {
-                    nzpacking_unpackNormalOct16(uint(wideSurface.y), data.geomNormal, data.geomTangent);
+                    data.geomNormal = gi_wideNormal(uint(wideSurface.y));
                     data.geomNormal = mat3(global_giWideView) * data.geomNormal;
                 } else
                 #endif
@@ -176,10 +187,20 @@ int gi_traceWide(vec3 p, vec3 d, vec2 segment, bool requireCoverage, out float t
         vec3 dir = coords_dir_viewToWorld(d);
         ivec3 endpoint = ivec3(-1);
         if (result == GI_SCREEN_HIT) {
-            vec2 sampleData = texelFetch(usam_hiz, pixel + ivec2(0, 2 * uval_mainImageSizeI.y), 0).xy;
-            vec3 n, tangent;
-            nzpacking_unpackNormalOct16(uint(sampleData.y), n, tangent);
+            vec4 sampleData = texelFetch(usam_hiz, pixel + ivec2(0, 2 * uval_mainImageSizeI.y), 0);
+            uint code = uint(sampleData.y);
+            vec3 n = gi_wideNormal(code);
+            gi_retainedContactNormal = n;
             endpoint = ivec3(floor(fma(dir, vec3(t), local) - n * 0.0625));
+            // A magnified wide pixel can straddle a lamp and the empty cell next
+            // to it. Intersect the sampled block model before admitting emission.
+            if (code >= 65536u && floatBitsToUint(sampleData.w) != 0x00800000u) {
+                vec3 sampledView = gi_unprojectSurface(pixel, sampleData.x, global_giWideInvProj, vec2(0.0));
+                vec3 sampled = vec3(global_giWideEyeInt - global_giModelOrigin) + global_giWideEyeFract
+                    + transpose(mat3(global_giWideView)) * (sampledView - global_giWideView[3].xyz);
+                uint source = (code - 65536u) >> 3u;
+                if (!gi_sourceContact(local, dir, segment, sampled, source, n, endpoint, t, gi_retainedContactNormal)) return GI_SCREEN_UNCOVERED;
+            }
         }
         if (gi_observedBlockOccludes(local, dir, result == GI_SCREEN_HIT ? t : segment.y, endpoint)) {
             return GI_SCREEN_UNCOVERED;
@@ -209,6 +230,22 @@ int gi_traceTerrain(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
             }
         }
         int status = gi_traceScreen(p, d, live, false, t, pixel);
+        if (status == GI_SCREEN_HIT) {
+            uvec4 raw = texelFetch(usam_gbufferVoxySolidData, pixel, 0);
+            float z = texelFetch(usam_gbufferSolidViewZ, pixel, 0).r;
+            if (raw.w == floatBitsToUint(z) && transient_giRadianceInputs_fetch(pixel).y != 0u) {
+                vec3 eye = vec3(cameraPositionInt - global_giModelOrigin) + cameraPositionFract;
+                vec3 local = eye + (gbufferModelViewInverse * vec4(p, 1.0)).xyz;
+                vec3 dir = coords_dir_viewToWorld(d);
+                vec3 sampledView = gi_unprojectSurface(pixel, z, global_camProjInverse, vec2(0.0));
+                vec3 sampled = eye + (gbufferModelViewInverse * vec4(sampledView, 1.0)).xyz;
+                vec3 n = voxy_faceWorldNormal(bitfieldExtract(raw.y, 24, 3));
+                ivec3 endpoint = ivec3(floor(fma(dir, vec3(t), local) - n * 0.0625));
+                vec3 contactNormal;
+                if (!gi_sourceContact(local, dir, live, sampled, raw.z >> 16u, n, endpoint, t, contactNormal)
+                    || gi_observedBlockOccludes(local, dir, t, endpoint)) return GI_SCREEN_UNCOVERED;
+            }
+        }
         if (status != GI_SCREEN_CLEAR || live.y >= segment.y) return status;
         retained = true;
         return gi_traceWide(p, d, vec2(live.y, segment.y), requireCoverage, t, pixel);

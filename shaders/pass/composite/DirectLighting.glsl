@@ -29,13 +29,15 @@ layout(rgba32f) uniform writeonly image2D uimg_hiz;
 void gi_captureWideSurface(ivec2 pixel, float z, uvec2 outgoing) {
     if (global_giWideState != 1) return;
     uint normal = texelFetch(usam_gbufferSolidData1, pixel, 0).r;
-    bool terrain = z < -nearPlane && z > -65536.0
-        && texelFetch(usam_gbufferVoxySolidData, pixel, 0).w == floatBitsToUint(z);
+    uvec4 raw = texelFetch(usam_gbufferVoxySolidData, pixel, 0);
+    bool terrain = z < -nearPlane && z > -65536.0 && raw.w == floatBitsToUint(z);
+    uint surfaceCode = terrain ? 65536u + ((raw.z >> 16u) << 3u) + bitfieldExtract(raw.y, 24, 3)
+                               : normal & 65535u;
     // FP16Luv has a non-negative finite FP16 luminance in its high half.
     // Bias its bits past FP32 subnormals so the image store preserves dark values.
     uvec2 light = (terrain ? outgoing : uvec2(0u)) + 0x00800000u;
     imageStore(uimg_hiz, pixel + ivec2(0, 2 * uval_mainImageSizeI.y),
-               vec4(z, float(normal & 65535u), uintBitsToFloat(light)));
+               vec4(z, float(surfaceCode), uintBitsToFloat(light)));
 }
 #endif
 
