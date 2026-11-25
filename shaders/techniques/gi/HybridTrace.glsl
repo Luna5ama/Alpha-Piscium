@@ -230,10 +230,11 @@ int gi_traceTerrain(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
             }
         }
         int status = gi_traceScreen(p, d, live, false, t, pixel);
+        #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
         if (status == GI_SCREEN_HIT) {
             uvec4 raw = texelFetch(usam_gbufferVoxySolidData, pixel, 0);
             float z = texelFetch(usam_gbufferSolidViewZ, pixel, 0).r;
-            if (raw.w == floatBitsToUint(z) && transient_giRadianceInputs_fetch(pixel).y != 0u) {
+            if (raw.w == floatBitsToUint(z) && gi_currentHitEmits(pixel)) {
                 vec3 eye = vec3(cameraPositionInt - global_giModelOrigin) + cameraPositionFract;
                 vec3 local = eye + (gbufferModelViewInverse * vec4(p, 1.0)).xyz;
                 vec3 dir = coords_dir_viewToWorld(d);
@@ -246,6 +247,7 @@ int gi_traceTerrain(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
                     || gi_observedBlockOccludes(local, dir, t, endpoint)) return GI_SCREEN_UNCOVERED;
             }
         }
+        #endif
         if (status != GI_SCREEN_CLEAR || live.y >= segment.y) return status;
         retained = true;
         return gi_traceWide(p, d, vec2(live.y, segment.y), requireCoverage, t, pixel);

@@ -18,6 +18,9 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 #include "/techniques/gi/TemporalSplat.glsl"
 #define VOXEL_TRACE_TRUST_MATERIAL_ID
 #include "/techniques/voxel/VoxelTrace.glsl"
+#if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
+bool gi_currentHitEmits(ivec2 pixel) { return transient_giRadianceInputs_fetch(pixel).y != 0u; }
+#endif
 #include "/techniques/gi/HybridTrace.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Morton.glsl"
