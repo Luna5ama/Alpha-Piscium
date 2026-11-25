@@ -58,3 +58,24 @@ RC 面保存余弦加权的平均入射辐亮度，`rc_lookupDiffuseGI` 用面�
 | 走出屏幕、正常出盒、步数耗尽 | 只有正常走完整条搜索路径才取环境。体素耗尽的射线不从出口继续，有限重连未走通时不放光。 |
 
 在 Vibris 核对实际 pack、修订、场景、设置与 pass 成功加载。用固定场景记录初始命中来源及去向、降噪前 diffuse/specular 与最终画面，再做机位移动和历史重置对照。取同输入的 `5ba8718d4` 与候选做 720p 成对计时，记录初始采样、体素/尾段、空间可见性及一个稳定的对照 pass。近段距离和步数由这些对照定案。2.0 的完成条件是混合路径实机正确，2.0.x 性能回收单独跟踪。
+
+### Greenfield 远景窄视野的本地修复
+
+在 `3109eb0a` 上的本地候选 `0c4d7c76` 用几何平面在像素内的反向深度范围构建混合 GI 的 Hi-Z 包围区间。原中心深度极值留在 RG，平面范围存入 BA。投影变窄时，射线可以跨过与真实表面分离的图块。初始求交和有限空间重连仍使用 128 步，耗尽时分别写零和拒绝重连。
+
+Greenfield 两个 1080p 屋顶复用封存镜位、内置 PBR、Iris 1.10.7 和 Voxy 0.2.13-alpha。在 1.875° 的两个稳定帧，屋顶一的耗尽数从 1,750/2,229 降至 13/2,229，屋顶二从 2,096/2,446 降至 23/2,446。按同一世界点匹配，从 15° 缩到 1.875°，候选滤波后漫反射均值分别从 5.57×10⁻⁵ 到 6.21×10⁻⁵、从 5.27×10⁻⁵ 到 6.11×10⁻⁵。视锥缩小仍会丢失离网且不在屏幕内的光源和遮挡信息。
+
+实机在 26 个稳定帧上检查了 191,333 个远景样本。穿面、面前、离开视锥的有限段分别得到遮挡、可见、覆盖不全。对 4,096 步基线参考能判定的自然射线和斜向重连，未发现错误放行。两档 1.875° 的成对测量中，Hi-Z 生成、初始追踪和有限可见性三项合计分别从 7.257 到 6.041 ms、从 7.458 到 6.091 ms。计入后续 GI 计算分派，屋顶一从 10.749 到 9.722 ms。屋顶二的两个滤波分派增时，全链从 11.723 到 12.458 ms。1080p 下新增 Hi-Z 存储为 31.64 MiB。
+
+运行 78373ac1-da9d-47fb-85d1-f86edfaaa2f3 保留成品、原图、统一亮度标尺图、配对时间及复测入口。对照成品为 b829f495，渲染代码与执行基线相同。
+
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"report.md"} -->
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"reproduce.md"} -->
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"AP-329-0c4d7c76.zip"} -->
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"roof-1-before-after.png"} -->
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"roof-2-before-after.png"} -->
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"audit.json"} -->
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"occlusion.json"} -->
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"timings.json"} -->
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"radiance.json"} -->
+<!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"protocol.zip"} -->
