@@ -5,7 +5,7 @@
 // Per-material per-face atlas texcoord storage
 //
 // Layout: 16384 materials × 6 faces, each entry is vec4(minU, minV, maxU, maxV).
-// Written by ShadowPass vertex shader during voxelization (binding = 9).
+// Written by ShadowPass vertex shader during voxelization (binding = 3).
 // Read by any pass that needs to sample the block colour atlas by material+face.
 //
 // Face index convention (matches voxel_faceIndexFromNormal):
@@ -19,7 +19,7 @@
 #define VOXEL_FACE_TEXCOORD_MODIFIER restrict readonly buffer
 #endif
 
-layout(std430, binding = 9) VOXEL_FACE_TEXCOORD_MODIFIER VoxelFaceTexcoordData {
+layout(std430, binding = 3) VOXEL_FACE_TEXCOORD_MODIFIER VoxelFaceTexcoordData {
     // First half: packed UV bounds. Second half: sprite selection key, floatBitsToUint(alphaTestRef).
     uvec2 voxel_faceTexcoords[VOXEL_FACE_TEXCOORD_COUNT * 2];
     // Local model boxes for each direction octant. The top two bits of x select the split quarter (zero for one box).

@@ -51,20 +51,16 @@ const float RC_MAX_ROUGHNESS = 0.25;
 //          bits 8-13: screen-touched faces,
 //          bits 16-21: pending visible faces, bits 22-27: next-frame hit faces,
 //          bit 31: valid flag)
-layout(std430, binding = 10) RC_DATA_MODIFIER RadianceCacheIndirectionData {
-    uvec4 rc_indirection[];
-};
-
-layout(std430, binding = 11) RC_DATA_MODIFIER RadianceCacheReservoirData {
-    uvec4 rc_reservoirs[];
-};
-
-// Counts and lists are ping-ponged with the cache indirection entries.
-layout(std430, binding = 5) RC_DATA_MODIFIER RadianceCacheActiveEntryData {
+layout(std430, binding = 5) RC_DATA_MODIFIER RadianceCacheEntryData {
+    uvec4 rc_indirection[2u * RC_ENTRY_COUNT];
     uint rc_activeEntryCounts[2];
     uint rc_activeClearCount;
     uint rc_activeMagic;
-    uint rc_activeEntryIndices[];
+    uint rc_activeEntryIndices[2u * RC_ENTRY_COUNT];
+};
+
+layout(std430, binding = 6) RC_DATA_MODIFIER RadianceCacheReservoirData {
+    uvec4 rc_reservoirs[];
 };
 
 struct RCReservoir {
