@@ -176,3 +176,56 @@ Merge `b829f495` retains both parents. Voxel hits reuse the traced material only
 The locally built ZIP has SHA-256 `ce86f95278245acff9e8d036bce05d6bf52fe12d67195cf4ada39235f2276bf2`. All 196 generated shader entry files matched the archive. The 11 GI stages compiled for all eight RC, path-guiding and spatial-reuse combinations. Additional packaged checks covered the supported reference modes on the stages that use them and the 16, 32 and 64 voxel grid sizes. The five generated block and model assets matched the checkout and ZIP byte for byte when regenerated with Shadesmith `e794945` and Minecraft client SHA-1 `2dc72797acbc1b63fc16a11c4ac393605f453754`.
 
 The first packaging attempt used an August AOT cache and emitted an archive after Shadesmith failed. Rebuilding the cache from the bundled JAR and validating the resulting ZIP produced the hash above. The legacy ReSTIR-CV source checker reports the same four assertions on `d7a05fe4` and this merge; its self-test also fails on both. The archive checks are recorded in `builds/integration-input295/{packed-matrix,reference-grid-matrix,package-contents,asset-check}.json` in the integration checkout.
+
+### Local merge performance and image quality
+
+The merged pack reduced the measured GPU cost in all four 720p scenes. On the RTX 3080 Ti with Iris 1.10.6-vibris.3, published pack `77cb79df` and local pack `b829f495` used the same 351 effective settings within each comparison. Each timing group ran published, merged, merged, published, with 144 warmup frames and 224 measured frames per arm. The table sums the active GI compute passes and solid and translucent terrain shadow draws per frame. Both pair orders agreed on the direction of the savings in all eight groups.
+
+| Scene | Published → merged, default (ms) | Saved, default (ms) | Saved, spatial reuse off (ms) |
+| --- | ---: | ---: | ---: |
+| Mirror room | 5.667 → 5.561 | 0.106 | 0.088 |
+| Basilica | 9.269 → 8.749 | 0.520 | 0.596 |
+| Non-cube geometry | 12.229 → 11.806 | 0.424 | 0.514 |
+| Night GI | 12.257 → 11.837 | 0.419 | 0.598 |
+
+The independent terrain timing sentinel drifted by at most 0.0021 ms. Entity shadow draws in the non-cube scene, measured separately, increased by 0.018 ms.
+
+History reset made a visible difference. When the camera turned immediately after reset, the mirror room was brighter on the merged pack. At the midpoint of the turn, the mean absolute difference in displayed RGB was 12.77% of full scale, compared with 0.25% between two published-pack runs. Reversing the order reproduced a 12.25% difference, with 2.48% between two merged-pack runs. With 144 stationary frames before the same turn, midpoint differences fell to 1.37%, 1.02%, 1.20% and 1.09% in table order. Published-pack repeats measured 1.05%, 0.64%, 0.90% and 0.56%, respectively.
+
+In a separate 512-frame linear-light check, the Basilica's central 400 × 230 pixels had 4.31% and 2.15% lower mean diffuse luminance than the two published-pack runs. Those runs differed by 2.21%. The timing results support the performance claim. The brighter post-reset transition and the Basilica luminance difference remain open for visual acceptance before an equal-quality release. The [Iris and Voxy compatibility check](../rendering/hybrid-gi-acceptance.md#本地-20-性能优化合并包) passed for the same local pack.
+
+The project run store under `.vela/local/runs/` retains the native receipts, images and measurements. The `report.md` in `3fe07279-ac82-492d-b940-9e28c2cc2578` lists the loaded pack hashes, per-pass costs, static image statistics and linear-light controls. Run `7e4ba105-b997-48c0-beab-2cad3be30532` contains the reverse-order mirror-room capture. Run `928ba49d-bc7f-441a-bdb6-a644faeca686` contains the warm-history comparison image and all four camera trajectories.
+
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"comparison.jpg"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"confirm-basilica-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"confirm-mirror-room-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"confirmation.json"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"environment.json"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"linear-basilica-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"linear-mirror-room-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"linear-night-gi-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"linear-non-cube-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"motion-basilica-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"motion-mirror-room-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"motion-night-gi-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"motion-non-cube-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"off-basilica-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"off-mirror-room-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"off-night-gi-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"off-non-cube-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"package-identity.json"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"report.md"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"results.json"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"spatial-switches.jpg"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"timing-basilica-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"timing-mirror-room-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"timing-night-gi-1-720p.zip"} -->
+<!-- vela:evidence {"run":"3fe07279-ac82-492d-b940-9e28c2cc2578","path":"timing-non-cube-1-720p.zip"} -->
+<!-- vela:evidence {"run":"7e4ba105-b997-48c0-beab-2cad3be30532","path":"motion-reverse-mirror-room-1-720p.zip"} -->
+<!-- vela:evidence {"run":"7e4ba105-b997-48c0-beab-2cad3be30532","path":"reverse.json"} -->
+<!-- vela:evidence {"run":"928ba49d-bc7f-441a-bdb6-a644faeca686","path":"motion-warm-basilica-1-720p.zip"} -->
+<!-- vela:evidence {"run":"928ba49d-bc7f-441a-bdb6-a644faeca686","path":"motion-warm-mirror-room-1-720p.zip"} -->
+<!-- vela:evidence {"run":"928ba49d-bc7f-441a-bdb6-a644faeca686","path":"motion-warm-night-gi-1-720p.zip"} -->
+<!-- vela:evidence {"run":"928ba49d-bc7f-441a-bdb6-a644faeca686","path":"motion-warm-non-cube-1-720p.zip"} -->
+<!-- vela:evidence {"run":"928ba49d-bc7f-441a-bdb6-a644faeca686","path":"warm-comparison.jpg"} -->
+<!-- vela:evidence {"run":"928ba49d-bc7f-441a-bdb6-a644faeca686","path":"warm.json"} -->
