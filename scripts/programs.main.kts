@@ -41,7 +41,7 @@ class ProgramScope internal constructor() {
             PassScope("$pass${index++}", shaderPath).apply(block).build()
         }
         @ProgramDsl
-        inner class PassScope(private val passName: String, private val shaderPath: String) {
+        inner class PassScope(private val passName: String, val shaderPath: String) {
             private var cond: String? = null
             private val defines = mutableListOf<String>()
             private val constDefines = mutableListOf<String>()
@@ -261,7 +261,9 @@ programs {
         pass(
             "/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl",
             "/pass/composite/GIWideCapture.comp.glsl"
-        )
+        ) {
+            if (shaderPath.endsWith("/GIWideCapture.comp.glsl")) cond("defined(VOXY)")
+        }
         pass("/pass/composite/RadianceCacheReservoirUpdate.comp.glsl") {
             indirect(0, 32)
             cond("defined(SETTING_RC_ENABLE)")
