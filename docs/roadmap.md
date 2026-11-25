@@ -41,7 +41,7 @@ Skibidi DRT 沿用自身的色域压缩，选项只设置目标色域。压缩�
 
 原生 TAA 和超分都须支持 Iris 1.10.4。2.1 采用自研或深度改造的路线，以 `2.0/fsr3` 的 FSR 3.1 原型为基线。比较 TSR、XeSS-SR、DLSS Super Resolution 和其他公开方案的策略，分项验证后组合。用户在原型中看到 GI 降噪后仍有零星亮点，镜头移动时尤其明显。合入前用运动序列核对亮点与真实小高光，保留粗糙玻璃的最终时域累积，以及现有 TAA 在静止表面使用颜色 AABB 的清晰度。[策略对照与首轮实验](rendering/post-processing.md#21-时域重建策略对照)
 
-空间重建也纳入选型。用 FSR 1 EASU、SMAA、CMAA2 和 FXAA 的策略比较遮挡解除首帧的轮廓，以及恢复历史后的细线稳定性。[当前帧的空间重建](rendering/post-processing.md#当前帧的空间重建) · [细线的默认外观](rendering/post-processing.md#细线的默认外观) · [树叶与草的覆盖率](rendering/geometry-materials.md#树叶与草的覆盖率)
+原生 TAA 与超分共用细线的锁定和输出像素覆盖率规则。当前帧的空间重建继续比较 FSR 1 EASU、SMAA、CMAA2 和 FXAA 在遮挡解除首帧的轮廓，以及恢复历史后的细线稳定性。[Pixel lock 与覆盖率](rendering/post-processing.md#pixel-lock-与覆盖率) · [当前帧的空间重建](rendering/post-processing.md#当前帧的空间重建) · [细线的默认外观](rendering/post-processing.md#细线的默认外观) · [树叶与草的覆盖率](rendering/geometry-materials.md#树叶与草的覆盖率)
 
 首版重建用的 Shadesmith tile 统一按输出分辨率分配。渲染分辨率的数据只读写 tile 内的有效区域，邻域采样和过滤也以有效区域为界。输出分辨率的颜色历史使用完整 tile，跨帧轮换。优先复用已有的同格式图集，减少物理 custom image 声明；沿用原型时，重建深度可接入现有 `R32UI` 图集，颜色历史可接入 `RGBA16F` 图集。
 

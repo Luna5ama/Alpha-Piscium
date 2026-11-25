@@ -78,9 +78,33 @@ changing the sampling sequence requires updating reprojection conventions as wel
 
 原生 TAA 和超分默认让远处电线、铁栏的线宽及其相对背景的对比度贴近高采样参考。对照使用相同的场景时刻、视角和输出分辨率。细线可以随像素覆盖率降低而自然变淡，同时应抑制相机静止或缓慢横移时由采样抖动引起的闪烁。
 
+#### Pixel lock 与覆盖率
+
+原生 TAA 和超分共用这项 2.1 设计。Pixel lock 记录重投影后仍是同一条细线的置信度，允许已确认的细节跨过漏采帧。覆盖率 `c` 表示前景占当前**输出像素**的面积比例，另记有效观测权重，以区分尚无观测与已观测为零。普通静止表面沿用从当前原始邻域取得的颜色 AABB。
+
+在渲染分辨率上检测连续的细线及其方向。深度边、材质自发光或另一抖动相位在同一轮廓上的命中可佐证候选，高置信度时才建锁。单帧孤立的 GI 亮点走普通 TAA。横移时锁随轮廓重投影，覆盖统计只继承与新输出像素足迹仍重叠的观测。若无法确定重叠部分，就降低旧统计的权重，从当前轮廓重新估计。按真实抖动位置及其代表的面积更新覆盖率。
+
+| 本帧观测 | 更新 |
+| --- | --- |
+| 足迹内采到同一根杆 | 记前景命中，用有效的杆色更新前景估计。 |
+| 足迹内确实从杆旁采到墙 | 记背景命中，计入覆盖率的分母，并更新墙色。一次穿过缝隙仍可保留锁。只统计见到杆的帧会高估线宽和亮度。 |
+| 该相位没有采到此足迹，或无法判定样本归属 | 保留上次的覆盖估计，有效证据随时间变旧，锁逐渐衰减。 |
+| 深度和运动证实杆已移走或被遮住 | 当帧清除该位置的旧锁和覆盖历史，从新可见表面重建。 |
+
+首版保留一份已合成的场景线性 HDR 颜色历史。当前邻域能分清杆色 `F` 和墙色 `B` 时，按 `C = B + c × (F − B)` 合成一次。杆为 0.8、墙为 0.2、覆盖四分之一时，结果为 0.35。漏采帧可暂用这份已混好的 0.35，直接作为历史颜色参与融合。灯条熄灭时可以保留几何覆盖，一旦采到可信的新杆色就刷新颜色。
+
+沿同一段静止、慢横移、停稳的铁栏镜头，对照同机位高采样参考，逐帧检查线宽、相对墙面的亮度以及相邻输出像素间的亮度交接。用灯条熄灭、门柱遮住铁栏、墙上单帧 GI 亮点分别检查旧亮度、旧轮廓与离群点的残留帧数。建锁阈值与衰减速度由这组画面校准。
+
+抗重投影模糊优先研究用可信的新观测恢复细节。分数像素位移有助于估计历史反复插值的损失，只有本帧采到同一表面的可信样本时才提高其写入比重。[Amortized Supersampling](https://hhoppe.com/proj/supersample/)
+
+**历史表示与裁剪的待验证方案**
+
+- **覆盖的位置矩。** 在输出像素内累计前景命中位置的一阶矩，配合覆盖率估计前景质心。对单条直杆，可结合方向重建条带，估算横移后分给相邻像素的面积。两根线可能与一根线有相同面积和质心，交叉或分叉处须检验歧义。以宽高各为输出 200% 的颜色历史作画质参照，比较实际字节数、读写量与整链 GPU 耗时。[面积与质心用于界面重建的研究](https://doi.org/10.1016/j.jcp.2007.12.029) · [TSR 的历史分辨率](https://dev.epicgames.com/documentation/en-us/unreal-engine/temporal-super-resolution-in-unreal-engine?application_version=5.7)
+- **按覆盖率约束混色。** 当两侧颜色可信时，用覆盖率的可信区间求出允许的前后景混色范围，检查旧颜色是否还能由当前轮廓解释。单侧漏采和照明确已改变分别走上面的历史保留与颜色刷新规则。
+
 #### 当前帧的空间重建
 
-FSR 3.1 原型把当前帧的抖动位置计入采样距离，用 Lanczos 权重估计每个输出像素的颜色，再与重投影历史合成。候选接口沿用输出像素坐标和本帧抖动，返回当前颜色估计及其累积权重。沿边借来的多个邻域样本仍属于一次抖动相位。比较空间算法时，固定历史重投影、裁剪和锐化，让原生 TAA 与超分都能单独查看历史权重为零时的结果。[原型的坐标与滤波](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/techniques/ffx/fsr3upscaler/ffx_fsr3upscaler_upsample.glsl#L122-L212)
+FSR 3.1 原型把当前帧的抖动位置计入采样距离，用 Lanczos 权重估计每个输出像素的颜色，再与重投影历史合成。2.1 按深度和轮廓选取同侧邻居，由空间核从渲染分辨率输入估计当前颜色。历史更新根据实际抖动位置与观测可信度决定这次写入多少。沿边借来的多个邻居能帮助估色，共享同一帧的时间相位。当前帧采用何种滤核、取几个输入样本，可在固定历史重投影、裁剪和锐化的条件下独立比较。历史权重设为零可观察原生 TAA 和超分的单帧结果。[原型的坐标与滤波](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/techniques/ffx/fsr3upscaler/ffx_fsr3upscaler_upsample.glsl#L122-L212)
 
 - **沿轮廓取样。** FSR 1 的 EASU 根据邻域梯度确定滤波方向。原版接收已抗锯齿的画面，AMD 建议在感知域运行。AP 的候选用压缩亮度估计方向，按本帧抖动定位原始样本，以同一组权重重建场景线性 HDR 颜色。[AMD FSR 1](https://gpuopen.com/fidelityfx-superresolution/)
 - **选择值得修的边。** SMAA 1x 的斜线、拐角识别和 CMAA2 的保守形状检测都值得单独试。用连续的阶梯轮廓支持定向滤波，方向不明确时退回普通采样。用 FXAA 比较廉价边缘平滑能做到什么，同时保留 AP 当前 TAA 后接 FXAA 的成片对照。[SMAA](https://www.iryoku.com/smaa/) · [Intel CMAA2](https://www.intel.com/content/www/us/en/developer/articles/technical/conservative-morphological-anti-aliasing-20.html) · [NVIDIA FXAA](https://developer.download.nvidia.com/assets/gamedev/files/sdk/11/FXAA_WhitePaper.pdf) · [AP 的 FXAA](../../shaders/pass/composite/FXAA.comp.glsl)
