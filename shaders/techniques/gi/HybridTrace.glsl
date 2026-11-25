@@ -93,12 +93,12 @@ int gi_traceProjection(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
         vec2 depth;
         #ifdef VOXY
         if (wide) {
-            ivec2 q = tile.xy + cell - ivec2(0, uval_mainImageSizeI.y);
+            ivec2 q = tile.xy + cell + ivec2(global_hizTiles[1].z, 0);
             // At leaves intersect the actual plane. Odd render sizes may also have
             // a final mip column outside the half-width texture; descend there.
             depth = vec2(FLT_MAX, 0.0);
-            if (level > 0 && all(lessThan(q, textureSize(usam_giWideBounds, 0)))) {
-                depth = texelFetch(usam_giWideBounds, q, 0).rg;
+            if (level > 0 && q.x < uval_mainImageSizeI.x) {
+                depth = texelFetch(usam_hiz, q, 0).rg;
             }
         } else
         #endif
@@ -112,10 +112,11 @@ int gi_traceProjection(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
         if (overlap) {
             float viewZ;
             #ifdef VOXY
-            uvec2 wideSurface;
+            vec2 wideSurface;
             if (wide) {
-                wideSurface = texelFetch(usam_giWideSurface, cell, 0).xy;
-                viewZ = uintBitsToFloat(wideSurface.x);
+                wideSurface = texelFetch(usam_hiz, cell + ivec2(0, 2 * uval_mainImageSizeI.y), 0).xy;
+                viewZ = wideSurface.x;
+                if (!(viewZ < -nearPlane)) return requireCoverage ? GI_SCREEN_UNCOVERED : GI_SCREEN_CLEAR;
             } else
             #endif
             viewZ = texelFetch(usam_gbufferSolidViewZ, cell, 0).r;
@@ -125,7 +126,7 @@ int gi_traceProjection(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
                 GBufferData data = gbufferData_init();
                 #ifdef VOXY
                 if (wide) {
-                    nzpacking_unpackNormalOct16(wideSurface.y, data.geomNormal, data.geomTangent);
+                    nzpacking_unpackNormalOct16(uint(wideSurface.y), data.geomNormal, data.geomTangent);
                     data.geomNormal = mat3(global_giWideView) * data.geomNormal;
                 } else
                 #endif

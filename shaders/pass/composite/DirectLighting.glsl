@@ -23,6 +23,21 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 
+#ifdef VOXY
+layout(rgba32f) uniform writeonly image2D uimg_hiz;
+void gi_captureWideSurface(ivec2 pixel, float z, uvec2 outgoing) {
+    if (global_giWideState != 1) return;
+    uint normal = texelFetch(usam_gbufferSolidData1, pixel, 0).r;
+    bool terrain = z < -nearPlane && z > -65536.0
+        && texelFetch(usam_gbufferVoxySolidData, pixel, 0).w == floatBitsToUint(z);
+    // FP16Luv has a non-negative finite FP16 luminance in its high half.
+    // Bias its bits past FP32 subnormals so the image store preserves dark values.
+    uvec2 light = (terrain ? outgoing : uvec2(0u)) + 0x00800000u;
+    imageStore(uimg_hiz, pixel + ivec2(0, 2 * uval_mainImageSizeI.y),
+               vec4(z, float(normal & 65535u), uintBitsToFloat(light)));
+}
+#endif
+
 #include "/techniques/atmospherics/SkyComposite.glsl"
 
 void doLighting(ivec2 texelPos, Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, inout vec4 giOut1, inout vec4 giOut2) {
@@ -123,6 +138,9 @@ void main() {
             giRadianceInput.x = colors_workingColorToFP16Luv(giOut1.rgb);
             giRadianceInput.y = colors_workingColorToFP16Luv(giOut2.rgb);
             transient_giRadianceInputs_store(texelPos, giRadianceInput);
+            #ifdef VOXY
+            gi_captureWideSurface(texelPos, viewZ, giRadianceInput.xy);
+            #endif
         } else {
             vec4 temp6Out = texelFetch(usam_overlays, texelPos, 0);
             mainOut = celestial_render(texelPos, temp6Out);
@@ -133,6 +151,9 @@ void main() {
             mainOut.rgb = scatteringResult_apply(sctrResult, mainOut.rgb);
 
             transient_giRadianceInputs_store(texelPos, uvec4(0u));
+            #ifdef VOXY
+            gi_captureWideSurface(texelPos, -65536.0, uvec2(0u));
+            #endif
             transient_lmCoord_store(texelPos, vec4(0.0));
         }
 

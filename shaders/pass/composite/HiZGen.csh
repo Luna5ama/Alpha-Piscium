@@ -50,6 +50,12 @@ void spd_storeOutput(ivec2 texelPos, uint level, uint slice, vec4 value) {
     ivec2 storePos = mipTile.xy + texelPos;
     if (all(lessThan(texelPos, mipTile.zw))) {
         imageStore(uimg_hiz, storePos, value);
+        #ifdef VOXY
+        if (global_giWideState == 1 && level > 0u) {
+            ivec2 widePos = storePos + ivec2(global_hizTiles[1].z, 0);
+            if (widePos.x < uval_mainImageSizeI.x) imageStore(uimg_hiz, widePos, vec4(value.ba, 0.0, 0.0));
+        }
+        #endif
     }
 }
 uint spd_mipCount() {

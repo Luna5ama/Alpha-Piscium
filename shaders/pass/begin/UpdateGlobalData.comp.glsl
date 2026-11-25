@@ -118,7 +118,7 @@ void main() {
         vec3 eyeDelta = vec3(cameraPositionInt - global_giWideEyeInt) + cameraPositionFract - global_giWideEyeFract;
         int clockDelta = abs(worldTime - global_giWideTime);
         vec3 sight = mat3(global_giWideView) * -gbufferModelViewInverse[2].xyz;
-        // A capture made before a camera cut, resize is unusable.
+        // Camera cuts and render-size changes invalidate the stored projection.
         bool recapture = global_giWideState == 0 || any(notEqual(global_giWideSize, uval_mainImageSizeI))
             || dot(eyeDelta, eyeDelta) > 1.0 || sight.z >= 0.0
             || any(greaterThan(abs(sight.xy * vec2(global_giWideProj[0][0], global_giWideProj[1][1])), vec2(-sight.z)))
