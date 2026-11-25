@@ -25,14 +25,15 @@ bool gi_visible(vec3 p, vec3 d, vec3 worldPos, vec3 worldDir, float maxT) {
     vec2 interval = vec2(0.0, maxT);
     float t;
     ivec2 pixel;
+    bool retained;
     if (!gi_gridInterval(worldPos, worldDir, interval)) {
-        return gi_traceScreen(p, d, vec2(0.0, maxT), true, t, pixel) == GI_SCREEN_CLEAR;
+        return gi_traceTerrain(p, d, vec2(0.0, maxT), true, t, pixel, retained) == GI_SCREEN_CLEAR;
     }
-    if (gi_traceScreen(p, d, vec2(0.0, interval.x), true, t, pixel) != GI_SCREEN_CLEAR) return false;
+    if (gi_traceTerrain(p, d, vec2(0.0, interval.x), true, t, pixel, retained) != GI_SCREEN_CLEAR) return false;
     if (gi_traceScreen(p, d, vec2(interval.x, min(interval.y, GI_SCREEN_NEAR_DISTANCE)), false, t, pixel)
         == GI_SCREEN_HIT) return false;
     return voxel_isVisible(worldPos, worldDir, interval, 128)
-        && gi_traceScreen(p, d, vec2(interval.y, maxT), true, t, pixel) == GI_SCREEN_CLEAR;
+        && gi_traceTerrain(p, d, vec2(interval.y, maxT), true, t, pixel, retained) == GI_SCREEN_CLEAR;
 }
 
 void main() {

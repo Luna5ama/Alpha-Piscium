@@ -89,6 +89,20 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uint pg_neighborCounter;
     uint pg_skyCounter;
     uint rc_paddingCounters[6];
+
+    // Last wider projection with observed opaque geometry. Appended for ABI stability.
+    int global_giWideState;
+    ivec2 global_giWideSize;
+    ivec3 global_giWideEyeInt;
+    vec3 global_giWideEyeFract;
+    vec2 global_giWideJitter;
+    float global_giWideNear;
+    float global_giWideRain;
+    float global_giWideDiffuseValidity;
+    int global_giWideTime;
+    mat4 global_giWideProj;
+    mat4 global_giWideInvProj;
+    mat4 global_giWideView;
 };
 
 layout(std430, binding = 1) GLOBAL_DATA_MODIFIER IndirectComputeData {

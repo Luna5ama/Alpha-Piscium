@@ -117,6 +117,10 @@ uniform sampler2D usam_constellations;
 uniform sampler2D usam_cirrus;
 uniform sampler2D usam_cloudPhases;
 uniform sampler2D usam_hiz;
+#ifdef VOXY
+uniform usampler2D usam_giWideSurface;
+uniform sampler2D usam_giWideBounds;
+#endif
 
 uniform sampler3D usam_cumulusDetail1;
 uniform sampler3D usam_cumulusDetail2;

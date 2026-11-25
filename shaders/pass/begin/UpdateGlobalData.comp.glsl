@@ -114,6 +114,38 @@ void main() {
         global_camProj = mat4_infRevZFromRegular(gbufferProjection, near);
         global_camProjInverse = inverse(global_camProj);
 
+        #ifdef VOXY
+        vec3 eyeDelta = vec3(cameraPositionInt - global_giWideEyeInt) + cameraPositionFract - global_giWideEyeFract;
+        int clockDelta = abs(worldTime - global_giWideTime);
+        vec3 sight = mat3(global_giWideView) * -gbufferModelViewInverse[2].xyz;
+        // A capture made before a camera cut, resize is unusable.
+        bool recapture = global_giWideState == 0 || any(notEqual(global_giWideSize, uval_mainImageSizeI))
+            || dot(eyeDelta, eyeDelta) > 1.0 || sight.z >= 0.0
+            || any(greaterThan(abs(sight.xy * vec2(global_giWideProj[0][0], global_giWideProj[1][1])), vec2(-sight.z)))
+            || near != global_giWideNear;
+        // Emission and geometry survive the daylight cycle. Smoothly retire
+        // the captured diffuse response as its time or weather ceases to match.
+        float clockDistance = float(min(clockDelta, 24000 - clockDelta));
+        global_giWideDiffuseValidity = (1.0 - smoothstep(120.0, 600.0, clockDistance))
+            * (1.0 - smoothstep(0.05, 0.3, abs(rainStrength - global_giWideRain)));
+        bool zoomed = global_camProj[1][1] > global_giWideProj[1][1] * (1.0 + 2.0 / uval_mainImageSize.y);
+        if (recapture || (!zoomed && ((frameCounter & 31) == 0 || global_camProj[1][1] < global_giWideProj[1][1]))) {
+            global_giWideState = 1;
+            global_giWideSize = uval_mainImageSizeI;
+            global_giWideEyeInt = cameraPositionInt;
+            global_giWideEyeFract = cameraPositionFract;
+            global_giWideJitter = uval_taaJitterUV;
+            global_giWideNear = near;
+            global_giWideRain = rainStrength;
+            global_giWideTime = worldTime;
+            global_giWideProj = global_camProj;
+            global_giWideInvProj = global_camProjInverse;
+            global_giWideView = gbufferModelView;
+        } else {
+            global_giWideState = zoomed ? 3 : 2;
+        }
+        #endif
+
         {
             const float EPS = 1e-32;
             mat4 rowProj = transpose(gbufferProjection);

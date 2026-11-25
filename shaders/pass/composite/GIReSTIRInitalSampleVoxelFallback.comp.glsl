@@ -53,7 +53,8 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
     bool hasGrid = gi_gridInterval(worldPos, dir, grid);
     float t;
     ivec2 hitPixel;
-    int status = gi_traceScreen(p, d, vec2(0.0, hasGrid ? grid.x : GI_RAY_END), false, t, hitPixel);
+    bool retained;
+    int status = gi_traceTerrain(p, d, vec2(0.0, hasGrid ? grid.x : GI_RAY_END), false, t, hitPixel, retained);
     if (status == GI_SCREEN_CLEAR && hasGrid) {
         status = gi_traceScreen(p, d, vec2(grid.x, min(GI_SCREEN_NEAR_DISTANCE, grid.y)), false, t, hitPixel);
         const float selfOffset = 0.005;
@@ -79,9 +80,23 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
             return;
         }
         status = voxel_traceExhausted(hit, ray) ? GI_SCREEN_EXHAUSTED :
-            gi_traceScreen(p, d, vec2(grid.y, GI_RAY_END), false, t, hitPixel);
+            gi_traceTerrain(p, d, vec2(grid.y, GI_RAY_END), false, t, hitPixel, retained);
     }
     if (status == GI_SCREEN_HIT) {
+        #ifdef VOXY
+        if (retained) {
+            uvec4 surface = texelFetch(usam_giWideSurface, hitPixel, 0);
+            vec3 normal, tangent;
+            nzpacking_unpackNormalOct16(surface.y, normal, tangent);
+            candidate.hitDistance = t;
+            candidate.hitNormalView = coords_dir_worldToView(normal);
+            candidate.screenOnly = true;
+            candidate.radiance = colors_FP16LuvToWorkingColor(surface.w);
+            if (dot(normal, dir) < 0.0) candidate.radiance += colors_FP16LuvToWorkingColor(surface.z) * global_giWideDiffuseValidity;
+            candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
+            return;
+        }
+        #endif
         gi_shadeScreen(candidate, t, hitPixel, fma(dir, vec3(t), worldPos), -dir, 0u, vec3(0.0));
     } else if (status == GI_SCREEN_CLEAR) {
         candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_ENVIRONMENT;

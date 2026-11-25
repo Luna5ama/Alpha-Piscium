@@ -5,6 +5,7 @@ layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
 void main() {
+    global_giWideState = 0;
     global_aeData.expValues = vec4(SETTING_EXPOSURE_MIN_EV, SETTING_EXPOSURE_MIN_EV, SETTING_EXPOSURE_MIN_EV, 0.0);
     global_shadowAABBMin = ivec3(INT32_MAX);
     global_shadowAABBMax = ivec3(INT32_MIN);
