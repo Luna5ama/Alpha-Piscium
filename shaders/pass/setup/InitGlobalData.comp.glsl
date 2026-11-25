@@ -6,6 +6,11 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 
 void main() {
     global_giWideState = 0;
+    #ifdef VOXY
+    global_giModelOrigin = ivec3(0);
+    global_giModelEpoch = 1u;
+    for (int i = 0; i < 32768; ++i) global_giObservedCells[i] = uvec2(0);
+    #endif
     global_aeData.expValues = vec4(SETTING_EXPOSURE_MIN_EV, SETTING_EXPOSURE_MIN_EV, SETTING_EXPOSURE_MIN_EV, 0.0);
     global_shadowAABBMin = ivec3(INT32_MAX);
     global_shadowAABBMax = ivec3(INT32_MIN);

@@ -1,5 +1,6 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
+#define GLOBAL_DATA_MODIFIER buffer
 #include "/techniques/atmospherics/air/Constants.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/HiZCheck.glsl"
@@ -140,6 +141,28 @@ void main() {
             transient_giRadianceInputs_store(texelPos, giRadianceInput);
             #ifdef VOXY
             gi_captureWideSurface(texelPos, viewZ, giRadianceInput.xy);
+            // Cycle one sample per 8x8 tile. Only native LOD surfaces identify a block state.
+            ivec2 phase = ivec2(frameCounter, frameCounter >> 3) & 7;
+            if (global_giWideState != 2 && all(equal(texelPos & 7, phase))) {
+                uvec4 raw = texelFetch(usam_gbufferVoxySolidData, texelPos, 0);
+                uint materialID = raw.z >> 16u;
+                if (raw.w == floatBitsToUint(viewZ) && materialID > 0u) {
+                    vec2 uv = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+                    vec3 vp = coords_toViewCoord(uv, viewZ, global_camProjInverse);
+                    vec3 scene = (gbufferModelViewInverse * vec4(vp, 1.0)).xyz;
+                    vec3 normal = coords_dir_viewToWorld(lighting_gData.geomNormal);
+                    vec3 inward = cameraPositionFract + scene - normal * 0.0625;
+                    ivec3 cell = cameraPositionInt - global_giModelOrigin + ivec3(floor(inward));
+                    // Discard ambiguous tangential edge pixels rather than assign the adjacent block.
+                    vec3 fraction = fract(inward);
+                    vec3 margin = min(fraction, 1.0 - fraction) + abs(normal);
+                    if (all(greaterThan(margin, vec3(0.0625))) && uint(cell.x | cell.y | cell.z) < 32u) {
+                        int index = cell.x + 32 * (cell.y + 32 * cell.z);
+                        atomicExchange(global_giObservedCells[index].x, materialID);
+                        atomicExchange(global_giObservedCells[index].y, global_giModelEpoch);
+                    }
+                }
+            }
             #endif
         } else {
             vec4 temp6Out = texelFetch(usam_overlays, texelPos, 0);

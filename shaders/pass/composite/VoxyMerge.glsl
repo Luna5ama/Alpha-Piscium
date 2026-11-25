@@ -1,3 +1,4 @@
+#define GLOBAL_DATA_MODIFIER buffer
 #include "/util/Math.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Coords.glsl"
@@ -71,6 +72,17 @@ void main() {
 
             vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
             vec3 viewPosCenter = coords_toViewCoord(screenPos, voxyZ, global_camProjInverse);
+            #ifdef VOXY
+            if (all(equal(texelPos, uval_mainImageSizeI / 2))) {
+                vec3 pos = (gbufferModelViewInverse * vec4(viewPosCenter, 1.0)).xyz;
+                ivec3 center = cameraPositionInt + ivec3(floor(cameraPositionFract + pos));
+                ivec3 local = center - global_giModelOrigin;
+                if (any(lessThan(local, ivec3(4))) || any(greaterThanEqual(local, ivec3(28)))) {
+                    global_giModelOrigin = (center & ~ivec3(7)) - ivec3(12);
+                    ++global_giModelEpoch;
+                }
+            }
+            #endif
 
             vec2 dUVdx = vec2(0.0);
             vec2 dUVdy = vec2(0.0);

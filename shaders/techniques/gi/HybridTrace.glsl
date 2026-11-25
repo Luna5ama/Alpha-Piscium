@@ -162,13 +162,30 @@ int gi_traceScreen(vec3 p, vec3 d, vec2 segment, bool requireCoverage, out float
 }
 
 #ifdef VOXY
+#include "/techniques/gi/ObservedBlockVisibility.glsl"
 int gi_traceWide(vec3 p, vec3 d, vec2 segment, bool requireCoverage, out float t, out ivec2 pixel) {
     vec3 eyeDelta = vec3(cameraPositionInt - global_giWideEyeInt) + cameraPositionFract - global_giWideEyeFract;
     vec3 sceneP = (gbufferModelViewInverse * vec4(p, 1.0)).xyz + eyeDelta;
     vec3 wideP = (global_giWideView * vec4(sceneP, 1.0)).xyz;
     vec3 wideD = mat3(global_giWideView) * coords_dir_viewToWorld(d);
-    return gi_traceProjection(wideP, wideD, segment, requireCoverage, global_giWideProj,
+    int result = gi_traceProjection(wideP, wideD, segment, requireCoverage, global_giWideProj,
                               global_giWideInvProj, global_giWideJitter, true, t, pixel);
+    if (result == GI_SCREEN_HIT || (requireCoverage && result == GI_SCREEN_CLEAR)) {
+        vec3 local = vec3(cameraPositionInt - global_giModelOrigin) + cameraPositionFract
+                   + (gbufferModelViewInverse * vec4(p, 1.0)).xyz;
+        vec3 dir = coords_dir_viewToWorld(d);
+        ivec3 endpoint = ivec3(-1);
+        if (result == GI_SCREEN_HIT) {
+            vec2 sampleData = texelFetch(usam_hiz, pixel + ivec2(0, 2 * uval_mainImageSizeI.y), 0).xy;
+            vec3 n, tangent;
+            nzpacking_unpackNormalOct16(uint(sampleData.y), n, tangent);
+            endpoint = ivec3(floor(fma(dir, vec3(t), local) - n * 0.0625));
+        }
+        if (gi_observedBlockOccludes(local, dir, result == GI_SCREEN_HIT ? t : segment.y, endpoint)) {
+            return GI_SCREEN_UNCOVERED;
+        }
+    }
+    return result;
 }
 #endif
 

@@ -103,6 +103,12 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     mat4 global_giWideProj;
     mat4 global_giWideInvProj;
     mat4 global_giWideView;
+    #ifdef VOXY
+    ivec3 global_giModelOrigin;
+    uint global_giModelEpoch;
+    // The original 16 KiB global block also serves passes with other option layouts.
+    layout(offset = 16384) uvec2 global_giObservedCells[32768];
+    #endif
 };
 
 layout(std430, binding = 1) GLOBAL_DATA_MODIFIER IndirectComputeData {
