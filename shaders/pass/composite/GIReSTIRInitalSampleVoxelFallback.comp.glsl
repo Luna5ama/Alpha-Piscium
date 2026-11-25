@@ -109,7 +109,9 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
 }
 
 void main() {
-    #ifdef VOXY
+    #if defined(GI_RETAINED_PROJECTION) && !defined(VOXY)
+    return;
+    #elif defined(VOXY)
         #ifdef GI_RETAINED_PROJECTION
         if (global_giWideState != 3) return;
         #else

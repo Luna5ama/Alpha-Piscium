@@ -37,7 +37,9 @@ bool gi_visible(vec3 p, vec3 d, vec3 worldPos, vec3 worldDir, float maxT) {
 }
 
 void main() {
-    #ifdef VOXY
+    #if defined(GI_RETAINED_PROJECTION) && !defined(VOXY)
+    return;
+    #elif defined(VOXY)
         #ifdef GI_RETAINED_PROJECTION
         if (global_giWideState != 3) return;
         #else

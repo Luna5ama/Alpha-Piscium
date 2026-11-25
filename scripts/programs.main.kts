@@ -43,7 +43,7 @@ class ProgramScope internal constructor() {
             val prefix = "$pass${index++}"
             PassScope(prefix, shaderPath).apply {
                 define("GI_RETAINED_PROJECTION")
-                cond(listOfNotNull("defined(VOXY)", condition).joinToString(" && "))
+                condition?.let { cond(it) }
             }.build()
             PassScope("${prefix}_a", shaderPath).apply {
                 condition?.let { cond(it) }
