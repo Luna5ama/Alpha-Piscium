@@ -91,7 +91,7 @@ int gi_traceProjection(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
         vec2 crossU = mix((edge - a.xy) / delta.xy, vec2(2.0), equal(stepDir, vec2(0.0)));
         float endU = min(1.0, min(crossU.x, crossU.y));
         vec2 depth;
-        #ifdef VOXY
+        #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
         if (wide) {
             ivec2 q = tile.xy + cell + ivec2(global_hizTiles[1].z, 0);
             // At leaves intersect the actual plane. Odd render sizes may also have
@@ -111,7 +111,7 @@ int gi_traceProjection(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
         }
         if (overlap) {
             float viewZ;
-            #ifdef VOXY
+            #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
             vec2 wideSurface;
             if (wide) {
                 wideSurface = texelFetch(usam_hiz, cell + ivec2(0, 2 * uval_mainImageSizeI.y), 0).xy;
@@ -124,7 +124,7 @@ int gi_traceProjection(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
                 && all(equal(ivec2(floor(gi_projectRaster(p, proj, jitter).xy)), cell));
             if (viewZ > -65536.0 && !originSurface) {
                 GBufferData data = gbufferData_init();
-                #ifdef VOXY
+                #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
                 if (wide) {
                     nzpacking_unpackNormalOct16(uint(wideSurface.y), data.geomNormal, data.geomTangent);
                     data.geomNormal = mat3(global_giWideView) * data.geomNormal;
@@ -161,7 +161,7 @@ int gi_traceScreen(vec3 p, vec3 d, vec2 segment, bool requireCoverage, out float
                               uval_taaJitterUV, false, t, pixel);
 }
 
-#ifdef VOXY
+#if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
 #include "/techniques/gi/ObservedBlockVisibility.glsl"
 int gi_traceWide(vec3 p, vec3 d, vec2 segment, bool requireCoverage, out float t, out ivec2 pixel) {
     vec3 eyeDelta = vec3(cameraPositionInt - global_giWideEyeInt) + cameraPositionFract - global_giWideEyeFract;
@@ -193,7 +193,7 @@ int gi_traceWide(vec3 p, vec3 d, vec2 segment, bool requireCoverage, out float t
 int gi_traceTerrain(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
                     out float t, out ivec2 pixel, out bool retained) {
     retained = false;
-    #ifdef VOXY
+    #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
     if (global_giWideState == 3 && segment.y > segment.x) {
         vec2 live = segment;
         bool overlaps = gi_screenInterval(p, d, live);

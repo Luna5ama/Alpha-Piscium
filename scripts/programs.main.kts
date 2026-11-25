@@ -37,6 +37,19 @@ class ProgramScope internal constructor() {
             }
         }
 
+        // The retained projection needs model intersection and substantially more
+        // registers. Keep that kernel out of the ordinary-FOV occupancy budget.
+        fun giProjectionPair(shaderPath: String, condition: String? = null) {
+            val prefix = "$pass${index++}"
+            PassScope(prefix, shaderPath).apply {
+                define("GI_RETAINED_PROJECTION")
+                cond(listOfNotNull("defined(VOXY)", condition).joinToString(" && "))
+            }.build()
+            PassScope("${prefix}_a", shaderPath).apply {
+                condition?.let { cond(it) }
+            }.build()
+        }
+
         fun pass(shaderPath: String, block: PassScope.() -> Unit = {}) {
             PassScope("$pass${index++}", shaderPath).apply(block).build()
         }
@@ -271,7 +284,7 @@ programs {
             cond("defined(SETTING_DOF) && !defined(SETTING_DOF_MANUAL_FOCUS)")
         }
         pass("/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl")
-        pass("/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl")
+        giProjectionPair("/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl")
         pass("/pass/composite/GIReferenceAccumulate.comp.glsl") {
             cond("SETTING_GI_USE_REFERENCE > 0")
         }
@@ -288,9 +301,7 @@ programs {
             }
         }
         pass("/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl")
-        pass("/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl") {
-            cond("defined(SETTING_GI_SPATIAL_REUSE)")
-        }
+        giProjectionPair("/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl", "defined(SETTING_GI_SPATIAL_REUSE)")
         pass("/pass/composite/GIPathGuideSplat.comp.glsl") {
             cond("defined(SETTING_GI_PATH_GUIDING) && defined(SETTING_RC_ENABLE)")
         }

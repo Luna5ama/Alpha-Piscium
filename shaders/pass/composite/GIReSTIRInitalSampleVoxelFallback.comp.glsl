@@ -83,7 +83,7 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
             gi_traceTerrain(p, d, vec2(grid.y, GI_RAY_END), false, t, hitPixel, retained);
     }
     if (status == GI_SCREEN_HIT) {
-        #ifdef VOXY
+        #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
         if (retained) {
             vec4 surface = texelFetch(usam_hiz, hitPixel + ivec2(0, 2 * uval_mainImageSizeI.y), 0);
             uvec2 outgoing = floatBitsToUint(surface.zw) - 0x00800000u;
@@ -109,6 +109,13 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
 }
 
 void main() {
+    #ifdef VOXY
+        #ifdef GI_RETAINED_PROJECTION
+        if (global_giWideState != 3) return;
+        #else
+        if (global_giWideState == 3) return;
+        #endif
+    #endif
     restir_temporalSplatInitShared();
     voxel_initShared();
 
