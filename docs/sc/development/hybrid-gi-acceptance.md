@@ -2,7 +2,7 @@
 
 Language: 简体中文 | [English](../../en/development/hybrid-gi-acceptance.md)
 
-冻结规格为 `48c9e1f0:docs/rendering/hybrid-gi.md`，基线为 `5ba8718d4`，实现为 `b59d5ef7`。Minecraft 1.21.11、Iris 1.10.6-vibris.3、RTX 3080 Ti，1280 × 720。每组回执保存了实际源码、设置、场景、pass 映射和编译结果。普通场景覆盖下表。用户将真实 Voxy 远景、远端距离写回和端点重建误差留待单独验收。
+冻结规格为 `48c9e1f0:docs/rendering/hybrid-gi.md`，基线为 `5ba8718d4`，实现为 `b59d5ef7`。Minecraft 1.21.11、Iris 1.10.6-vibris.3、RTX 3080 Ti，1280 × 720。每组回执保存了实际源码、设置、场景、pass 映射和编译结果。普通场景覆盖下表。真实 Voxy 远景的独立验收记录见下文。
 
 | 普通场景 | 实测结果 |
 | --- | --- |
@@ -32,3 +32,23 @@ Vela 运行 `e04d872b-8670-4d47-8fa4-04c669e1804f` 的 `gi-iris.zip` 包含原�
 <!-- vela:evidence {"run":"e04d872b-8670-4d47-8fa4-04c669e1804f","path":"entity-motion.png"} -->
 <!-- vela:evidence {"run":"e04d872b-8670-4d47-8fa4-04c669e1804f","path":"prefilter-final.png"} -->
 <!-- vela:evidence {"run":"e04d872b-8670-4d47-8fa4-04c669e1804f","path":"wall-control.png"} -->
+
+## 真实 Voxy 远景
+
+在独立的 Minecraft 1.21.11 实例中，以官方 Iris 1.10.7、Voxy 0.2.13-alpha 和 Sodium 0.8.7 运行 `f10a01db5`。核对了原包的全部 496 个 shader 文件。镜位为 `aerial-perspective-4-720p`（Dump Jungle），普通渲染距离 3 个区块，体素网格 16 砖，Ultra 开启空间复用。原包两帧分别有 64,292 和 64,291 个不透明 Voxy 像素与合并后的视深逐位一致，前一帧最大视深为 2,168.99 格。Vibris.3 的 Iris 构造函数与 Voxy 0.2.16 的注入签名不匹配，因此本组使用隔离的 Fabric 探针直接读取 Iris 和 GPU。原有 Vibris 普通场景计时沿用上表。[Voxy 发行版](https://modrinth.com/mod/voxy/version/k5PZxsfL) · [Iris 发行版](https://modrinth.com/mod/iris/version/fDpuVzVr)
+
+诊断在相同机位保留了 16 帧。每 4×4 像素取一个接收点，用当帧原生 Voxy 深度和未打包面轴构造 FP64 参考平面，独立重求交点。9,992 个以 Voxy 为终点的候选中，生产端、tile 和时间复用读取端的距离位型全部一致。最长射线为 713.417 格，最深终点的视深为 2,001.822 格。
+
+| 误差（格） | P50 | P95 | P99 | 最大值 |
+| --- | ---: | ---: | ---: | ---: |
+| 距离读回与参考交距 | 0.00000137 | 0.00002818 | 0.00008603 | 0.00269605 |
+| GPU 端点与参考交点的距离 | 0.00000387 | 0.00003390 | 0.00009295 | 0.00270821 |
+
+盒前命中 Voxy 714 次，盒内近段 6,889 次，出盒尾段 99 次，纯屏幕段 2,290 次。另有 79 条从 Voxy 主表面出发的射线在正距离入盒后命中体素。一例 FP64 参考投到相邻像素，在 x 方向距边界 0.000016 像素，对应端点误差 0.00000322 格。
+
+从诊断帧 1535 的真实空间队列取出接收像素 (432, 112) 的 223.126 格连接，Voxy 端点与参考面的交距差为 0.00836 格。固定原点、方向、端点并调用原可见性函数，体素段在 136.824 格处结束。只在可写副本中添加一面 1×3×3 格的墙，射线在 15.543–16.806 格处穿墙。无墙、加墙、移墙三次对照的屏幕段均查通，体素分别放行、拒绝、放行。三次的漫反射 RGB 分别原样保留 (8.9141, 8.6406, 8.0469)，从 (10.7812, 10.3906, 9.4062) 归零，以及原样保留 (4.1289, 5.0000, 8.8438)。
+
+运行 `e0db906f-3f03-4496-b81f-25ded7d5390f` 的 `voxy-gi.zip` 保存原包画面、16 帧原始诊断、墙体对照、滤波前 diffuse/specular 的全部 FP16 分量及同帧终图。SHA-256 为 `5ebf9bcad6d3adfc12ec0361d0691c667ec1e93d4a1fc934f7aa554d28031668`。GPU 及独立实例租约均已归还。此项验收使用原生产 shader，`colortex16/17/18` 继续用于 Voxy。
+
+<!-- vela:evidence {"run":"e0db906f-3f03-4496-b81f-25ded7d5390f","path":"voxy-gi.zip"} -->
+<!-- vela:evidence {"run":"e0db906f-3f03-4496-b81f-25ded7d5390f","path":"prefilter-final.png"} -->
