@@ -79,9 +79,9 @@ int gi_traceScreen(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
         vec2 edge = (vec2(cell) + vec2(greaterThan(stepDir, vec2(0.0)))) * size;
         vec2 crossU = mix((edge - a.xy) / delta.xy, vec2(2.0), equal(stepDir, vec2(0.0)));
         float endU = min(1.0, min(crossU.x, crossU.y));
-        vec2 depth = texelFetch(usam_hiz, tile.xy + cell, 0).rg;
+        vec2 depth = texelFetch(usam_hiz, tile.xy + cell, 0).ba;
         vec2 z = fma(vec2(u, endU), vec2(delta.z), vec2(a.z));
-        bool overlap = max(z.x, z.y) >= depth.y * 0.98 && min(z.x, z.y) <= depth.x * 1.02;
+        bool overlap = max(z.x, z.y) >= depth.y && min(z.x, z.y) <= depth.x;
         if (overlap && level > 0) {
             --level;
             continue;
