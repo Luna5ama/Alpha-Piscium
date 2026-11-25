@@ -19,7 +19,13 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 #define VOXEL_TRACE_TRUST_MATERIAL_ID
 #include "/techniques/voxel/VoxelTrace.glsl"
 #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
-bool gi_currentHitEmits(ivec2 pixel) { return transient_giRadianceInputs_fetch(pixel).y != 0u; }
+bool gi_currentHitEmits(ivec2 pixel) {
+    GBufferData hit = gbufferData_init();
+    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, pixel, 0), hit);
+    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, pixel, 0), hit);
+    Material surface = material_decode(hit);
+    return any(greaterThan(surface.emissive, vec3(0.0)));
+}
 #endif
 #include "/techniques/gi/HybridTrace.glsl"
 #include "/util/GBufferData.glsl"
