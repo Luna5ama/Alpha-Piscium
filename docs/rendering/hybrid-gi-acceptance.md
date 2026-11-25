@@ -49,3 +49,9 @@
 
 <!-- vela:evidence {"run":"e0db906f-3f03-4496-b81f-25ded7d5390f","path":"voxy-gi.zip"} -->
 <!-- vela:evidence {"run":"e0db906f-3f03-4496-b81f-25ded7d5390f","path":"prefilter-final.png"} -->
+
+### 2.0/dev 集成包复测
+
+旧 Iris 绑定与混合 GI 合入后，用 `77cb79df` 的成品 ZIP 在同一 Jungle 镜位复测。Minecraft 1.21.11、Iris 1.10.7、Sodium 0.8.7 和 Voxy 0.2.13-alpha 在 1280 × 720 实际加载了该包。连续两帧分别有 190,548 和 190,503 个原生 LOD 像素进入合并深度，最远约 2,175 和 2,165 格。两帧的漫反射与镜面 GI 均有非零输出，读回未见非有限值。精确的候选距离和加墙对照见上节的独立验收。
+
+集成运行 `4eff3986-2e45-47fc-b636-62d6c833c2c2` 保留实机记录，固定镜位的两帧以 `jungle-fixed` 标记。同一 ZIP 的 SHA-256 与官方旧 Iris 的开关复测记录见[绑定验收](iris-binding-acceptance.md)。
