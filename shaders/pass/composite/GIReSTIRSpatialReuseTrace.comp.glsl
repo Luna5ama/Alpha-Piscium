@@ -13,11 +13,27 @@ layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/gi/ReservoirSplat.glsl"
 #include "/techniques/voxel/VoxelVisibility.glsl"
+#include "/techniques/gi/HybridTrace.glsl"
 #include "/techniques/gi/PathGuiding.glsl"
 
 #ifdef PATH_GUIDING_ENABLED
 layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
 #endif
+
+bool gi_visible(vec3 p, vec3 d, vec3 worldPos, vec3 worldDir, float maxT) {
+    if (maxT <= 0.0) return true;
+    vec2 interval = vec2(0.0, maxT);
+    float t;
+    ivec2 pixel;
+    if (!gi_gridInterval(worldPos, worldDir, interval)) {
+        return gi_traceScreen(p, d, vec2(0.0, maxT), true, t, pixel) == GI_SCREEN_CLEAR;
+    }
+    if (gi_traceScreen(p, d, vec2(0.0, interval.x), true, t, pixel) != GI_SCREEN_CLEAR) return false;
+    if (gi_traceScreen(p, d, vec2(interval.x, min(interval.y, GI_SCREEN_NEAR_DISTANCE)), false, t, pixel)
+        == GI_SCREEN_HIT) return false;
+    return voxel_isVisible(worldPos, worldDir, interval, 128)
+        && gi_traceScreen(p, d, vec2(interval.y, maxT), true, t, pixel) == GI_SCREEN_CLEAR;
+}
 
 void main() {
     uint rayCount = global_restirVisibilityRayCount;
@@ -56,9 +72,10 @@ void main() {
     vec3 rayOffsetView = expectedHitView - rayOriginView;
     float expectedHitDistance = length(rayOffsetView);
     vec3 worldPos = coords_pos_viewToWorld(rayOriginView, gbufferModelViewInverse) + vec3(cameraPositionInt) + cameraPositionFract;
-    vec3 worldDir = coords_dir_viewToWorld(rayOffsetView * rcp(expectedHitDistance));
+    vec3 rayDirView = rayOffsetView * rcp(expectedHitDistance);
+    vec3 worldDir = coords_dir_viewToWorld(rayDirView);
     // Exclude the endpoint tolerance from the segment to avoid self-occlusion.
-    if (!voxel_isVisible(worldPos, worldDir, expectedHitDistance - sqrt(0.05), 128)) {
+    if (!gi_visible(rayOriginView, rayDirView, worldPos, worldDir, expectedHitDistance - sqrt(0.05))) {
         transient_gi_shadowHint_store(texelPos, vec4(1.0));
         // The occluded neighbor sample contributes nothing: visibility-deferred RIS has zero contribution here.
         // The BRDF-ratio specular has no visibility term and stays, as in SpatialShade's ratio-only output.

@@ -39,18 +39,20 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos, inout uvec2 trainRecord) 
     transient_gi_shadowHint_store(texelPos, vec4(0.0));
     uvec4 packedTemporalReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
     uint packedPrimary = restir_splatFetchCurrentPrimary(texelPos);
-    uvec4 historyReservoir = packedTemporalReservoir;
-    // Invalid primaries contribute zero to the next frame's bilinear confidence gather.
+    uvec4 packedCenterSample = transient_restir_spatialInput_fetch(texelPos);
+    // A screen-only endpoint has no reusable world-space history.
+    bool screenOnly = (packedCenterSample.y & 1u) != 0u;
+    uvec4 historyReservoir = screenOnly ? uvec4(0u) : packedTemporalReservoir;
+    // The next frame gathers confidence directly from the history reservoir.
     if (packedPrimary == 0u) {
         historyReservoir.y = 0u;
     }
     history_restir_reservoirTemporal_store(texelPos, historyReservoir);
-    history_restir_primary_store(texelPos, uvec4(packedPrimary));
+    history_restir_primary_store(texelPos, uvec4(screenOnly ? 0u : packedPrimary));
 
     float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
 
     if (viewZ > -65536.0) {
-        uvec4 packedCenterSample = transient_restir_spatialInput_fetch(texelPos);
         SpatialSampleData centerSampleData = spatialSampleData_unpack(packedCenterSample);
         centerSampleData.normal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
         history_restir_prevSample_store(texelPos, centerSampleData.sampleValue);

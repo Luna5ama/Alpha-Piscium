@@ -1,7 +1,6 @@
 # Global Illumination
 
-Opaque-surface ReSTIR traces world-space voxel geometry, with an environment probe and a spatiotemporal denoiser.
-The 2.0 hybrid candidate adds screen-space segments. See the [candidate results](../roadmap.md). Pass order comes from [`scripts/programs.main.kts`](../../scripts/programs.main.kts); shared algorithms
+Opaque-surface ReSTIR combines screen-space and voxel intersections, with an environment probe and a spatiotemporal denoiser. The [hybrid GI acceptance record](hybrid-gi-acceptance.md) covers ordinary scenes and native Voxy terrain. Pass order comes from [`scripts/programs.main.kts`](../../scripts/programs.main.kts); shared algorithms
 live under [`shaders/techniques/gi/`](../../shaders/techniques/gi/) and entry points are in [
 `shaders/pass/composite/`](../../shaders/pass/composite/).
 
@@ -13,7 +12,7 @@ denoising and temporal-reuse changes measured against `5ba8718d4`, including pai
 | Path | Responsibility |
 | --- | --- |
 | [`shaders/techniques/gi/Common.glsl`](../../shaders/techniques/gi/Common.glsl) | Common GI data and accessors |
-| [`InitialSample.glsl`](../../shaders/techniques/gi/InitialSample.glsl) | Initial proposals and voxel-hit shading |
+| [`InitialSample.glsl`](../../shaders/techniques/gi/InitialSample.glsl), [`HybridTrace.glsl`](../../shaders/techniques/gi/HybridTrace.glsl) | Direction sampling and secondary lighting |
 | [`Reservoir.glsl`](../../shaders/techniques/gi/Reservoir.glsl), [`PairwiseMISMetadata.glsl`](../../shaders/techniques/gi/PairwiseMISMetadata.glsl) | Reservoir encoding and pairwise-reuse metadata |
 | [`ResampleMaterial.glsl`](../../shaders/techniques/gi/ResampleMaterial.glsl) | Material representation used during reuse |
 | [`Reproject.glsl`](../../shaders/techniques/gi/Reproject.glsl), [`ReprojectInfo.glsl`](../../shaders/techniques/gi/ReprojectInfo.glsl) | History reprojection |
@@ -50,8 +49,8 @@ interleaved with GI preparation:
 
 | Order | Pass | Notes |
 | --- | --- | --- |
-| 1 | [`GIReSTIRInitalSampleHiZ`](../../shaders/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl) | Generates a direction and PDF, then marks valid candidates for voxel tracing |
-| 2 | [`GIReSTIRInitalSampleVoxelFallback`](../../shaders/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl) | Traces those directions through the voxel grid |
+| 1 | [`GIReSTIRInitalSampleHiZ`](../../shaders/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl) | Samples a direction and its PDF for the hybrid trace |
+| 2 | [`GIReSTIRInitalSampleVoxelFallback`](../../shaders/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl) | Splats previous primaries, resolves the screen and voxel segments, and shades the nearest hit |
 | 3 | [`GIReSTIRTemporalReuse`](../../shaders/pass/composite/GIReSTIRTemporalReuse.comp.glsl) | Reprojects previous reservoirs, samples, hit normals, and material |
 | 4 | [`GIReSTIRDuplicationMapDecorrelate`](../../shaders/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl) | Optional decorrelation |
 | 5 | [`GIReSTIRPairedSpatialReuse`](../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4 | Pairwise reuse in batches of seven base samples; accumulates the specular BRDF-ratio resolve |
@@ -67,13 +66,13 @@ current-frame stages. [
 temporal reservoir and primary data to their fixed history tiles while performing the final current-frame reads. All
 tile definitions live in [`shaders/shadesmith.json`](../../shaders/shadesmith.json).
 
-Spatial shading writes provisional diffuse/specular results immediately. Neighbor selections that need voxel
+Spatial shading writes provisional diffuse/specular results immediately. Neighbor selections that need finite-connection
 visibility store the octahedral `resultY` direction, its hit distance, and the ratio blend (ratio specular and ReSTIR
 weight) in `transient_restir_pairwiseMISMetadata`; each 16×16 tile then appends its
 rays to SSBO 1 as one contiguous run ordered by world-direction octant and Morton position, counted by
 `global_restirVisibilityRayCount` (reset in [`UpdateGlobalData`](../../shaders/pass/begin/UpdateGlobalData.comp.glsl)).
 The trace pass launches over the screen-sized queue capacity, exits past that count, and replaces only provisional
-results that fail the voxel visibility test with zero diffuse and the ratio-only specular.
+results that fail the hybrid visibility test with zero diffuse and the ratio-only specular.
 
 Specular is `mix(ratioSpec, restirSpec, roughness)`, with the linear GGX roughness of the center. The ratio resolve
 runs over the center's and every same-plane paired pixel's temporal sample, across all spatial batches. Each sample
@@ -113,10 +112,10 @@ roughness. Tile lifetime and format changes belong in [
 
 ## Estimator contracts
 
-- Voxel traces distinguish three outcomes (`voxel_traceExhausted` in [
-  `VoxelTrace.glsl`](../../shaders/techniques/voxel/VoxelTrace.glsl)): a hit, a grid exit that is shaded as sky (the
-  grid-boundary assumption), and step exhaustion, which is a legal zero-radiance sample for initial candidates and is
-  dropped by radiance cache (RC) candidates and revalidation.
+- Screen intervals cover the visible ray before and after the voxel grid, plus the first four blocks from the primary inside the grid. A refined pixel-plane intersection competes with the first voxel hit. Each distance is relative to the original primary.
+- An exhausted screen-only interval or unverified voxel traversal contributes zero with the original PDF. A completed miss queries the environment probe. Frozen-reference mode uses the sky.
+- A verified voxel owner can use the current RC face. If it is unavailable, a confirmed hit pixel can supply reprojected diffuse history. A valid zero from RC wins. Screen-only endpoints contribute to the current frame and spatial reuse. Their history reservoir and primary are cleared at writeback.
+- Positive distances are written as FP32 bits to the existing spatial-input tile before temporal reuse. The FP16 candidate channel stores the surface marker or termination state. Finite reconnections require verified coverage through the endpoint tolerance.
 - RC faces count zero-radiance samples in M and in the control-variate weight but never select them, so a face can hold
   a valid estimate without a selected sample (`rc_reservoirValid` versus `rc_reservoirHasSample` in [
   `RadianceCache.glsl`](../../shaders/techniques/gi/RadianceCache.glsl)).
@@ -165,7 +164,7 @@ changing the proposal can change that rejection rate, so this does not make the 
 
 Resources:
 
-- SSBO 6 `pg_stats`: one uvec4 per lobe, RC slot, and side (fixed-point direction sums and sample count), 32 B × 2 ×
+- SSBO 5 stores `pg_stats` after the RC indirection tables, active indices and counters. It uses one uvec4 per lobe, RC slot, and side (fixed-point direction sums and sample count), 32 B × 2 ×
   `SETTING_RC_POOL_SIZE` (16 MiB at the default pool), declared only when guiding is enabled.
 - `transient_pathGuide_trainRecord` (RG32UI): shares an existing RG32UI atlas slot, so the atlas does not grow.
 - GlobalData `pg_*Counter` fields, shown by `SETTING_DEBUG_VOXEL_COUNTER`.

@@ -160,3 +160,11 @@ For each 512-frame run, the 16 batch means were grouped into four successive 128
 - quality-and-search.zip, 937231219 bytes, SHA-256 `f7d16754ac3c5bbcc2859f3aecd105fd4e017da686c493db8c5b0f670c321cb6`.
 - final-images-and-linear.zip, 119592515 bytes, SHA-256 `85343872e621f596604be609b467383b088774a1ef609f3619d116c8167009a3`.
 - visual-comparison.jpg, SHA-256 `cc979a52bc728e1c499e1291450e0c86d309a586eadb073c189d5c5df1c5ff5b`.
+
+## Local 2.0 hybrid GI integration, 2026-11-25
+
+The local `2.0/dev` integrates the measured stack at `5dff1e8f` with the published hybrid GI and old Iris bindings at `d7a05fe4`. The published ZIP built from `77cb79df` is the comparison baseline. The SPBR21 material experiment stays on its own branch. This integration and its acceptance records are local.
+
+For compatibility, load the merged ZIP in the existing official Iris 1.10.4 mirror-room setup with RC on and path guiding both on and off. Read the bound buffers and GI output. Repeat the official Iris 1.10.7 Jungle view with Voxy enabled and check native LOD depths, finite diffuse and specular GI, and the active pack. Use the existing [binding](../rendering/iris-binding-acceptance.md) and [hybrid GI](../rendering/hybrid-gi-acceptance.md) receipts for the camera, readback and reference. Check near-screen endpoints, voxel hits and both history frames where the integration changes their treatment.
+
+For performance, compare the exact merged shader contents against the published hybrid contents in the original 720p scenes. Use adjacent forward and reverse pairs, stable settings, the affected GI and terrain-shadow sums, and the same quality and drift checks as the four-hour experiment. Include a spatial-reuse-off check of the single shading path. Record actual loaded revisions, measured differences and any quality trade-off. Use complete groups after existing reservations and preserve evidence in the existing run system. The earlier per-scene savings above apply to their original baseline.

@@ -186,6 +186,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                         VoxelHit result;
                         result.hit = true;
                         result.hitPos = fma(worldRayDir, vec3(cubeT), worldRayOrigin);
+                        ray.lastT = cubeT;
                         result.materialID = material;
                         result.normal = cubeNormal;
                         ray.level = 0;
@@ -217,6 +218,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                             VoxelHit result;
                             result.hit = true;
                             result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);
+                            ray.lastT = modelT;
                             result.materialID = material;
                             result.normal = modelNormal;
                             ray.level = 0;

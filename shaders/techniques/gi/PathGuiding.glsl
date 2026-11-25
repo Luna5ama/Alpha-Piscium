@@ -108,8 +108,8 @@ PathGuide pathGuide_debugLobe() {
 
 // Per RC face slot and RC side, one record per lobe of: xyz = sum of world-space training directions (int32 as uint),
 // w = sample count, both in fixed point with PG_FIXED_POINT_SCALE.
-layout(std430, binding = 6) PG_DATA_MODIFIER PathGuideData {
-    uvec4 pg_stats[];
+layout(std430, binding = 5) PG_DATA_MODIFIER PathGuideData {
+    layout(offset = (16 + 4) * 2 * RC_ENTRY_COUNT + 16) uvec4 pg_stats[];
 };
 
 const uint PG_STATS_PER_SLOT = 2u;

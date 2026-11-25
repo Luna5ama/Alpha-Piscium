@@ -28,7 +28,7 @@ const uint VOXEL_UNALLOCATED = 0xFFFFFFFFu;
 #endif
 
 // ---------------------------------------------------------------------------
-// SSBO 3 – Brick Metadata
+// SSBO 3 – Brick Metadata (indices relative to the end of the face/model tables)
 //   [0]                          : allocation count
 //   [1   .. VOXEL_GRID_BRICKS]   : previous-frame occupancy for allocation. During raster,
 //       allocated bricks use the word to mark pairs of leaves missing from the previous root.
@@ -36,7 +36,7 @@ const uint VOXEL_UNALLOCATED = 0xFFFFFFFFu;
 //   [2*VOXEL_GRID_BRICKS+1 .. 2*VOXEL_GRID_BRICKS+NUM_DIST_BUCKETS] : per-bucket counts (allocator inter-pass)
 // ---------------------------------------------------------------------------
 layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
-    uint voxel_brickAllocCounter;
+    layout(offset = 2621440) uint voxel_brickAllocCounter;
     uint voxel_brickOccupancy[VOXEL_GRID_BRICKS];
     uint voxel_brickAllocID[VOXEL_GRID_BRICKS];
     uint voxel_bucketCounts[NUM_DIST_BUCKETS];
