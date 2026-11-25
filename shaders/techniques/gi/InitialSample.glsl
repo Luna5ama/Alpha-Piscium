@@ -3,7 +3,7 @@
 
 #include "Irradiance.glsl"
 #include "/util/BSDF.glsl"
-#include "/techniques/SST2.glsl"
+#include "/techniques/gi/ReprojectInfo.glsl"
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/gi/HitDirectLighting.glsl"
 #include "/techniques/gi/PathGuiding.glsl"
@@ -16,7 +16,7 @@
 #include "/util/Hash.glsl"
 #include "/util/NZPacking.glsl"
 
-const float RESTIR_INITIAL_CANDIDATE_SKY_MISS = -1.0;
+const float RESTIR_INITIAL_CANDIDATE_ENVIRONMENT = -1.0;
 const float RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL = -2.0;
 const float RESTIR_INITIAL_CANDIDATE_INVALID = -3.0;
 // The voxel trace ran out of steps: a legal sample with zero radiance, not a sky miss.
@@ -28,6 +28,7 @@ struct restir_InitialCandidate {
     vec3 rayDirView;
     float pdf;
     vec3 hitNormalView;
+    bool screenOnly;
 };
 
 restir_InitialCandidate restir_initialCandidate_init() {
@@ -36,6 +37,7 @@ restir_InitialCandidate restir_initialCandidate_init() {
     candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_INVALID;
     candidate.rayDirView = vec3(0.0, 0.0, 1.0);
     candidate.pdf = 0.0;
+    candidate.screenOnly = false;
     candidate.hitNormalView = vec3(0.0);
     return candidate;
 }
@@ -50,17 +52,25 @@ vec3 restir_initialSample_sanitizeRadiance(vec3 radiance) {
         : vec3(0.0);
 }
 
-#ifdef RESTIR_INITIAL_CANDIDATE_WRITE
+#ifdef RESTIR_INITIAL_RESULT_WRITE
 void restir_initialCandidate_storeResult(ivec2 texelPos, restir_InitialCandidate candidate) {
-    transient_restir_initialCandidate_store(texelPos, vec4(candidate.radiance, candidate.hitDistance));
-    uint packedHitNormal = candidate.hitDistance > 0.0
-        ? nzpacking_packNormalOct32(candidate.hitNormalView)
-        : 0u;
-    transient_restir_initialCandidateNormal_store(texelPos, uvec4(packedHitNormal));
+    float state = candidate.hitDistance;
+    if (state > 0.0) {
+        // Temporal reuse consumes this pixel before replacing it with its spatial sample.
+        transient_restir_spatialInput_store(texelPos, uvec4(
+            floatBitsToUint(state),
+            (nzpacking_packNormalOct32(candidate.hitNormalView) & ~1u) | uint(candidate.screenOnly), 0u, 0u
+        ));
+        state = 1.0;
+    }
+    transient_restir_initialCandidate_store(texelPos, vec4(candidate.radiance, state));
 }
 
+#endif
+
+#ifdef RESTIR_INITIAL_DIRECTION_WRITE
 void restir_initialCandidate_store(ivec2 texelPos, restir_InitialCandidate candidate) {
-    restir_initialCandidate_storeResult(texelPos, candidate);
+    transient_restir_initialCandidate_store(texelPos, vec4(candidate.radiance, candidate.hitDistance));
     transient_restir_initialCandidateDirection_store(texelPos, uvec4(
         nzpacking_packNormalOct32(candidate.rayDirView),
         floatBitsToUint(candidate.pdf),
@@ -74,13 +84,15 @@ restir_InitialCandidate restir_initialCandidate_load(ivec2 texelPos) {
     restir_InitialCandidate candidate = restir_initialCandidate_init();
     vec4 radianceAndDistance = transient_restir_initialCandidate_fetch(texelPos);
     uvec4 directionAndPdf = transient_restir_initialCandidateDirection_fetch(texelPos);
-    uint packedHitNormal = transient_restir_initialCandidateNormal_fetch(texelPos).x;
+    uvec2 geometry = radianceAndDistance.w > 0.0 ? transient_restir_spatialInput_fetch(texelPos).xy : uvec2(0u);
+    uint packedHitNormal = geometry.y;
+    candidate.screenOnly = (packedHitNormal & 1u) != 0u;
     candidate.radiance = radianceAndDistance.rgb;
-    candidate.hitDistance = radianceAndDistance.w;
+    candidate.hitDistance = radianceAndDistance.w > 0.0 ? uintBitsToFloat(geometry.x) : radianceAndDistance.w;
     candidate.rayDirView = nzpacking_unpackNormalOct32(directionAndPdf.x);
     candidate.pdf = uintBitsToFloat(directionAndPdf.y);
     candidate.hitNormalView = candidate.hitDistance > 0.0
-        ? nzpacking_unpackNormalOct32(packedHitNormal)
+        ? nzpacking_unpackNormalOct32(packedHitNormal & ~1u)
         : vec3(0.0);
     return candidate;
 }
@@ -99,132 +111,61 @@ restir_InitialCandidate restir_initialCandidate_makeVoxelFallback(vec3 rayDirVie
     return candidate;
 }
 
-vec3 restir_initialSample_sampleSky(ivec2 texelPos, vec3 worldDirection) {
-    AtmosphereParameters atmosphere = getAtmosphereParameters();
-    SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, worldDirection);
-    vec3 skyRadiance = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
-    #ifdef SETTING_GI_MC_SKYLIGHT_ATTENUATION
-    float lmCoordSky = transient_lmCoord_fetch(texelPos).y;
-    float skyLightFactor = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));
-    skyRadiance *= skyLightFactor;
-    #endif
-    return skyRadiance;
-}
-
-bool restir_initialSample_screenHitQuery(
-    ivec2 centerTexelPos,
-    vec3 centerGeomNormalView,
-    vec3 rayOriginView,
-    vec3 rayDirView,
-    float pdf,
-    float hitDistance,
-    out restir_InitialCandidate candidate
-) {
-    candidate = restir_initialCandidate_makeVoxelFallback(rayDirView, pdf);
-
-    if (hitDistance <= 0.0) {
-        return false;
-    }
-
-    vec3 hitViewPos = rayOriginView + rayDirView * hitDistance;
-    vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
-    ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
-
-    if (any(lessThan(hitTexelPos, ivec2(0))) || any(greaterThanEqual(hitTexelPos, uval_mainImageSizeI))) {
-        return false;
-    }
-
-    float hitViewZ = texelFetch(usam_gbufferSolidViewZ, hitTexelPos, 0).x;
-    if (hitViewZ <= -65536.0) {
-        return false;
-    }
-
-    GBufferData hitData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, hitTexelPos, 0), hitData);
-    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, hitTexelPos, 0), hitData);
-
-    if (dot(hitData.geomNormal, hitData.geomNormal) <= 1e-6 || dot(hitData.normal, hitData.normal) <= 1e-6) {
-        return false;
-    }
-
-    float geomNormalDot = dot(hitData.geomNormal, centerGeomNormalView);
-    if (geomNormalDot > 0.99) {
-        return false;
-    }
-
-    Material hitMaterial = material_decode(hitData);
-    vec3 hitWorldPos = coords_pos_viewToWorld(hitViewPos, gbufferModelViewInverse) + cameraPosition;
-    vec3 queryWorldNormal = coords_dir_viewToWorld(hitData.normal);
-    vec3 queryWorldGeomNormal = coords_dir_viewToWorld(hitData.geomNormal);
-    vec3 queryWorldPos = hitWorldPos - queryWorldGeomNormal * 0.02;
-    vec3 V = coords_dir_viewToWorld(normalize(rayOriginView - hitViewPos));
-
-    candidate = restir_initialCandidate_init();
-    candidate.rayDirView = rayDirView;
-    candidate.pdf = pdf;
-    candidate.hitDistance = hitDistance;
-    candidate.hitNormalView = hitData.geomNormal;
-    candidate.radiance = hitMaterial.emissive
-        + gi_hitDirectLighting(hitMaterial, hitWorldPos, V, queryWorldNormal, queryWorldGeomNormal);
-
-    // Frozen-Li reference mode drops the RC bounce so the hit radiance does not converge over time.
-    #if defined(SETTING_RC_ENABLE) && SETTING_GI_USE_REFERENCE != 2
-    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, queryWorldPos, queryWorldNormal, queryWorldGeomNormal);
-    if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
-        candidate.radiance += rcLookup.radiance;
+vec3 gi_secondaryIndirect(vec3 V, vec3 worldPos, vec3 N, vec3 geomN, uint voxelMaterialID,
+                          ivec2 screenPixel, vec3 albedo) {
+    #if SETTING_GI_USE_REFERENCE != 2
+    #ifdef SETTING_RC_ENABLE
+    if (voxelMaterialID != 0u) {
+        uint level = rc_selectLevel(worldPos);
+        vec3 face = rc_faceNormal(rc_dominantFaceId(geomN));
+        vec3 ownerPos = worldPos - face * ldexp(1e-3, int(level));
+        if (voxel_getMaterialID(ivec3(floor(ownerPos))) == voxelMaterialID) {
+            RCLookupResult rc = rc_lookupDiffuseGI(V, worldPos, N, geomN);
+            if (rc.weight > 0.0 && restir_initialSample_isFinite(rc.radiance)) return rc.radiance;
+        }
     }
     #endif
-
-    candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
-    return true;
+    if (screenPixel.x >= 0) {
+        ReprojectInfo info = reprojectInfo_unpack(transient_gi_diffuse_reprojInfo_fetch(screenPixel));
+        if (info.historyResetFactor * global_historyResetFactor > 0.0
+            && any(greaterThan(info.bilateralWeights, vec4(0.0)))
+            && transient_gi5Reprojected_fetch(screenPixel).x > 0.0) {
+            return transient_gi2Reprojected_fetch(screenPixel).rgb * min(albedo, 0.95);
+        }
+    }
+    #endif
+    return vec3(0.0);
 }
 
-restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
-    ivec2 texelPos,
-    vec3 rayOriginWorld,
-    vec3 rayDirView,
-    vec3 rayWorldDir,
-    float pdf,
-    VoxelHit hit,
-    bool traceExhausted
-) {
-    restir_InitialCandidate candidate = restir_initialCandidate_init();
-    candidate.rayDirView = rayDirView;
-    candidate.pdf = pdf;
-
-    if (traceExhausted) {
-        candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_TRACE_EXHAUSTED;
-        return candidate;
+void gi_shadeScreen(inout restir_InitialCandidate candidate, float t, ivec2 pixel,
+                    vec3 worldPos, vec3 V, uint voxelMaterialID, vec3 cachePos) {
+    GBufferData data = gbufferData_init();
+    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, pixel, 0), data);
+    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, pixel, 0), data);
+    Material material = material_decode(data);
+    vec3 N = coords_dir_viewToWorld(data.normal);
+    vec3 geomN = coords_dir_viewToWorld(data.geomNormal);
+    candidate.hitDistance = t;
+    candidate.hitNormalView = data.geomNormal;
+    candidate.screenOnly = voxelMaterialID == 0u;
+    if (dot(geomN, V) <= 0.0) {
+        candidate.radiance = restir_initialSample_sanitizeRadiance(material.emissive);
+        return;
     }
+    candidate.radiance = restir_initialSample_sanitizeRadiance(material.emissive
+        + gi_hitDirectLighting(material, worldPos, V, N, geomN)
+        + gi_secondaryIndirect(V, cachePos, N, geomN, voxelMaterialID, pixel, material.albedo));
+}
 
-    // Leaving the voxel grid is treated as reaching the sky.
-    if (!hit.hit) {
-        candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_SKY_MISS;
-        candidate.radiance = restir_initialSample_sanitizeRadiance(
-            restir_initialSample_sampleSky(texelPos, rayWorldDir)
-        );
-        return candidate;
-    }
-
-    candidate.hitDistance = distance(hit.hitPos, rayOriginWorld);
+void gi_shadeVoxel(inout restir_InitialCandidate candidate, VoxelHit hit, float t,
+                   vec3 V, ivec2 screenPixel) {
+    candidate.hitDistance = t;
     candidate.hitNormalView = coords_dir_worldToView(hit.normal);
-
     voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
-    if (!surface.valid) {
-        return candidate;
-    }
-
-    vec3 V = normalize(rayOriginWorld - hit.hitPos);
-    candidate.radiance = surface.material.emissive
-        + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal);
-    #if defined(SETTING_RC_ENABLE) && SETTING_GI_USE_REFERENCE != 2
-    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, hit.hitPos, hit.normal, hit.normal);
-    if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
-        candidate.radiance += rcLookup.radiance;
-    }
-    #endif
-    candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
-    return candidate;
+    if (!surface.valid) return;
+    candidate.radiance = restir_initialSample_sanitizeRadiance(surface.material.emissive
+        + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal)
+        + gi_secondaryIndirect(V, hit.hitPos, hit.normal, hit.normal, hit.materialID, screenPixel, surface.material.albedo));
 }
 
 float restir_initialSample_specularProbability(vec3 wiTangent, Material material) {

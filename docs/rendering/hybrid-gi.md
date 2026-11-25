@@ -1,6 +1,6 @@
 # 2.0 屏幕空间与体素混合 GI
 
-**2.0 候选规格。** 普通场景已在独立候选上验收，真实 Voxy 远景仍待验证。[实测记录](hybrid-gi-acceptance.md) 实现基线为 `2.0/dev@5ba8718d4`。交付范围是不透明主表面的 ReSTIR GI，包括初始射线求交、次级命中取光、历史复用和空间重连可见性。玩家使用一条混合路径。独立的 1.10 模式和透明表面的体素反射、折射均在本项范围外。[版本路线图](../roadmap.md) · [GI 管线](global-illumination.md)
+**2.0 开发版已接入。** 普通场景和真实 Voxy 远景已分别完成实机验收。[实测记录](hybrid-gi-acceptance.md) 实现基线为 `2.0/dev@5ba8718d4`。交付范围是不透明主表面的 ReSTIR GI，包括初始射线求交、次级命中取光、历史复用和空间重连可见性。玩家使用一条混合路径。独立的 1.10 模式和透明表面的体素反射、折射均在本项范围外。[版本路线图](../roadmap.md) · [GI 管线](global-illumination.md)
 
 ## 一条射线上的先后关系
 
@@ -44,7 +44,7 @@ RC 面保存余弦加权的平均入射辐亮度，`rc_lookupDiffuseGI` 用面�
 1. 保留现有方向采样、可选路径引导和 PDF。在 `InitalSampleHiZ` 生成方向后及 `InitalSampleVoxelFallback` 求交的位置完成上述搜索，所有段使用同一方向。允许按实际访问成本拆分 dispatch。向参考累积和时间复用提交已解析的辐亮度、方向、PDF、相对原始 primary 的总距离和命中几何法线。体素 pass 中的 `restir_temporalSplat` 位于候选筛选之前，屏幕已经命中的像素也需要执行。[初始采样入口](../../shaders/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl) · [体素与 splat 入口](../../shaders/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl)
 2. 沿用 2.0 的时间 reservoir、重投影和 Jacobian。仅屏幕可见的次级表面跨帧复用时，将历史端点投到当前帧核对深度与几何法线。运动或显露导致端点无法确认时丢弃这份历史。若当前编码无法表达这类端点的归属，可让这些样本仅参与当帧着色和空间复用。离屏仍有体素表示的端点保留原有时间复用能力。重载、场景切换和历史重置同样适用于新增的屏幕贡献。[时间复用](../../shaders/pass/composite/GIReSTIRTemporalReuse.comp.glsl)
 3. 空间复用沿用已有的有限邻居获选队列。从**当前接收 primary** 朝重连端点作相同的分段验证，只检查端点之前的遮挡，并给端点留自交容差。体素只查线段与盒的交集，盒外屏幕段走到预期端点且没有更近可信遮挡即可通过。更近的遮挡、预算耗尽或缺乏覆盖而无法验证的区间使该邻居贡献归零。盒内近段仍可由体素完成。保留原有 ratio 镜面分量、shadow hint 和路径引导的拒绝处理。方向环境样本沿用 2.0 的复用规则。[邻居入队](../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl) · [可见性消费端](../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)
-4. 优先复用候选 tile 和可见性队列。当前候选距离存入 `RGBA16F.w`。用实际 Voxy 远端检查写入、读回和端点重建误差，必要时调整现有 tile 编码及其全部读取者。降噪器的镜面距离限幅只用于滤波。Voxy 专设的 `colortex16/17/18` 保留原用途。旧 Iris 绑定调整有独立发布项。两项可并行，新增读写纳入同一资源预算。[资源布局](../../shaders/shadesmith.json) · [旧 Iris 发布项](../roadmap.md)
+4. 优先复用候选 tile 和可见性队列。实现将正距离的 FP32 位型写入现有 spatial-input tile，原 FP16 通道保存表面标记或终止状态。Voxy 远景验收核对了写入、读回和端点重建误差。降噪器的镜面距离限幅只用于滤波。Voxy 专设的 `colortex16/17/18` 保留原用途。旧 Iris 的 SSBO 绑定已随本版合入。[资源布局](../../shaders/shadesmith.json) · [旧 Iris 发布项](../roadmap.md)
 
 重连时沿用 2.0 的近似，对新的主表面、方向和材质重算目标权重，次级端点携带初次取光时的 RGB。新连接的出射方向变化很大时，有光泽次级表面的亮度可能偏离重新着色的结果。用倾斜亮面比较关闭与开启复用的画面，将这项差异与选择了哪份间接光分开判读。[空间重连与目标权重](../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)
 

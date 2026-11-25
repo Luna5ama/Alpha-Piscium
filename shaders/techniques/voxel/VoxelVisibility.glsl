@@ -4,9 +4,9 @@
 #include "/techniques/voxel/VoxelTraversal.glsl"
 #include "/techniques/voxel/VoxelAlphaTest.glsl"
 
-// A finite segment is visible only after reaching its end; exhausted or out-of-grid traces remain unverified.
-bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, float maxT, int maxSteps) {
-    if (maxT <= 0.0) return true;
+// The caller clips this interval to the current grid and verifies its exterior separately.
+bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, vec2 interval, int maxSteps) {
+    float maxT = interval.y;
 
     const int GRID_BLOCKS = VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE;
     const float EPS = 1e-4;
@@ -14,14 +14,7 @@ bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, float maxT, int maxS
     vec3 posGrid = worldRayOrigin - _voxel_gridOriginF;
     vec3 inverseRayDir = 1.0 / worldRayDir;
     vec3 tOrig = -posGrid * inverseRayDir;
-    vec3 t1g = fma(vec3(float(GRID_BLOCKS)), inverseRayDir, tOrig);
-    vec3 tMinG = min(tOrig, t1g);
-    vec3 tMaxG = max(tOrig, t1g);
-    float tEnter = max(max(tMinG.x, tMinG.y), tMinG.z);
-    float tExitG = min(min(tMaxG.x, tMaxG.y), tMaxG.z);
-    if (tEnter > 0.0 || tExitG < maxT) return false;
-
-    vec3 startPos = clamp(fma(worldRayDir, vec3(EPS), posGrid), vec3(EPS), vec3(float(GRID_BLOCKS) - EPS));
+    vec3 startPos = clamp(fma(worldRayDir, vec3(min(interval.x + EPS, maxT)), posGrid), vec3(EPS), vec3(float(GRID_BLOCKS) - EPS));
     ivec3 blockPos = ivec3(floor(startPos));
     uint fullMorton = _voxel_packBlockPos(blockPos);
     int level = 1;
@@ -70,7 +63,7 @@ bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, float maxT, int maxS
         ivec3 cellMax = cellMin + sizeMask.y - 1;
         ivec3 tracedBlockPos = clamp(ivec3(floor(fma(worldRayDir, vec3(nextT), posGrid))), cellMin, cellMax);
         blockPos = mix(target + directionSign, tracedBlockPos, greaterThan(tExit, vec3(nextT)));
-        if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) return false;
+        if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) return true;
 
         uint oldFullMorton = fullMorton;
         fullMorton = _voxel_packBlockPos(blockPos);

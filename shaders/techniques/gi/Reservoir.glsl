@@ -56,7 +56,7 @@ SpatialSampleData spatialSampleData_unpack(uvec4 packedData) {
     SpatialSampleData data;
     data.geomNormal = nzpacking_unpackNormalOct32(packedData.x);
     data.normal = vec3(0.0);
-    data.hitNormal = nzpacking_unpackNormalOct32(packedData.y);
+    data.hitNormal = nzpacking_unpackNormalOct32(packedData.y & ~1u);
     data.sampleValue = unpackHalf4x16(packedData.zw);
     return data;
 }

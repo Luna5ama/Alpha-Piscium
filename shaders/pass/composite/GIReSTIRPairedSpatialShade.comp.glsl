@@ -38,9 +38,11 @@ const uint NO_TRACE = 8u;
 uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos, inout uvec2 trainRecord) {
     transient_gi_shadowHint_store(texelPos, vec4(0.0));
     uvec4 packedTemporalReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
-    history_restir_reservoirTemporal_store(texelPos, packedTemporalReservoir);
     uint packedPrimary = restir_splatFetchCurrentPrimary(texelPos);
-    history_restir_primary_store(texelPos, uvec4(packedPrimary));
+    // Bit zero of the selected normal marks an endpoint represented only in this frame.
+    bool screenOnly = (transient_restir_spatialInput_fetch(texelPos).y & 1u) != 0u;
+    history_restir_primary_store(texelPos, uvec4(screenOnly ? 0u : packedPrimary));
+    history_restir_reservoirTemporal_store(texelPos, screenOnly ? uvec4(0u) : packedTemporalReservoir);
 
     float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
 

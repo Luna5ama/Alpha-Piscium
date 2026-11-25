@@ -12,9 +12,8 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-#define RESTIR_INITIAL_CANDIDATE_WRITE
+#define RESTIR_INITIAL_DIRECTION_WRITE
 #include "/techniques/HiZCheck.glsl"
-#include "/techniques/SST2.glsl"
 #include "/techniques/gi/InitialSample.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/util/GBufferData.glsl"

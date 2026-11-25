@@ -1,6 +1,6 @@
 # Iris 1.10.4 绑定验收
 
-2.0 独立候选。[受验修订与原始记录](https://github.com/Luna5ama/Alpha-Piscium/blob/688cb0db70f9e56b35476933e4ea70e2a208a34e/docs/sc/development/iris-binding-acceptance.md)
+`2.0/dev` 已合入受验的 SSBO 布局。[受验修订与原始记录](https://github.com/Luna5ama/Alpha-Piscium/blob/688cb0db70f9e56b35476933e4ea70e2a208a34e/docs/sc/development/iris-binding-acceptance.md)
 
 基线 `5ba8718d4`，实现 `3e7f6be0`，冻结规格为 `a6867d91:docs/roadmap.md` 的 2.0 发布范围。绑定 3 先放面 UV、sprite key 与方向模型，再放砖元数据。绑定 5 先放双侧 RC 间接表、计数与活动索引，需要路径引导时追加统计区。绑定 6 独立存储 reservoir。屏幕步进调试数据位于绑定 2 的可选末段。原 9、10、11 已从声明、实际读写方和生成属性移除。Voxy 的 `colortex16/17/18` 专用目标沿用原分配。
 
