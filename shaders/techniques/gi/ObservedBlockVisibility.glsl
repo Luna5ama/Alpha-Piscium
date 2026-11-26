@@ -3,6 +3,7 @@
 
 #include "/techniques/voxel/VoxelAlphaTest.glsl"
 #include "/util/HardcodedPBR.glsl"
+#include "/techniques/gi/ObservedSurfaceFootprint.glsl"
 
 bool gi_intersectObservedModel(uint material, vec3 origin, vec3 dir, vec3 invDir, uint faceMask,
                                float endT, bool anyHit, out float t, out vec3 n) {
@@ -17,7 +18,7 @@ uint gi_modelFaceMask(vec3 dir) {
     return uint(42 - int(dir.x < 0.0) - 4 * int(dir.y < 0.0) - 16 * int(dir.z < 0.0));
 }
 
-bool gi_sourceContact(vec3 p, vec3 dir, vec2 span, vec3 sampled, uint material, vec3 n,
+bool gi_sourceContact(vec3 p, vec3 dir, vec2 span, vec3 sampled, uint material, vec3 n, bool precise,
                       inout ivec3 endpoint, out float t, out vec3 normal) {
     // A different part of an extended face is eligible only when that cell
     // independently supplied the very same material during this observation.
@@ -30,8 +31,12 @@ bool gi_sourceContact(vec3 p, vec3 dir, vec2 span, vec3 sampled, uint material, 
         endpoint = ivec3(floor(sampled - n * 0.0625));
         if (uint(endpoint.x | endpoint.y | endpoint.z) < 32u) {
             uvec2 owner = global_giObservedCells[endpoint.x + 32 * (endpoint.y + 32 * endpoint.z)];
-            if (owner.y == global_giModelEpoch && owner.x != material) return false;
+            if (owner.y == global_giModelEpoch) {
+                if (owner.x != material) return false;
+                precise = true;
+            }
         }
+        if (!precise) return false;
     }
     vec3 invDir = 1.0 / mix(dir, vec3(1e-15), equal(dir, vec3(0.0)));
     // The cube helper normally runs inside a DDA cell. Here the candidate

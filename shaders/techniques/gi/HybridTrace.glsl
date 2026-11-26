@@ -200,7 +200,10 @@ int gi_traceWide(vec3 p, vec3 d, vec2 segment, bool requireCoverage, out float t
                 vec3 sampled = vec3(global_giWideEyeInt - global_giModelOrigin) + global_giWideEyeFract
                     + transpose(mat3(global_giWideView)) * (sampledView - global_giWideView[3].xyz);
                 uint source = (code - 65536u) >> 3u;
-                if (!gi_sourceContact(local, dir, segment, sampled, source, n, endpoint, t, gi_retainedContactNormal)) return GI_SCREEN_UNCOVERED;
+                mat3 basis = transpose(mat3(global_giWideView));
+                vec2 focal = vec2(global_giWideInvProj[0][0], global_giWideInvProj[1][1]);
+                bool precise = gi_singleObservedCell(basis * sampledView, basis, focal, n, sampleData.x, fract(sampled - n * 0.0625));
+                if (!gi_sourceContact(local, dir, segment, sampled, source, n, precise, endpoint, t, gi_retainedContactNormal)) return GI_SCREEN_UNCOVERED;
             }
         }
         if (gi_observedBlockOccludes(local, dir, result == GI_SCREEN_HIT ? t : segment.y, endpoint)) {
@@ -244,7 +247,10 @@ int gi_traceTerrainProjections(vec3 p, vec3 d, vec2 segment, bool requireCoverag
                 vec3 n = voxy_faceWorldNormal(bitfieldExtract(raw.y, 24, 3));
                 ivec3 endpoint = ivec3(floor(fma(dir, vec3(t), local) - n * 0.0625));
                 vec3 contactNormal;
-                if (!gi_sourceContact(local, dir, live, sampled, raw.z >> 16u, n, endpoint, t, contactNormal)
+                mat3 basis = mat3(gbufferModelViewInverse);
+                vec2 focal = vec2(global_camProjInverse[0][0], global_camProjInverse[1][1]);
+                bool precise = gi_singleObservedCell(basis * sampledView, basis, focal, n, z, fract(sampled - n * 0.0625));
+                if (!gi_sourceContact(local, dir, live, sampled, raw.z >> 16u, n, precise, endpoint, t, contactNormal)
                     || gi_observedBlockOccludes(local, dir, t, endpoint)) return GI_SCREEN_UNCOVERED;
             }
         }

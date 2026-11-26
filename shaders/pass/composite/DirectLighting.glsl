@@ -28,21 +28,7 @@ layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 #include "/util/VoxyFaceNormal.glsl"
 layout(rgba32f) uniform writeonly image2D uimg_hiz;
 
-// Require the pixel footprint on the native face to fit one block. A coarse
-// observation must not turn the air beside a distant lamp into another lamp.
-bool gi_singleObservedCell(vec3 pos, vec3 normal, float z, vec3 fraction) {
-    vec3 ray = pos - gbufferModelViewInverse[3].xyz;
-    float facing = dot(ray, normal);
-    if (abs(facing) < 1e-5) return false;
-    vec2 scale = -2.0 * z * uval_mainImageSizeRcp
-               * vec2(global_camProjInverse[0][0], global_camProjInverse[1][1]);
-    vec3 dx = gbufferModelViewInverse[0].xyz * scale.x;
-    vec3 dy = gbufferModelViewInverse[1].xyz * scale.y;
-    dx -= ray * (dot(dx, normal) / facing);
-    dy -= ray * (dot(dy, normal) / facing);
-    vec3 margin = min(fraction, 1.0 - fraction) + abs(normal);
-    return all(greaterThan(margin, 0.5 * (abs(dx) + abs(dy)) + 0.001));
-}
+#include "/techniques/gi/ObservedSurfaceFootprint.glsl"
 void gi_captureWideSurface(ivec2 pixel, float z, uvec2 outgoing) {
     if (global_giWideState != 1) return;
     uint normal = texelFetch(usam_gbufferSolidData1, pixel, 0).r;
@@ -176,7 +162,8 @@ void main() {
                     ivec3 cell = cameraPositionInt - global_giModelOrigin + ivec3(floor(inward));
                     // Discard ambiguous tangential edge pixels rather than assign the adjacent block.
                     vec3 fraction = fract(inward);
-                    if (uint(cell.x | cell.y | cell.z) < 32u && gi_singleObservedCell(scene, normal, viewZ, fraction)) {
+                    if (uint(cell.x | cell.y | cell.z) < 32u && gi_singleObservedCell(scene - gbufferModelViewInverse[3].xyz, mat3(gbufferModelViewInverse),
+                                                vec2(global_camProjInverse[0][0], global_camProjInverse[1][1]), normal, viewZ, fraction)) {
                         int index = cell.x + 32 * (cell.y + 32 * cell.z);
                         atomicExchange(global_giObservedCells[index].x, materialID);
                         atomicExchange(global_giObservedCells[index].y, global_giModelEpoch);
