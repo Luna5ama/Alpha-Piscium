@@ -9,6 +9,7 @@
 | [DPF Bloom](docs/development/offline-tools.md#geometry-driven-dpf-fitting) | Alpha Piscium Bloom 设计会话，负责目标核、拟合方法及画质与耗时验收 |
 | [Light Sampling](docs/rendering/light-sampling.md) | Alpha Piscium 选灯设计会话，沿用已有实验执行者 |
 | [统一体积渲染](docs/rendering/atmosphere-clouds.md) | Alpha Piscium 大气与云设计会话 |
+| [2.1 原生 TAA 与超分](https://github.com/Luna5ama/Alpha-Piscium/blob/2.1/dev/docs/rendering/temporal-reconstruction.md) | Alpha Piscium 2.1 设计会话，负责统一重建、显示混色与锐化 |
 | Skibidi DRT | `drt-bench` 的设计会话。移植到 shader pack 时，在此发布对应的集成规格 |
 | [仓库与文档结构](docs/repository-structure.md) | Alpha Piscium 仓库结构设计会话，负责文档、设计记录与实验材料的归属，以及与 Vela 工作流的衔接 |
 
@@ -147,3 +148,9 @@
 在 `2.1/dev` 实施直方图曝光、四种 DRT 和 SDR／HDR 共享 Look，默认使用 Skibidi 与中性 Look。按[曝光与 DRT 规格](docs/roadmap.md#21-曝光与-drt)核对固定输入的 SDR 输出与 EV，验证暗洞、雪地和小面积强光的曝光响应。用户已在实现会话看过对照并选定 Blender 5.0 AgX；本修订接续 `f50b019c` 的实现和已有画面对照。本修订接续 `4789a2c9` 的 [HDR Mod 实机输出](docs/roadmap.md#hdr-mod-输出) 和原曝光与 SDR 工作。接续 `80131f3d` 的[显示色域缩限](docs/roadmap.md#显示色域缩限)，Skibidi 使用自身压缩，在 SDR 和 HDR 下核对默认 Display P3、其他预设与 D65 自定义三原色 xy。边界测试以 Skibidi 输出为准，后续共享 Look 允许越界。其他 DRT 按自身压缩能力接入。沿用已取得的 SDR 对照，核对预设与同坐标自定义模式，并用模组提供的实际参考白和峰值验收 HDR 高光。本修订接续 `2d020326` 的色域缩限规格，补验共享 Look 在参考白以上高光的响应，以及只调 UI 亮度时场景外观的一致性。统一时域重建沿自研／深改路线独立研究，比较结果与实验提案见[2.1 策略对照](https://github.com/Luna5ama/Alpha-Piscium/blob/881f3b31dfaa41d5613d7b1060eb8af0878d84e6/docs/rendering/post-processing.md#21-时域重建策略对照)。
 
 <!-- vela:ready {"item":"exposure-drt-2-1","rev":"ab9a01bf6d5454f0d34eda4e3f4fbd2872c5d487","spec":"docs/roadmap.md","after":[]} -->
+
+### 2.1 原生 TAA 与超分
+
+项目功能 `fsr` 从设计转入实施，交原项目协调者安排。先复用已有捕获建立同一段静止、横移、停稳的基线，再按已确认的设计接续统一重建与输出锐化。在 Iris 1.10.4 核对画质、资源与 GPU 耗时，验收目标为 `2.1/dev`。[冻结的实施范围与验收](https://github.com/Luna5ama/Alpha-Piscium/blob/31401bc48de915e9edc6fa112f2900c86c234ff2/docs/rendering/post-processing.md#21-原生-taa-与超分实施) · [2.1 设计修订](https://github.com/Luna5ama/Alpha-Piscium/blob/22226662bb94683df4ef5fb864280b966905b413/docs/rendering/temporal-reconstruction.md)
+
+<!-- vela:ready {"item":"temporal-reconstruction-2-1","rev":"31401bc48de915e9edc6fa112f2900c86c234ff2","spec":"docs/rendering/post-processing.md","after":[]} -->
