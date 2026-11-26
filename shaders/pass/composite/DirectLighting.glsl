@@ -162,6 +162,15 @@ void main() {
                         int index = cell.x + 32 * (cell.y + 32 * cell.z);
                         atomicExchange(global_giObservedCells[index].x, materialID);
                         atomicExchange(global_giObservedCells[index].y, global_giModelEpoch);
+                        #if SETTING_PBR_MATERIAL == 0
+                        uint emission = hardcodedpbr_decode(materialID).emissive > 0.0 ? giRadianceInput.y : 0u;
+                        atomicExchange(global_giObservedEmission[index], emission);
+                        if ((emission >> 16u) != 0u) {
+                            ivec3 group = cell >> 2;
+                            atomicExchange(global_giLightGroupEpoch[group.x + 8 * (group.y + 8 * group.z)], global_giModelEpoch);
+                            atomicExchange(global_giLightEpoch, global_giModelEpoch);
+                        }
+                        #endif
                     }
                 }
             }

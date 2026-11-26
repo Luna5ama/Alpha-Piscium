@@ -94,14 +94,16 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
     if (status == GI_SCREEN_HIT) {
         #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
         if (retained) {
-            vec4 surface = texelFetch(usam_hiz, hitPixel + ivec2(0, 2 * uval_mainImageSizeI.y), 0);
+            bool localSource = hitPixel.x == -2;
+            vec4 surface = localSource ? vec4(0) : texelFetch(usam_hiz, hitPixel + ivec2(0, 2 * uval_mainImageSizeI.y), 0);
             uvec2 outgoing = floatBitsToUint(surface.zw) - 0x00800000u;
+            if (localSource) outgoing = uvec2(0u, gi_localEmission);
             vec3 normal = gi_retainedContactNormal;
             candidate.hitDistance = t;
             candidate.hitNormalView = coords_dir_worldToView(normal);
             candidate.screenOnly = true;
             candidate.radiance = colors_FP16LuvToWorkingColor(outgoing.y);
-            if (dot(normal, dir) < 0.0 && dot(normal, gi_wideNormal(uint(surface.y))) > 0.99) candidate.radiance += colors_FP16LuvToWorkingColor(outgoing.x) * global_giWideDiffuseValidity;
+            if (!localSource && dot(normal, dir) < 0.0 && dot(normal, gi_wideNormal(uint(surface.y))) > 0.99) candidate.radiance += colors_FP16LuvToWorkingColor(outgoing.x) * global_giWideDiffuseValidity;
             candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
             return;
         }

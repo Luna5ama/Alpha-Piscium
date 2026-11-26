@@ -79,4 +79,48 @@ bool gi_observedBlockOccludes(vec3 p, vec3 dir, float maxT, ivec3 endpoint) {
     return false;
 }
 
+#if defined(RESTIR_INITIAL_CANDIDATE_WRITE) && SETTING_PBR_MATERIAL == 0
+// Look for actual model contacts with native built-in emitters observed at any
+// zoom level. The group stamps skip empty 4x4x4 regions in the local cache.
+bool gi_observedSource(vec3 p, vec3 dir, vec2 span, out ivec3 source, out float t, out vec3 n, out uint light) {
+    vec3 invDir = 1.0 / mix(dir, vec3(1e-15), equal(dir, vec3(0.0)));
+    vec3 lo = -p * invDir;
+    vec3 hi = (32.0 - p) * invDir;
+    vec3 entry = min(lo, hi);
+    vec3 leave = max(lo, hi);
+    float startT = max(span.x, max(entry.x, max(entry.y, entry.z)));
+    float endT = min(span.y, min(leave.x, min(leave.y, leave.z)));
+    if (endT <= startT) return false;
+    ivec3 cell = clamp(ivec3(floor(fma(dir, vec3(startT + 0.0001), p))), ivec3(0), ivec3(31));
+    ivec3 side = ivec3(greaterThan(dir, vec3(0.0)));
+    ivec3 origin = ivec3(floor(p));
+    for (int i = 0; i < 96; ++i) {
+        ivec3 group = cell >> 2;
+        bool scan = global_giLightGroupEpoch[group.x + 8 * (group.y + 8 * group.z)] == global_giModelEpoch;
+        if (scan && any(notEqual(cell, origin))) {
+            int index = cell.x + 32 * (cell.y + 32 * cell.z);
+            uvec2 record = global_giObservedCells[index];
+            light = global_giObservedEmission[index];
+            if (record.y == global_giModelEpoch && (light >> 16u) != 0u && hardcodedpbr_decode(record.x).emissive > 0.0
+                && gi_intersectObservedModel(record.x, p - vec3(cell), dir, invDir, gi_modelFaceMask(dir), endT, false, t, n)
+                && t > 0.0 && t >= span.x) {
+                source = cell;
+                return true;
+            }
+        }
+        int size = scan ? 1 : 4;
+        ivec3 lower = cell & -size;
+        vec3 next = (vec3(lower + size * side) - p) * invDir;
+        next = mix(next, vec3(1e30), equal(dir, vec3(0.0)));
+        float edge = min(next.x, min(next.y, next.z));
+        if (edge >= endT) break;
+        ivec3 crossing = ivec3(floor(fma(dir, vec3(edge), p)));
+        cell = mix(clamp(crossing, lower, lower + size - 1),
+                   lower + side * (size + 1) - 1, lessThanEqual(next, vec3(edge)));
+        if (uint(cell.x | cell.y | cell.z) >= 32u) break;
+    }
+    return false;
+}
+#endif
+
 #endif

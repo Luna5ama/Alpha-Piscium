@@ -108,6 +108,9 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uint global_giModelEpoch;
     // The original 16 KiB global block also serves passes with other option layouts.
     layout(offset = 16384) uvec2 global_giObservedCells[32768];
+    uint global_giObservedEmission[32768];
+    uint global_giLightGroupEpoch[512];
+    uint global_giLightEpoch;
     #endif
 };
 
