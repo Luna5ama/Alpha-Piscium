@@ -365,6 +365,12 @@ void main() {
         if (bool(validMe)) {
             uint packedGBufferData2 = texelFetch(usam_gbufferSolidData2, texelMe, 0).r;
             validMe &= uint(bitfieldExtract(packedGBufferData2, 24, 1) == 0u);
+            #if PASS_INDEX == 0
+            // Hand pixels skip spatial reuse. Invalidate the previous occupant before spatial shading reads this tile.
+            if (validMe == 0u) {
+                transient_restir_pairwiseMISMetadata_store(texelMe, uvec4(0u));
+            }
+            #endif
         }
     }
     if (subgroupAll(validMe == 0u)) {
