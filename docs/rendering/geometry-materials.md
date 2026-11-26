@@ -92,18 +92,6 @@ Material settings live in the Terrain screens of [`scripts/options.main.kts`](..
   `item.properties`](../../shaders/item.properties) mapping changes.
 - Validate vanilla terrain, modded smooth normals, and LabPBR normal maps after TBN packing changes.
 
-## Leaf highlight turn
-
-Rerun this scene when changing cutout foliage, its direct lighting, material normals or the temporal processing of highlights. The user saw the same leaf faces flash while turning in place. Compare the right canopy through the turn, hold, reversal and final stop. The original failure switches bright interior surfaces off and back on within a few frames. Watch the same surfaces through motion and look for a loss of normal highlight detail. The later fix is a comparison candidate until its appearance is accepted.
-
-From the version checkout run `python scripts/test/leaf_highlight_turn.py <candidate-commit>` and pass the emitted JSON to `vibris_run_actions`. Wait for the job, check its loaded source and 60 actual poses, then compare the sequence with the reference or replay a comparison revision the same way. The [request generator](../../scripts/test/leaf_highlight_turn.py) runs one source per job with 144 warmup frames. The preset `ap-leaf-turn-4605290f` uses the isolated QA copy of Dump Forest, player position (−88.534731, 64, 19.515801), yaw/pitch (2.3°, −67.4°) through (7.5°, −75°), tick 6000, clear weather and the 1920×1080 preset at FOV 45. Match Ultra, SPBR-21, built-in PBR, sRGB and EV −1.06. If rebuilding the fixture, retain the reported canopy geometry and keep the replay save separate from the player's world.
-
-The shared 1.21.11 Vibris instance ran this trajectory on `dfc4bb3d` and `1c485d48` under Iris 1.10.6-vibris.3. A longer pair on the reported Iris build also covers the slow traversal and auto exposure. The original photos, motion, fixed-leaf measurements and reference video are in the project evidence store. An unavailable preset or incomplete sequence leaves the visual check pending.
-
-<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"repro.json"} -->
-<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"before-after.mp4"} -->
-<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"live-audit.json"} -->
-
 ## Whole-block biome tint for 2.0 voxel GI
 
 At pack revision `140ddfa8`, generated with Shadesmith `2fbd19f`, initial GI and the radiance cache multiply the voxel atlas RGB by the same terrain-vertex tint before material decoding. This also colours a grass block's dirt sides. The mesh already supplies this colour to visible terrain. Group 0 is neutral. Grass, biome foliage, spruce, birch and dry foliage have separate histories. Palette estimates are local to the observed geometry, so biome boundaries can produce a mixture.
@@ -116,7 +104,20 @@ Regenerate the 2.0 material inputs with Minecraft 26.2 in a staging directory. C
 
 <!-- vela:evidence {"run":"12381471-b0c9-4a36-9a0b-8a8e945a6899","path":"voxel-biome-tint-evidence.zip"} -->
 
+<a id="leaf-highlight-turn"></a>
+
 ## Leaf highlights during a camera turn in 2.0
+
+Rerun this scene when changing cutout foliage, its direct lighting, material normals or the temporal processing of highlights. The user saw the same leaf faces flash while turning in place. Compare the right canopy through the turn, hold, reversal and final stop. The original failure switches bright interior surfaces off and back on within a few frames. Watch the same surfaces through motion and look for a loss of normal highlight detail. The later fix is a comparison candidate until its appearance is accepted.
+
+From the version checkout run `python scripts/test/leaf_highlight_turn.py <candidate-commit>` and pass the emitted JSON to `vibris_run_actions`. Wait for the job, check its loaded source and 60 actual poses, then compare the sequence with the reference or replay a comparison revision the same way. The [request generator](../../scripts/test/leaf_highlight_turn.py) runs one source per job with 144 warmup frames. The preset `ap-leaf-turn-4605290f` uses the isolated QA copy of Dump Forest, player position (−88.534731, 64, 19.515801), yaw/pitch (2.3°, −67.4°) through (7.5°, −75°), tick 6000, clear weather and the 1920×1080 preset at FOV 45. Match Ultra, SPBR-21, built-in PBR, sRGB and EV −1.06. If rebuilding the fixture, retain the reported canopy geometry and keep the replay save separate from the player's world.
+
+The reference pair uses `dfc4bb3d` and `1c485d48` on Iris 1.10.6-vibris.3. A longer pair on the reported Iris build covers the slow turn with auto exposure. An unavailable preset or incomplete sequence leaves the visual check pending.
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"repro.json"} -->
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"before-after.mp4"} -->
+
+### Cause and verification
 
 In the Dump Forest report the sun lay on the tangent plane of the affected leaf face. Rotating the camera changed the sign of the rounded view-space geometric cosine from +1.42e-9 to -1.04e-9 and back. The binary SSS-material reflection gate switched the full direct specular and diffuse terms. Across 2,726 shared world-space samples, the specular luminance at the three witness frames was 7.647, 0 and 7.597. The independently computed transmission stayed near 2.26–2.29 and the shadow input stayed near 0.49. The jump was already present in scene-linear direct lighting.
 
