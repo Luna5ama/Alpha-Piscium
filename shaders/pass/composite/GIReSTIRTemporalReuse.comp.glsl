@@ -173,7 +173,7 @@ bool loadTemporalHistorySampleData(
     source.previousMaterial = resampleMaterial_unpack(history_restir_prevResampleMaterial_fetch(texelPos));
     #endif
 
-    primaryGeometry.previousPrimary = restir_splatUnpackPrimary(
+    primaryGeometry.previousPrimary = restir_splatUnpackPreviousPrimary(
         texelPos,
         source.packedPrimary,
         global_prevCamProjInverse

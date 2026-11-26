@@ -38,7 +38,7 @@ void restir_temporalSplat(ivec2 texelPos) {
         return;
     }
 
-    vec3 prevPrimary = restir_splatUnpackPrimary(texelPos, packedPrimary, global_prevCamProjInverse);
+    vec3 prevPrimary = restir_splatUnpackPreviousPrimary(texelPos, packedPrimary, global_prevCamProjInverse);
     vec3 currPrimary = restir_prevViewToCurrView * prevPrimary + restir_prevViewToCurrViewTrans;
     vec4 currClip = global_camProj * vec4(currPrimary, 1.0);
     if (currClip.z <= 0.0 || any(greaterThanEqual(abs(currClip.xy), currClip.ww))) {

@@ -10,7 +10,6 @@
 
 #define RESTIR_SPLAT_PRIMARY_SUBPIXEL_BITS 5u
 #define RESTIR_SPLAT_PRIMARY_SUBPIXEL_MASK 31u
-#define RESTIR_SPLAT_PRIMARY_DEPTH_MASK 0xfffffc00u
 #define RESTIR_SPLAT_PRIMARY_SUBPIXEL_SCALE 16.0
 
 uint restir_splatEncodeNode(ivec2 texelPos) {
@@ -29,10 +28,12 @@ uint restir_splatPackPrimary(ivec2 texelPos, vec3 viewPos, mat4 projection) {
     vec2 screenPixel = coords_viewToScreen(viewPos, projection).xy * uval_mainImageSize;
     vec2 relativePixel = clamp(screenPixel - vec2(texelPos) + 0.5, vec2(0.0), vec2(1.999999));
     uvec2 packedSubpixel = uvec2(relativePixel * RESTIR_SPLAT_PRIMARY_SUBPIXEL_SCALE);
-    uint depthBits = floatBitsToUint(viewPos.z);
-    uint depthRoundBias = 0x1ffu + ((depthBits >> 10u) & 1u);
-    uint packedDepth = (depthBits + depthRoundBias) & RESTIR_SPLAT_PRIMARY_DEPTH_MASK;
-    return packedDepth | packedSubpixel.x | (packedSubpixel.y << RESTIR_SPLAT_PRIMARY_SUBPIXEL_BITS);
+    // The center depth already survives the frame at full precision. Quantize
+    // the subpixel displacement from it, so a distant plane stays continuous.
+    float centerZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
+    uint deltaBits = floatBitsToUint(viewPos.z - centerZ);
+    uint rounded = deltaBits + 0x3ffu + ((deltaBits >> 11u) & 1u);
+    return 0x80000000u | ((rounded >> 11u) << 10u) | packedSubpixel.x | (packedSubpixel.y << RESTIR_SPLAT_PRIMARY_SUBPIXEL_BITS);
 }
 
 vec2 restir_splatUnpackPrimaryOffset(uint packedPrimary) {
@@ -43,11 +44,21 @@ vec2 restir_splatUnpackPrimaryOffset(uint packedPrimary) {
     return (vec2(packedSubpixel) + 0.5) * (1.0 / RESTIR_SPLAT_PRIMARY_SUBPIXEL_SCALE) - 0.5;
 }
 
-vec3 restir_splatUnpackPrimary(ivec2 texelPos, uint packedPrimary, mat4 projectionInverse) {
+vec3 restir_splatUnpackPrimaryAtDepth(ivec2 texelPos, uint packedPrimary, mat4 projectionInverse, float centerZ) {
     vec2 relativePixel = restir_splatUnpackPrimaryOffset(packedPrimary);
     vec2 screenPos = (vec2(texelPos) + relativePixel) * uval_mainImageSizeRcp;
-    float viewZ = uintBitsToFloat(packedPrimary & RESTIR_SPLAT_PRIMARY_DEPTH_MASK);
+    float viewZ = centerZ + uintBitsToFloat((packedPrimary << 1u) & 0xfffff800u);
     return coords_toViewCoord(screenPos, viewZ, projectionInverse);
+}
+
+vec3 restir_splatUnpackPrimary(ivec2 texelPos, uint packedPrimary, mat4 projectionInverse) {
+    return restir_splatUnpackPrimaryAtDepth(texelPos, packedPrimary, projectionInverse,
+                                            texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x);
+}
+
+vec3 restir_splatUnpackPreviousPrimary(ivec2 texelPos, uint packedPrimary, mat4 projectionInverse) {
+    return restir_splatUnpackPrimaryAtDepth(texelPos, packedPrimary, projectionInverse,
+                                            history_viewZ_fetch(texelPos).x);
 }
 
 float restir_splatSurfaceConfidence(
