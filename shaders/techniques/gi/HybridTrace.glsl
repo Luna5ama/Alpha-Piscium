@@ -222,42 +222,43 @@ int gi_traceTerrainProjections(vec3 p, vec3 d, vec2 segment, bool requireCoverag
     if (global_giWideState == 3 && segment.y > segment.x) {
         vec2 live = segment;
         bool overlaps = gi_screenInterval(p, d, live);
-        if (!overlaps) {
-            retained = true;
-            return gi_traceWide(p, d, segment, requireCoverage, t, pixel);
-        }
-        if (live.x > segment.x) {
-            int status = gi_traceWide(p, d, vec2(segment.x, live.x), requireCoverage, t, pixel);
-            if (status != GI_SCREEN_CLEAR) {
-                retained = true;
-                return status;
-            }
-        }
-        int status = gi_traceScreen(p, d, live, false, t, pixel);
+        // Ordered segments share a single retained-walk call site, including rays
+        // which enter the current view from outside. Empty intervals consume no work.
+        for (int section = 0; section < 3; ++section) {
+            retained = section != 1;
+            vec2 span = overlaps ? (section == 0 ? vec2(segment.x, live.x)
+                                  : section == 1 ? live : vec2(live.y, segment.y)) : segment;
+            if (span.y <= span.x) continue;
+            int status;
+            if (retained) {
+                status = gi_traceWide(p, d, span, requireCoverage, t, pixel);
+            } else {
+                status = gi_traceScreen(p, d, span, false, t, pixel);
         #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
-        if (status == GI_SCREEN_HIT) {
-            uvec4 raw = texelFetch(usam_gbufferVoxySolidData, pixel, 0);
-            float z = texelFetch(usam_gbufferSolidViewZ, pixel, 0).r;
-            if (raw.w == floatBitsToUint(z) && gi_currentHitEmits(pixel)) {
-                vec3 eye = vec3(cameraPositionInt - global_giModelOrigin) + cameraPositionFract;
-                vec3 local = eye + (gbufferModelViewInverse * vec4(p, 1.0)).xyz;
-                vec3 dir = coords_dir_viewToWorld(d);
-                vec3 sampledView = gi_unprojectSurface(pixel, z, global_camProjInverse, 0.5 * uval_taaJitterUV);
-                vec3 sampled = eye + (gbufferModelViewInverse * vec4(sampledView, 1.0)).xyz;
-                vec3 n = voxy_faceWorldNormal(bitfieldExtract(raw.y, 24, 3));
-                ivec3 endpoint = ivec3(floor(fma(dir, vec3(t), local) - n * 0.0625));
-                vec3 contactNormal;
-                mat3 basis = mat3(gbufferModelViewInverse);
-                vec2 focal = vec2(global_camProjInverse[0][0], global_camProjInverse[1][1]);
-                bool resolvedOwner = gi_singleObservedCell(basis * sampledView, basis, focal, n, z, fract(sampled - n * 0.0625));
-                if (!gi_sourceContact(local, dir, live, sampled, raw.z >> 16u, n, resolvedOwner, endpoint, t, contactNormal)
-                    || gi_observedBlockOccludes(local, dir, t, endpoint)) return GI_SCREEN_UNCOVERED;
-            }
-        }
+                if (status == GI_SCREEN_HIT) {
+                    uvec4 raw = texelFetch(usam_gbufferVoxySolidData, pixel, 0);
+                    float z = texelFetch(usam_gbufferSolidViewZ, pixel, 0).r;
+                    if (raw.w == floatBitsToUint(z) && gi_currentHitEmits(pixel)) {
+                        vec3 eye = vec3(cameraPositionInt - global_giModelOrigin) + cameraPositionFract;
+                        vec3 local = eye + (gbufferModelViewInverse * vec4(p, 1.0)).xyz;
+                        vec3 dir = coords_dir_viewToWorld(d);
+                        vec3 sampledView = gi_unprojectSurface(pixel, z, global_camProjInverse, 0.5 * uval_taaJitterUV);
+                        vec3 sampled = eye + (gbufferModelViewInverse * vec4(sampledView, 1.0)).xyz;
+                        vec3 n = voxy_faceWorldNormal(bitfieldExtract(raw.y, 24, 3));
+                        ivec3 endpoint = ivec3(floor(fma(dir, vec3(t), local) - n * 0.0625));
+                        vec3 contactNormal;
+                        mat3 basis = mat3(gbufferModelViewInverse);
+                        vec2 focal = vec2(global_camProjInverse[0][0], global_camProjInverse[1][1]);
+                        bool resolvedOwner = gi_singleObservedCell(basis * sampledView, basis, focal, n, z, fract(sampled - n * 0.0625));
+                        if (!gi_sourceContact(local, dir, live, sampled, raw.z >> 16u, n, resolvedOwner, endpoint, t, contactNormal)
+                            || gi_observedBlockOccludes(local, dir, t, endpoint)) return GI_SCREEN_UNCOVERED;
+                    }
+                }
         #endif
-        if (status != GI_SCREEN_CLEAR || live.y >= segment.y) return status;
-        retained = true;
-        return gi_traceWide(p, d, vec2(live.y, segment.y), requireCoverage, t, pixel);
+            }
+            if (status != GI_SCREEN_CLEAR || !overlaps || span.y >= segment.y) return status;
+        }
+        return GI_SCREEN_CLEAR;
     }
     #endif
     return gi_traceScreen(p, d, segment, requireCoverage, t, pixel);

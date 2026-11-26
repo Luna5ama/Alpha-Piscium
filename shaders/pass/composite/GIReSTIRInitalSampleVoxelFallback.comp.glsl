@@ -63,8 +63,13 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
     float t;
     ivec2 hitPixel;
     bool retained;
-    int status = gi_traceTerrain(p, d, vec2(0.0, hasGrid ? grid.x : GI_RAY_END), false, t, hitPixel, retained);
-    if (status == GI_SCREEN_CLEAR && hasGrid) {
+    int status = GI_SCREEN_CLEAR;
+    vec2 segment = vec2(0.0, hasGrid ? grid.x : GI_RAY_END);
+    for (int interval = 0; interval < 2; ++interval) {
+        if (segment.y > segment.x) {
+            status = gi_traceTerrain(p, d, segment, false, t, hitPixel, retained);
+        }
+        if (status != GI_SCREEN_CLEAR || interval == 1 || !hasGrid) break;
         status = gi_traceScreen(p, d, vec2(grid.x, min(GI_SCREEN_NEAR_DISTANCE, grid.y)), false, t, hitPixel);
         const float selfOffset = 0.005;
         float bias = grid.x > 0.0 ? 0.0 : min(selfOffset, grid.y);
@@ -88,8 +93,12 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
             gi_shadeVoxel(candidate, hit, voxelT, -dir, gi_voxelScreenPixel(hit, fma(d, vec3(voxelT), p)));
             return;
         }
-        status = voxel_traceExhausted(hit, ray) ? GI_SCREEN_EXHAUSTED :
-            gi_traceTerrain(p, d, vec2(grid.y, GI_RAY_END), false, t, hitPixel, retained);
+        if (voxel_traceExhausted(hit, ray)) {
+            status = GI_SCREEN_EXHAUSTED;
+            break;
+        }
+        status = GI_SCREEN_CLEAR;
+        segment = vec2(grid.y, GI_RAY_END);
     }
     if (status == GI_SCREEN_HIT) {
         #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
