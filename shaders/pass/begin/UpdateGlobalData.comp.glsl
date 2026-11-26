@@ -151,6 +151,13 @@ void main() {
             global_cameraData.frustumPlaneCount = pcount;
         }
 
+        // Iris counts menu frames too. A resumed dimension must not reuse a previous world's palette.
+        if ((voxel_tintLastFrame + 1) % 720720 != frameCounter) {
+            for (int i = 1; i < voxel_tintHistory.length(); ++i) {
+                voxel_tintHistory[i] = vec4(1.0, 1.0, 1.0, 0.0);
+            }
+        }
+        voxel_tintLastFrame = frameCounter;
         uint baseIndex = (frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS) * 6u;
         for (uint i = 0u; i < 6u; i++) {
             voxel_faceTexcoords[baseIndex + i + VOXEL_FACE_TEXCOORD_COUNT] = uvec2(0u);

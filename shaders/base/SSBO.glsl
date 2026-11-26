@@ -89,6 +89,11 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uint pg_neighborCounter;
     uint pg_skyCounter;
     uint rc_paddingCounters[6];
+
+    // Entry zero is neutral. Each bucket retains one priority/RGB observation.
+    vec4 voxel_tintHistory[6];
+    uint voxel_tintSamples[6][8];
+    int voxel_tintLastFrame;
 };
 
 layout(std430, binding = 1) GLOBAL_DATA_MODIFIER IndirectComputeData {

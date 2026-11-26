@@ -30,6 +30,7 @@
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
 #define RC_DATA_MODIFIER restrict buffer
+#define GLOBAL_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 
@@ -141,6 +142,26 @@ void rc_markPendingVisibleFace(uint level, vec3 ownerBlockCenter, uint faceBits)
 }
 
 void main() {
+    // prepare runs after the shadow draw. One invocation owns each row.
+    uint tint = gl_GlobalInvocationID.x;
+    if (tint > 0u && tint < voxel_tintHistory.length()) {
+        vec3 sum = vec3(0.0);
+        uint count = 0u;
+        for (int i = 0; i < voxel_tintSamples[tint].length(); ++i) {
+            uint sampleWord = voxel_tintSamples[tint][i];
+            if (sampleWord != 0u) {
+                sum += unpackUnorm4x8(sampleWord).rgb;
+                ++count;
+                voxel_tintSamples[tint][i] = 0u;
+            }
+        }
+        if (count != 0u) {
+            vec3 mean = sum / float(count);
+            vec4 old = voxel_tintHistory[tint];
+            voxel_tintHistory[tint] = vec4(old.a == 0.0 ? mean : mix(old.rgb, mean, 0.1), 1.0);
+        }
+    }
+
     for (uint brick = gl_GlobalInvocationID.x; brick < uint(VOXEL_GRID_BRICKS);
             brick += gl_NumWorkGroups.x * gl_WorkGroupSize.x) {
         if (voxel_brickAllocID[brick] == VOXEL_UNALLOCATED) {
