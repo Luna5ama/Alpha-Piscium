@@ -19,6 +19,26 @@ const ivec3 workGroups = ivec3(3, 1, 1);
 
 layout(rgba16f) uniform writeonly readonly image2D uimg_main;
 
+#ifdef VOXY
+// An overview sampling more than a block per pixel cannot resolve the cells
+// used by the local GI model. Promote a settled projection when it can resolve
+// them and still contains the entire previously observed neighborhood.
+bool gi_resolvesObservedRegion() {
+    if (global_giObservedAxes.x == 0u || global_camProj[1][1] != global_prevCamProj[1][1]) return false;
+    vec3 relativeCenter = vec3(global_giModelOrigin - cameraPositionInt) + 16.0 - cameraPositionFract;
+    vec3 viewCenter = (gbufferModelView * vec4(relativeCenter, 1.0)).xyz;
+    float radius = sqrt(3.0) * 16.0;
+    vec2 invFocal = vec2(global_camProjInverse[0][0], global_camProjInverse[1][1]);
+    if (any(greaterThanEqual(abs(viewCenter.xy) + radius, (-viewCenter.z - radius) * invFocal))) return false;
+
+    vec3 oldCenter = vec3(global_giModelOrigin - global_giWideEyeInt) + 16.0 - global_giWideEyeFract;
+    float oldZ = -(global_giWideView * vec4(oldCenter, 1.0)).z;
+    float oldPixel = 2.0 * oldZ * global_giWideInvProj[1][1] * uval_mainImageSizeRcp.y;
+    float newPixel = -2.0 * viewCenter.z * invFocal.y * uval_mainImageSizeRcp.y;
+    return oldPixel >= 1.0 && newPixel < 1.0;
+}
+#endif
+
 vec3 rotateAxis(vec3 unitAxis) {
     vec4 p1 = global_shadowView * vec4(unitAxis * -65536.0, 0.0);
     vec4 p2 = global_shadowView * vec4(unitAxis * 65536.0, 0.0);
@@ -129,7 +149,7 @@ void main() {
         global_giWideDiffuseValidity = (1.0 - smoothstep(120.0, 600.0, clockDistance))
             * (1.0 - smoothstep(0.05, 0.3, abs(rainStrength - global_giWideRain)));
         bool zoomed = global_camProj[1][1] > global_giWideProj[1][1] * (1.0 + 2.0 / uval_mainImageSize.y);
-        if (recapture || (!zoomed && ((frameCounter & 31) == 0 || global_camProj[1][1] < global_giWideProj[1][1]))) {
+        if (recapture || (zoomed && gi_resolvesObservedRegion()) || (!zoomed && ((frameCounter & 31) == 0 || global_camProj[1][1] < global_giWideProj[1][1]))) {
             global_giWideState = 1;
             ++global_giModelEpoch;
             global_giLightAxes = uvec3(0u);
