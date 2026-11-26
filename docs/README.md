@@ -28,6 +28,7 @@
 | 天空 LUT、云与 epipolar 空气散射怎样合成？ | [大气、天空与云](rendering/atmosphere-clouds.md) |
 | 水面、焦散与半透明如何使用体积和深度？ | [水与半透明](rendering/water-translucency.md) |
 | AA、Bloom、曝光与显示变换如何衔接？ | [后处理](rendering/post-processing.md) |
+| 2.1 的原生 TAA 与超分怎样保住静止细节、处理移动亮点和粗糙玻璃？ | [时域重建的目标、候选与实测边界](rendering/temporal-reconstruction.md) |
 
 Iris 的接口、stage 语义和属性语法见 [Iris Shaders 文档](https://github.com/IrisShaders/docs)。
 项目记录见[仓库与文档结构](repository-structure.md)。
