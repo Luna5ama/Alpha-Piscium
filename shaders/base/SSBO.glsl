@@ -108,12 +108,12 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uint global_giModelEpoch;
     // The original 16 KiB global block also serves passes with other option layouts.
     layout(offset = 16384) uvec2 global_giObservedCells[32768];
-    uint global_giObservedEmission[32768];
     uint global_giLightGroupEpoch[512];
     uint global_giLightEpoch;
     // An observed emitter retains independent samples across its face. A
     // partially visible edge must not recolor the entire off-screen block.
-    layout(offset = 411664) uvec2 global_giLightSamples[32768 * 64];
+    layout(offset = 280592) uvec2 global_giLightSamples[32768 * 64];
+    uint global_giLightSampleMaterial[32768 * 64];
     #endif
 };
 

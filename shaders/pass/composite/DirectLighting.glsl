@@ -181,13 +181,12 @@ void main() {
                         atomicExchange(global_giObservedCells[index].x, materialID);
                         atomicExchange(global_giObservedCells[index].y, global_giModelEpoch);
                         #if SETTING_PBR_MATERIAL == 0
-                        uint emission = hardcodedpbr_decode(materialID).emissive > 0.0 ? giRadianceInput.y : 0u;
-                        atomicExchange(global_giObservedEmission[index], emission);
                         if (hardcodedpbr_decode(materialID).emissive > 0.0) {
                             vec2 planeUV = normal.x != 0.0 ? inward.zy : (normal.y != 0.0 ? inward.xz : inward.xy);
                             ivec2 tile = ivec2(fract(planeUV) * 8.0);
                             int sampleIndex = index * 64 + tile.y * 8 + tile.x;
-                            atomicExchange(global_giLightSamples[sampleIndex].x, emission);
+                            atomicExchange(global_giLightSamples[sampleIndex].x, giRadianceInput.y);
+                            atomicExchange(global_giLightSampleMaterial[sampleIndex], materialID);
                             atomicExchange(global_giLightSamples[sampleIndex].y, global_giModelEpoch);
                             ivec3 group = cell >> 2;
                             atomicExchange(global_giLightGroupEpoch[group.x + 8 * (group.y + 8 * group.z)], global_giModelEpoch);

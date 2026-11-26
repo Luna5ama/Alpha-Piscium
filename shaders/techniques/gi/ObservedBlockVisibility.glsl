@@ -82,12 +82,14 @@ bool gi_observedBlockOccludes(vec3 p, vec3 dir, float maxT, ivec3 endpoint) {
 #if defined(RESTIR_INITIAL_CANDIDATE_WRITE) && SETTING_PBR_MATERIAL == 0
 // The visible area can shrink to one dark texel just before a lamp leaves
 // the screen. Give each observed surface region equal area in the integral.
-uint gi_observedEmission(int index) {
+uint gi_observedEmission(ivec3 cell) {
+    int index = cell.x + 32 * (cell.y + 32 * cell.z);
+    uint material = global_giObservedCells[index].x;
     vec3 radiance = vec3(0);
     int count = 0;
     for (int tile = 0; tile < 64; ++tile) {
         uvec2 sampleData = global_giLightSamples[index * 64 + tile];
-        if (sampleData.y == global_giModelEpoch) {
+        if (sampleData.y == global_giModelEpoch && global_giLightSampleMaterial[index * 64 + tile] == material) {
             radiance += colors_FP16LuvToWorkingColor(sampleData.x);
             ++count;
         }
@@ -97,7 +99,7 @@ uint gi_observedEmission(int index) {
 
 // Look for actual model contacts with native built-in emitters observed at any
 // zoom level. The group stamps skip empty 4x4x4 regions in the local cache.
-bool gi_observedSource(vec3 p, vec3 dir, vec2 span, out ivec3 source, out float t, out vec3 n, out uint light) {
+bool gi_observedSource(vec3 p, vec3 dir, vec2 span, out ivec3 source, out float t, out vec3 n) {
     vec3 invDir = 1.0 / mix(dir, vec3(1e-15), equal(dir, vec3(0.0)));
     vec3 lo = -p * invDir;
     vec3 hi = (32.0 - p) * invDir;
@@ -118,7 +120,6 @@ bool gi_observedSource(vec3 p, vec3 dir, vec2 span, out ivec3 source, out float 
             if (record.y == global_giModelEpoch && hardcodedpbr_decode(record.x).emissive > 0.0
                 && gi_intersectObservedModel(record.x, p - vec3(cell), dir, invDir, gi_modelFaceMask(dir), endT, false, t, n)
                 && t > 0.0 && t >= span.x) {
-                light = uint(index);
                 source = cell;
                 return true;
             }

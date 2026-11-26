@@ -261,15 +261,14 @@ int gi_traceTerrain(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
                     out float t, out ivec2 pixel, out bool retained) {
     #if defined(VOXY) && defined(GI_RETAINED_PROJECTION) && defined(RESTIR_INITIAL_CANDIDATE_WRITE) && SETTING_PBR_MATERIAL == 0
     bool hasSource = false;
-    uint emission;
+    ivec3 source;
     vec3 normal;
     float sourceT;
     if (!requireCoverage && global_giLightEpoch == global_giModelEpoch) {
         vec3 eye = vec3(cameraPositionInt - global_giModelOrigin) + cameraPositionFract;
         vec3 local = eye + (gbufferModelViewInverse * vec4(p, 1.0)).xyz;
         vec3 dir = coords_dir_viewToWorld(d);
-        ivec3 source;
-        hasSource = gi_observedSource(local, dir, segment, source, sourceT, normal, emission)
+        hasSource = gi_observedSource(local, dir, segment, source, sourceT, normal)
                  && !gi_observedBlockOccludes(local, dir, sourceT, source);
         if (hasSource) {
             segment.y = max(segment.x, sourceT - max(0.0001, 8e-6 * sourceT));
@@ -284,7 +283,7 @@ int gi_traceTerrain(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
         pixel = ivec2(-2);
         retained = true;
         gi_retainedContactNormal = normal;
-        gi_localEmission = gi_observedEmission(int(emission));
+        gi_localEmission = gi_observedEmission(source);
         return GI_SCREEN_HIT;
     }
     #endif
