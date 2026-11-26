@@ -39,7 +39,7 @@ Skibidi DRT 沿用自身的色域压缩，选项只设置目标色域。压缩�
 
 ## 2.1 原生 TAA 与超分辨率
 
-原生 TAA 和超分都须支持 Iris 1.10.4。2.1 采用自研或深度改造的路线，以 `2.0/fsr3` 的 FSR 3.1 原型为基线。比较 TSR、XeSS-SR、DLSS Super Resolution 和其他公开方案的策略，分项验证后组合。用户在原型中看到 GI 降噪后仍有零星亮点，镜头移动时尤其明显。合入前用运动序列核对亮点与真实小高光，保留粗糙玻璃的最终时域累积，以及现有 TAA 在静止表面使用颜色 AABB 的清晰度。[策略对照与首轮实验](rendering/temporal-reconstruction.md)
+原生 TAA 和超分都须支持 Iris 1.10.4。2.1 采用自研或深度改造的统一重建器，以 `2.0/fsr3` 的 FSR 3.1 原型和现有 TAA 为对照。每帧按真实抖动位置重建能独立成像的输出颜色。有可靠历史时，用本帧采到的同表面细节校正历史，分别更新平均亮度和边缘对比度。合入前用运动序列核对 GI 亮点与真实小高光，保留粗糙玻璃的最终时域累积，以及现有 TAA 在静止表面使用颜色 AABB 的清晰度。[上采样与历史更新](rendering/temporal-reconstruction.md#上采样与历史更新) · [相位预测的离线对照](rendering/temporal-reconstruction.md#相位预测的离线对照)
 
 原生 TAA 与超分都要减轻连续重投影造成的边缘模糊，在关闭 pixel lock 时也要用普通轮廓和同深度颜色边验证。输出尺寸历史的空间矩是候选。细线另外共用锁定和输出像素覆盖率规则。当前帧的空间重建继续比较 FSR 1 EASU、SMAA、CMAA2 和 FXAA 在遮挡解除首帧的轮廓，以及恢复历史后的细线稳定性。[历史重投影的边缘清晰度](rendering/temporal-reconstruction.md#历史重投影的边缘清晰度) · [Pixel lock 与覆盖率](rendering/temporal-reconstruction.md#pixel-lock-与覆盖率) · [当前帧的空间重建](rendering/temporal-reconstruction.md#当前帧的空间重建) · [细线的默认外观](rendering/temporal-reconstruction.md#细线的默认外观) · [树叶与草的覆盖率](rendering/geometry-materials.md#树叶与草的覆盖率)
 
