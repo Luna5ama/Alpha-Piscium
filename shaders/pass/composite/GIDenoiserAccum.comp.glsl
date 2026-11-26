@@ -66,6 +66,10 @@ float specAccumReduction(float roughness, float NoV, float parallax) {
     return pow(roughness, power);
 }
 
+#ifdef VOXY
+#include "/techniques/gi/ObservedShadingRate.glsl"
+#endif
+
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -89,8 +93,12 @@ void main() {
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
             float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
             if (viewZ > -65536.0) {
-                vec4 newDiffuse = transient_ssgiDiffOut_fetch(texelPos);
-                vec4 newSpecular = transient_ssgiSpecOut_fetch(texelPos);
+                ivec2 shadingPixel = texelPos;
+                #ifdef VOXY
+                shadingPixel = gi_shadingPixel(texelPos, viewZ);
+                #endif
+                vec4 newDiffuse = transient_ssgiDiffOut_fetch(shadingPixel);
+                vec4 newSpecular = transient_ssgiSpecOut_fetch(shadingPixel);
 
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));

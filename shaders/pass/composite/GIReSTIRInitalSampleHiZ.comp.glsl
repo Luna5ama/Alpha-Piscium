@@ -21,6 +21,10 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "/util/Morton.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
+#ifdef VOXY
+#include "/techniques/gi/ObservedShadingRate.glsl"
+#endif
+
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -50,6 +54,12 @@ void main() {
             transient_geomViewNormal_store(texelPos, vec4(gData.geomNormal * 0.5 + 0.5, 0.0));
             transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
 
+            #ifdef VOXY
+            if (gi_shadingPixel(texelPos, viewZ) != texelPos) {
+                restir_initialCandidate_store(texelPos, candidate);
+                return;
+            }
+            #endif
             vec3 V = normalize(-viewPos);
             PathGuide guide = pathGuide_none();
             #ifdef PATH_GUIDING_ENABLED

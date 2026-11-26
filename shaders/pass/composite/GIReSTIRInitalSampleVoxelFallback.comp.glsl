@@ -19,6 +19,7 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 #define VOXEL_TRACE_TRUST_MATERIAL_ID
 #include "/techniques/voxel/VoxelTrace.glsl"
 #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
+#include "/techniques/gi/ObservedShadingRate.glsl"
 bool gi_currentHitEmits(ivec2 pixel) {
     GBufferData hit = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, pixel, 0), hit);
@@ -154,7 +155,14 @@ void main() {
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
     uvec2 workGroupOrigin = swizzledWGPos << 4u;
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
+    // Pack the first sample of each 2x2 quad into contiguous subgroups.
+    uvec2 quad = morton_8bDecode(threadIdx & 63u) * 2u;
+    uint phase = (gi_quadPhase(ivec2(workGroupOrigin + quad)) + (threadIdx >> 6u)) & 3u;
+    uvec2 mortonPos = quad + uvec2(gi_quadOffset(phase));
+    #else
     uvec2 mortonPos = morton_8bDecode(threadIdx);
+    #endif
     ivec2 texelPos = ivec2(workGroupOrigin + mortonPos);
 
     if (!all(lessThan(texelPos, uval_mainImageSizeI))) {
