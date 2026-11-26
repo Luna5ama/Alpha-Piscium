@@ -9,6 +9,8 @@ void main() {
     #ifdef VOXY
     global_giModelOrigin = ivec3(0);
     global_giModelEpoch = 1u;
+    global_giLightAxes = uvec3(0u);
+    global_giObservedAxes = uvec3(0u);
     global_giLightEpoch = 0u;
     for (int i = 0; i < 512; ++i) global_giLightGroupEpoch[i] = 0u;
     for (int i = 0; i < 32768; ++i) global_giObservedCells[i] = uvec2(0);

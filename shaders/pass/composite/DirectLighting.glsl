@@ -167,6 +167,9 @@ void main() {
                         int index = cell.x + 32 * (cell.y + 32 * cell.z);
                         atomicExchange(global_giObservedCells[index].x, materialID);
                         atomicExchange(global_giObservedCells[index].y, global_giModelEpoch);
+                        atomicOr(global_giObservedAxes.x, 1u << uint(cell.x));
+                        atomicOr(global_giObservedAxes.y, 1u << uint(cell.y));
+                        atomicOr(global_giObservedAxes.z, 1u << uint(cell.z));
                         #if SETTING_PBR_MATERIAL == 0
                         if (hardcodedpbr_decode(materialID).emissive > 0.0) {
                             vec2 planeUV = normal.x != 0.0 ? inward.zy : (normal.y != 0.0 ? inward.xz : inward.xy);
@@ -178,6 +181,9 @@ void main() {
                             ivec3 group = cell >> 2;
                             atomicExchange(global_giLightGroupEpoch[group.x + 8 * (group.y + 8 * group.z)], global_giModelEpoch);
                             atomicExchange(global_giLightEpoch, global_giModelEpoch);
+                            atomicOr(global_giLightAxes.x, 1u << uint(cell.x));
+                            atomicOr(global_giLightAxes.y, 1u << uint(cell.y));
+                            atomicOr(global_giLightAxes.z, 1u << uint(cell.z));
                         }
                         #endif
                     }

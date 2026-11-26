@@ -49,17 +49,24 @@ bool gi_sourceContact(vec3 p, vec3 dir, vec2 span, vec3 sampled, uint material, 
         && t > 0.0 && t >= span.x;
 }
 
+// Axis masks conservatively bound every witnessed cell, including partial models.
+bool gi_observedInterval(vec3 p, vec3 inverseDir, uvec3 axes, inout vec2 span) {
+    if (axes.x == 0u) return false;
+    vec3 lo = (vec3(findLSB(axes)) - p) * inverseDir;
+    vec3 hi = (vec3(findMSB(axes) + 1) - p) * inverseDir;
+    vec3 enter = min(lo, hi), leave = max(lo, hi);
+    span.x = max(span.x, max(enter.x, max(enter.y, enter.z)));
+    span.y = min(span.y, min(leave.x, min(leave.y, leave.z)));
+    return span.y > span.x;
+}
+
 // Cross the observed 32-block neighbourhood in original ray units. Only a
 // witnessed material and its shipped block geometry can add an occluder.
 bool gi_observedBlockOccludes(vec3 p, vec3 dir, float maxT, ivec3 endpoint) {
     vec3 inverseDir = 1.0 / mix(dir, vec3(1e-15), equal(dir, vec3(0.0)));
-    vec3 lo = -p * inverseDir;
-    vec3 hi = (32.0 - p) * inverseDir;
-    vec3 enter = min(lo, hi);
-    vec3 leave = max(lo, hi);
-    float startT = max(0.0, max(enter.x, max(enter.y, enter.z)));
-    float endT = min(maxT, min(leave.x, min(leave.y, leave.z)));
-    if (endT <= startT) return false;
+    vec2 span = vec2(0.0, maxT);
+    if (!gi_observedInterval(p, inverseDir, global_giObservedAxes, span)) return false;
+    float startT = span.x, endT = span.y;
     ivec3 cell = clamp(ivec3(floor(fma(dir, vec3(startT + 0.0001), p))), ivec3(0), ivec3(31));
     ivec3 origin = ivec3(floor(p));
     ivec3 delta = ivec3(sign(dir));
@@ -106,13 +113,9 @@ uint gi_observedEmission(ivec3 cell) {
 // zoom level. The group stamps skip empty 4x4x4 regions in the local cache.
 bool gi_observedSource(vec3 p, vec3 dir, vec2 span, out ivec3 source, out float t, out vec3 n) {
     vec3 invDir = 1.0 / mix(dir, vec3(1e-15), equal(dir, vec3(0.0)));
-    vec3 lo = -p * invDir;
-    vec3 hi = (32.0 - p) * invDir;
-    vec3 entry = min(lo, hi);
-    vec3 leave = max(lo, hi);
-    float startT = max(span.x, max(entry.x, max(entry.y, entry.z)));
-    float endT = min(span.y, min(leave.x, min(leave.y, leave.z)));
-    if (endT <= startT) return false;
+    float minT = span.x;
+    if (!gi_observedInterval(p, invDir, global_giLightAxes, span)) return false;
+    float startT = span.x, endT = span.y;
     ivec3 cell = clamp(ivec3(floor(fma(dir, vec3(startT + 0.0001), p))), ivec3(0), ivec3(31));
     ivec3 side = ivec3(greaterThan(dir, vec3(0.0)));
     ivec3 origin = ivec3(floor(p));
@@ -124,7 +127,7 @@ bool gi_observedSource(vec3 p, vec3 dir, vec2 span, out ivec3 source, out float 
             uvec2 record = global_giObservedCells[index];
             if (record.y == global_giModelEpoch && hardcodedpbr_decode(record.x).emissive > 0.0
                 && gi_intersectObservedModel(record.x, p - vec3(cell), dir, invDir, gi_modelFaceMask(dir), endT, false, t, n)
-                && t > 0.0 && t >= span.x) {
+                && t > 0.0 && t >= minT) {
                 source = cell;
                 return true;
             }

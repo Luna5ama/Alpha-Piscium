@@ -132,6 +132,8 @@ void main() {
         if (recapture || (!zoomed && ((frameCounter & 31) == 0 || global_camProj[1][1] < global_giWideProj[1][1]))) {
             global_giWideState = 1;
             ++global_giModelEpoch;
+            global_giLightAxes = uvec3(0u);
+            global_giObservedAxes = uvec3(0u);
             global_giWideSize = uval_mainImageSizeI;
             global_giWideEyeInt = cameraPositionInt;
             global_giWideEyeFract = cameraPositionFract;

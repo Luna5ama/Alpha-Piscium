@@ -74,6 +74,8 @@ void main() {
                 if (any(lessThan(local, ivec3(4))) || any(greaterThanEqual(local, ivec3(28)))) {
                     global_giModelOrigin = (center & ~ivec3(7)) - ivec3(12);
                     ++global_giModelEpoch;
+                    global_giLightAxes = uvec3(0u);
+                    global_giObservedAxes = uvec3(0u);
                 }
             }
             #endif
