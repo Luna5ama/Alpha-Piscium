@@ -103,6 +103,8 @@ Revision `ea38f3bc` invalidates pairwise metadata when pass zero skips a hand pi
 
 The test used the dedicated Minecraft 1.21.11 instance, Iris `1.10.6-vibris.3`, Vibris `0.1.0-alpha.2`, SPBR-21, Ultra, SDR and native 1920×1080 at the `ap13-feedback-wall` preset in Dump Forest. The AP-13 candidate was also checked with the default auto exposure and with EV −8. The run contains unmodified full screenshots, window-recorded equip animations, stage-specific raw readbacks with their receipts, pack hashes and the ZIP actually loaded. See the native and AP-13 measurements in `verification.json`.
 
+<!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"preflight.json"} -->
+<!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"fixture.json"} -->
 <!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"verification.json"} -->
 <!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"comparison.png"} -->
 <!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"switch-frames.png"} -->
