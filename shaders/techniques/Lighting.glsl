@@ -94,7 +94,9 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         vec3 sheenTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
         result.sss += sunMiePhase * sheenTransmittance * shadowedIrradiance * (1.0 - sssFresnel);
 
-        shadowedIrradiance *= float(dot(material.geomTbn[2], L) > 0.0);
+        // At grazing incidence, rotation roundoff must not switch full reflected light on.
+        float geomLightCos = dot(material.geomTbn[2], L);
+        shadowedIrradiance *= smoothstep(1e-6, 1e-4, geomLightCos);
     }
 
 
