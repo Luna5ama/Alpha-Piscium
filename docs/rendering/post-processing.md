@@ -45,6 +45,14 @@ TAA settings cover enable, jitter, current/history filters, and CAS sharpness. C
 are generated from the R2 frame sequence in [`scripts/shaders.properties`](../../scripts/shaders.properties);
 changing the sampling sequence requires updating reprojection conventions as well.
 
+### 2.1 原生 TAA 与超分实施
+
+实施目标是 `2.1/dev` 的统一时域重建器。原生和降分辨率共用当前帧空间重建、真实抖动相位校正与历史更新。按已确认的规格接入覆盖率与位置矩、双色边缘的显示混色，以及使用重建信息的输出锐化。由重建写入未锐化的历史，撤下新管线末端的 FXAA 兜底。具体空间核、相位缓存和 RCAS 改法由同输入对照选择。[已确认的 2.1 设计](https://github.com/Luna5ama/Alpha-Piscium/blob/22226662bb94683df4ef5fb864280b966905b413/docs/rendering/temporal-reconstruction.md)
+
+首个检查点复用已有捕获，对齐同一段静止、缓慢横移、停稳的轨迹、曝光和抖动。以现行 AP 原生 TAA 与 `2.0/fsr3@b72a8b5fd` 为基线，逐帧定位 GI 降噪前后、重建和锐化后的残留亮点，同时跟踪真实小高光。核对普通静止表面的颜色 AABB，以及粗糙玻璃在没有透明层专用遮罩时的最终历史。用这些画面接续原生与超分实现，两档沿用同一条验收轨迹。已有捕获与离线实现可先行，实机沿项目现有顺序预约。[基线与实景验收](https://github.com/Luna5ama/Alpha-Piscium/blob/22226662bb94683df4ef5fb864280b966905b413/docs/rendering/temporal-reconstruction.md#参考实现与实景验收) · [FSR 原型](https://github.com/Luna5ama/Alpha-Piscium/tree/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b) · [透明遮罩修订](https://github.com/Luna5ama/Alpha-Piscium/commit/649eaa67287b9631d4411ec4cf4a1d8cd25b142c)
+
+交付候选修订、匹配的原生 1080p 与 720p → 1080p 运动对照，以及整条重建和受影响后处理的 GPU 耗时。对照高采样参考检查细杆宽度与相对亮度、遮挡或熄灯后的拖尾、墙纹恢复和植被疏密。在 Iris 1.10.4 上分别开关法线贴图，核对实际加载、物理 custom image 数与显存。若实测表明 GI 残噪和真实高光难以兼顾，再按原设计转交 GI／降噪器。协调者负责验收后的 `2.1/dev` 整合与推送，最终画面交给用户查看。[尺寸与兼容范围](https://github.com/Luna5ama/Alpha-Piscium/blob/22226662bb94683df4ef5fb864280b966905b413/docs/roadmap.md#21-原生-taa-与超分辨率)
+
 ## Bloom
 
 `SETTING_BLOOM_SHAPE` offers Standard (0, default), Diamond Four (1), Horizontal Streak (2), Cross Four (3),
