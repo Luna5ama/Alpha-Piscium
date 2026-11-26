@@ -202,8 +202,8 @@ int gi_traceWide(vec3 p, vec3 d, vec2 segment, bool requireCoverage, out float t
                 uint source = (code - 65536u) >> 3u;
                 mat3 basis = transpose(mat3(global_giWideView));
                 vec2 focal = vec2(global_giWideInvProj[0][0], global_giWideInvProj[1][1]);
-                bool precise = gi_singleObservedCell(basis * sampledView, basis, focal, n, sampleData.x, fract(sampled - n * 0.0625));
-                if (!gi_sourceContact(local, dir, segment, sampled, source, n, precise, endpoint, t, gi_retainedContactNormal)) return GI_SCREEN_UNCOVERED;
+                bool resolvedOwner = gi_singleObservedCell(basis * sampledView, basis, focal, n, sampleData.x, fract(sampled - n * 0.0625));
+                if (!gi_sourceContact(local, dir, segment, sampled, source, n, resolvedOwner, endpoint, t, gi_retainedContactNormal)) return GI_SCREEN_UNCOVERED;
             }
         }
         if (gi_observedBlockOccludes(local, dir, result == GI_SCREEN_HIT ? t : segment.y, endpoint)) {
@@ -249,8 +249,8 @@ int gi_traceTerrainProjections(vec3 p, vec3 d, vec2 segment, bool requireCoverag
                 vec3 contactNormal;
                 mat3 basis = mat3(gbufferModelViewInverse);
                 vec2 focal = vec2(global_camProjInverse[0][0], global_camProjInverse[1][1]);
-                bool precise = gi_singleObservedCell(basis * sampledView, basis, focal, n, z, fract(sampled - n * 0.0625));
-                if (!gi_sourceContact(local, dir, live, sampled, raw.z >> 16u, n, precise, endpoint, t, contactNormal)
+                bool resolvedOwner = gi_singleObservedCell(basis * sampledView, basis, focal, n, z, fract(sampled - n * 0.0625));
+                if (!gi_sourceContact(local, dir, live, sampled, raw.z >> 16u, n, resolvedOwner, endpoint, t, contactNormal)
                     || gi_observedBlockOccludes(local, dir, t, endpoint)) return GI_SCREEN_UNCOVERED;
             }
         }
