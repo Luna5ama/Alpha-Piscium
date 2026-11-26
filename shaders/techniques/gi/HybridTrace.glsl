@@ -284,7 +284,7 @@ int gi_traceTerrain(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
         pixel = ivec2(-2);
         retained = true;
         gi_retainedContactNormal = normal;
-        gi_localEmission = emission;
+        gi_localEmission = gi_observedEmission(int(emission));
         return GI_SCREEN_HIT;
     }
     #endif

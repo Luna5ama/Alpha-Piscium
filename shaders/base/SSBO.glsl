@@ -111,6 +111,9 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uint global_giObservedEmission[32768];
     uint global_giLightGroupEpoch[512];
     uint global_giLightEpoch;
+    // An observed emitter retains independent samples across its face. A
+    // partially visible edge must not recolor the entire off-screen block.
+    layout(offset = 411664) uvec2 global_giLightSamples[32768 * 64];
     #endif
 };
 
