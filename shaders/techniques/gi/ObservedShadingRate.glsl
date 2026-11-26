@@ -16,6 +16,10 @@ ivec2 gi_quadOffset(uint phase) {
 }
 
 ivec2 gi_shadingPixel(ivec2 pixel, float z) {
+    #if SETTING_GI_USE_REFERENCE != 0
+    // The reference integrator averages a canonical sample at each actual pixel.
+    return pixel;
+    #else
     if (global_giWideState != 3) return pixel;
     ivec2 base = pixel & ~1;
     ivec2 other = base + gi_quadOffset(gi_quadPhase(base));
@@ -39,6 +43,7 @@ ivec2 gi_shadingPixel(ivec2 pixel, float z) {
     // Distinct layers, blocks, and silhouettes retain their own irradiance sample.
     if (abs(dot(n, delta)) > 0.001 || any(notEqual(floor(origin), floor(origin + delta)))) return pixel;
     return other;
+    #endif
 }
 
 #endif
