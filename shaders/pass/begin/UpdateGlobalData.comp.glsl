@@ -19,26 +19,6 @@ const ivec3 workGroups = ivec3(3, 1, 1);
 
 layout(rgba16f) uniform writeonly readonly image2D uimg_main;
 
-#ifdef VOXY
-// An overview sampling more than a block per pixel cannot resolve the cells
-// used by the local GI model. Promote a settled projection when it can resolve
-// them and still contains the entire previously observed neighborhood.
-bool gi_resolvesObservedRegion() {
-    if (global_giObservedAxes.x == 0u || global_camProj[1][1] != global_prevCamProj[1][1]) return false;
-    vec3 relativeCenter = vec3(global_giModelOrigin - cameraPositionInt) + 16.0 - cameraPositionFract;
-    vec3 viewCenter = (gbufferModelView * vec4(relativeCenter, 1.0)).xyz;
-    float radius = sqrt(3.0) * 16.0;
-    vec2 invFocal = vec2(global_camProjInverse[0][0], global_camProjInverse[1][1]);
-    if (any(greaterThanEqual(abs(viewCenter.xy) + radius, (-viewCenter.z - radius) * invFocal))) return false;
-
-    vec3 oldCenter = vec3(global_giModelOrigin - global_giWideEyeInt) + 16.0 - global_giWideEyeFract;
-    float oldZ = -(global_giWideView * vec4(oldCenter, 1.0)).z;
-    float oldPixel = 2.0 * oldZ * global_giWideInvProj[1][1] * uval_mainImageSizeRcp.y;
-    float newPixel = -2.0 * viewCenter.z * invFocal.y * uval_mainImageSizeRcp.y;
-    return oldPixel >= 1.0 && newPixel < 1.0;
-}
-#endif
-
 vec3 rotateAxis(vec3 unitAxis) {
     vec4 p1 = global_shadowView * vec4(unitAxis * -65536.0, 0.0);
     vec4 p2 = global_shadowView * vec4(unitAxis * 65536.0, 0.0);
@@ -133,41 +113,6 @@ void main() {
         global_prevCamProjInverse = global_camProjInverse;
         global_camProj = mat4_infRevZFromRegular(gbufferProjection, near);
         global_camProjInverse = inverse(global_camProj);
-
-        #ifdef VOXY
-        vec3 eyeDelta = vec3(cameraPositionInt - global_giWideEyeInt) + cameraPositionFract - global_giWideEyeFract;
-        int clockDelta = abs(worldTime - global_giWideTime);
-        vec3 sight = mat3(global_giWideView) * -gbufferModelViewInverse[2].xyz;
-        // Camera cuts and render-size changes invalidate the stored projection.
-        bool recapture = global_giWideState == 0 || any(notEqual(global_giWideSize, uval_mainImageSizeI))
-            || dot(eyeDelta, eyeDelta) > 1.0 || sight.z >= 0.0
-            || any(greaterThan(abs(sight.xy * vec2(global_giWideProj[0][0], global_giWideProj[1][1])), vec2(-sight.z)))
-            || near != global_giWideNear;
-        // Emission and geometry survive the daylight cycle. Smoothly retire
-        // the captured diffuse response as its time or weather ceases to match.
-        float clockDistance = float(min(clockDelta, 24000 - clockDelta));
-        global_giWideDiffuseValidity = (1.0 - smoothstep(120.0, 600.0, clockDistance))
-            * (1.0 - smoothstep(0.05, 0.3, abs(rainStrength - global_giWideRain)));
-        bool zoomed = global_camProj[1][1] > global_giWideProj[1][1] * (1.0 + 2.0 / uval_mainImageSize.y);
-        if (recapture || (zoomed && gi_resolvesObservedRegion()) || (!zoomed && ((frameCounter & 31) == 0 || global_camProj[1][1] < global_giWideProj[1][1]))) {
-            global_giWideState = 1;
-            ++global_giModelEpoch;
-            global_giLightAxes = uvec3(0u);
-            global_giObservedAxes = uvec3(0u);
-            global_giWideSize = uval_mainImageSizeI;
-            global_giWideEyeInt = cameraPositionInt;
-            global_giWideEyeFract = cameraPositionFract;
-            global_giWideJitter = uval_taaJitterUV;
-            global_giWideNear = near;
-            global_giWideRain = rainStrength;
-            global_giWideTime = worldTime;
-            global_giWideProj = global_camProj;
-            global_giWideInvProj = global_camProjInverse;
-            global_giWideView = gbufferModelView;
-        } else {
-            global_giWideState = zoomed ? 3 : 2;
-        }
-        #endif
 
         {
             const float EPS = 1e-32;

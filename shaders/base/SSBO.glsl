@@ -25,8 +25,6 @@ struct CameraData {
     vec4 frustumPlanes[6];
 };
 
-#include "/util/VoxyModelAtlas.glsl"
-
 layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uvec4 global_dispatchSize1;
     uvec4 global_dispatchSize2;
@@ -91,37 +89,6 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uint pg_neighborCounter;
     uint pg_skyCounter;
     uint rc_paddingCounters[6];
-
-    // Last wider projection with observed opaque geometry. Appended for ABI stability.
-    int global_giWideState;
-    ivec2 global_giWideSize;
-    ivec3 global_giWideEyeInt;
-    vec3 global_giWideEyeFract;
-    vec2 global_giWideJitter;
-    float global_giWideNear;
-    float global_giWideRain;
-    float global_giWideDiffuseValidity;
-    int global_giWideTime;
-    mat4 global_giWideProj;
-    mat4 global_giWideInvProj;
-    mat4 global_giWideView;
-    #ifdef VOXY
-    ivec3 global_giModelOrigin;
-    uint global_giModelEpoch;
-    uvec3 global_giLightAxes;
-    uvec3 global_giObservedAxes;
-    // The original 16 KiB global block also serves passes with other option layouts.
-    layout(offset = 16384) uvec2 global_giObservedCells[32768];
-    uint global_giLightGroupEpoch[512];
-    uint global_giLightEpoch;
-    // An observed emitter retains independent samples across its face. A
-    // partially visible edge must not recolor the entire off-screen block.
-    layout(offset = 280592) uvec2 global_giLightSamples[32768 * 64];
-    uint global_giLightSampleMaterial[32768 * 64];
-    layout(offset = GI_VOXY_ATLAS_OFFSET) uvec4 global_giAtlasState[GI_VOXY_MODEL_SLOTS];
-    uvec4 global_giAtlasTexels[GI_VOXY_MODEL_SLOTS * 6u * GI_VOXY_FACE_WORDS];
-    uint global_giCellAtlasKey[32768];
-    #endif
 };
 
 layout(std430, binding = 1) GLOBAL_DATA_MODIFIER IndirectComputeData {

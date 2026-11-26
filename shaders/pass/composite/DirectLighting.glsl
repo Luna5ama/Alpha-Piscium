@@ -1,6 +1,5 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
-#define GLOBAL_DATA_MODIFIER buffer
 #include "/techniques/atmospherics/air/Constants.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/HiZCheck.glsl"
@@ -23,26 +22,6 @@ layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
-
-#ifdef VOXY
-#include "/util/VoxyFaceNormal.glsl"
-layout(rgba32f) uniform writeonly image2D uimg_hiz;
-
-#include "/techniques/gi/ObservedSurfaceFootprint.glsl"
-void gi_captureWideSurface(ivec2 pixel, float z, uvec2 outgoing) {
-    if (global_giWideState != 1) return;
-    uint normal = texelFetch(usam_gbufferSolidData1, pixel, 0).r;
-    uvec4 raw = texelFetch(usam_gbufferVoxySolidData, pixel, 0);
-    bool terrain = z < -nearPlane && z > -65536.0 && raw.w == floatBitsToUint(z);
-    uint surfaceCode = terrain ? 65536u + ((raw.z >> 16u) << 3u) + bitfieldExtract(raw.y, 24, 3)
-                               : normal & 65535u;
-    // FP16Luv has a non-negative finite FP16 luminance in its high half.
-    // Bias its bits past FP32 subnormals so the image store preserves dark values.
-    uvec2 light = (terrain ? outgoing : uvec2(0u)) + 0x00800000u;
-    imageStore(uimg_hiz, pixel + ivec2(0, 2 * uval_mainImageSizeI.y),
-               vec4(z, float(surfaceCode), uintBitsToFloat(light)));
-}
-#endif
 
 #include "/techniques/atmospherics/SkyComposite.glsl"
 
@@ -144,58 +123,6 @@ void main() {
             giRadianceInput.x = colors_workingColorToFP16Luv(giOut1.rgb);
             giRadianceInput.y = colors_workingColorToFP16Luv(giOut2.rgb);
             transient_giRadianceInputs_store(texelPos, giRadianceInput);
-            #ifdef VOXY
-            gi_captureWideSurface(texelPos, viewZ, giRadianceInput.xy);
-            // Cycle one sample per 8x8 tile. Only native LOD surfaces identify a block state.
-            ivec2 phase = ivec2(frameCounter, frameCounter >> 3) & 7;
-            if (global_giWideState != 2 && global_camProj[1][1] == global_prevCamProj[1][1]
-                && all(equal(texelPos & 7, phase))) {
-                uvec4 raw = texelFetch(usam_gbufferVoxySolidData, texelPos, 0);
-                uint materialID = raw.z >> 16u;
-                if (raw.w == floatBitsToUint(viewZ) && materialID > 0u) {
-                    // Voxy applies taaOffset in NDC, so its UV displacement is half the patch value.
-                    vec2 uv = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - 0.5 * uval_taaJitterUV;
-                    vec3 vp = coords_toViewCoord(uv, viewZ, global_camProjInverse);
-                    vec3 scene = (gbufferModelViewInverse * vec4(vp, 1.0)).xyz;
-                    vec3 normal = voxy_faceWorldNormal(bitfieldExtract(raw.y, 24, 3));
-                    vec3 inward = cameraPositionFract + scene - normal * 0.0625;
-                    ivec3 cell = cameraPositionInt - global_giModelOrigin + ivec3(floor(inward));
-                    // Discard ambiguous tangential edge pixels rather than assign the adjacent block.
-                    vec3 fraction = fract(inward);
-                    if (uint(cell.x | cell.y | cell.z) < 32u && gi_singleObservedCell(scene - gbufferModelViewInverse[3].xyz, mat3(gbufferModelViewInverse),
-                                                vec2(global_camProjInverse[0][0], global_camProjInverse[1][1]), normal, viewZ, fraction)) {
-                        int index = cell.x + 32 * (cell.y + 32 * cell.z);
-                        atomicExchange(global_giObservedCells[index].x, materialID);
-                        atomicExchange(global_giObservedCells[index].y, global_giModelEpoch);
-                        atomicOr(global_giObservedAxes.x, 1u << uint(cell.x));
-                        atomicOr(global_giObservedAxes.y, 1u << uint(cell.y));
-                        atomicOr(global_giObservedAxes.z, 1u << uint(cell.z));
-                        #if SETTING_PBR_MATERIAL == 0
-                        if (hardcodedpbr_decode(materialID).emissive > 0.0) {
-                            vec2 planeUV = normal.x != 0.0 ? inward.zy : (normal.y != 0.0 ? inward.xz : inward.xy);
-                            uint atlasKey = 0u;
-                            if ((raw.y & 0x80000000u) != 0u && hardcodedpbr_decode(materialID).isFullCube) {
-                                atlasKey = (materialID << 16u) | voxy_observedModel(raw);
-                                atomicCompSwap(global_giAtlasState[voxy_atlasSlot(atlasKey)].x, 0u, atlasKey);
-                            }
-                            atomicExchange(global_giCellAtlasKey[index], atlasKey);
-                            ivec2 tile = ivec2(fract(planeUV) * 8.0);
-                            int sampleIndex = index * 64 + tile.y * 8 + tile.x;
-                            atomicExchange(global_giLightSamples[sampleIndex].x, giRadianceInput.y);
-                            atomicExchange(global_giLightSampleMaterial[sampleIndex], materialID);
-                            atomicExchange(global_giLightSamples[sampleIndex].y, global_giModelEpoch);
-                            ivec3 group = cell >> 2;
-                            atomicExchange(global_giLightGroupEpoch[group.x + 8 * (group.y + 8 * group.z)], global_giModelEpoch);
-                            atomicExchange(global_giLightEpoch, global_giModelEpoch);
-                            atomicOr(global_giLightAxes.x, 1u << uint(cell.x));
-                            atomicOr(global_giLightAxes.y, 1u << uint(cell.y));
-                            atomicOr(global_giLightAxes.z, 1u << uint(cell.z));
-                        }
-                        #endif
-                    }
-                }
-            }
-            #endif
         } else {
             vec4 temp6Out = texelFetch(usam_overlays, texelPos, 0);
             mainOut = celestial_render(texelPos, temp6Out);
@@ -206,9 +133,6 @@ void main() {
             mainOut.rgb = scatteringResult_apply(sctrResult, mainOut.rgb);
 
             transient_giRadianceInputs_store(texelPos, uvec4(0u));
-            #ifdef VOXY
-            gi_captureWideSurface(texelPos, -65536.0, uvec2(0u));
-            #endif
             transient_lmCoord_store(texelPos, vec4(0.0));
         }
 

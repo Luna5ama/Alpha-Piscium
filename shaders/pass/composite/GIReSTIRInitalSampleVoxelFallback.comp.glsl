@@ -18,16 +18,6 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 #include "/techniques/gi/TemporalSplat.glsl"
 #define VOXEL_TRACE_TRUST_MATERIAL_ID
 #include "/techniques/voxel/VoxelTrace.glsl"
-#if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
-#include "/techniques/gi/ObservedShadingRate.glsl"
-bool gi_currentHitEmits(ivec2 pixel) {
-    GBufferData hit = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, pixel, 0), hit);
-    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, pixel, 0), hit);
-    Material surface = material_decode(hit);
-    return any(greaterThan(surface.emissive, vec3(0.0)));
-}
-#endif
 #include "/techniques/gi/HybridTrace.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Morton.glsl"
@@ -57,77 +47,41 @@ ivec2 gi_voxelScreenPixel(VoxelHit hit, vec3 hitView) {
     return gi_sameVoxelSurface(hit, hit.hitPos + mat3(gbufferModelViewInverse) * delta, pixel) ? pixel : ivec2(-1);
 }
 
-bool gi_resolveGrid(inout restir_InitialCandidate candidate, vec3 p, vec3 worldPos, vec3 d, vec3 dir, vec2 grid, out int exitStatus) {
-    float t;
-    ivec2 hitPixel;
-    int status = gi_traceScreen(p, d, vec2(grid.x, min(GI_SCREEN_NEAR_DISTANCE, grid.y)), false, t, hitPixel);
-    const float selfOffset = 0.005;
-    float bias = grid.x > 0.0 ? 0.0 : min(selfOffset, grid.y);
-    VoxelRay ray = voxelray_setup(fma(dir, vec3(bias), worldPos), dir, 0u);
-    VoxelHit hit = voxel_traceRay(ray, 256, true);
-    float voxelT = hit.hit ? ray.lastT + bias : GI_RAY_END;
-    if (status == GI_SCREEN_HIT) {
-        vec3 screenWorld = fma(dir, vec3(t), worldPos);
-        bool same = hit.hit && gi_sameVoxelSurface(hit, screenWorld, hitPixel);
-        if (same || (t < voxelT && (!voxel_traceExhausted(hit, ray) || ray.lastT + bias > t))) {
-            gi_shadeScreen(candidate, t, hitPixel, screenWorld, -dir, same ? hit.materialID : 0u, hit.hitPos);
-            return true;
-        }
-    }
-    if (hit.hit) {
-        if (dot(hit.normal, hit.normal) == 0.0) {
-            // An opaque occupied start cell has no entering face.
-            candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_TRACE_EXHAUSTED;
-            return true;
-        }
-        gi_shadeVoxel(candidate, hit, voxelT, -dir, gi_voxelScreenPixel(hit, fma(d, vec3(voxelT), p)));
-        return true;
-    }
-    exitStatus = voxel_traceExhausted(hit, ray) ? GI_SCREEN_EXHAUSTED : GI_SCREEN_CLEAR;
-    return false;
-}
-
 void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p, vec3 worldPos, vec3 dir) {
     vec3 d = candidate.rayDirView;
     vec2 grid = vec2(0.0, GI_RAY_END);
     bool hasGrid = gi_gridInterval(worldPos, dir, grid);
     float t;
     ivec2 hitPixel;
-    bool retained;
-    #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
-    int status = GI_SCREEN_CLEAR;
-    vec2 segment = vec2(0.0, hasGrid ? grid.x : GI_RAY_END);
-    for (int interval = 0; interval < 2; ++interval) {
-        if (segment.y > segment.x) status = gi_traceTerrain(p, d, segment, false, t, hitPixel, retained);
-        if (status != GI_SCREEN_CLEAR || interval == 1 || !hasGrid) break;
-        if (gi_resolveGrid(candidate, p, worldPos, d, dir, grid, status)) return;
-        if (status != GI_SCREEN_CLEAR) break;
-        segment = vec2(grid.y, GI_RAY_END);
-    }
-    #else
     int status = gi_traceScreen(p, d, vec2(0.0, hasGrid ? grid.x : GI_RAY_END), false, t, hitPixel);
     if (status == GI_SCREEN_CLEAR && hasGrid) {
-        if (gi_resolveGrid(candidate, p, worldPos, d, dir, grid, status)) return;
-        if (status == GI_SCREEN_CLEAR) status = gi_traceScreen(p, d, vec2(grid.y, GI_RAY_END), false, t, hitPixel);
-    }
-    #endif
-    if (status == GI_SCREEN_HIT) {
-        #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
-        if (retained) {
-            bool localSource = hitPixel.x == -2;
-            vec4 surface = localSource ? vec4(0) : texelFetch(usam_hiz, hitPixel + ivec2(0, 2 * uval_mainImageSizeI.y), 0);
-            uvec2 outgoing = floatBitsToUint(surface.zw) - 0x00800000u;
-            if (localSource) outgoing = uvec2(0u, gi_localEmission);
-            vec3 normal = gi_retainedContactNormal;
-            candidate.hitDistance = t;
-            candidate.hitNormalView = coords_dir_worldToView(normal);
-            candidate.screenOnly = true;
-            candidate.radiance = colors_FP16LuvToWorkingColor(outgoing.y);
-            if (!localSource && dot(normal, dir) < 0.0 && dot(normal, gi_wideNormal(uint(surface.y))) > 0.99) candidate.radiance += colors_FP16LuvToWorkingColor(outgoing.x) * global_giWideDiffuseValidity;
-            candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
+        status = gi_traceScreen(p, d, vec2(grid.x, min(GI_SCREEN_NEAR_DISTANCE, grid.y)), false, t, hitPixel);
+        const float selfOffset = 0.005;
+        float bias = grid.x > 0.0 ? 0.0 : min(selfOffset, grid.y);
+        VoxelRay ray = voxelray_setup(fma(dir, vec3(bias), worldPos), dir, 0u);
+        VoxelHit hit = voxel_traceRay(ray, 256, true);
+        float voxelT = hit.hit ? ray.lastT + bias : GI_RAY_END;
+        if (status == GI_SCREEN_HIT) {
+            vec3 screenWorld = fma(dir, vec3(t), worldPos);
+            bool same = hit.hit && gi_sameVoxelSurface(hit, screenWorld, hitPixel);
+            if (same || (t < voxelT && (!voxel_traceExhausted(hit, ray) || ray.lastT + bias > t))) {
+                gi_shadeScreen(candidate, t, hitPixel, screenWorld, -dir, same ? hit.materialID : 0u, hit.hitPos);
+                return;
+            }
+        }
+        if (hit.hit) {
+            if (dot(hit.normal, hit.normal) == 0.0) {
+                // An opaque occupied start cell has no entering face.
+                candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_TRACE_EXHAUSTED;
+                return;
+            }
+            gi_shadeVoxel(candidate, hit, voxelT, -dir, gi_voxelScreenPixel(hit, fma(d, vec3(voxelT), p)));
             return;
         }
-        #endif
+        status = voxel_traceExhausted(hit, ray) ? GI_SCREEN_EXHAUSTED :
+            gi_traceScreen(p, d, vec2(grid.y, GI_RAY_END), false, t, hitPixel);
+    }
+    if (status == GI_SCREEN_HIT) {
         gi_shadeScreen(candidate, t, hitPixel, fma(dir, vec3(t), worldPos), -dir, 0u, vec3(0.0));
     } else if (status == GI_SCREEN_CLEAR) {
         candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_ENVIRONMENT;
@@ -139,15 +93,6 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
 }
 
 void main() {
-    #if defined(GI_RETAINED_PROJECTION) && !defined(VOXY)
-    return;
-    #elif defined(VOXY)
-        #ifdef GI_RETAINED_PROJECTION
-        if (global_giWideState != 3) return;
-        #else
-        if (global_giWideState == 3) return;
-        #endif
-    #endif
     restir_temporalSplatInitShared();
     voxel_initShared();
 
@@ -155,14 +100,7 @@ void main() {
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
     uvec2 workGroupOrigin = swizzledWGPos << 4u;
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
-    #if defined(VOXY) && defined(GI_RETAINED_PROJECTION)
-    // Pack the first sample of each 2x2 quad into contiguous subgroups.
-    uvec2 quad = morton_8bDecode(threadIdx & 63u) * 2u;
-    uint phase = (gi_quadPhase(ivec2(workGroupOrigin + quad)) + (threadIdx >> 6u)) & 3u;
-    uvec2 mortonPos = quad + uvec2(gi_quadOffset(phase));
-    #else
     uvec2 mortonPos = morton_8bDecode(threadIdx);
-    #endif
     ivec2 texelPos = ivec2(workGroupOrigin + mortonPos);
 
     if (!all(lessThan(texelPos, uval_mainImageSizeI))) {

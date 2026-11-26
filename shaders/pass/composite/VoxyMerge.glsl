@@ -1,4 +1,3 @@
-#define GLOBAL_DATA_MODIFIER buffer
 #include "/util/Math.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Coords.glsl"
@@ -19,7 +18,13 @@ layout(r32i) uniform restrict iimage2D uimg_csr32f;
 
 shared uvec4 shared_voxyData[18][18];
 
-#include "/util/VoxyFaceNormal.glsl"
+vec3 voxy_faceWorldNormal(uint face) {
+    return normalize(vec3(
+        uint((face >> 1u) == 2u),
+        uint((face >> 1u) == 0u),
+        uint((face >> 1u) == 1u)
+    ) * (float(int(face) & 1) * 2.0 - 1.0));
+}
 
 vec3 voxy_faceWorldTangent(uint face) {
     return ((face >> 1u) == 2u) ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
@@ -66,19 +71,6 @@ void main() {
 
             vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
             vec3 viewPosCenter = coords_toViewCoord(screenPos, voxyZ, global_camProjInverse);
-            #ifdef VOXY
-            if (all(equal(texelPos, uval_mainImageSizeI / 2))) {
-                vec3 pos = (gbufferModelViewInverse * vec4(viewPosCenter, 1.0)).xyz;
-                ivec3 center = cameraPositionInt + ivec3(floor(cameraPositionFract + pos));
-                ivec3 local = center - global_giModelOrigin;
-                if (any(lessThan(local, ivec3(4))) || any(greaterThanEqual(local, ivec3(28)))) {
-                    global_giModelOrigin = (center & ~ivec3(7)) - ivec3(12);
-                    ++global_giModelEpoch;
-                    global_giLightAxes = uvec3(0u);
-                    global_giObservedAxes = uvec3(0u);
-                }
-            }
-            #endif
 
             vec2 dUVdx = vec2(0.0);
             vec2 dUVdy = vec2(0.0);

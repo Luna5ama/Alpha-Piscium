@@ -80,6 +80,14 @@ Greenfield 两个 1080p 屋顶复用封存镜位、内置 PBR、Iris 1.10.7 和 
 <!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"radiance.json"} -->
 <!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"protocol.zip"} -->
 
+### 当前 2.0 的变焦行为
+
+混合 GI 的屏幕段只查询当前相机投影。放大时，离开当前画面且超出体素网格的光源可以失去贡献。可见表面仍使用几何平面 Hi-Z；射线按真实几何格推进，只在读取深度纹理时钳位坐标。接收面的亚像素深度用相对同帧全精度深度的差值表示，以避免远景横纹。屏幕边界复现和原始射线见运行 ad1b9867-7efa-47bd-a823-3324605f8e9a。
+
+### 已移除的离屏补光实验
+
+以下工况与成本来自保存旧投影、光源和遮挡数据的历史版本。
+
 #### Greenfield 连续变焦的本地验收
 
 实际成品为 `0180c16053b8a17723fb5e9b5c823dac64d5b5af`（分支 `codex/greenfield-zoom-root-343`），对照为 `a55c4d6e`。在编号 12 检出打包。成品 `AP-343-native-emission.zip` 的 SHA-256 为 `d0c06e689b8377c8abfb31171f357e18f7d1748e0d4189f71cdc451c39500b56`。运行使用 Minecraft 1.21.11、Iris 1.10.7、Sodium 0.8.7、Voxy 0.2.13-alpha、内置材质，开启 RC 和路径引导。固定 Greenfield v0.5.4 的夜间屋顶。
