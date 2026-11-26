@@ -79,3 +79,109 @@ Greenfield 两个 1080p 屋顶复用封存镜位、内置 PBR、Iris 1.10.7 和 
 <!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"timings.json"} -->
 <!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"radiance.json"} -->
 <!-- vela:evidence {"run":"78373ac1-da9d-47fb-85d1-f86edfaaa2f3","path":"protocol.zip"} -->
+
+#### Greenfield 连续变焦的本地验收
+
+实际成品为 `0180c16053b8a17723fb5e9b5c823dac64d5b5af`（分支 `codex/greenfield-zoom-root-343`），对照为 `a55c4d6e`。在编号 12 检出打包。成品 `AP-343-native-emission.zip` 的 SHA-256 为 `d0c06e689b8377c8abfb31171f357e18f7d1748e0d4189f71cdc451c39500b56`。运行使用 Minecraft 1.21.11、Iris 1.10.7、Sodium 0.8.7、Voxy 0.2.13-alpha、内置材质，开启 RC 和路径引导。固定 Greenfield v0.5.4 的夜间屋顶。
+
+基线在 0.11719° 时仍能看到接收面。第一盏萤石已完全离开视锥；对其实体有交点的 1660 条射线里，1647 条进入环境分支，13 条耗尽。宽视野缓存可以找回表面，但低分辨率灯像素可能跨入空气格，最后一个可见发光纹素还会随变焦位置改变整盏灯的缓存亮度。独立反例分别保存在运行 `b23807c9-0e45-474d-9475-92e4343602bc` 与 720p 运行 `eae54a8a-4f60-4c2e-a093-caaf82b70c02`。
+
+修正沿原世界射线仲裁当前深度、体素、保留的宽投影与已观测的原生块模型。在局部 32³ 格区域，灯前遮挡按真实模型测试。原生像素的足迹或已见方块确定材质归属，按已观测的 8×8 面区域在线性空间估计内置自发光。候选保留原来的 PDF 与世界距离。普通视野运行独立程序，Voxy 的 colortex16/17/18 保留原用途。
+
+| 同一屋面的稳定帧 | 基线漫反射 | 候选漫反射 | 确定无遮挡命灯 | 确定有遮挡仍命灯 | 未过灯实体仍命灯 |
+|---|---:|---:|---:|---:|---:|
+| 第一屋面 0.05859° | 0.0000492 | 0.0022598 | 1580/1702 | 0/199 | 0 |
+| 独立屋面 0.05859° | 0.0000505 | 0.0008963 | 1393/2071 | 0/346 | 0 |
+| Zoomify 第 20 档 0.06000° | 0.0000493 | 0.0022391 | 1096/1181 | 0/147 | 0 |
+
+第一屋面在 0.05859° 单独熄灭该灯的次级发光后降至 0.0000631。以 0.11719° 冷启动且未观测到屏外的灯时，保留的离屏灯命中为 0。Zoomify 2.15.2 原生输入的最大除数是 500；另外用实测投影连续覆盖 30° → 0.05859° → 30°，保留了过渡帧、稳定帧和奇偶相位。整组未重启共享游戏。
+
+| 1080p 成品 GI 整链，ms | 基线 | 候选 | 基线/候选对照 pass |
+|---|---:|---:|---:|
+| 70° 入场 | 11.148 | 12.012 | 0.039/0.038 |
+| 30° | 13.251 | 25.366 | 0.039/0.039 |
+| 1.875° | 16.190 | 36.708 | 0.033/0.034 |
+| 0.46875° | 18.623 | 36.535 | 0.031/0.032 |
+| 0.05859° | 19.376 | 33.898 | 0.029/0.029 |
+| 70° 恢复 | 14.021 | 12.106 | 0.040/0.039 |
+
+变化的固定分配在 1080p 为宽投影 31.64 MiB 和全局 SSBO 24.25 MiB。四臂逐进程显存及正反序阶段查询见 `timings-lights.json`。极窄视野中能看见约 64 像素周期的横纹。实际 500× 稳定帧的滤波后行亮度在该频率上的振幅约为均值的 21%。对首次进入视野前已在屏外的光源，以及未观测或在屏外变化的遮挡，仍缺少可用场景数据。
+
+最终原件在运行 `fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6` 的 `report.md`、`verify.json`、`paired-3-7.png`、`paired-4-7.png`、`zoomify-500x.png`、分臂归档与 `protocol.zip`。两个屋面使用同一线性白点，原始终图保留游戏曝光。`source-energy.json` 给出真实命中灯面的源辐亮度，`edge-contacts.json` 给出存档实体与原点附近的亚格接触。
+
+在 0.05859° 将同一世界点配准到 0.9375° 参考图，第一屋面的滤波后漫反射为参考的 3.40 倍，独立屋面为 1.03 倍。两个屋面都恢复受光，第一屋面的亮度仍明显偏高。独立屋面 0.11719° 第 159 帧有两条被存档几何分类为遮挡的命灯射线，与发射面交叠的最远出口距原点 0.000813 格。
+
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"AP-343-certified-blocks.zip"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"AP-343-contact.zip"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"AP-343-model.zip"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"AP-343-observed-lights.zip"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"clean-outputs.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"contact-errors.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"diagnosis.md"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"emitter-footprint.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"fixture-accounting.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"identity343.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"lamp-context-3.png"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"lights-clean-outputs.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"local-world-geometry.zip"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"model-ready.txt"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"paired-3-7.png"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"paired-4-7.png"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"preliminary-archive.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"protocol.zip"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"report.md"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"reproduce.md"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"retained-occlusion-counterexample.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"static-contact.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"static-lights.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"static-model.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"static-owner.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"static-selected-materials.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"timing-raw.zip"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"timings-contact.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"verify.json"} -->
+<!-- vela:evidence {"run":"b23807c9-0e45-474d-9475-92e4343602bc","path":"zoomify-500x.png"} -->
+<!-- vela:evidence {"run":"64c59ce8-d8ee-494d-8214-ef702fa28eda","path":"preliminary-frames.zip"} -->
+<!-- vela:evidence {"run":"64c59ce8-d8ee-494d-8214-ef702fa28eda","path":"preliminary-manifest.json"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"cold-3-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"coldowner-3-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"model-3-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"model-4-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"modelcut-3-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"scan-3-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"scan-4-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"split-3-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"split-4-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"splitcut-3-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"zbase-3-frames.zip"} -->
+<!-- vela:evidence {"run":"20f904e8-2c39-4782-9b25-d95fb1b6b872","path":"zterrain-3-frames.zip"} -->
+<!-- vela:evidence {"run":"eae54a8a-4f60-4c2e-a093-caaf82b70c02","path":"720-originals.zip"} -->
+<!-- vela:evidence {"run":"eae54a8a-4f60-4c2e-a093-caaf82b70c02","path":"compare720.json"} -->
+<!-- vela:evidence {"run":"eae54a8a-4f60-4c2e-a093-caaf82b70c02","path":"fixture-accounting.json"} -->
+<!-- vela:evidence {"run":"eae54a8a-4f60-4c2e-a093-caaf82b70c02","path":"source-ownership.json"} -->
+<!-- vela:evidence {"run":"eae54a8a-4f60-4c2e-a093-caaf82b70c02","path":"source-ownership.py"} -->
+<!-- vela:evidence {"run":"0a247f85-beac-49e7-84a5-4822d034b013","path":"predecessor-images.zip"} -->
+<!-- vela:evidence {"run":"0a247f85-beac-49e7-84a5-4822d034b013","path":"predecessor-timing.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"AP-343-native-emission.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"AP-343-source-radiance.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"coldowner-3-frames.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"contact-errors.json"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"edge-contacts.json"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"identity343.json"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"lights-clean-outputs.json"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"local-world-geometry.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"paired-3-7.png"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"paired-4-7.png"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"paired-timings.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"protocol.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"report.md"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"reproduce.md"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"row-variation.json"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"source-energy.json"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"split-3-frames.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"split-4-frames.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"splitcut-3-frames.zip"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"timings-lights.json"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"verify.json"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"zoomify-500x.png"} -->
+<!-- vela:evidence {"run":"fe3f9c72-4e9f-48e1-bfee-9ad75a1cecd6","path":"zterrain-3-frames.zip"} -->
