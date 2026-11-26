@@ -94,9 +94,27 @@ bool gi_observedBlockOccludes(vec3 p, vec3 dir, float maxT, ivec3 endpoint) {
 #if defined(RESTIR_INITIAL_CANDIDATE_WRITE) && SETTING_PBR_MATERIAL == 0
 // The visible area can shrink to one dark texel just before a lamp leaves
 // the screen. Give each observed surface region equal area in the integral.
-uint gi_observedEmission(ivec3 cell) {
+uint gi_observedEmission(ivec3 cell, vec3 hit, vec3 n) {
     int index = cell.x + 32 * (cell.y + 32 * cell.z);
     uint material = global_giObservedCells[index].x;
+    uint key = global_giCellAtlasKey[index];
+    uint slot = voxy_atlasSlot(key);
+    if (key != 0u && (key >> 16u) == material && global_giAtlasState[slot].z == key) {
+        uint axis = abs(n.x) > 0.5 ? 2u : (abs(n.y) > 0.5 ? 0u : 1u);
+        uint face = axis * 2u + uint(n.x + n.y + n.z > 0.0);
+        vec2 uv = axis == 2u ? hit.yz : (axis == 0u ? hit.xz : hit.xy);
+        uvec2 pixel = uvec2(fract(uv) * 16.0);
+        uint i = pixel.x + 16u * pixel.y;
+        uint encoded = global_giAtlasTexels[(slot * 6u + face) * GI_VOXY_FACE_WORDS + (i >> 2u)][i & 3u];
+        vec4 color = unpackUnorm4x8(encoded);
+        if (color.a > 0.0) {
+            GBufferData data = gbufferData_init();
+            data.albedo = color.rgb;
+            data.materialID = material;
+            data.forceBuiltInPBR = true;
+            return colors_workingColorToFP16Luv(material_decode(data).emissive);
+        }
+    }
     vec3 radiance = vec3(0);
     int count = 0;
     for (int tile = 0; tile < 64; ++tile) {

@@ -12,6 +12,7 @@ void main() {
     global_giLightAxes = uvec3(0u);
     global_giObservedAxes = uvec3(0u);
     global_giLightEpoch = 0u;
+    for (uint i = 0u; i < GI_VOXY_MODEL_SLOTS; ++i) global_giAtlasState[i] = uvec4(0u);
     for (int i = 0; i < 512; ++i) global_giLightGroupEpoch[i] = 0u;
     for (int i = 0; i < 32768; ++i) global_giObservedCells[i] = uvec2(0);
     #endif

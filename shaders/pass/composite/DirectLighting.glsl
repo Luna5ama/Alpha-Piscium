@@ -173,6 +173,12 @@ void main() {
                         #if SETTING_PBR_MATERIAL == 0
                         if (hardcodedpbr_decode(materialID).emissive > 0.0) {
                             vec2 planeUV = normal.x != 0.0 ? inward.zy : (normal.y != 0.0 ? inward.xz : inward.xy);
+                            uint atlasKey = 0u;
+                            if ((raw.y & 0x80000000u) != 0u && hardcodedpbr_decode(materialID).isFullCube) {
+                                atlasKey = (materialID << 16u) | voxy_observedModel(raw);
+                                atomicCompSwap(global_giAtlasState[voxy_atlasSlot(atlasKey)].x, 0u, atlasKey);
+                            }
+                            atomicExchange(global_giCellAtlasKey[index], atlasKey);
                             ivec2 tile = ivec2(fract(planeUV) * 8.0);
                             int sampleIndex = index * 64 + tile.y * 8 + tile.x;
                             atomicExchange(global_giLightSamples[sampleIndex].x, giRadianceInput.y);

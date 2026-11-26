@@ -14,6 +14,7 @@
         "gbufferProjectionInverse"
     ],
     "samplers": {},
+    "ssbos": {"0": "{ uvec4 apAtlasWords[]; }"},
 	"opaqueDrawBuffers": [16],
 	"translucentDrawBuffers": [17, 18],
     "blending": {

@@ -25,6 +25,8 @@ struct CameraData {
     vec4 frustumPlanes[6];
 };
 
+#include "/util/VoxyModelAtlas.glsl"
+
 layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uvec4 global_dispatchSize1;
     uvec4 global_dispatchSize2;
@@ -116,6 +118,9 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     // partially visible edge must not recolor the entire off-screen block.
     layout(offset = 280592) uvec2 global_giLightSamples[32768 * 64];
     uint global_giLightSampleMaterial[32768 * 64];
+    layout(offset = GI_VOXY_ATLAS_OFFSET) uvec4 global_giAtlasState[GI_VOXY_MODEL_SLOTS];
+    uvec4 global_giAtlasTexels[GI_VOXY_MODEL_SLOTS * 6u * GI_VOXY_FACE_WORDS];
+    uint global_giCellAtlasKey[32768];
     #endif
 };
 
