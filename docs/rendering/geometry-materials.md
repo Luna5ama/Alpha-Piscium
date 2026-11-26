@@ -103,3 +103,27 @@ Regenerate the 2.0 material inputs with Minecraft 26.2 in a staging directory. C
 <!-- vela:evidence {"run":"12381471-b0c9-4a36-9a0b-8a8e945a6899","path":"verified.md"} -->
 
 <!-- vela:evidence {"run":"12381471-b0c9-4a36-9a0b-8a8e945a6899","path":"voxel-biome-tint-evidence.zip"} -->
+
+## Leaf highlights during a camera turn in 2.0
+
+In the Dump Forest report the sun lay on the tangent plane of the affected leaf face. Rotating the camera changed the sign of the rounded view-space geometric cosine from +1.42e-9 to -1.04e-9 and back. The binary SSS-material reflection gate switched the full direct specular and diffuse terms. Across 2,726 shared world-space samples, the specular luminance at the three witness frames was 7.647, 0 and 7.597. The independently computed transmission stayed near 2.26–2.29 and the shadow input stayed near 0.49. The jump was already present in scene-linear direct lighting.
+
+`1c485d48` replaces the binary test with a one-sided smoothstep in the geometric cosine. It suppresses roundoff within 1e-6 and reaches the original reflection weight at 1e-4. In the same witness frames the tangent specular term stayed at zero and the transmitted light tracked the original. The focused readback used Iris 1.10.6-vibris.2, Ultra, built-in PBR and SPBR-21. The running default Vibris instance replayed the fixed-position turn in a separate QA world with 60 identical poses per revision and -1.06 EV, then tested the same surface with the sun away from its tangent plane. The existing game restored the prior scene, settings and source after each job.
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"report.md"} -->
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"fixed-leaves.json"} -->
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"lighting-terms.png"} -->
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"before-after-vibris.mp4"} -->
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"front-vibris.png"} -->
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"live-audit.json"} -->
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"leaf-runtime-evidence.zip"} -->
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"AP20-leaf-grazing-fix.zip"} -->
+
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"storage.json"} -->
