@@ -103,6 +103,20 @@ Revision `ea38f3bc` invalidates pairwise metadata when pass zero skips a hand pi
 
 The test used the dedicated Minecraft 1.21.11 instance, Iris `1.10.6-vibris.3`, Vibris `0.1.0-alpha.2`, SPBR-21, Ultra, SDR and native 1920×1080 at the `ap13-feedback-wall` preset in Dump Forest. The AP-13 candidate was also checked with the default auto exposure and with EV −8. The run contains unmodified full screenshots, window-recorded equip animations, stage-specific raw readbacks with their receipts, pack hashes and the ZIP actually loaded. See the native and AP-13 measurements in `verification.json`.
 
+### Rerun on native 2.1
+
+Changes to the hand flags, spatial reuse or GI composition exercise this case. In the dedicated 1.21.11 instance use the preset and settings above with manual EV −8. In a single uninterrupted equip sequence select dirt (slot 4), switch to sea lantern (3), wait for the hand to settle and capture. Reload the same candidate while still holding it and capture again. Repeat from dirt for the torch (1). The switched arm must retain the previous slot's history until the readback. Keep one successful Vibris job receipt per capture.
+
+In each job request three same-frame binary texture reads in the OpenGL region `(1660, 90, 130, 110)`. Read `colortex8` and `colortex9` after `composite/composite13`, then `colortex0` after `composite/composite41`. Use the source commit actually loaded. The [checker](../../scripts/test/held_emitter_switch.py) reads the original artifact paths or files copied alongside their receipt. Run it from the checkout with Python and NumPy.
+
+```text
+python scripts/test/held_emitter_switch.py --candidate FULL_COMMIT --lantern SWITCH_RECEIPT RELOAD_RECEIPT --torch SWITCH_RECEIPT RELOAD_RECEIPT
+```
+
+The probe checks the equipped SPBR-21 material and compares the hand's median scene-linear green with the same emitter after reload. This fixture allows 10% deviation. Repaired repeats differed by up to 1.28% and both original failures exceeded 90× their references. Exit codes are 0 for pass, 1 for a reproduced rendering failure and 2 for unusable inputs. If pass bindings or the resource pack change, re-establish the probe on the same visible behavior. The compact original receipts and three required textures per capture are in the evidence archive. With the archive unpacked, the old native prefixes are `devls/devlr` and `devts/devtr`; the repaired prefixes are `nfl1/nflr` and `nft1/nftr`. Each takes the suffix `-receipt.json`.
+
+<!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"held-emitter-regression.zip"} -->
+
 <!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"preflight.json"} -->
 <!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"fixture.json"} -->
 <!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"verification.json"} -->
