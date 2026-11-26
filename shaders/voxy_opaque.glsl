@@ -6,33 +6,33 @@ layout(location = 0) out uvec4 rt_gbufferData;
 
 #include "/util/VoxyModelAtlas.glsl"
 
-#ifdef BUFFER_BINDING_INDEX_BASE
+// Iris preprocesses this hook before Voxy appends its generated SSBO header.
 void voxy_captureEmissionAtlas(uint key, uint modelId) {
+    const uint rowCount = 6u * 16u;
     uint slot = voxy_atlasSlot(key);
     uint state = uint(GI_VOXY_ATLAS_OFFSET) / 16u + slot;
-    if (apAtlasWords[state].x != key || apAtlasWords[state].z == key) return;
-    if (atomicCompSwap(apAtlasWords[state].y, 0u, key) != 0u) return;
-    // Capture the actual baked texture independent of screen coverage, camera
-    // distance, or the last strip of the lamp that happens to survive clipping.
+    if (apAtlasWords[state].x != key || apAtlasWords[state].y >= rowCount) return;
+    uint row = atomicAdd(apAtlasWords[state].y, 1u);
+    if (row >= rowCount) return;
+    uint face = row >> 4u;
     ivec2 faceSize = textureSize(blockModelAtlas, 0) / ivec2(768, 512);
     ivec2 model = ivec2(modelId & 255u, modelId >> 8u);
-    for (uint face = 0u; face < 6u; ++face) {
-        ivec2 base = (model * ivec2(3, 2) + ivec2(face >> 1u, face & 1u)) * faceSize;
-        for (uint word = 0u; word < GI_VOXY_FACE_WORDS; ++word) {
-            uvec4 pixels;
-            for (uint k = 0u; k < 4u; ++k) {
-                uint i = 4u * word + k;
-                ivec2 uv = ivec2(i & 15u, i >> 4u);
-                pixels[k] = packUnorm4x8(texelFetch(blockModelAtlas, base + (2 * uv + 1) * faceSize / 32, 0));
-            }
-            apAtlasWords[uint(GI_VOXY_ATLAS_OFFSET) / 16u + GI_VOXY_MODEL_SLOTS
-                       + (slot * 6u + face) * GI_VOXY_FACE_WORDS + word] = pixels;
+    ivec2 base = (model * ivec2(3, 2) + ivec2(face >> 1u, face & 1u)) * faceSize;
+    uint dest = uint(GI_VOXY_ATLAS_OFFSET) / 16u + GI_VOXY_MODEL_SLOTS
+              + slot * 6u * GI_VOXY_FACE_WORDS + row * 4u;
+    for (uint word = 0u; word < 4u; ++word) {
+        uvec4 pixels;
+        for (uint k = 0u; k < 4u; ++k) {
+            ivec2 uv = ivec2(4u * word + k, row & 15u);
+            pixels[k] = packUnorm4x8(texelFetch(blockModelAtlas, base + (2 * uv + 1) * faceSize / 32, 0));
         }
+        apAtlasWords[dest + word] = pixels;
     }
     memoryBarrierBuffer();
-    atomicExchange(apAtlasWords[state].z, key);
+    // No consumer may see a partial face, including when only a few fragments
+    // of the emitter were visible and filling the atlas spanned several frames.
+    if (atomicAdd(apAtlasWords[state].w, 1u) == rowCount - 1u) atomicExchange(apAtlasWords[state].z, key);
 }
-#endif
 
 void voxy_emitFragment(VoxyFragmentParameters parameters) {
     vec4 color = parameters.sampledColour * parameters.tinting;
@@ -50,9 +50,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
     packedColorFace = bitfieldInsert(packedColorFace, parameters.modelId >> 8u, 29, 2);
     if (all(equal(parameters.tinting.rgb, vec3(1.0)))) {
         packedColorFace |= 0x80000000u;
-        #ifdef BUFFER_BINDING_INDEX_BASE
         if (materialID != 0u) voxy_captureEmissionAtlas((materialID << 16u) | parameters.modelId, parameters.modelId);
-        #endif
     }
 
     // B: Lightmap (2x8 unorm) + MaterialID (16 bits)
