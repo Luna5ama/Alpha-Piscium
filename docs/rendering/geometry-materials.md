@@ -93,6 +93,21 @@ Material settings live in the Terrain screens of [`scripts/options.main.kts`](..
   declared only in options/UI; no current shader reads those two macros.
 - SSS: sample count, diffuse range, and depth range.
 
+## First-person emissive brightness after a hotbar change
+
+On the AP-13 trial ZIP (shader revision `24475d7b`) and native `2.1/dev` at `22226662`, selecting a sea lantern or torch from dirt produced a bright white held item. Reloading the pack with the item already in hand provided its normal reference. Both items retained the expected LabPBR emission bytes in the hand G-buffer. Direct lighting stayed close across the pair.
+
+The first spatial ReSTIR pass excludes hand receivers. The spatial shading pass uses a nonzero metadata Z word to decide whether it can consume the pairwise state and specular ratio. When the hand covered a previously shaded pixel, skipping its write let old scratch data satisfy that validity check. In a 52 by 45 torch region, all 2,340 Z words were nonzero after the first spatial pass. The denoised specular green median reached 20,272 after switching and 0.158 after reloading. The first large difference in the composed scene color appeared when `composite41` added GI. The sampled floating-point lighting and composed RGB values were finite.
+
+Revision `ea38f3bc` invalidates pairwise metadata when pass zero skips a hand pixel. The same probe found zero nonzero Z words. On native 2.1 at fixed camera EV −8, the sea lantern's median scene-linear green after GI was 14,056 on the broken switch and 147.375 on reload. Three repaired switches yielded 147.625–147.875 against 147.625 on reload. The torch measured 1,050 and 5.191 before repair, then 5.246–5.254 across three switches against 5.188 on reload. Dirt measured 12.0 after switching back and 11.930 on reload. A separate wall crop had a median display code of 12 in all six repaired emitter switches.
+
+The test used the dedicated Minecraft 1.21.11 instance, Iris `1.10.6-vibris.3`, Vibris `0.1.0-alpha.2`, SPBR-21, Ultra, SDR and native 1920×1080 at the `ap13-feedback-wall` preset in Dump Forest. The AP-13 candidate was also checked with the default auto exposure and with EV −8. The run contains unmodified full screenshots, window-recorded equip animations, stage-specific raw readbacks with their receipts, pack hashes and the ZIP actually loaded. See the native and AP-13 measurements in `verification.json`.
+
+<!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"verification.json"} -->
+<!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"comparison.png"} -->
+<!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"switch-frames.png"} -->
+<!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"AP-2.1-hand-ea38f3bc.zip"} -->
+
 ## Maintenance invariants
 
 - Change G-buffer bit layout, writers, and every reader together.
