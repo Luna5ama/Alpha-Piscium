@@ -30,6 +30,8 @@ manual-focus distance, focus time, and focus-plane debug.
 
 ## Temporal and spatial AA
 
+The current shaderpack runs these passes in order.
+
 | Order | Pass | Purpose |
 | --- | --- | --- |
 | 1 | [`TAAPrepare`](../../shaders/pass/composite/TAAPrepare.comp.glsl) | Meters unexposed post-DOF scene color and encodes the temporal input |
@@ -45,7 +47,7 @@ changing the sampling sequence requires updating reprojection conventions as wel
 
 ### 2.1 时域重建策略对照
 
-2.1 原生 TAA 与超分共用历史判断。自动曝光沿用重建前的场景测光。设计中，重建所得的场景线性平均辐亮度按相机 EV 缩放后进入 Bloom。对于两侧都可信的轮廓，显示阶段还读取同一输出足迹的覆盖率和有符号 RGB 色差，还原两侧颜色，分别经过 DRT 与 Look 后再按面积混合。[时域重建专题](temporal-reconstruction.md) · [亚像素灯带的显示混色](temporal-reconstruction.md#亚像素灯带的显示混色)
+2.1 原生 TAA 与超分的设计由重建阶段写轮换的未锐化历史，撤下上表的 FXAA 兜底。输出锐化直接使用重建的颜色、覆盖率与矩。自动曝光沿用重建前的场景测光，Bloom 读取按相机 EV 缩放的未锐化场景均值。可信轮廓的两侧分别经过 DRT 与 Look，再按同一输出足迹的覆盖率混合。[覆盖率与矩参与的锐化](temporal-reconstruction.md#覆盖率与矩参与的锐化) · [亚像素灯带的显示混色](temporal-reconstruction.md#亚像素灯带的显示混色)
 
 ## Bloom
 

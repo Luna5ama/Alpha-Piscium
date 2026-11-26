@@ -41,9 +41,9 @@ Skibidi DRT 沿用自身的色域压缩，选项只设置目标色域。压缩�
 
 原生 TAA 和超分都须支持 Iris 1.10.4。2.1 采用自研或深度改造的统一重建器，以 `2.0/fsr3` 的 FSR 3.1 原型和现有 TAA 为对照。每帧按真实抖动位置重建能独立成像的输出颜色。有可靠历史时，用本帧采到的同表面细节校正历史，分别更新平均亮度和边缘对比度。合入前用运动序列核对 GI 亮点与真实小高光，保留粗糙玻璃的最终时域累积，以及现有 TAA 在静止表面使用颜色 AABB 的清晰度。[上采样与历史更新](rendering/temporal-reconstruction.md#上采样与历史更新) · [相位预测的离线对照](rendering/temporal-reconstruction.md#相位预测的离线对照)
 
-原生 TAA 与超分都要减轻连续重投影造成的边缘模糊，在关闭 pixel lock 时也要用普通轮廓和同深度颜色边验证。输出尺寸历史的空间矩是候选。细线另外共用锁定和输出像素覆盖率规则。当前帧的空间重建继续比较 FSR 1 EASU、SMAA、CMAA2 和 FXAA 在遮挡解除首帧的轮廓，以及恢复历史后的细线稳定性。[历史重投影的边缘清晰度](rendering/temporal-reconstruction.md#历史重投影的边缘清晰度) · [Pixel lock 与覆盖率](rendering/temporal-reconstruction.md#pixel-lock-与覆盖率) · [当前帧的空间重建](rendering/temporal-reconstruction.md#当前帧的空间重建) · [细线的默认外观](rendering/temporal-reconstruction.md#细线的默认外观) · [树叶与草的覆盖率](rendering/geometry-materials.md#树叶与草的覆盖率)
+原生 TAA 与超分都要减轻连续重投影造成的边缘模糊，在关闭 pixel lock 时也要用普通轮廓和同深度颜色边验证。输出尺寸历史的空间矩是候选。细线另外共用锁定和输出像素覆盖率规则。当前帧的空间重建继续比较 FSR 1 EASU、SMAA 和 CMAA2 在遮挡解除首帧的轮廓，以及恢复历史后的细线稳定性。统一重建路径撤下末端 FXAA 兜底，改良的 RCAS 利用重建的覆盖率与矩做输出锐化。[历史重投影的边缘清晰度](rendering/temporal-reconstruction.md#历史重投影的边缘清晰度) · [Pixel lock 与覆盖率](rendering/temporal-reconstruction.md#pixel-lock-与覆盖率) · [当前帧的空间重建](rendering/temporal-reconstruction.md#当前帧的空间重建) · [覆盖率与矩参与的锐化](rendering/temporal-reconstruction.md#覆盖率与矩参与的锐化) · [细线的默认外观](rendering/temporal-reconstruction.md#细线的默认外观) · [树叶与草的覆盖率](rendering/geometry-materials.md#树叶与草的覆盖率)
 
-可信双色边的场景线性均值继续供 Bloom 使用。显示时还原两侧颜色，分别经过当前 DRT 与 Look，在显示线性 RGB 中按同一覆盖率混合。首版用每输出像素 4 字节的瞬态有符号 RGB 色差传到显示，保留 `RGBA16F` 精度对照。[显示混色设计与离线灯带对照](rendering/temporal-reconstruction.md#亚像素灯带的显示混色)
+可信双色边的场景线性均值继续供 Bloom 使用。显示时还原两侧颜色，分别经过当前 DRT 与 Look，在显示线性 RGB 中按同一覆盖率混合。横移时按同一轮廓的端点置信度连续调节显示色差，遮挡或变光立即刷新相应历史。首版用每输出像素 4 字节的瞬态有符号 RGB 色差传到显示，保留 `RGBA16F` 精度对照。[显示混色设计与离线灯带对照](rendering/temporal-reconstruction.md#亚像素灯带的显示混色)
 
 首版重建用的 Shadesmith tile 统一按输出分辨率分配。渲染分辨率的数据只读写 tile 内的有效区域，邻域采样和过滤也以有效区域为界。输出分辨率的颜色历史使用完整 tile，跨帧轮换。优先复用已有的同格式图集，减少物理 custom image 声明；沿用原型时，重建深度可接入现有 `R32UI` 图集，颜色历史可接入 `RGBA16F` 图集。
 
