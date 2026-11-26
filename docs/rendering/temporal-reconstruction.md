@@ -56,6 +56,20 @@
 
 **比较口径。** 对每种算法重放同一段帧序列，固定几何动画、相机、抖动、曝光、DRT 与锐化。原生 1080p 和 720p 输入到 1080p 分别比较；先看重建输出，再看同设置最终画面。用相同场景时刻的高采样参考核对栅栏的可见覆盖率和高光亮度，再逐帧记录遮挡解除后的残影消退帧数、静态区域亮度波动与运动中的细节。另列整条重建链的 GPU 毫秒、图集显存和物理 image 数。在 Iris 1.10.4 上核对原生、超分两种模式及法线贴图开关。以上为实验设计，方案优劣待同段实测。
 
+## 斜视纹理与摩尔纹
+
+斜看木板时，一个输出像素在贴图上盖住一块狭长区域。2.1 的地形底色把两个 UV 导数都乘以 0.25，常规 mip 选择相对原导数偏细约两级。alpha 裁切走单独的采样。设渲染宽与输出宽之比为 `r`，XeSS 的建议附加 mip 偏置为 `log2(r)`，FSR 3.1 为 `log2(r) − 1`。720p 到 1080p 时分别约为 −0.58 和 −1.58。AP 的 FSR 原型按每轴 `0.5 × 渲染尺寸 / 输出尺寸` 缩放导数，已经体现后者。比较时同时看沿足迹长轴的过滤能否压住假宽带，以及板缝和粗木纹能否保住。[2.1 底色采样](../../shaders/pass/geometry/GBufferSolid.frag.glsl#L79-L87) · [原型的导数](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/util/RenderScale.glsl#L88-L97) · [Intel XeSS](https://www.intel.com/content/www/us/en/developer/articles/technical/xess-sr-developer-guide.html) · [AMD FSR](https://gpuopen.com/manuals/fidelityfx_sdk/techniques/super-resolution-upscaler/) · [OpenGL 各向异性过滤](https://registry.khronos.org/OpenGL/extensions/EXT/EXT_texture_filter_anisotropic.txt)
+
+不同抖动相位能补出输出尺寸可分辨的木纹，周期墙纹的离线实验在匹配的带限预测下验证了这一点。再看更密的纹理。用输出像素为单位量位置 `x`，正弦纹 `0.5 + 0.4 cos(2πx)` 在每个输出像素内的面积均值都是 0.5。1.5× 时，在 `x = 0, 1.5, 3, …` 取输入样本会交替读到 0.9 和 0.1，再抖动半个输出像素，两者对调。几何和运动可以完全正确，这些点也不能单独证明假条带值得保留。[周期墙纹的离线对照](#相位预测的离线对照)
+
+TSR 监测亮度振荡并在振幅范围内放宽历史拒绝，滚动贴图可由材质标记退出。FSR 3.1 原型在历史积累充分时将当前亮度和四个旧值比较，看当前值是否又接近较早的值，再随运动、遮挡和着色变化减弱保护。AP 首轮用现有相位校正、历史可信度和材质过滤，固定同一斜视角度和曝光，对照静止木板、慢横移木板和同深度滚动纹理。若前两组在正确采样足迹下仍有周期闪烁，再在同一历史更新里试亮度振荡判据，同时检查第三组会不会留下拖影。稳定的假宽带要回到材质采样足迹验证。[Epic TSR](https://dev.epicgames.com/documentation/en-us/unreal-engine/temporal-super-resolution-in-unreal-engine#tsrflickeringtemporalanalysis) · [FSR 原型的亮度不稳定检测](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/techniques/ffx/fsr3upscaler/ffx_fsr3upscaler_luma_instability.glsl#L28-L109)
+
+## 实体、粒子与第一人称手部运动
+
+目标 Iris 1.10.4 的 shaderpack 接口缺少普通实体和粒子的逐物体运动矢量。原型对进入不透明 G-buffer 的这类像素使用相机重投影和已有的降权标记。水面反射和折射沿用半透明路径的命中与视差对照。[Iris 实体顶点格式](https://github.com/IrisShaders/Iris/blob/6c8a01cb6862fe35263d6a75ca238b79e6ca9c16/common/src/main/java/net/irisshaders/iris/vertices/IrisVertexFormats.java#L49-L61) · [原型的运动数据](https://github.com/Luna5ama/Alpha-Piscium/blob/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b/shaders/techniques/ffx/fsr3upscaler/README.md#L124-L131) · [半透明路径](water-translucency.md#volumetrics-and-final-composition)
+
+第一人称按每只手及其持物共同做刚体运动来试。可在实心和透明手部顶点阶段用已有 SSBO 容纳前后帧可对应的三维位置，每手至少三点且不共线。后续 pass 拟合从当前手部视空间到前一帧手部视空间的刚体变换，用各帧的手部投影求去抖动的屏幕速度。实现先验证每个锚点和待重投影像素的手别。AP 当前只记 `isHand`，Iris 的实心、透明手部阶段按材质分组。双持同种物品要验证两侧能正确配对，挥手要验证拟合误差。换物、缺点或不符合刚体假设时，清除该手的拟合并沿用现有手部重投影和降权。[AP 的手部标记](../../shaders/pass/geometry/GBufferSolid.frag.glsl#L169-L175) · [Iris 手部投影及绘制阶段](https://github.com/IrisShaders/Iris/blob/6c8a01cb6862fe35263d6a75ca238b79e6ca9c16/common/src/main/java/net/irisshaders/iris/pathways/HandRenderer.java#L52-L157)
+
 ## 历史重投影的边缘清晰度
 
 原生 TAA 和超分都要减少有效历史连续重投影时的累积模糊。即使运动向量完全正确，连续半像素平移也会反复插值已经平均过的颜色，使普通物体轮廓、同一平面上的贴图或颜色分界逐帧变软。历史读取应能在 pixel lock 关闭时保住这些边缘的对比度。遮挡解除、运动或着色已经失配的部分仍按历史失效处理。
@@ -122,5 +136,7 @@ FSR 3.1 原型把当前帧的抖动位置计入采样距离，用 Lanczos 权重
 历史更新分别估计像素平均亮度与跨边对比度的可信度。在本帧真实抖动落点，用对应表面的原始观测减去历史预测，取裁剪、混合之前的残差。若能分清一条边的两侧，令亮侧的面积比例为 `c`，两侧残差为 `r亮`、`r暗`。固定轮廓与覆盖时，观测给出的像素均值残差为 `c·r亮 + (1−c)·r暗`，跨边对比度残差为 `r亮 − r暗`，各按已有证据决定写入量。只命中一侧时可以更新那一侧的估计，另一侧仍缺证据。覆盖率本身不可靠时，保留这项不确定性。用清晰和已变软的两份历史预测同一批新样本，分别核对亮度、对比度与漏采侧的恢复。
 
 将重投影定位误差计入历史预测。在同一表面局部平滑的区域，亮度梯度在位置误差方向上的分量决定错位会引入多大色差。沿直板缝小幅错位对预测影响较小，横穿板缝则更明显。深度和可见性已证实表面更换时当帧丢弃旧历史。材质能确认灯已熄灭时可立即刷新亮度，形状仍可有效。
+
+同深度纹样移动、消失及灯条熄灭的刷新判据由实现实验选择。从相同清晰历史开始，固定抖动和本帧估色器，比较旧位置残留降至参考幅度 5% 并持续低于该值的帧数，同时检查静止细纹的对比度和单帧 GI 离群值造成的误刷新。使用[相位预测的离线对照](#相位预测的离线对照)中的普通颜色累积作基线。
 
 **持续变化的检测候选。** 在明暗两侧各取得一次观测后，可分别对两侧残差的和、差做带限幅的双向累积和检测（CUSUM），并与两次连续同向超阈值的简化办法对照。以 `99fde776` 设计为起点的离线算例固定历史预测、每帧交替采一侧，每段 24 帧。用 5 万段独立噪声将每种方法的整段误报率校准至约 1%，另用 2.5 万段测试。每段插入一次 10 倍噪声标准差的亮点时，两次同向判据和 CUSUM 的整段误报率分别为 6.4% 与 3.9%。两侧持续变暗 0.75 倍标准差时，在 24 帧内首先正确检出亮度下降的比例分别为 16.9% 与 69.6%。改用一阶相关系数 0.75 的噪声，沿用原阈值，静态输入的 CUSUM 整段误报率升至 35.9%。这些数值描述检测器，在 AP 上还须测实际残差的时间相关、恢复延迟与拖尾。本机从主检出的 `.tmp/taa-sr-design/20261125-history-confidence/` 运行 `python probe.py` 可复现 `results.json`。[CUSUM 方法](https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc323.htm)

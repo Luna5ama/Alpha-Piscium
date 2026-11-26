@@ -43,7 +43,7 @@ for performance.
 
 **同一屏幕像素上的两层叶片。** 在 `d2c4aed21` 所用的 128×128 R8 蓝噪声第 0 层上，取 `LOD=1`、`alphaTestRef=0.5`、过滤后 `alpha=0.5625`。按 shader 的阈值计算，一层通过 8194/16384 个位置。叠上参数相同的第二层，两层查询相同的屏幕坐标，合起来仍覆盖这 8194 个位置。若两层孔洞相互独立，同样单层覆盖率的期望联合覆盖约为 75%。这个算例检验阈值相关性，真实树冠的疏密以参考画面为准。[噪声读取](../../shaders/util/Rand.glsl#L21-L23) · [纹理与格式](../../scripts/shaders.properties#L38)
 
-**改进候选。** 首先保留单层阈值曲线，只比较随机阈值挂在哪个坐标上。候选使用叶片的局部坐标或贴图坐标，给不同方块、叶面各自一个稳定的种子。噪声网格随像素覆盖的纹理范围选尺度，跨尺度过渡时保持阈值分布。用一层叶面、多层错开的叶面和能看见天空的树冠核对单层疏密、层间孔洞及慢移时图案是否贴着叶面。若单层覆盖率本身已随 mip 偏离参考，再比较保覆盖率的 alpha mip 或阈值校准。[Wyman 与 McGuire 的 Hashed Alpha Testing](https://research.nvidia.com/labs/rtr/publication/wyman2017hashed/) · [Castaño 的 alpha mip 覆盖率校准](https://www.the-witness.net/news/2010/09/computing-alpha-mipmaps/)
+**实现对照。** 保留现有单层阈值曲线，以屏幕空间蓝噪声为基线，先试叶片局部坐标或贴图坐标上的稳定种子，让不同方块、叶面各自取样。噪声网格随像素覆盖的纹理范围选尺度，跨尺度过渡时保持阈值分布。实现时用一层叶面、多层错开的叶面和能看见天空的树冠核对单层疏密、层间孔洞及慢移时图案是否贴着叶面，按已定画面目标选取。若单层覆盖率本身已随 mip 偏离参考，再比较保覆盖率的 alpha mip 或阈值校准。[Wyman 与 McGuire 的 Hashed Alpha Testing](https://research.nvidia.com/labs/rtr/publication/wyman2017hashed/) · [Castaño 的 alpha mip 覆盖率校准](https://www.the-witness.net/news/2010/09/computing-alpha-mipmaps/)
 
 ## Main frame resources
 
