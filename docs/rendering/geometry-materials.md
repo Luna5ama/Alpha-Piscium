@@ -91,3 +91,13 @@ Material settings live in the Terrain screens of [`scripts/options.main.kts`](..
 - Test block, entity, held-item, and distant paths after [`block.properties`](../../shaders/block.properties)/[
   `item.properties`](../../shaders/item.properties) mapping changes.
 - Validate vanilla terrain, modded smooth normals, and LabPBR normal maps after TBN packing changes.
+
+## Whole-block biome tint for 2.0 voxel GI
+
+At pack revision `140ddfa8`, generated with Shadesmith `2fbd19f`, initial GI and the radiance cache multiply the voxel atlas RGB by the same terrain-vertex tint before material decoding. This also colours a grass block's dirt sides. The mesh already supplies this colour to visible terrain. Group 0 is neutral. Grass, biome foliage, spruce, birch and dry foliage have separate histories. Palette estimates are local to the observed geometry, so biome boundaries can produce a mixture.
+
+The 1.10.4 Iris diagnostic at 1280 × 720 followed a grass dirt-side texel through both biome settings. The source RGB was (0.7255, 0.5216, 0.3608). Initial GI received (0.4125, 0.3866, 0.1259) on plains and (0.4097, 0.2639, 0.1089) on badlands. The RC and initial-sample readbacks also confirmed foliage multiplication and neutral stone. The sampled visible G-buffer colours matched the baseline byte for byte in both frame phases. Across 748 reduction dispatches the largest colour error against the direct-seed and 0.9/0.1 update was below 9e-8. An empty Nether palette returned white and reseeded after returning to the Overworld.
+
+Regenerate the 2.0 material inputs with Minecraft 26.2 in a staging directory. Check block IDs, quad data and the two unchanged LUTs before taking the material flags. The branch owns additional optimizations in its production model tracer. The matched product timing and same-world empty-observation check are tracked in the same run.
+
+<!-- vela:evidence {"run":"12381471-b0c9-4a36-9a0b-8a8e945a6899","path":"verified.md"} -->
