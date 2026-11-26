@@ -196,7 +196,7 @@ int gi_traceWide(vec3 p, vec3 d, vec2 segment, bool requireCoverage, out float t
             // A magnified wide pixel can straddle a lamp and the empty cell next
             // to it. Intersect the sampled block model before admitting emission.
             if (code >= 65536u && floatBitsToUint(sampleData.w) != 0x00800000u) {
-                vec3 sampledView = gi_unprojectSurface(pixel, sampleData.x, global_giWideInvProj, vec2(0.0));
+                vec3 sampledView = gi_unprojectSurface(pixel, sampleData.x, global_giWideInvProj, 0.5 * global_giWideJitter);
                 vec3 sampled = vec3(global_giWideEyeInt - global_giModelOrigin) + global_giWideEyeFract
                     + transpose(mat3(global_giWideView)) * (sampledView - global_giWideView[3].xyz);
                 uint source = (code - 65536u) >> 3u;
@@ -239,7 +239,7 @@ int gi_traceTerrainProjections(vec3 p, vec3 d, vec2 segment, bool requireCoverag
                 vec3 eye = vec3(cameraPositionInt - global_giModelOrigin) + cameraPositionFract;
                 vec3 local = eye + (gbufferModelViewInverse * vec4(p, 1.0)).xyz;
                 vec3 dir = coords_dir_viewToWorld(d);
-                vec3 sampledView = gi_unprojectSurface(pixel, z, global_camProjInverse, vec2(0.0));
+                vec3 sampledView = gi_unprojectSurface(pixel, z, global_camProjInverse, 0.5 * uval_taaJitterUV);
                 vec3 sampled = eye + (gbufferModelViewInverse * vec4(sampledView, 1.0)).xyz;
                 vec3 n = voxy_faceWorldNormal(bitfieldExtract(raw.y, 24, 3));
                 ivec3 endpoint = ivec3(floor(fma(dir, vec3(t), local) - n * 0.0625));
