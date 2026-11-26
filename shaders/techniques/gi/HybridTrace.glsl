@@ -260,32 +260,35 @@ int gi_traceTerrainProjections(vec3 p, vec3 d, vec2 segment, bool requireCoverag
 int gi_traceTerrain(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
                     out float t, out ivec2 pixel, out bool retained) {
     #if defined(VOXY) && defined(GI_RETAINED_PROJECTION) && defined(RESTIR_INITIAL_CANDIDATE_WRITE) && SETTING_PBR_MATERIAL == 0
+    bool hasSource = false;
+    uint emission;
+    vec3 normal;
+    float sourceT;
     if (!requireCoverage && global_giLightEpoch == global_giModelEpoch) {
         vec3 eye = vec3(cameraPositionInt - global_giModelOrigin) + cameraPositionFract;
         vec3 local = eye + (gbufferModelViewInverse * vec4(p, 1.0)).xyz;
         vec3 dir = coords_dir_viewToWorld(d);
         ivec3 source;
-        uint emission;
-        vec3 n;
-        float sourceT;
-        if (gi_observedSource(local, dir, segment, source, sourceT, n, emission)
-            && !gi_observedBlockOccludes(local, dir, sourceT, source)) {
-            // Leave the actual source surface out of its own finite visibility interval.
-            float before = max(segment.x, sourceT - max(0.0001, 8e-6 * sourceT));
-            int status = gi_traceTerrainProjections(p, d, vec2(segment.x, before), true, t, pixel, retained);
-            if (status == GI_SCREEN_CLEAR) {
-                t = sourceT;
-                pixel = ivec2(-2);
-                retained = true;
-                gi_retainedContactNormal = n;
-                gi_localEmission = emission;
-                return GI_SCREEN_HIT;
-            }
-            if (status == GI_SCREEN_HIT) return status;
+        hasSource = gi_observedSource(local, dir, segment, source, sourceT, normal, emission)
+                 && !gi_observedBlockOccludes(local, dir, sourceT, source);
+        if (hasSource) {
+            segment.y = max(segment.x, sourceT - max(0.0001, 8e-6 * sourceT));
+            requireCoverage = true;
         }
     }
     #endif
-    return gi_traceTerrainProjections(p, d, segment, requireCoverage, t, pixel, retained);
+    int status = gi_traceTerrainProjections(p, d, segment, requireCoverage, t, pixel, retained);
+    #if defined(VOXY) && defined(GI_RETAINED_PROJECTION) && defined(RESTIR_INITIAL_CANDIDATE_WRITE) && SETTING_PBR_MATERIAL == 0
+    if (hasSource && status == GI_SCREEN_CLEAR) {
+        t = sourceT;
+        pixel = ivec2(-2);
+        retained = true;
+        gi_retainedContactNormal = normal;
+        gi_localEmission = emission;
+        return GI_SCREEN_HIT;
+    }
+    #endif
+    return status;
 }
 
 #endif
