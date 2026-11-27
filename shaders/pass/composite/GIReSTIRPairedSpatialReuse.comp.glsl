@@ -25,7 +25,6 @@ layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 
-/*const*/
 #if PASS_INDEX == 0
 #define REUSETEX usam_restirReuseTex0
 #elif PASS_INDEX == 1
@@ -43,7 +42,6 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 #else
 #define REUSETEX usam_restirReuseTex7
 #endif
-/*const*/
 
 bool restir_updateReservoirM(inout float reservoirM, inout float wSum, float wi, float m, float rand, out bool selected) {
     selected = false;
@@ -156,9 +154,7 @@ uint randSeed
     metaDST.numValidNeighbors += 1u;
 
     if (srcToDstTargetPHat > 0.0) {
-        /*const*/
         float neighborRand = restir_updateRand(texelDST, randSeed + PASS_BASE_SAMPLE_INDEX);
-        /*const*/
 
         float MiPiRiY = canonMSRC * sampleValueWSRC;
         float weightedTargetPHat = srcToDstTargetPHat
@@ -330,13 +326,11 @@ void main() {
 
     ivec2 tileId = ivec2(globalPos >> RESTIR_REUSE_TILE_BITS);
     ivec2 tileOrigin = tileId * RESTIR_REUSE_TILE_SIZE;
-    /*const*/
     uvec2 localAnchorData = texelFetch(REUSETEX, localFetchPos, 0).xy;
     ivec2 localAnchor = ivec2(int(localAnchorData.x), int(localAnchorData.y));
     localFetchPos.x += int(groupLane);
     uvec2 localMeData = texelFetch(REUSETEX, localFetchPos, 0).xy;
     ivec2 localMe = restir_reuseUnwrapLocal(localAnchor, ivec2(int(localMeData.x), int(localMeData.y)));
-    /*const*/
     localMe += uval_restirSpatialTileOffset;
 
     ivec2 texelMe = tileOrigin + localMe;
