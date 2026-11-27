@@ -4,6 +4,24 @@ Daily development only needs the program list, options, Shadesmith, and ZIP scri
 in [workflows](generators.md). This page keeps the remaining offline tools out of the normal shader-edit loop. Run
 Kotlin commands from [`scripts/`](../../scripts/).
 
+<a id="packaged-cpu-replay"></a>
+
+## 复验 2.1 发行 ZIP 的手持和树叶回归
+
+对 `ae142c4e` 的普通发行包使用带资源别名的 CPU 工具 `84b2de0e`。Shadesmith 已把手部深度和标记改写为 `colortex10` 和 `colortex9`。共用工具 `11ab12cf` 能沿实际 pass 入口追到改名的源码，但用它测这份发行包时，手持用例会因 `colortex10` 未绑定而报未测。经验证的 ZIP 的 SHA-256 为 `f667cb8397b8b17c368f1435692ef874abb0e162971c0a95fcd24e74ac02bfab`。
+
+在维护机可从下列位置复跑。新候选换入实际交付的 ZIP，保留程序回报的包摘要、渲染器与逐例状态。
+
+```powershell
+$ap = 'I:/code/mcshaders/Alpha-Piscium'
+$run = Join-Path $ap 'builds/rebase-21-on-20-20261127'
+$cases = Join-Path $ap '.vela/local/runs/1f026978-4f54-40c6-9de3-693a1e8e7572/dist/cases'
+$out = Join-Path ([IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString())
+& "$run/runner-target/release/ap-cpu-regression.exe" 'I:/mesa/mesa3d-25.3.0-release-msvc/x64' "$run/AP-2.1-ae142c4e.zip" $out "$cases/hand.json" "$cases/leaf.json"
+```
+
+两项在 Windows Mesa 25.3.0 llvmpipe 上均通过。海晶灯和火把从泥土切换后，相对各自持物重载的亮度偏差为 0.068% 和 0.083%。树叶用例复算已录轨迹的光照分量。原运行的 `release-identity.json`、`release-cpu/result.json` 和 `release-native/result.json` 分别记录成品身份、CPU 读数与 Iris 实机回执，均在上述 `$run` 目录。
+
 ## Release
 
 ### [`release.main.kts`](../../scripts/release.main.kts)
