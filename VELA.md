@@ -158,6 +158,6 @@
 
 ### 2.1 原生 TAA 与超分
 
-项目功能 `fsr` 从设计转入实施，交原项目协调者安排。先复用已有捕获建立同一段静止、横移、停稳的基线，再按已确认的设计接续统一重建与输出锐化。在 Iris 1.10.4 核对画质、资源与 GPU 耗时，验收目标为 `2.1/dev`。[冻结的实施范围与验收](https://github.com/Luna5ama/Alpha-Piscium/blob/31401bc48de915e9edc6fa112f2900c86c234ff2/docs/rendering/post-processing.md#21-原生-taa-与超分实施) · [2.1 设计修订](https://github.com/Luna5ama/Alpha-Piscium/blob/22226662bb94683df4ef5fb864280b966905b413/docs/rendering/temporal-reconstruction.md)
+原 AP-13 负责人以 `cf64fa21` 的叶片遮光为基线，继续修复两档静止竹秆闪烁与运动时的输入网格闪烁。常规画质与配对 GPU 耗时使用默认 Vibris，资源兼容沿用 Iris 1.10.4 条件。原协调者接收试用包，用户复看后决定合入 `2.1/dev`。[冻结的实施范围与验收](https://github.com/Luna5ama/Alpha-Piscium/blob/fe741505e9703dfeff47b02a6002411eb21a5c08/docs/rendering/post-processing.md#21-原生-taa-与超分实施) · [2.1 设计修订](https://github.com/Luna5ama/Alpha-Piscium/blob/bc55df8f895f10ca11c6a5772f550c43416b20af/docs/rendering/temporal-reconstruction.md#ap-13-运动置信度与亚像素覆盖)
 
-<!-- vela:ready {"item":"temporal-reconstruction-2-1","rev":"31401bc48de915e9edc6fa112f2900c86c234ff2","spec":"docs/rendering/post-processing.md","after":[]} -->
+<!-- vela:ready {"item":"temporal-reconstruction-2-1","rev":"fe741505e9703dfeff47b02a6002411eb21a5c08","spec":"docs/rendering/post-processing.md","after":[]} -->
