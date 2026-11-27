@@ -47,6 +47,10 @@ changing the sampling sequence requires updating reprojection conventions as wel
 
 ### 2.1 原生 TAA 与超分实施
 
+**AP-13 本轮交付。** 接续原工作项 `temporal-reconstruction-2-1@31401bc48` 和候选 `cf64fa21`。用户确认叶片遮光，并已授权原时域负责人在 AP-13 实施[逐像素历史置信度、相位命中预测与显露后的重建](https://github.com/Luna5ama/Alpha-Piscium/blob/bc55df8f895f10ca11c6a5772f550c43416b20af/docs/rendering/temporal-reconstruction.md#ap-13-运动置信度与亚像素覆盖)。复用运行 `88e1f7d4-b31e-4811-8e5f-f82a2487edf4` 的同输入 FSR3、普通候选和高采样参考。交付 1×／0.5× 远竹与移动叶缘的新候选、实速片和配对耗时。以用户在原 2.1 设计会话复看为 shader 合入条件。
+
+**首轮范围与基线。**
+
 实施目标是 `2.1/dev` 的统一时域重建器。原生和降分辨率共用当前帧空间重建、真实抖动相位校正与历史更新。按已确认的规格接入覆盖率与位置矩、双色边缘的显示混色，以及使用重建信息的输出锐化。由重建写入未锐化的历史，撤下新管线末端的 FXAA 兜底。具体空间核、相位缓存和 RCAS 改法由同输入对照选择。[已确认的 2.1 设计](https://github.com/Luna5ama/Alpha-Piscium/blob/22226662bb94683df4ef5fb864280b966905b413/docs/rendering/temporal-reconstruction.md)
 
 首个检查点复用已有捕获，对齐同一段静止、缓慢横移、停稳的轨迹、曝光和抖动。以现行 AP 原生 TAA 与 `2.0/fsr3@b72a8b5fd` 为基线，逐帧定位 GI 降噪前后、重建和锐化后的残留亮点，同时跟踪真实小高光。核对普通静止表面的颜色 AABB，以及粗糙玻璃在没有透明层专用遮罩时的最终历史。用这些画面接续原生与超分实现，两档沿用同一条验收轨迹。已有捕获与离线实现可先行，实机沿项目现有顺序预约。[基线与实景验收](https://github.com/Luna5ama/Alpha-Piscium/blob/22226662bb94683df4ef5fb864280b966905b413/docs/rendering/temporal-reconstruction.md#参考实现与实景验收) · [FSR 原型](https://github.com/Luna5ama/Alpha-Piscium/tree/b72a8b5fddeb2e52ea20a2c36eb16e0c30b0661b) · [透明遮罩修订](https://github.com/Luna5ama/Alpha-Piscium/commit/649eaa67287b9631d4411ec4cf4a1d8cd25b142c)
