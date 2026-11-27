@@ -4,6 +4,24 @@ Daily development only needs the program list, options, Shadesmith, and ZIP scri
 in [workflows](generators.md). This page keeps the remaining offline tools out of the normal shader-edit loop. Run
 Kotlin commands from [`scripts/`](../../scripts/).
 
+<a id="cpu-regression"></a>
+
+## 候选包的 CPU 回归测试
+
+首版交付一个 Windows 原生 Rust 程序，直接读取候选 shader pack ZIP，在 CPU 上批量测试。每批打开一次包，按需创建并复用软件渲染设备。通过包里的生产函数或实际 pass 入口执行 GLSL。资源绑定、历史状态、读回与数值判定由 Rust 负责。固定输入用数据文件表达，用例脚本只声明场景、镜头、时间、玩家动作和取样帧。同类报告沿用原用例，按需要增加物品、镜位或参数。
+
+实景用例保存原轨迹和候选重算所需的渲染输入，极小合成场景允许自由控制镜头。客观错误给出失败的输入、实测值和预期。观感问题产出候选与参照的同帧片段，由 agent 先比较变化和应当保留的表现，最终视觉接受由用户决定。缺少输入、动作未触发或后端无法执行时，标明该项未测及原因。需要补采原场景时使用共享 `1.21.11-Vibris`，记录实载包、Iris、场景和设置。
+
+首批用以下两个已验证的版本对验收。
+
+- **2.1 手持发光物换槽。** 用 `22226662` 复现手部像素沿用上一占用者的有效标记，用 `ea38f3bc` 验证手部旧值失效，保留普通表面作对照。海晶灯和火把是同一用例的两组输入。原场景在固定曝光下核实实际持物，比较从泥土切槽与持同一物品重载后的手部亮度。[原始读回与换槽判据](https://github.com/Luna5ama/Alpha-Piscium/blob/e814671a18c9edc22b8280eb366f21788f72943d/docs/rendering/geometry-materials.md#rerun-on-native-21)
+- **2.0 树叶转头。** 用 `dfc4bb3d` 复现切线两侧反射权重突变，用 `1c485d48` 验证稳定性，并用正常受光角确认高光得以保留。极小场景可用一片叶面和一个光源。沿 `Dump Forest` 已录的转头、停稳、反向轨迹比较同一叶面，保留可定位到帧的画面对照。原始证据在运行 `4605290f-70c4-4d6c-82fb-8c3bd133cfc8` 的 `fixed-leaves.json` 和 `before-after-vibris.mp4`。
+
+验收从原生程序的正常入口读入两个版本对的候选 ZIP，确认坏版失败、修复版通过，并给出复跑命令、包身份、实际 CPU 后端和从冷启动读包到整批出结果的墙钟耗时。实现者按生产 GLSL 兼容性和端到端开销选择软件后端。前期 llvmpipe 探针用两个像素和三个入射方向区分了两组好坏版本。六次局部编译、执行和读回合计约 0.21 秒，原型从 Windows 经 WSL 跑完约 32.3 秒。原生 Rust 入口的耗时留给首版实测。探针记录在主检出 `builds/cpu-regression-probe-20261126/result.json`。
+
+<!-- vela:evidence {"run":"798cb6ab-91d5-4500-8ba4-440837b00837","path":"held-emitter-regression.zip"} -->
+<!-- vela:evidence {"run":"4605290f-70c4-4d6c-82fb-8c3bd133cfc8","path":"leaf-runtime-evidence.zip"} -->
+
 ## Release
 
 ### [`release.main.kts`](../../scripts/release.main.kts)

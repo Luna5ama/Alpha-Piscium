@@ -10,6 +10,7 @@
 | 生成选项、资源绑定或测试 ZIP 时，从哪里运行脚本？ | [生成与打包](development/generators.md) |
 | 入口 shader、共享实现和资源声明放在哪里？ | [代码与资源布局](development/project-structure.md) |
 | 怎样生成离线纹理、验证云散射、拟合 Bloom 或执行发布？ | [离线工具与发布](development/offline-tools.md) |
+| 怎样在 CPU 上检查候选 ZIP 并重放已报告的渲染问题？ | [候选包的 CPU 回归测试](development/offline-tools.md#cpu-regression) |
 | 实机任务怎样按需启动 Vibris 专用实例？ | [启动与连接](development/vibris-startup.md) |
 
 ## 理解渲染依赖和取舍
