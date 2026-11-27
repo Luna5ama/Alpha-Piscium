@@ -13,6 +13,7 @@ struct HardcodedPBR {
     int emissiveMultiplier;
     bool isFullCube;
     bool isSmallFoliage;
+    uint tintIndex;
     bool isKnown;
 };
 
@@ -37,6 +38,7 @@ HardcodedPBR hardcodedpbr_decode(uint materialID) {
     pbr.emissiveMultiplier = temp | (0 - (temp & 0x8));
     pbr.isFullCube = bitfieldExtract(flagData, 4, 1) == 1u;
     pbr.isSmallFoliage = bitfieldExtract(flagData, 5, 1) == 1u;
+    pbr.tintIndex = bitfieldExtract(flagData, 6, 4);
     return pbr;
 }
 

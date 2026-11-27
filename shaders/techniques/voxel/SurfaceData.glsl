@@ -34,7 +34,9 @@ voxel_SurfaceData voxel_sampleVoxelSurface(VoxelHit hit, float lod) {
     speuclarData.a = emissiveS;
 
     GBufferData gData = gbufferData_init();
+    uint tint = hardcodedpbr_decode(hit.materialID).tintIndex;
     gData.albedo = albedoData.rgb;
+    if (tint != 0u) gData.albedo *= voxel_tintHistory[tint].rgb;
     gData.materialID = hit.materialID;
     gData.pbrSpecular = speuclarData;
     gData.geomNormal = hit.normal;

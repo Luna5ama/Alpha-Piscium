@@ -1,3 +1,7 @@
+#ifdef SHADOW_PASS_VOXELIZE
+#define GLOBAL_DATA_MODIFIER buffer
+#include "/util/Hash.glsl"
+#endif
 #include "/techniques/rtwsm/RTWSM.glsl"
 #include "/util/Fresnel.glsl"
 #define VOXEL_BRICK_DATA_MODIFIER buffer
@@ -79,6 +83,22 @@ void main() {
         // scenePos is camera-relative; add camera's integer + fractional parts.
         ivec3 blockWorldPos = ivec3(floor(scenePos.xyz + cameraPositionFract + at_midBlock.xyz / 64.0))
         + cameraPositionInt;
+
+        uint tint = hardcoded.tintIndex;
+        // Dirt sides and untinted overlay quads must not seed the grass colour.
+        bool grassTop = worldNormal.y > 0.99;
+        bool tintedGrassPart = hardcoded.isFullCube ? grassTop :
+            any(notEqual(gl_Color.rgb, gl_Color.gbr));
+        if (tint != 0u && (tint != 1u || tintedGrassPart)) {
+            uint face = voxel_faceIndexFromNormal(worldNormal);
+            uint hash = hash_xxhash32_41_multibyte(uvec4(blockWorldPos, uint(frameCounter) * 6u + face));
+            if ((hash & 7u) == 0u) {
+                uint bucket = (hash >> 3u) & 7u;
+                uint priority = max(hash >> 24u, 1u);
+                uint sampleRGB = packUnorm4x8(vec4(gl_Color.rgb, 0.0));
+                atomicMax(voxel_tintSamples[tint][bucket], (priority << 24u) | sampleRGB);
+            }
+        }
 
         // Brick grid coordinate centered on the camera's brick
         ivec3 cameraBrickCoord = cameraPositionInt >> 4;
