@@ -51,7 +51,7 @@ Skibidi DRT 沿用自身的色域压缩，选项只设置目标色域。压缩�
 | --- | --- |
 | 1.10 | 已完成陡峭与平滑视差映射、视差阴影和 GI，以及调色功能扩充。 |
 | 1.10.x | 修复同一资源包混用不同纹理分辨率时的视差映射。 |
-| 2.0 | 方块体素化和不透明表面世界空间 GI。开发分支已接入旧 Iris 绑定和屏幕空间混合 GI。本地版本还支持草与树叶的[整块体素群系染色](rendering/geometry-materials.md#whole-block-biome-tint-for-20-voxel-gi)。 |
+| 2.0 | 方块体素化和不透明表面世界空间 GI。开发分支已接入旧 Iris 绑定、屏幕空间混合 GI 和草与树叶的[整块体素群系染色](rendering/geometry-materials.md#whole-block-biome-tint-for-20-voxel-gi)。 |
 | 2.0.x | 优化 GI 管线，收回部分性能回退。 |
 | 2.1 | [曝光与 DRT](#21-曝光与-drt) 重构，默认使用 Skibidi DRT + 中性 Look。[统一原生 TAA 和超分辨率](#21-原生-taa-与超分辨率)，加入 DPF Bloom 和 [HDR Mod 输出](#hdr-mod-输出)。 |
 | 2.2 | 为世界空间 GI 加入镂空材质支持。 |
