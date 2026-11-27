@@ -12,10 +12,17 @@
 | [2.1 原生 TAA 与超分](https://github.com/Luna5ama/Alpha-Piscium/blob/2.1/dev/docs/rendering/temporal-reconstruction.md) | Alpha Piscium 2.1 设计会话，负责统一重建、显示混色与锐化 |
 | Skibidi DRT | `drt-bench` 的设计会话。移植到 shader pack 时，在此发布对应的集成规格 |
 | [仓库与文档结构](docs/repository-structure.md) | Alpha Piscium 仓库结构设计会话，负责文档、设计记录与实验材料的归属，以及与 Vela 工作流的衔接 |
+| [候选包的 CPU 回归测试](docs/development/offline-tools.md#cpu-regression) | Alpha Piscium 回归测试设计会话，负责执行范围、用例复用与验收条件 |
 
 本机的会话链接和协调入口见 `.vela/local/design-sessions.md`。
 
 ## 已发布修订
+
+### 候选包的原生 CPU 回归测试
+
+交付直接读取候选 ZIP 的原生 Rust 测试程序，支持已录实景轨迹和镜头可控的极小合成场景。用 2.1 手持换槽与 2.0 树叶转头的坏版和修复版验收，记录整批冷启动耗时。由 AP 协调者安排实现与接收。[首版范围、用例和验收](docs/development/offline-tools.md#cpu-regression)
+
+<!-- vela:ready {"item":"ap-cpu-regression","rev":"21dcd01ca4a1b7dedc9dee9a33e048fe1ad395cf","spec":"docs/development/offline-tools.md","after":[]} -->
 
 ### 2.0 屏幕空间与体素混合 GI
 
