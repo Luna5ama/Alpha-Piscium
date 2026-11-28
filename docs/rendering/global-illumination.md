@@ -7,6 +7,8 @@ live under [`shaders/techniques/gi/`](../../shaders/techniques/gi/) and entry po
 The [four-hour GI experiment](../experiments/2026-11-22-gi-continuous.md) records the voxel-tree, material lookup,
 denoising and temporal-reuse changes measured against `5ba8718d4`, including paired GPU timings and image comparisons.
 
+In `92599a42d`, the radiance-cache reader checks the traced voxel material after validating the cache entry and reservoir. Early misses skip the material fetch, and hits reuse the owner data already loaded while still rejecting mismatched materials. Across five scenes on an RTX 3080 Ti, the GI, probe, shared Hi-Z and terrain-shadow stages together saved 0.0161–0.0274 ms per frame on average per scene. Whole-frame savings remain undetermined. See the [paired timings, image checks and counterexamples](../experiments/2026-11-27-gi-cache-owner.md).
+
 ## Code map
 
 | Path | Responsibility |
