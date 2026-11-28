@@ -209,3 +209,9 @@ The GI profile settings of interest for the active passes are spatial reuse coun
 - The ratio-resolve producer in the paired passes, its read in spatial shading, and the trace-pass re-blend share the
   `transient_ssgiSpecOut` and provisional-record layouts and change together.
 - Validate convergence, camera motion, disocclusion, screen edges, and history reset after setting changes.
+
+## Measured tracing and voxel material changes, November 2026
+
+A viewport-margined Hi-Z test rejects fully separated screen segments before marching. Voxel hits reproject history on a radiance-cache miss. Hit shading skips zero-contribution sun and moon evaluations. The setup pass publishes the directional model header with the two packed bounds. The pre-shadow clear snapshots each face’s alpha threshold in the same material record, allowing the shadow producer to skip atomic maxima already covered by that bound.
+
+Against `8ce1cf34c`, packaged shaders from `fd0ff43c6` saved 0.174 ms in the basilica, 0.304 ms with non-cube geometry, 0.213 ms at night and 0.097 ms in the mirror room at 720p. These are per-frame GPU savings across the measured GI stages, shared Hi-Z, early global update and both terrain-shadow draws on an RTX 3080 Ti. The [four-hour tracing measurements](../experiments/2026-11-27-gi-tracing-4h.md) include pass costs, full-package comparisons, per-ray validation and motion captures.
