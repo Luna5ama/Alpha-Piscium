@@ -133,7 +133,7 @@ void main() {
             }
         }
 
-        if (materialID != 0u) {
+        if (lookupMaterial != 0u) {
             uint faceIdx = voxel_faceIndexFromNormal(worldNormal);
             uint index = voxel_faceTexcoordIndex(materialID, faceIdx);
             #ifdef SHADOW_PASS_ALPHA_TEST
