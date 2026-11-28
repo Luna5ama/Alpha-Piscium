@@ -116,13 +116,8 @@ vec3 gi_secondaryIndirect(vec3 V, vec3 worldPos, vec3 N, vec3 geomN, uint voxelM
     #if SETTING_GI_USE_REFERENCE != 2
     #ifdef SETTING_RC_ENABLE
     if (voxelMaterialID != 0u) {
-        uint level = rc_selectLevel(worldPos);
-        vec3 face = rc_faceNormal(rc_dominantFaceId(geomN));
-        vec3 ownerPos = worldPos - face * ldexp(1e-3, int(level));
-        if (voxel_getMaterialID(ivec3(floor(ownerPos))) == voxelMaterialID) {
-            RCLookupResult rc = rc_lookupDiffuseGI(V, worldPos, N, geomN, voxelMaterialID, tracedFace, material);
-            if (rc.weight > 0.0 && restir_initialSample_isFinite(rc.radiance)) return rc.radiance;
-        }
+        RCLookupResult rc = rc_lookupDiffuseGI(V, worldPos, N, geomN, voxelMaterialID, tracedFace, material);
+        if (rc.weight > 0.0 && restir_initialSample_isFinite(rc.radiance)) return rc.radiance;
     }
     #endif
     if (screenPixel.x >= 0) {

@@ -79,6 +79,10 @@ void rc_lookupSampleFace(
     hit.hitPos = P;
     hit.normal = faceNormal;
     hit.materialID = voxel_getMaterialID(ivec3(floor(ownerP)));
+    if (tracedMaterial != RC_INVALID && hit.materialID != tracedMaterial) {
+        result.misses++;
+        return;
+    }
     Material material;
     if (hit.materialID == tracedMaterial && faceId == tracedFace) {
         material = tracedSurface;
