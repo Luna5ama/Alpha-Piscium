@@ -20,10 +20,13 @@
 #endif
 
 layout(std430, binding = 3) VOXEL_FACE_TEXCOORD_MODIFIER VoxelFaceTexcoordData {
-    // First half: packed UV bounds. Second half: sprite selection key, floatBitsToUint(alphaTestRef).
-    uvec2 voxel_faceTexcoords[VOXEL_FACE_TEXCOORD_COUNT * 2];
+    // Each face has packed UV bounds, a sprite selection key and the float bits of its alpha threshold.
+    uvec2 voxel_faceTexcoords[VOXEL_FACE_TEXCOORD_COUNT];
+    uint voxel_faceKeys[VOXEL_FACE_TEXCOORD_COUNT];
+    uint voxel_faceAlpha[VOXEL_FACE_TEXCOORD_COUNT];
     // Local model boxes for each direction octant. The top two bits of x select the split quarter (zero for one box).
-    uvec2 voxel_modelBounds[VOXEL_FACE_TEXCOORD_MATERIALS * 8];
+    // z is the directional block-model header. The first six w lanes cache the pre-shadow face alpha bits.
+    uvec4 voxel_modelBounds[VOXEL_FACE_TEXCOORD_MATERIALS * 8];
 };
 
 // Flat index into voxel_faceTexcoords[].

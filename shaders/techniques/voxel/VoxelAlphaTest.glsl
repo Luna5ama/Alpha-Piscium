@@ -5,9 +5,14 @@
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 #include "/techniques/voxel/BlockModels.glsl"
 
+uint voxel_directionalModel(uint material, ivec3 directionSign) {
+    uint octant = uint(-(directionSign.x + 2 * directionSign.y + 4 * directionSign.z));
+    return voxel_modelBounds[material * 8u + octant].z;
+}
+
 float voxel_alphaTestThreshold(uint material, uint face) {
-    uint index = voxel_faceTexcoordIndex(material, face) + VOXEL_FACE_TEXCOORD_COUNT;
-    return uintBitsToFloat(voxel_faceTexcoords[index].y);
+    uint index = voxel_faceTexcoordIndex(material, face);
+    return uintBitsToFloat(voxel_faceAlpha[index]);
 }
 
 bool voxel_alphaTestFace(uint material, vec3 hitPos, uint face) {
@@ -88,7 +93,7 @@ bool voxel_clipModelQuadRange(uint material, vec3 blockRayDir, vec3 rayOrigin, v
 ) {
     uvec3 negative = uvec3(lessThan(blockRayDir, vec3(0.0)));
     uint octant = negative.x | (negative.y << 1u) | (negative.z << 2u);
-    uvec2 boxes = voxel_modelBounds[material * 8u + octant];
+    uvec2 boxes = voxel_modelBounds[material * 8u + octant].xy;
     bool skipLeft = voxel_missesModelBox(boxes.x, rayOrigin, inverseRayDir, minT, maxT);
     uint split = boxes.x >> 30u;
     if (split == 0u) return !skipLeft;

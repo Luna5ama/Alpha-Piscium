@@ -36,7 +36,7 @@ const uint VOXEL_UNALLOCATED = 0xFFFFFFFFu;
 //   [2*VOXEL_GRID_BRICKS+1 .. 2*VOXEL_GRID_BRICKS+NUM_DIST_BUCKETS] : per-bucket counts (allocator inter-pass)
 // ---------------------------------------------------------------------------
 layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
-    layout(offset = 2621440) uint voxel_brickAllocCounter;
+    layout(offset = 3670016) uint voxel_brickAllocCounter;
     uint voxel_brickOccupancy[VOXEL_GRID_BRICKS];
     uint voxel_brickAllocID[VOXEL_GRID_BRICKS];
     uint voxel_bucketCounts[NUM_DIST_BUCKETS];

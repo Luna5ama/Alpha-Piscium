@@ -68,6 +68,32 @@ int gi_traceScreen(vec3 p, vec3 d, vec2 segment, bool requireCoverage,
     vec2 stepDir = sign(delta.xy);
     int level = 0;
     int maxLevel = min(findMSB(min(uval_mainImageSizeI.x, uval_mainImageSizeI.y)), 12);
+    // The common ancestor bounds the solid depth of every cell the segment visits.
+    // A disjoint ray grows one level per step and clears this node before its step limit.
+    vec2 endXY = a.xy + delta.xy;
+    vec2 firstXY = min(a.xy, endXY);
+    vec2 lastXY = max(a.xy, endXY);
+    if (all(greaterThanEqual(firstXY, vec2(1.0))) &&
+        all(lessThan(lastXY, uval_mainImageSize - 1.0))) {
+        // Keep a margin for the forward ULP step and separately rounded raster endpoints.
+        vec2 pixelPad = max(vec2(0.001), 2.4e-7 * lastXY);
+        ivec2 lo = ivec2(floor(firstXY - pixelPad));
+        ivec2 hi = ivec2(floor(lastXY + pixelPad));
+        ivec2 difference = lo ^ hi;
+        int coverLevel = findMSB(uint(difference.x | difference.y)) + 1;
+        if (coverLevel <= maxLevel) {
+            ivec4 tile = global_hizTiles[coverLevel];
+            ivec2 cell = lo >> coverLevel;
+            if (all(lessThan(cell, tile.zw))) {
+                vec2 bounds = texelFetch(usam_hiz, tile.xy + cell, 0).ba;
+                vec2 rayZ = vec2(a.z, a.z + delta.z);
+                float pad = 1e-6 * max(1.0, max(abs(rayZ.x), abs(rayZ.y)));
+                if (max(rayZ.x, rayZ.y) < bounds.y - pad || min(rayZ.x, rayZ.y) > bounds.x + pad) {
+                    return GI_SCREEN_CLEAR;
+                }
+            }
+        }
+    }
     float u = 0.0;
     for (int stepIndex = 0; stepIndex < 128; ++stepIndex) {
         vec2 xy = fma(delta.xy, vec2(u), a.xy);

@@ -7,6 +7,9 @@
 #include "/techniques/voxel/Voxelization.glsl"
 
 #ifndef VOXEL_CLEAR_ALL
+#define VOXEL_FACE_TEXCOORD_MODIFIER buffer
+#include "/techniques/voxel/VoxelFaceTexcoords.glsl"
+
 layout(std430, binding = 8) restrict readonly buffer VoxelTreeData {
     uint previousTree[];
 };
@@ -25,6 +28,14 @@ void main() {
         voxel_materials_v4[index] = uvec4(0u);
     }
     #else
+    // The rotating face clear has completed. This lower bound stays valid through every shadow draw.
+    uint index = gl_GlobalInvocationID.x;
+    uint face = index & 7u;
+    if (index < VOXEL_FACE_TEXCOORD_MATERIALS * 8u && face < 6u) {
+        uint bound = voxel_faceAlpha[voxel_faceTexcoordIndex(index >> 3u, face)];
+        voxel_modelBounds[index].w = bound;
+    }
+
     uint clearCount = voxel_brickAllocCounter * 1024u;
     for (uint index = gl_GlobalInvocationID.x; index < clearCount; index += 262144u) {
         uint brick = voxel_allocatedBricks[index >> 10u];

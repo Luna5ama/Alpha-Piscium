@@ -121,8 +121,6 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
         // ---- Precompute DDA stepping ----
         ivec3 directionSign = floatBitsToInt(worldRayDir) >> 31;
         ivec3 boundOffsetMask = ~directionSign;
-        uint rayFaceMask = uint(42 + directionSign.x +
-            (directionSign.y << 2) + (directionSign.z << 4));
         vec3 tOrig = -posGrid * invDir;
         ivec3 stepDir = reuseDirectionSign ? (boundOffsetMask & 2) - 1 : ivec3(sign(worldRayDir));
         ivec3 stepBack = reuseDirectionSign ? directionSign : min(stepDir, ivec3(0));
@@ -205,9 +203,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                     uint lookupMaterial = material;
                     #endif
 
-                    uint blockModelMetadata = texelFetch(
-                        usam_pbrLUT2, ivec2(int(rayFaceMask), int(lookupMaterial)), 0
-                    ).x;
+                    uint blockModelMetadata = voxel_directionalModel(lookupMaterial, directionSign);
                     if (blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
                         vec3 blockLocalRayOrigin = posGrid - vec3(blockPos);
                         float modelT;

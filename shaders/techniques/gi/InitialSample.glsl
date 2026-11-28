@@ -111,15 +111,25 @@ restir_InitialCandidate restir_initialCandidate_makeVoxelFallback(vec3 rayDirVie
     return candidate;
 }
 
-vec3 gi_secondaryIndirect(vec3 V, vec3 worldPos, vec3 N, vec3 geomN, uint voxelMaterialID,
-                          ivec2 screenPixel, Material material, uint tracedFace) {
+bool gi_secondaryCached(vec3 V, vec3 worldPos, vec3 N, vec3 geomN, uint voxelMaterialID,
+                        Material material, uint tracedFace, out vec3 lighting) {
     #if SETTING_GI_USE_REFERENCE != 2
     #ifdef SETTING_RC_ENABLE
     if (voxelMaterialID != 0u) {
         RCLookupResult rc = rc_lookupDiffuseGI(V, worldPos, N, geomN, voxelMaterialID, tracedFace, material);
-        if (rc.weight > 0.0 && restir_initialSample_isFinite(rc.radiance)) return rc.radiance;
+        if (rc.weight > 0.0 && restir_initialSample_isFinite(rc.radiance)) {
+            lighting = rc.radiance;
+            return true;
+        }
     }
     #endif
+    #endif
+    lighting = vec3(0.0);
+    return false;
+}
+
+vec3 gi_secondaryHistory(ivec2 screenPixel, Material material) {
+    #if SETTING_GI_USE_REFERENCE != 2
     if (screenPixel.x >= 0) {
         ReprojectInfo info = reprojectInfo_unpack(transient_gi_diffuse_reprojInfo_fetch(screenPixel));
         if (info.historyResetFactor * global_historyResetFactor > 0.0
@@ -147,21 +157,13 @@ void gi_shadeScreen(inout restir_InitialCandidate candidate, float t, ivec2 pixe
         candidate.radiance = restir_initialSample_sanitizeRadiance(material.emissive);
         return;
     }
+    vec3 lighting;
+    if (!gi_secondaryCached(V, cachePos, N, geomN, voxelMaterialID, material, RC_INVALID, lighting)) {
+        lighting = gi_secondaryHistory(pixel, material);
+    }
     candidate.radiance = restir_initialSample_sanitizeRadiance(material.emissive
         + gi_hitDirectLighting(material, worldPos, V, N, geomN)
-        + gi_secondaryIndirect(V, cachePos, N, geomN, voxelMaterialID, pixel, material, RC_INVALID));
-}
-
-void gi_shadeVoxel(inout restir_InitialCandidate candidate, VoxelHit hit, float t,
-                   vec3 V, ivec2 screenPixel) {
-    candidate.hitDistance = t;
-    candidate.hitNormalView = coords_dir_worldToView(hit.normal);
-    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
-    if (!surface.valid) return;
-    candidate.radiance = restir_initialSample_sanitizeRadiance(surface.material.emissive
-        + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal)
-        + gi_secondaryIndirect(V, hit.hitPos, hit.normal, hit.normal, hit.materialID, screenPixel,
-                               surface.material, voxel_faceIndexFromNormal(hit.normal)));
+        + lighting);
 }
 
 float restir_initialSample_specularProbability(vec3 wiTangent, Material material) {

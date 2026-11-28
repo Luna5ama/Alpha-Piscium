@@ -20,7 +20,6 @@ bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, vec2 interval, int m
     int level = 1;
     ivec3 directionSign = floatBitsToInt(worldRayDir) >> 31;
     ivec3 boundOffsetMask = ~directionSign;
-    uint rayFaceMask = uint(42 + directionSign.x + (directionSign.y << 2) + (directionSign.z << 4));
 
     for (int i = 0; i < maxSteps; i++) {
         uint mortonPrefix = fullMorton >> (6u * uint(level - 1));
@@ -42,7 +41,7 @@ bool voxel_isVisible(vec3 worldRayOrigin, vec3 worldRayDir, vec2 interval, int m
                 if (voxel_intersectAlphaTestedCube(material, posGrid - vec3(blockPos),
                         worldRayDir, inverseRayDir, maxT, hitT, hitNormal)) return false;
             } else {
-                uint modelData = texelFetch(usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0).x;
+                uint modelData = voxel_directionalModel(material, directionSign);
                 if (modelData != 0u && material != MATERIAL_ID_WATER &&
                     voxel_intersectAlphaTestedBlockModel(modelData, material,
                         posGrid - vec3(blockPos), worldRayDir, inverseRayDir, maxT, true, hitT, hitNormal)) {

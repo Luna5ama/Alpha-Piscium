@@ -47,6 +47,22 @@ ivec2 gi_voxelScreenPixel(VoxelHit hit, vec3 hitView) {
     return gi_sameVoxelSurface(hit, hit.hitPos + mat3(gbufferModelViewInverse) * delta, pixel) ? pixel : ivec2(-1);
 }
 
+void gi_shadeVoxel(inout restir_InitialCandidate candidate, VoxelHit hit, float t,
+                   vec3 V, vec3 hitView) {
+    candidate.hitDistance = t;
+    candidate.hitNormalView = coords_dir_worldToView(hit.normal);
+    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
+    if (!surface.valid) return;
+    vec3 lighting;
+    if (!gi_secondaryCached(V, hit.hitPos, hit.normal, hit.normal, hit.materialID,
+                            surface.material, voxel_faceIndexFromNormal(hit.normal), lighting)) {
+        lighting = gi_secondaryHistory(gi_voxelScreenPixel(hit, hitView), surface.material);
+    }
+    candidate.radiance = restir_initialSample_sanitizeRadiance(surface.material.emissive
+        + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal)
+        + lighting);
+}
+
 void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p, vec3 worldPos, vec3 dir) {
     vec3 d = candidate.rayDirView;
     vec2 grid = vec2(0.0, GI_RAY_END);
@@ -75,7 +91,7 @@ void gi_resolveRay(inout restir_InitialCandidate candidate, ivec2 pixel, vec3 p,
                 candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_TRACE_EXHAUSTED;
                 return;
             }
-            gi_shadeVoxel(candidate, hit, voxelT, -dir, gi_voxelScreenPixel(hit, fma(d, vec3(voxelT), p)));
+            gi_shadeVoxel(candidate, hit, voxelT, -dir, fma(d, vec3(voxelT), p));
             return;
         }
         status = voxel_traceExhausted(hit, ray) ? GI_SCREEN_EXHAUSTED :

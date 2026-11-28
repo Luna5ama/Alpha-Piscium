@@ -4,7 +4,8 @@
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 
 layout(local_size_x = 256) in;
-const ivec3 workGroups = ivec3(768, 1, 1);
+// Eight directional boxes per material cover the six face entries in the same dispatch.
+const ivec3 workGroups = ivec3(512, 1, 1);
 
 struct ModelBounds {
     vec3 lo;
@@ -30,13 +31,24 @@ uint packBounds(ModelBounds bounds) {
 
 void main() {
     uint index = gl_GlobalInvocationID.x;
-    voxel_faceTexcoords[index] = uvec2(0);
+    if (index < VOXEL_FACE_TEXCOORD_COUNT) {
+        voxel_faceTexcoords[index] = uvec2(0u);
+        voxel_faceAlpha[index] = 0u;
+        voxel_faceKeys[index] = 0u;
+    }
     uint material = index >> 3u;
-    if (material >= uint(min(VOXEL_FACE_TEXCOORD_MATERIALS, textureSize(usam_pbrLUT2, 0).y))) return;
+    if (material >= VOXEL_FACE_TEXCOORD_MATERIALS) return;
+    if (material >= uint(textureSize(usam_pbrLUT2, 0).y)) {
+        voxel_modelBounds[index] = uvec4(0u);
+        return;
+    }
     uint octant = index & 7u;
     uint faceMask = 42u - (octant & 1u) - ((octant & 2u) << 1u) - ((octant & 4u) << 2u);
     uint model = texelFetch(usam_pbrLUT2, ivec2(faceMask, material), 0).x;
-    if (model == 0u) return;
+    if (model == 0u) {
+        voxel_modelBounds[index] = uvec4(0u);
+        return;
+    }
     bool axisAligned = (model & 0x80000000u) != 0u;
 
     ivec2 quad = ivec2(bitfieldExtract(model, 9, 11) * 2u, bitfieldExtract(model, 20, 5));
@@ -100,5 +112,5 @@ void main() {
             }
         }
     }
-    voxel_modelBounds[index] = packedBounds;
+    voxel_modelBounds[index] = uvec4(packedBounds, model, 0u);
 }

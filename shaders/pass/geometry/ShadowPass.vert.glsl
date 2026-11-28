@@ -136,12 +136,15 @@ void main() {
         if (materialID != 0u) {
             uint faceIdx = voxel_faceIndexFromNormal(worldNormal);
             uint index = voxel_faceTexcoordIndex(materialID, faceIdx);
-            uint keyIndex = index + VOXEL_FACE_TEXCOORD_COUNT;
             #ifdef SHADOW_PASS_ALPHA_TEST
-            atomicMax(voxel_faceTexcoords[keyIndex].y, floatBitsToUint(alphaTestRef));
+            uint threshold = floatBitsToUint(alphaTestRef);
+            uint lowerBound = voxel_modelBounds[materialID * 8u + faceIdx].w;
+            if (threshold > lowerBound) {
+                atomicMax(voxel_faceAlpha[index], threshold);
+            }
             #endif
 
-            if (((allocID & 31u) == (uint(frameCounter) & 31u)) || voxel_faceTexcoords[keyIndex].x == 0u) {
+            if (((allocID & 31u) == (uint(frameCounter) & 31u)) || voxel_faceKeys[index] == 0u) {
                 // Store atlas texcoord range for this material+face.
                 vec2 texHalfExtent = abs(texcoord - mc_midTexCoord);
                 vec2 texMin = mc_midTexCoord - texHalfExtent;
@@ -152,7 +155,7 @@ void main() {
                 uint encodedSpriteSize = clamp(int(avgSpriteSize * 2.0 + 20.0), 0, 15);
                 uint key = packU14(1.0 - texMin.y) | (packU14(1.0 - texMin.x) << 14) | (encodedSpriteSize << 28);
 
-                if (atomicMax(voxel_faceTexcoords[keyIndex].x, key) <= key) {
+                if (atomicMax(voxel_faceKeys[index], key) <= key) {
                     uvec2 packedData = uvec2(packUnorm2x16(texMin), packUnorm2x16(texMax));
                     voxel_faceTexcoords[index] = packedData;
                 }
