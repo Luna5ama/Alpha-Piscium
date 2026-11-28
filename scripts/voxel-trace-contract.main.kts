@@ -226,6 +226,10 @@ if (Regex("(?m)\\b(?:const\\s+)?(?:vec[234]|u?int|float|bool)\\s+\\w+\\s*\\[").c
 
 reject(hardcoded, Regex("blockModelMetadata|usam_pbrLUT2"), "unconditional model metadata decode")
 expect(shadowVertex, "uint lookupMaterial = hardcoded.isKnown ? materialID : 0u;", "safe voxelization model lookup")
+expect(shadowVertex, Regex("""if \(lookupMaterial != 0u\) \{\s*uint faceIdx = voxel_faceIndexFromNormal"""), "skip face writes for unmapped vertices")
+expect(shadowVertex, "uint lowerBound = voxel_modelBounds[materialID * 8u + faceIdx].w;", "read immutable pre-shadow alpha threshold")
+expect(shadowVertex, Regex("""if \(threshold > lowerBound\) \{\s*atomicMax\(voxel_faceAlpha\[index\], threshold\);"""), "preserve raising face thresholds")
+expect(read("shaders/pass/begin/ClearVoxelData.comp.glsl"), "voxel_modelBounds[index].w = bound;", "publish pre-shadow alpha threshold")
 expect(shadowVertex, "uint blockModelMetadata = texelFetch(usam_pbrLUT2, ivec2(63, int(lookupMaterial)), 0).x;", "voxelization model metadata lookup")
 
 expect(builder, Regex("#define\\s+VOXEL_MATERIAL_DATA_MODIFIER\\s+(?:restrict\\s+)?readonly\\s+buffer"), "read-only tree-builder material buffer")
